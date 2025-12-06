@@ -16,21 +16,23 @@
     - [x] Requirement: OOP Refactoring
     - [x] Requirement: Support for future `project_usa`/`project_cn`
 - [x] Create Technical Design Document (`implementation_plan.md`) <!-- id: 2 -->
-    - [x] Propose Tech Stack (Python Backend + React Frontend)
+    - [x] Propose Tech Stack (Switched to Streamlit Dashboard)
     - [x] Design OOP Class Structure for Crawler
     - [x] Design "Shared Package" architecture
-    - [ ] Design "Mars" Strategy Module (Volatility & Rebalancing)
-    - [ ] Design "CB" Strategy Module (Bond Data & Notifications)
+    - [x] Design "Mars" Strategy Module (Volatility & Rebalancing)
+    - [x] Design "CB" Strategy Module (Bond Data & Notifications)
 
-## Phase 2: Implementation (TBD)
-- [ ] **Infrastructure Layer**
-    - [ ] Setup FastAPI + React Project Structure
-    - [ ] Implement TWSE Crawler (Price & Dividend)
-    - [ ] Implement CB/OTC Crawler (Bond Data)
-- [ ] **Strategy Layer**
-    - [ ] Implement `MarsStrategy` (StdDev Filter, Top 50 Selection)
-    - [ ] Implement `CBStrategy` (Tracking Rules from Spreadsheet)
-- [ ] **UI Layer**
-    - [ ] Build "Mars" Portfolio Dashboard
-    - [ ] Build "CB" Watchlist & Notification Settings
-    - [ ] Build Bar Chart Race Visualization
+## Phase 2: Implementation
+- [x] **Infrastructure & Core**
+    - [x] Setup Project Structure (Streamlit Prototype Done)
+    - [x] Implement TWSE Crawler (Price & Dividend)
+    - [x] Implement CB Strategy Logic (User Rules)
+    - [x] Clean up legacy files
+- [x] **UI Layer (Web App Upgrade)**
+    - [x] **Frontend**: Initialize Vite + React Project
+    - [x] **Frontend**: Implement Mars Dashboard (Table & API)
+    - [x] **Frontend**: Implement CB Calculator Component
+    - [x] **Frontend**: Integrate Plotly.js for Bar Chart Race
+- [ ] **Data & Automation (Next)**
+    - [ ] **Mars Batch Integration**: Connect Dashboard to `stock_list` to analyze *all* stocks.
+    - [ ] **CB Automation**: Crawl TPEX for real-time bond prices.

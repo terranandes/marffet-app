@@ -15,10 +15,27 @@ Key objectives from README:
 >     *   **Backend**: Python (FastAPI) - Robust, easy to integrate with async crawler.
 >     *   **Frontend**: React (Vite) - Essential for high-performance animations like "Bar Chart Race".
 >     *   **Pros**: Premium feel, highly interactive, future-proof.
-> *   **Option B: Data Dashboard**
->     *   **Stack**: Streamlit.
->     *   **Pros**: Quick to write.
->     *   **Cons**: Limited animation control (Bar Chart Race might be laggy or static).
+### User Interface (React Web App)
+#### [NEW] `frontend/` (Vite + React + Tailwind)
+-   **Dashboard Layout**: Sidebar navigation, clean "Premium" aesthetic.
+-   **Tab 1: Mars Strategy**:
+    -   API integration to `GET /api/mars/portfolio`.
+    -   Table component (TanStack Table) for the Top 50.
+-   **Tab 2: CB Strategy**:
+    -   Interactive Form for `CBPrice`, `StockPrice`, `ConvPrice`.
+    -   Displays colored "Signal Card" (Red/Green/Blue logic).
+-   **Tab 3: Visualization**:
+    -   **Plotly.js** component to render the Bar Chart Race.
+
+### Backend Application (FastAPI)
+#### [MODIFY] `app/main.py`
+-   Ensure CORS is enabled for local development.
+-   Serve static files (optional, or just API mode).
+-   Endpoints remain similar to current plan, but standardized JSON responses.
+
+### Core Logic (Shared)
+-   `project_tw/crawler.py`: (Unchanged)
+-   `project_tw/strategies/`: (Unchanged)
 
 ## Proposed Changes
 

@@ -1,0 +1,14 @@
+POST /piggy/s/ci/calcStock HTTP/1.1
+Host: www.moneycome.in
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 11.2; rv:86.0) Gecko/20100101 Firefox/86.0
+Accept: application/json
+Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Referer: https://www.moneycome.in/tool/compound_interest?stkCode=5904
+content-type: application/json
+Origin: https://www.moneycome.in
+Content-Length: 333
+Connection: keep-alive
+Cookie: _piggy_session=Uzl5emtaRUNEZSsxaXFXNHFyZE9paDNTeXhMbDZHbjJPU2dLOENpU1N0MkFJeHh0RTE0ZmpPZ0I4Ukk4RDJrTy9EMkpralhjMURUaHlRdDZrY3BsZkdnSmN4UmZWSlc2Zzk0akZFaXk1cmRLaktjdTlDaEFDaFVZRG95RGxjN0FuWXduTDNiL1hDU1Y1MjRYdlRoSnlBPT0tLWJ4eHVSbkhTelVXMytWYXFsaEovdHc9PQ%3D%3D--f8489a49f09f834b5197ec159471d9bb005768fa; _ga=GA1.2.1972951413.1616441129; _gid=GA1.2.1654722950.1616441129; __gads=ID=f8ba356996d49bc5-221c281fccc6003e:T=1616441129:RT=1616441129:S=ALNI_MZl1LmvJfoCmCGYcx6fVGcd12p3PA; piggy_account_nickname=terranwu; piggy_account_token=4495451d712843cf5cdc19107c8abdeb06833b0cd4e2e4fb91819be16d67ce52329045d8d136212636c4fb3a81323d07380f8eb3a5d9b0b3bc4789b13e5206dd; piggy_account_language=zh-TW
+
+{"token":"4495451d712843cf5cdc19107c8abdeb06833b0cd4e2e4fb91819be16d67ce52329045d8d136212636c4fb3a81323d07380f8eb3a5d9b0b3bc4789b13e5206dd","stkCode":"5904","principle":1000000,"invAmtPerPeriod":60000,"startYear":2006,"endYear":2021,"isDividendReinvestment":true,"isCrashInvestment":false,"crashThreshold":0.3,"invAmtForCrash":60000}

@@ -1,0 +1,35 @@
+200
+<PreparedRequest [POST]>
+{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36',
+'Accept-Encoding': 'gzip, deflate, br', 
+'Accept': 'application/json', 
+'Connection': 'keep-alive', 
+'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3', 
+'Content-Length': '352', 
+'content-type': 'application/json', 
+'Cookie': 'piggy_account_nickname=terranwu; piggy_account_token=4495451d712843cf5cdc19107c8abdeb06833b0cd4e2e4fb91819be16d67ce52329045d8d136212636c4fb3a81323d071519d6e3b57eaea79dfc9ca0ce2e187c; piggy_account_language=zh-TW; _gat_gtag_UA_56094162_5=1; _piggy_session=ZzB4OXdlbHZZbExKclJBenZxWXVEZjJoZU9aYXhyUWQxOWxSRXZzMXZPRk5tODVwUVhXN2tIUy9QZWovejRBZWxLc0poZGxyUTltakErdGpMaCtueVN5T1VQV3U0TTJ6VG9XdHNsSGJBd0JYT1RFSzRlT1p6T3R4VG92Q21ycVIrV0FmaHZHdXczd05hTlk5QmNCS3R3PT0tLWt1eFMvcUs1NWdhcFB6MnEyTWt0U1E9PQ==--7e8dbabffd5f84a9e054593a3d3d4f29db8f4d00', 
+'Host': 'www.moneycome.in',
+'Origin': 'https://www.moneycome.in',
+'sec-ch-ua': '"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
+'sec-ch-ya-mobile': '?0', 
+'Sec-Fetch-Dest': 'empty', 'Sec-Fetch-Mode': 'cors', 
+'Sec-Fetch-Site': 'same-origin', 
+'Referer': 'https://www.moneycome.in/tool/compound_interest?stkCode=5904'}
+
+{"invAmt":1960000,
+
+ "buyAtOpening":{"fv":90743723,"roi":"4529.8 %","yroi":"27.1 %","receivedCash":11757568,"chartPoints":[{"y":2006,"qty":47501,"marketValue":1037907,"cashReceived":61255},{"y":2007,"qty":53801,"marketValue":1076028,"cashReceived":78734},{"y":2008,"qty":61584,"marketValue":1373326,"cashReceived":96842},{"y":2009,"qty":74410,"marketValue":2131843,"cashReceived":110851},{"y":2010,"qty":92381,"marketValue":2771429,"cashReceived":37205},{"y":2011,"qty":101843,"marketValue":3518669,"cashReceived":258667},{"y":2012,"qty":110636,"marketValue":8352995,"cashReceived":334044},{"y":2013,"qty":115836,"marketValue":21603329,"cashReceived":453606},{"y":2014,"qty":119967,"marketValue":28732049,"cashReceived":556011},{"y":2015,"qty":124254,"marketValue":37773245,"cashReceived":887754},{"y":2016,"qty":128511,"marketValue":47998878,"cashReceived":1093436},{"y":2017,"qty":133521,"marketValue":49736422,"cashReceived":1375068},{"y":2018,"qty":139295,"marketValue":44086915,"cashReceived":1735768},{"y":2019,"qty":145288,"marketValue":61238964,"cashReceived":2193899},{"y":2020,"qty":150135,"marketValue":86477780,"cashReceived":2484428},{"y":2021,"qty":150238,"marketValue":90743723,"cashReceived":0}]},
+
+"buyAtHighest":{"fv":84295889,"roi":"4200.8 %","yroi":"26.5 %","receivedCash":10961920,"chartPoints":[{"y":2006,"qty":47235,"marketValue":1032095,"cashReceived":61255},{"y":2007,"qty":52569,"marketValue":1051390,"cashReceived":78293},{"y":2008,"qty":59279,"marketValue":1321928,"cashReceived":94625},{"y":2009,"qty":70998,"marketValue":2034106,"cashReceived":106703},{"y":2010,"qty":87739,"marketValue":2632169,"cashReceived":35499},{"y":2011,"qty":95980,"marketValue":3316110,"cashReceived":245669},{"y":2012,"qty":103436,"marketValue":7809397,"cashReceived":314815},{"y":2013,"qty":107876,"marketValue":20118903,"cashReceived":424086},{"y":2014,"qty":111657,"marketValue":26741921,"cashReceived":517806},{"y":2015,"qty":115566,"marketValue":35132099,"cashReceived":826264},{"y":2016,"qty":119468,"marketValue":44621431,"cashReceived":1016982},{"y":2017,"qty":124116,"marketValue":46233154,"cashReceived":1278311},{"y":2018,"qty":129490,"marketValue":40983646,"cashReceived":1613506},{"y":2019,"qty":135008,"marketValue":56905847,"cashReceived":2039471},{"y":2020,"qty":139471,"marketValue":80335449,"cashReceived":2308636},{"y":2021,"qty":139563,"marketValue":84295889,"cashReceived":0}]},
+
+"buyAtLowest":{"fv":93868781,"roi":"4689.2 %","yroi":"27.4 %","receivedCash":12152649,"chartPoints":[{"y":2006,"qty":48287,"marketValue":1055080,"cashReceived":61255},{"y":2007,"qty":55221,"marketValue":1104429,"cashReceived":80036},{"y":2008,"qty":63644,"marketValue":1419270,"cashReceived":99399},{"y":2009,"qty":76865,"marketValue":2202169,"cashReceived":114560},{"y":2010,"qty":95459,"marketValue":2863769,"cashReceived":38432},{"y":2011,"qty":105283,"marketValue":3637515,"cashReceived":267285},{"y":2012,"qty":114337,"marketValue":8632441,"cashReceived":345327},{"y":2013,"qty":119705,"marketValue":22325041,"cashReceived":468782},{"y":2014,"qty":124006,"marketValue":29699329,"cashReceived":574586},{"y":2015,"qty":128442,"marketValue":39046469,"cashReceived":917641},{"y":2016,"qty":132846,"marketValue":49618018,"cashReceived":1130293},{"y":2017,"qty":138029,"marketValue":51415735,"cashReceived":1421453},{"y":2018,"qty":144085,"marketValue":45603028,"cashReceived":1794375},{"y":2019,"qty":150285,"marketValue":63345319,"cashReceived":2269345},{"y":2020,"qty":155304,"marketValue":89455202,"cashReceived":2569881},{"y":2021,"qty":155412,"marketValue":93868781,"cashReceived":0}]},
+
+"receivedCash":11757568,
+"receivedSRE":5.27,
+"yearRange":"2006 ~ 2021",
+"n":16,
+"receivedCD":95.15,
+"crashInfo":{"isCrashInvestment":false,"handles":[],"years":"","invCnt":0,"invAmt":0,"invQty":0},
+"stkName":"寶雅",
+"timeElapsed":29,
+"resultCode":200}

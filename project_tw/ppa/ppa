@@ -1,0 +1,101 @@
+toal stock size :2622
+max info per stock : 121
+
+main.py (Sync crawlering)
+time spend : ~24hrs
+
+main_async_httpx.py (Async crawlering)
+Web outstaning capibility is about ~245
+
+CFG1: #Too many retries
+stock_chunk = 2700
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2021
+end_year_lb = 2007
+end_year_ub = 2022
+time spend : ~12hrs
+
+#Get all
+CFG2: (The best performance for catching all)
+stock_chunk = 245
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2021
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+1:29:09.338138
+1:08:48.485324
+
+CFG3: 
+stock_chunk = 2
+info_chunk   = 123
+start_year_lb = 2006
+start_year_ub = 2021
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+2:22:31.018193
+
+CFG2:
+stock_chunk = 239 (2622/11)
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2021
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+1:31:10.795318
+
+CFG2:
+stock_chunk = 263
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2021
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+1:34:38.415017
+
+#Get sufficiency
+CFG4: 
+stock_chunk = 239 (2622/11)
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2007
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+0:12:49.799099
+
+CFG4: (The Best for sufficiency)
+stock_chunk = 245
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2007
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+0:11:58.261872
+
+CFG4: 
+stock_chunk = 263
+info_chunk   = 1
+start_year_lb = 2006
+start_year_ub = 2007
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+0:12:29.221714
+
+CFG4: 
+stock_chunk = 2
+info_chunk   = 123
+start_year_lb = 2006
+start_year_ub = 2007
+end_year_lb = 2007
+end_year_ub = 2022
+time spend :
+0:17:03.084048
+

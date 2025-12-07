@@ -19,7 +19,7 @@ export default function Visualization() {
                 start_year: 2020, // Shorten range for faster demo response
                 end_year: 2023
             };
-            const resp = await axios.post('http://localhost:8000/api/data/race', payload);
+            const resp = await axios.post('/api/data/race', payload);
 
             // Plotly JSON from backend has { data: [], layout: {}, frames: [] }
             setData(resp.data.data);

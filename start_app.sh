@@ -13,10 +13,10 @@ fi
 
 source .venv/bin/activate
 
-# Check if packages are installed (simple check for fastapi)
-if ! pip show fastapi &> /dev/null; then
+# Check if packages are installed (check for plotly to ensure full set)
+if ! pip show plotly &> /dev/null; then
     echo "📦 Installing Backend Dependencies..."
-    pip install fastapi uvicorn httpx pandas numpy openpyxl
+    pip install fastapi uvicorn httpx pandas numpy openpyxl plotly
 fi
 
 echo "✅ Backend Ready"

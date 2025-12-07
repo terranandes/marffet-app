@@ -21,12 +21,12 @@ export default function CBStrategy() {
 
     const handleCalculate = async () => {
         try {
-            const resp = await axios.post('http://localhost:8000/api/cb/evaluate', {
+            const response = await axios.post('/api/cb/evaluate', {
                 cb_price: cbPrice,
                 stock_price: stockPrice,
                 conversion_price: convPrice
             });
-            setResult(resp.data);
+            setResult(response.data);
         } catch (err) {
             console.error("API Error", err);
         }

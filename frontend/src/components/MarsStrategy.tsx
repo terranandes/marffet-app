@@ -87,8 +87,8 @@ export default function MarsStrategy() {
                 end_year: 2024
             };
 
-            const resp = await axios.post('http://localhost:8000/api/mars/analyze', payload);
-            setData(resp.data.results);
+            const response = await axios.post('/api/mars/analyze', payload);
+            setData(response.data.results);
         } catch (err) {
             console.error(err);
             setError('Failed to fetch analysis data. Ensure backend is running.');

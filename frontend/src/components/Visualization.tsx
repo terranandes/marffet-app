@@ -1,72 +1,79 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Plot from 'react-plotly.js';
+import { Play, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 export default function Visualization() {
     const [data, setData] = useState<any[]>([]);
     const [layout, setLayout] = useState<any>({});
     const [frames, setFrames] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    // Generate Demo Data (Client-side for now)
-    const generateRace = () => {
-        // Should be moved to backend/plot_race.py logic later
-        // Dummy Plotly Animation structure
-        const years = ['2019', '2020', '2021', '2022', '2023'];
-        const x1 = [10, 40, 60, 80, 100];
-        const x2 = [20, 30, 50, 70, 90];
+    const loadRace = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const payload = {
+                stock_codes: ['2330', '2317', '2454', '2412', '0050', '2303', '2881', '2882'],
+                start_year: 2020, // Shorten range for faster demo response
+                end_year: 2023
+            };
+            const resp = await axios.post('http://localhost:8000/api/data/race', payload);
 
-        // Base trace
-        // const pad = {x: x1[0], y: 'TSMC', type: 'bar', orientation: 'h'};
+            // Plotly JSON from backend has { data: [], layout: {}, frames: [] }
+            setData(resp.data.data);
+            setLayout(resp.data.layout);
+            setFrames(resp.data.frames);
 
-        setData([
-            { x: [x1[0]], y: ['TSMC'], type: 'bar', orientation: 'h', name: 'TSMC' },
-            { x: [x2[0]], y: ['UMC'], type: 'bar', orientation: 'h', name: 'UMC' }
-        ]);
-
-        setLayout({
-            title: 'Stock ROI Race (Demo)',
-            xaxis: { title: 'ROI (%)', range: [0, 120] },
-            yaxis: { title: 'Stock' },
-            updatemenus: [{
-                type: 'buttons',
-                buttons: [{
-                    label: 'Play',
-                    method: 'animate',
-                    args: [null, { frame: { duration: 500, redraw: true }, fromcurrent: true }]
-                }]
-            }]
-        });
-
-        const frs = years.map((yr, i) => ({
-            name: yr,
-            data: [
-                { x: [x1[i]], y: ['TSMC'] },
-                { x: [x2[i]], y: ['UMC'] }
-            ]
-        }));
-
-        setFrames(frs);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load visualization. Ensure backend is running.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    useEffect(() => {
-        generateRace();
-    }, []);
+    // Load once automatically or via button? Let's use button for control
+    // useEffect(() => { loadRace(); }, []);
 
     return (
-        <div className="space-y-6 h-full">
-            <header>
-                <h2 className="text-3xl font-bold text-slate-900">Market Visualization</h2>
-                <p className="text-slate-500 mt-1">Interactive analysis powered by Plotly.</p>
+        <div className="space-y-6 h-full flex flex-col">
+            <header className="flex items-center justify-between shrink-0">
+                <div>
+                    <h2 className="text-3xl font-bold text-slate-900">Market Visualization</h2>
+                    <p className="text-slate-500 mt-1">Dynamic Bar Chart Race (Cumulative ROI).</p>
+                </div>
+                <button
+                    onClick={loadRace}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                    <span>{loading ? 'Generating...' : 'Start Race'}</span>
+                </button>
             </header>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-[600px]">
-                {data.length > 0 && (
+            {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm shrink-0">
+                    {error}
+                </div>
+            )}
+
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex-1 min-h-[500px] relative">
+                {data.length > 0 ? (
                     <Plot
                         data={data}
-                        layout={layout}
+                        layout={{ ...layout, autosize: true }}
                         frames={frames}
                         style={{ width: '100%', height: '100%' }}
                         useResizeHandler={true}
+                        config={{ responsive: true }}
                     />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+                        {loading ? 'Fetching data & generating animation lines...' : 'Click "Start Race" to begin visualization.'}
+                    </div>
                 )}
             </div>
         </div>

@@ -2,45 +2,47 @@ import { useState } from 'react';
 import { Calculator, TrendingUp, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
-type SignalType = 'BUY' | 'SELL' | 'HOLD' | 'WAIT';
-type Advice = {
-    signal: SignalType;
-    color: string;
-    action: string;
-    detail: string;
-};
+
 
 export default function CBStrategy() {
     const [cbPrice, setCbPrice] = useState(105.0);
     const [stockPrice, setStockPrice] = useState(100.0);
     const [convPrice, setConvPrice] = useState(95.0);
 
-    // Logic from python script
-    const parityPrice = (100 / convPrice) * stockPrice;
-    const premiumRate = ((cbPrice - parityPrice) / parityPrice) * 100;
+    const [result, setResult] = useState<{
+        premium_rate: number;
+        signal: string;
+        action: string;
+        detail: string;
+        color: string;
+    } | null>(null);
 
-    let advice: Advice = { signal: 'HOLD', color: 'bg-gray-500', action: 'Wait', detail: 'No clear signal.' };
+    const handleCalculate = async () => {
+        try {
+            const resp = await axios.post('http://localhost:8000/api/cb/evaluate', {
+                cb_price: cbPrice,
+                stock_price: stockPrice,
+                conversion_price: convPrice
+            });
+            setResult(resp.data);
+        } catch (err) {
+            console.error("API Error", err);
+        }
+    };
 
-    if (premiumRate < -1) {
-        advice = { signal: 'BUY', color: 'bg-red-500', action: 'Arbitrage Opportunity', detail: 'Buy CB, Short Stock. Asset Swap.' };
-    } else if (premiumRate < 3.5) {
-        advice = { signal: 'BUY', color: 'bg-orange-500', action: 'Strong Buy', detail: 'Low premium, good entry point.' };
-    } else if (premiumRate < 7) {
-        advice = { signal: 'HOLD', color: 'bg-green-500', action: 'Hold', detail: 'Fair value range.' };
-    } else if (premiumRate < 15) {
-        advice = { signal: 'SELL', color: 'bg-blue-500', action: 'Consider Sell', detail: 'Premium getting high.' };
-    } else if (premiumRate < 30) {
-        advice = { signal: 'SELL', color: 'bg-purple-500', action: 'Sell CB, Buy Stock', detail: 'High premium. Switch to stock.' };
-    } else {
-        advice = { signal: 'SELL', color: 'bg-slate-900', action: 'Exit Immediately', detail: 'Premium > 30%. Irrational pricing.' };
-    }
+    // Initial calculation on component mount
+    useState(() => {
+        handleCalculate();
+    });
+
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <header>
                 <h2 className="text-3xl font-bold text-slate-900">CB Arbitrage Calculator</h2>
-                <p className="text-slate-500 mt-1">Convertible Bond real-time signal evaluator based on premium rates.</p>
+                <p className="text-slate-500 mt-1">Convertible Bond real-time signal evaluator (Powered by FastAPI).</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -52,51 +54,64 @@ export default function CBStrategy() {
                     </h3>
 
                     <div className="space-y-4">
-                        <InputGroup label="CB Market Price" value={cbPrice} onChange={setCbPrice} unit="$" />
-                        <InputGroup label="Stock Market Price" value={stockPrice} onChange={setStockPrice} unit="$" />
-                        <InputGroup label="Conversion Price" value={convPrice} onChange={setConvPrice} unit="$" />
+                        <InputGroup label="CB Market Price" value={cbPrice} onChange={(v) => { setCbPrice(v); handleCalculate(); }} unit="$" />
+                        <InputGroup label="Stock Market Price" value={stockPrice} onChange={(v) => { setStockPrice(v); handleCalculate(); }} unit="$" />
+                        <InputGroup label="Conversion Price" value={convPrice} onChange={(v) => { setConvPrice(v); handleCalculate(); }} unit="$" />
                     </div>
 
                     <div className="pt-4 border-t border-slate-100">
                         <div className="flex justify-between text-sm">
-                            <span className="text-slate-500">Parity Price</span>
-                            <span className="font-mono font-medium">{parityPrice.toFixed(2)}</span>
+                            <button
+                                onClick={handleCalculate}
+                                className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                Analyze via API
+                            </button>
                         </div>
-                        <div className="flex justify-between text-sm mt-2">
-                            <span className="text-slate-500">Premium Rate (I2)</span>
-                            <span className={cn("font-mono font-bold", premiumRate < 0 ? "text-red-600" : "text-green-600")}>
-                                {premiumRate.toFixed(2)}%
-                            </span>
-                        </div>
+                        {result && (
+                            <div className="flex justify-between text-sm mt-4">
+                                <span className="text-slate-500">Premium Rate (I2)</span>
+                                <span className={cn("font-mono font-bold", result.premium_rate < 0 ? "text-red-600" : "text-green-600")}>
+                                    {result.premium_rate.toFixed(2)}%
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Signal Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                        "rounded-xl p-8 flex flex-col justify-between text-white shadow-xl transition-colors duration-500",
-                        advice.color
-                    )}
-                >
-                    <div>
-                        <div className="flex items-center gap-2 text-white/80 uppercase text-xs font-bold tracking-wider mb-2">
-                            Signal
+                {result && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        key={result.signal}
+                        className={cn(
+                            "rounded-xl p-8 flex flex-col justify-between text-white shadow-xl transition-colors duration-500",
+                            // Map API color names to Tailwind classes if needed, or use inline styles if API sends hex.
+                            // API sends: 'red', 'orange', 'green', 'blue', 'purple', 'slate-900'
+                            // We need to map them or trust they match tailwind standard colors? 
+                            // The API sends simple names (e.g. 'orange'). Tailwind needs 'bg-orange-500'.
+                            `bg-${result.color === 'slate-900' ? 'slate-900' : result.color + '-500'}`
+                        )}
+                    >
+                        <div>
+                            <div className="flex items-center gap-2 text-white/80 uppercase text-xs font-bold tracking-wider mb-2">
+                                Signal
+                            </div>
+                            <h2 className="text-5xl font-extrabold tracking-tight">{result.signal}</h2>
+                            <p className="text-xl mt-2 font-medium opacity-90">{result.action}</p>
                         </div>
-                        <h2 className="text-5xl font-extrabold tracking-tight">{advice.signal}</h2>
-                        <p className="text-xl mt-2 font-medium opacity-90">{advice.action}</p>
-                    </div>
 
-                    <div className="mt-8 pt-6 border-t border-white/20">
-                        <div className="flex items-start gap-3">
-                            <Info className="w-5 h-5 mt-0.5 opacity-80" />
-                            <p className="text-sm leading-relaxed opacity-90">
-                                {advice.detail}
-                            </p>
+                        <div className="mt-8 pt-6 border-t border-white/20">
+                            <div className="flex items-start gap-3">
+                                <Info className="w-5 h-5 mt-0.5 opacity-80" />
+                                <p className="text-sm leading-relaxed opacity-90">
+                                    {result.detail}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                )}
             </div>
 
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 text-blue-800 text-sm">

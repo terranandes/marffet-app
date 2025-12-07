@@ -13,7 +13,7 @@ class TWSECrawler:
         self.data_dir = data_dir
         os.makedirs(data_dir, exist_ok=True)
         # TWSE has strict rate limits (suggestion: 3s delay)
-        self.rate_limit_delay = 3.5 
+        self.rate_limit_delay = 1.5 
 
     def _taiwan_to_ad(self, date_str):
         """Convert '113/01/02' to '2024-01-02'"""

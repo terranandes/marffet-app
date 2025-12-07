@@ -33,6 +33,6 @@
     - [x] **Frontend**: Implement Mars Dashboard (Table & API)
     - [x] **Frontend**: Implement CB Calculator Component
     - [x] **Frontend**: Integrate Plotly.js for Bar Chart Race
-- [ ] **Data & Automation (Next)**
-    - [ ] **Mars Batch Integration**: Connect Dashboard to `stock_list` to analyze *all* stocks.
+- [x] **Data & Automation (Next)**
+    - [x] **Mars Batch Integration**: Connect Dashboard to `stock_list` to analyze *all* stocks. (Implemented via API batch)
     - [ ] **CB Automation**: Crawl TPEX for real-time bond prices.

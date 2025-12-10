@@ -11,8 +11,35 @@ async def main():
     # For now, we use a sample list + the user's demo request
     # If references/stock_list.xlsx exists, we could use it.
     
-    stock_universe = ['2330', '2317', '2454', '2412', '0050', '2303', '2881', '2882']
-    # TODO: Load full list from references if needed
+    # Load Full List
+    stock_list_path = "project_tw/stock_list.csv"
+    if os.path.exists(stock_list_path):
+        df_list = pd.read_csv(stock_list_path)
+        # Ensure 'code' is string
+        df_list['code'] = df_list['code'].astype(str)
+        # Handle 'name'
+        name_map = dict(zip(df_list['code'], df_list['name']))
+        stock_universe = df_list['code'].tolist()
+        # stock_universe = stock_universe[:50] # Debug Limit
+        # stock_universe = stock_universe[:50] # Debug Limit
+        # USER REQUEST: Full Scan (incl ETFs like 0050)
+        # We override to ["ALL"] to let MarsStrategy auto-detect from Market Data
+        pass
+
+    # Force ALL mode
+    stock_universe = ["ALL"]
+    name_map = {} # Names will be missing initially, but we can try to fill them from cache?
+    # Actually, we can load names from stock_list if available, but for new ones we rely on what?
+    # The current code tries to map from name_map. If missing, name remains code.
+    # That is acceptable for now.
+    
+    if os.path.exists(stock_list_path):
+         df_list = pd.read_csv(stock_list_path)
+         df_list['code'] = df_list['code'].astype(str)
+         name_map = dict(zip(df_list['code'], df_list['name']))
+         
+    # else:
+    #     pass
     
     start_year = 2006
     end_year = 2025 # As per user filename request
@@ -31,8 +58,21 @@ async def main():
     # Export
     output_dir = "project_tw/output"
     os.makedirs(output_dir, exist_ok=True)
-    filename = f"stock_list_s{start_year}e{end_year}_filtered.xlsx"
+    filename = f"stock_list_s{start_year}e{end_year}_unfiltered.xlsx"
     output_path = os.path.join(output_dir, filename)
+    
+    # Enrich Names
+    for r in results:
+        code = r.get('stock_code')
+        if code and code in name_map:
+            r['stock_name'] = name_map[code]
+            
+    # Filter and Rank (if needed, or keep all for "Scan All")
+    # User said "Scan All", so we might want to skip filtering logic and just Save All
+    # But MarsStrategy.filter_and_rank stores top_50.
+    # Let's Modify save_to_excel to align with "results".
+    # Or just assign strategy.top_50 = results (All)
+    strategy.top_50 = results
     
     strategy.save_to_excel(output_path)
 

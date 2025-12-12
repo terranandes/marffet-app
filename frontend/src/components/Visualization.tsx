@@ -14,12 +14,15 @@ export default function Visualization() {
         setLoading(true);
         setError('');
         try {
+            // Payload: Request smart candidates
             const payload = {
-                stock_codes: ['2330', '2317', '2454', '2412', '0050', '2303', '2881', '2882'],
-                start_year: 2020, // Shorten range for faster demo response
-                end_year: 2023
+                stock_codes: ['MARS_TOP50'],
+                start_year: 2006,
+                end_year: 2025
             };
-            const resp = await axios.post('/api/data/race', payload);
+            const resp = await axios.post('/api/data/race', payload, {
+                timeout: 300000 // 5 minutes
+            });
 
             // Plotly JSON from backend has { data: [], layout: {}, frames: [] }
             setData(resp.data.data);

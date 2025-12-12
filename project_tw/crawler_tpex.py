@@ -135,34 +135,20 @@ class TPEXCrawler:
                     for i, t in enumerate(tables):
                         title = t.get('title', '')
                         rows = t.get('data', [])
-                        # Search for Price Table
-                        # Usually contains "收盤" (Closing)
-                        # Or just scan ALL tables for Code + Price?
-                        # Let's inspect rows.
-                        if not rows:
-                            continue
-                            
-                        # Sample row check - REMOVED DEBUG PRINTS
+                        if not rows: continue
                         
-                        # Inspect rows
                         for row in rows:
                              try:
                                  code = row[0]
-                                 # Heuristic: If row has > 2 cols, try col 2 as price?
                                  if len(row) > 2:
                                      p_str = row[2]
                                      if isinstance(p_str, str):
                                          p_str = p_str.replace(',', '')
-                                         # Check if float
-                                         if p_str.replace('.','').isdigit() or (p_str.replace('.','').replace('-','').isdigit() and '-' in p_str): # Handle negative/float
-                                            # Wait, prices are positive. But change is +/-
-                                            # Close price is positive.
+                                         if p_str.replace('.','').isdigit() or (p_str.replace('.','').replace('-','').isdigit() and '-' in p_str):
                                              try:
                                                  prices[code] = float(p_str)
-                                             except:
-                                                 pass
-                             except:
-                                 pass
+                                             except: pass
+                             except: pass
                                  
                 else:
                     print(f"  No aaData or tables found. Keys: {list(data.keys())}")
@@ -178,6 +164,14 @@ class TPEXCrawler:
         # If loop finishes without return
         print(f"Warning: No TPEx data found for {label} in candidates.")
         return {}
+
+    async def _fetch_single_category(self, client, url, params, headers, cat_name):
+        # Deprecated helper (merged back into main logic)
+        pass
+
+    def _parse_json_response(self, data):
+        # Deprecated helper
+        pass
 
     async def fetch_ex_rights_history(self, start_year, end_year):
         """

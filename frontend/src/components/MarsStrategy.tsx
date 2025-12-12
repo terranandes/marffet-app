@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     createColumnHelper,
     flexRender,
@@ -76,18 +76,31 @@ export default function MarsStrategy() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [error, setError] = useState('');
 
-    const handleAnalyze = async () => {
+    const [startYear, setStartYear] = useState(2006);
+
+    const refreshAnalysis = async (mode = 'default') => {
         setLoading(true);
         setError('');
         try {
             // Demo Payload - In real app, inputs would come from user
+            const customList: string[] = []; // Placeholder for custom list
+            let codes = customList.length > 0 ? customList : [];
+
+            // Special Mode Trigger
+            if (mode === 'full_market') {
+                codes = ['ALL_MARKET'];
+            }
+
+            // Payloads
             const payload = {
-                stock_codes: ['2330', '2317', '2454', '2412', '0050', '2303', '2881', '2882'],
-                start_year: 2023,
-                end_year: 2024
+                stock_codes: codes,
+                start_year: startYear,
+                end_year: 2025
             };
 
-            const response = await axios.post('/api/mars/analyze', payload);
+            const response = await axios.post('/api/mars/analyze', payload, {
+                timeout: 300000 // 5 minutes timeout for long scanning (2006-2025)
+            });
             setData(response.data.results);
         } catch (err) {
             console.error(err);
@@ -96,6 +109,11 @@ export default function MarsStrategy() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Initial load using Default Demo List
+        refreshAnalysis();
+    }, []);
 
     const table = useReactTable({
         data,
@@ -110,17 +128,40 @@ export default function MarsStrategy() {
         <div className="space-y-6">
             <header className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold text-slate-900">Mars Strategy Portfolio</h2>
-                    <p className="text-slate-500 mt-1">Low volatility stocks selected by Gaussian filtering.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Mars Strategy Portfolio</h1>
+                    <p className="text-gray-500 mt-2">Low volatility stocks selected by Gaussian filtering.</p>
                 </div>
-                <button
-                    onClick={handleAnalyze}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
-                >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    <span>{loading ? 'Analyzing...' : 'Refresh Analysis'}</span>
-                </button>
+                <div className="flex gap-4 items-center">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+                        <label className="text-sm font-medium text-gray-600">Start Year:</label>
+                        <input
+                            type="number"
+                            value={startYear}
+                            onChange={(e) => setStartYear(Number(e.target.value))}
+                            className="w-20 outline-none text-gray-900 font-mono"
+                            min="2000"
+                            max="2025"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => refreshAnalysis('full_market')}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                            {loading ? 'Scanning...' : 'Scan Top 50 Market'}
+                        </button>
+                        <button
+                            onClick={() => refreshAnalysis('default')}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                            {loading ? 'Analyzing...' : 'Refresh Demo'}
+                        </button>
+                    </div>
+                </div>
             </header>
 
             {/* Info Cards */}

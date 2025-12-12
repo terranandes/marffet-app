@@ -10,7 +10,7 @@ def verify():
     df = pd.read_excel(path)
     print(f"Loaded Excel. Rows: {len(df)}")
     
-    # Expanded List (14 items)
+    # Expanded List (14 items) - Excluded 65331 (Unsupported)
     target_list = [
         '00937B', '00953B', '00933B', '00950B', '00945B', 
         '00980D', '00894', '00981A', '00983A', '00830', 

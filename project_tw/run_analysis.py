@@ -51,30 +51,31 @@ async def main():
     
     print(f"Analysis complete. Metrics calculated for {len(results)} stocks.")
     
-    # Filter and Rank
-    top_50 = strategy.filter_and_rank(results, std_threshold=20.0)
-    print(f"Selected {len(top_50)} qualified stocks (Low Volatility).")
-    
-    # Export
-    output_dir = "project_tw/output"
-    os.makedirs(output_dir, exist_ok=True)
-    filename = f"stock_list_s{start_year}e{end_year}_unfiltered.xlsx"
-    output_path = os.path.join(output_dir, filename)
-    
-    # Enrich Names
+    # Enrich Names (Before Filtering)
     for r in results:
         code = r.get('stock_code')
         if code and code in name_map:
             r['stock_name'] = name_map[code]
             
-    # Filter and Rank (if needed, or keep all for "Scan All")
-    # User said "Scan All", so we might want to skip filtering logic and just Save All
-    # But MarsStrategy.filter_and_rank stores top_50.
-    # Let's Modify save_to_excel to align with "results".
-    # Or just assign strategy.top_50 = results (All)
-    strategy.top_50 = results
+    # 1. Save Unfiltered High-Level Data
+    print("Saving Unfiltered Results...")
+    strategy.top_50 = list(results) # Copy list
+    output_dir = "project_tw/output"
+    os.makedirs(output_dir, exist_ok=True)
+    filename_unfiltered = f"stock_list_s{start_year}e{end_year}_unfiltered.xlsx"
+    output_path_unfiltered = os.path.join(output_dir, filename_unfiltered)
+    strategy.save_to_excel(output_path_unfiltered)
+
+    # 2. Filter & Rank (Result-Ranking Phase)
+    print("Applying Filters & Ranking...")
+    # Pass name_map to allow filtering by Name (e.g. Warrants)
+    top_50 = strategy.filter_and_rank(results, stock_dict=name_map)
+    print(f"Selected {len(top_50)} qualified stocks (Low Volatility <= TSMC, No Warrants/DRs/Lev, >3 Yrs).")
     
-    strategy.save_to_excel(output_path)
+    # 3. Save Filtered Data
+    filename_filtered = f"stock_list_s{start_year}e{end_year}_filtered.xlsx"
+    output_path_filtered = os.path.join(output_dir, filename_filtered)
+    strategy.save_to_excel(output_path_filtered)
 
 if __name__ == "__main__":
     asyncio.run(main())

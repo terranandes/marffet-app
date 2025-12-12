@@ -203,7 +203,10 @@ class ROICalculator:
                 
             # Metric Calculation
             total_asset_value = current_shares * p_end
-            n_yrs = year - start_year + 1
+            
+            # Use actual investment duration, not global start year
+            effective_start_year = sorted_years[0]
+            n_yrs = year - effective_start_year + 1
             
             if total_invested_cash > 0:
                 cagr = (total_asset_value / total_invested_cash) ** (1 / n_yrs) - 1

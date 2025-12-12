@@ -203,16 +203,15 @@ class TWSECrawler:
         # Because range limit is small (~2-3 months)
         all_data = []
         try:
-            # Quarters
-            quarters = [
-                (f"{year}0101", f"{year}0331"),
-                (f"{year}0401", f"{year}0630"),
-                (f"{year}0701", f"{year}0930"),
-                (f"{year}1001", f"{year}1231"),
-            ]
+            # Fetch by Month to avoid data truncation/limits
+            months = []
+            for m in range(1, 13):
+                import calendar
+                last_day = calendar.monthrange(year, m)[1]
+                months.append((f"{year}{m:02d}01", f"{year}{m:02d}{last_day}"))
             
             async with httpx.AsyncClient() as client:
-                for s_date, e_date in quarters:
+                for s_date, e_date in months:
                     url = "https://www.twse.com.tw/exchangeReport/TWT49U"
                     params = {
                         "response": "json",
@@ -238,7 +237,55 @@ class TWSECrawler:
             
         except Exception as e:
             print(f"Error fetching dividends {year}: {e}")
-            return []
+        
+        return []
+
+    async def detect_daily_split(self, code, year):
+        """
+        Scans monthly STOCK_DAY reports to find a specific daily price drop > 60%.
+        Returns inferred Stock Dividend value (e.g. 30.0 for 4-for-1) or 0.0.
+        """
+        print(f"Deep Scan for Split: {code} in {year}...")
+        prev_close = 0.0
+        
+        async with httpx.AsyncClient() as client:
+            for m in range(1, 13):
+                date_str = f"{year}{m:02d}01"
+                url = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
+                params = {"response": "json", "date": date_str, "stockNo": code}
+                
+                try:
+                    await asyncio.sleep(0.5)
+                    resp = await client.get(url, params=params, timeout=10.0)
+                    data = resp.json()
+                    if data.get('stat') == 'OK':
+                        rows = data.get('data', [])
+                        # Row: Date, Vol, Val, Open, High, Low, Close, ...
+                        # Close is index 6. (Check fields to be sure, but standard for STOCK_DAY)
+                        # Fields: ["日期","成交股數","成交金額","開盤價","最高價","最低價","收盤價",...]
+                        
+                        for r in rows:
+                            try:
+                                # Handle commas
+                                close_p = float(r[6].replace(',', ''))
+                                
+                                if prev_close > 0:
+                                    ratio = prev_close / close_p
+                                    # Threshold: Drop > 60% (Ratio > 2.5)
+                                    if ratio > 2.5: 
+                                        # Check if integer-ish
+                                        nearest = round(ratio)
+                                        if abs(ratio - nearest) < 0.2: # Allow small drift
+                                            print(f"  FOUND DROP: {r[0]} {prev_close} -> {close_p} (Ratio {ratio:.2f})")
+                                            return (nearest - 1) * 10.0
+                                
+                                prev_close = close_p
+                            except:
+                                pass
+                except Exception as e:
+                    print(f"  Error scan {date_str}: {e}")
+                    
+        return 0.0
 
     async def fetch_market_prices_batch(self, years: list):
         """
@@ -296,11 +343,62 @@ class TWSECrawler:
                 
                 results[year] = y_data
                 
+                # IPO REPAIR: Check for stocks with Start=0 but End>0
+                # This happens if listed mid-year.
+                print(f"  Verifying IPO prices for {year}...")
+                repair_count = 0
+                for code, prices in results[year].items():
+                    if prices['start'] == 0.0 and prices['end'] > 0.0:
+                        # Scan for first valid price
+                        # Use detect_daily_split logic but look for First Price
+                        found_price = await self.find_first_price(code, year)
+                        if found_price > 0:
+                            prices['start'] = found_price
+                            repair_count += 1
+                            if repair_count % 10 == 0:
+                                print(f"    Repaired {repair_count} IPOs (e.g. {code}: {found_price})")
+                
+                if repair_count > 0:
+                    print(f"  Repaired total {repair_count} IPO start prices for {year}.")
+                    
                 # Save Cache
                 with open(cache_file, 'w') as f:
-                    json.dump(y_data, f)
+                    json.dump(results[year], f)
                     
         return results
+
+    async def find_first_price(self, code, year):
+        """
+        Scans monthly STOCK_DAY to find the first valid closing price (IPO).
+        """
+        async with httpx.AsyncClient() as client:
+            for m in range(1, 13):
+                date_str = f"{year}{m:02d}01"
+                url = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
+                params = {"response": "json", "date": date_str, "stockNo": code}
+                try:
+                    await asyncio.sleep(0.1) # Fast scan
+                    resp = await client.get(url, params=params, timeout=5.0)
+                    data = resp.json()
+                    if data.get('stat') == 'OK':
+                        rows = data.get('data', [])
+                        # Use first row's Closing Price? Or Opening?
+                        # User wants Buy Price. "3/27/2019 prize 378".
+                        # If 3/27 is listing date, Open/Close might differ.
+                        # Using Closing of first day is safest "First Price".
+                        # Or Opening of first day. User said "prize 378". 6669 IPO 2019/3/27 Open 470? Close 378?
+                        # Let's use Open for "Buy at Open" logic, or Close if Open is weird.
+                        # Strategy uses 'open' column for Start Price.
+                        # So let's return Open price of first day.
+                        if rows:
+                            first_row = rows[0]
+                            # fields: index 3=Open, 6=Close
+                            op = float(first_row[3].replace(',', ''))
+                            # cl = float(first_row[6].replace(',', ''))
+                            return op
+                except:
+                    pass
+        return 0.0
 
     async def _fetch_market_day(self, client, candidates, label):
         for date_str in candidates:

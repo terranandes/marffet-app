@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Martian Investment System</title>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#050510',
+                            panel: '#0e1117',
+                            cyan: '#00f2ea',
+                            pink: '#ff0055',
+                            gold: '#ffd700'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Plotly.js (CDN) -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Styles -->
+    <style>
+        body {
+            background-color: #050510;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 242, 234, 0.7);
+        }
+
+        .glass-panel {
+            background: rgba(14, 17, 23, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <div id="app" v-cloak class="flex-1 flex flex-col h-full">
+        <!-- Header -->
+        <header class="h-16 border-b border-white/10 flex items-center px-6 justify-between bg-cyber-panel z-50">
+            <h1 class="text-2xl font-bold text-cyber-cyan neon-text">🚀 Martian Investment</h1>
+
+            <nav class="flex gap-4">
+                <button @click="currentTab = 'mars'"
+                    :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'mars'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Mars Strategy</button>
+                <button @click="currentTab = 'race'"
+                    :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'race'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Bar Chart Race</button>
+                <button @click="currentTab = 'cb'"
+                    :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'cb'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Convertible Bond</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-6 relative flex gap-6">
+
+            <!-- SIDEBAR: SIMULATION SETTINGS (Visible for Mars & Race) -->
+            <aside v-if="['mars', 'race'].includes(currentTab)" class="w-80 flex-shrink-0 space-y-4">
+                <div class="glass-panel p-5 rounded-xl">
+                    <h3
+                        class="text-cyber-gold font-bold mb-4 uppercase text-xs tracking-wider border-b border-white/10 pb-2">
+                        Simulation Settings</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Start Year (2006-2025)</label>
+                            <input v-model.number="sim.startYear" type="number" min="2006" max="2025"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Initial Capital ($)</label>
+                            <input v-model.number="sim.principal" type="number" step="10000"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Annual Contribution ($)</label>
+                            <input v-model.number="sim.contribution" type="number" step="10000"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
+                        </div>
+
+                        <button @click="recalculate"
+                            class="w-full bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-bold py-2 rounded transition">
+                            Apply Simulation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-xl">
+                    <h3 class="text-gray-400 text-xs mb-2">Universe Stats</h3>
+                    <div class="flex justify-between items-center mb-1">
+                        <span>Total Listed</span>
+                        <span class="font-mono">{{ stats.total }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Valid Candidates</span>
+                        <span class="font-mono text-cyber-gold">{{ stats.filtered }}</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MARS STRATEGY TAB -->
+            <div v-show="currentTab === 'mars'" class="flex-1 space-y-6">
+                <div class="glass-panel rounded-xl overflow-hidden h-full flex flex-col">
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                        <h2 class="font-bold">Top 50 Survivors (Final Wealth)</h2>
+                        <span class="text-xs text-gray-400">Sorted by Simulated Final Value</span>
+                    </div>
+
+                    <div class="flex-1 overflow-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white/5 text-xs uppercase text-gray-400 sticky top-0 bg-[#0e1117] z-10">
+                                <tr>
+                                    <th class="px-6 py-3">Rank</th>
+                                    <th class="px-6 py-3">ID</th>
+                                    <th class="px-6 py-3">Name</th>
+                                    <th class="px-6 py-3 text-right">Simulated Final ($)</th>
+                                    <th class="px-6 py-3 text-right">CAGR %</th>
+                                    <th class="px-6 py-3 text-right">Volatility %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/10">
+                                <tr v-for="(stock, idx) in marsList" :key="stock.id"
+                                    class="hover:bg-white/5 transition">
+                                    <td class="px-6 py-4 text-gray-500 font-mono">{{ idx + 1 }}</td>
+                                    <td class="px-6 py-4 font-mono text-cyber-cyan">{{ stock.id }}</td>
+                                    <td class="px-6 py-4">{{ stock.name }}</td>
+                                    <td class="px-6 py-4 text-right font-bold text-cyber-gold">{{
+                                        formatCurrency(stock.finalValue) }}</td>
+                                    <td class="px-6 py-4 text-right text-green-400">{{ (stock.cagr_pct || 0).toFixed(2)
+                                        }}%</td>
+                                    <td class="px-6 py-4 text-right text-gray-300">{{ (stock.volatility_pct ||
+                                        0).toFixed(2) }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RACE TAB -->
+            <div v-show="currentTab === 'race'" class="flex-1 flex flex-col h-full">
+                <div id="race-chart-container" class="flex-1 glass-panel rounded-xl p-4 relative min-h-[600px]">
+                    <!-- Plotly renders here -->
+                </div>
+            </div>
+
+            <!-- CB TAB -->
+            <div v-show="currentTab === 'cb'" class="flex-1 flex items-start justify-center pt-10">
+                <div
+                    class="w-full max-w-2xl glass-panel p-8 rounded-2xl border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <span class="text-cyber-cyan">💰</span> CB Arbitrage Analyzer
+                    </h2>
+
+                    <div class="flex gap-4 mb-8">
+                        <input v-model="cbInput" @keyup.enter="analyzeCB" type="text"
+                            placeholder="Enter Stock Code (e.g. 6533)"
+                            class="flex-1 bg-black/50 border border-white/20 rounded-lg px-4 py-3 focus:border-cyber-cyan outline-none text-white placeholder-gray-600 transition">
+                        <button @click="analyzeCB" :disabled="loadingCB"
+                            class="bg-cyber-cyan text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition">
+                            <span v-if="loadingCB">Scanning...</span>
+                            <span v-else>Analyze</span>
+                        </button>
+                    </div>
+
+                    <div v-if="cbResult" class="animate-pulse-once">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="text-3xl font-bold">{{ cbResult.code }} {{ cbResult.name }}</h3>
+                            <span :class="getActionColor(cbResult.action)" class="text-xl font-mono font-bold">{{
+                                cbResult.action }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-6 text-sm text-gray-400 bg-black/30 p-4 rounded-lg">
+                            <div>Stock: <span class="text-white">{{ cbResult.stock_price }}</span></div>
+                            <div>CB: <span class="text-white">{{ cbResult.cb_price }}</span></div>
+                            <div>Conv: <span class="text-white">{{ cbResult.conv_price }}</span></div>
+                        </div>
+
+                        <div class="p-4 rounded-lg bg-gradient-to-r from-white/5 to-transparent border-l-4"
+                            :class="getBorderColor(cbResult.action)">
+                            <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Premium Rate</div>
+                            <div class="text-4xl font-bold mb-2" :class="getActionColor(cbResult.action)">
+                                {{ cbResult.premium }}%
+                            </div>
+                            <p class="text-sm italic text-gray-300">{{ cbResult.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Vue 3 App Logic -->
+    <script type="module">
+        import { createApp, ref, onMounted, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+
+        createApp({
+            setup() {
+                const currentTab = ref('mars');
+                const rawMarsData = ref([]);
+                const rawRaceData = ref([]);
+                const marsList = ref([]); // Processed
+                const cbInput = ref('6533');
+                const cbResult = ref(null);
+                const loadingCB = ref(false);
+
+                // Simulation State
+                const sim = ref({
+                    startYear: 2006,
+                    principal: 100000,
+                    contribution: 120000 // 10k/month
+                });
+
+                const stats = computed(() => ({
+                    total: rawMarsData.value.length,
+                    filtered: rawMarsData.value.filter(s => s.valid_years > 5).length
+                }));
+
+                const formatCurrency = (val) => {
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+                };
+
+                // Logic: Calculate Wealth Path for a single stock
+                // Returns: Array of { year, value }
+                const calculateWealthPath = (stockId, startYear, principal, annualContrib) => {
+                    // Find rows for this stock in race data
+                    // Race data from API: { year, id, roi (cumulative %) }
+                    // We need to derive annual return.
+                    // Or simpler: The 'roi' field in API is 's2006e{YEAR}bao', which is Cumulative (Start -> Year).
+                    // If StartYear != 2006, we must re-base.
+
+                    // Filter stock data sorted by year
+                    const history = rawRaceData.value.filter(d => d.id === stockId).sort((a, b) => a.year - b.year);
+
+                    let wealth = principal;
+                    let path = [];
+
+                    // Handle range
+                    for (let y = startYear; y <= 2025; y++) {
+                        // Find Cumulative ROI for current year Y and previous year Y-1
+                        // API Data 'roi' is cumulative from 2006 (Base).
+                        // ROI_Y = (Price_Y / Price_Base) - 1
+                        // Annual_Y = (1 + ROI_Y) / (1 + ROI_Y-1) - 1
+
+                        const cur = history.find(h => h.year === y);
+                        const prev = history.find(h => h.year === y - 1);
+
+                        let annualReturn = 0;
+                        if (y === 2006) {
+                            // Special case. API 2006 ROI is annual return for 2006?
+                            // Usually yes for 'bao'.
+                            // If base is 2006, ROI_2006 might be 0? 
+                            // Let's assume API ROI is effective return from base.
+                            // If prev is missing, use current ROI directly?
+                            // Actually, let's treat strictly:
+                            // Wealth_T = Wealth_T-1 * (1 + Annual_Ret) + Contrib
+                        }
+
+                        // We need robust Annual Return derivation
+                        // If we lack 2006 base price, we rely on ratio of Accum ROIs.
+                        // 1 + R_cum_t = (1 + r1)(1 + r2)...(1 + rt)
+                        // 1 + R_cum_t-1 = (1 + r1)...(1 + rt-1)
+                        // Ratio = 1 + rt
+
+                        const getCum = (record) => record ? (1 + record.roi / 100) : 1.0;
+                        const cumCur = getCum(cur);
+                        const cumPrev = getCum(prev);
+
+                        // Annual Return for year Y
+                        const annualFactor = (cumPrev > 0) ? (cumCur / cumPrev) : 1.0;
+
+                        // Update Wealth (End of Year)
+                        // Compound Return first, then Add Contribution (End of period)
+                        wealth = wealth * annualFactor;
+
+                        // Add contribution if NOT the very first moment? 
+                        // MoneyCome typically: Principal grows, + Annual Contrib (at end).
+                        wealth += annualContrib;
+
+                        path.push({ year: y, value: wealth, id: stockId, name: cur ? cur.name : stockId });
+                    }
+                    return path;
+                };
+
+                // Master Recalculate Function
+                const recalculate = () => {
+                    if (!rawRaceData.value.length) return;
+
+                    // 1. Calculate Final Wealth for All Stocks (For Mars Table)
+                    const simulatedList = rawMarsData.value.map(stock => {
+                        const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
+                        const final = path.length ? path[path.length - 1].value : 0;
+                        return { ...stock, finalValue: final };
+                    });
+
+                    // Sort descending by Final Wealth
+                    marsList.value = simulatedList.sort((a, b) => b.finalValue - a.finalValue);
+
+                    // 2. Render Race Chart with simulated paths
+                    if (currentTab.value === 'race') renderRaceChart();
+                };
+
+                const fetchMars = async () => {
+                    try {
+                        const [res1, res2] = await Promise.all([
+                            fetch('/api/results'),
+                            fetch('/api/race-data')
+                        ]);
+                        if (res1.ok) rawMarsData.value = await res1.json();
+                        if (res2.ok) rawRaceData.value = await res2.json();
+
+                        recalculate(); // Initial Calc
+                    } catch (e) { console.error(e); }
+                };
+
+                const renderRaceChart = () => {
+                    // Generate full path data for Top 20 (Simulated)
+                    // Optimization: Onlycalc for top stocks? Or all? All is safer for race dynamics.
+                    // But expensive in JS? 1800 stocks * 20 years = 36k ops. Fast enough.
+
+                    const longData = [];
+                    rawMarsData.value.forEach(stock => {
+                        const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
+                        longData.push(...path);
+                    });
+
+                    // Filter for Animation
+                    // Group by Year, Take Top 15
+                    const frames = [];
+                    const years = [...new Set(longData.map(d => d.year))].sort((a, b) => a - b);
+
+                    // Note: Plotly JS Animation requires specific structure. 
+                    // Simplified for prototype: Render just the final year for now? 
+                    // Valid "Race" in JS is hard without robust data structure.
+                    // Let's rely on Plotly's `frame` object support if possible, or simpler loop.
+
+                    // For No-Build MVP: Static Chart of Final Year
+                    // OR: Use `Plotly.animate`
+
+                    const lastYear = years[years.length - 1];
+                    const topLastYear = longData.filter(d => d.year === lastYear).sort((a, b) => b.value - a.value).slice(0, 15);
+
+                    const trace = {
+                        x: topLastYear.map(d => d.value),
+                        y: topLastYear.map(d => `${d.name} (${d.id})`),
+                        text: topLastYear.map(d => formatCurrency(d.value)),
+                        textposition: 'inside',
+                        type: 'bar',
+                        orientation: 'h',
+                        marker: { color: topLastYear.map(d => d.value), colorscale: 'Viridis' }
+                    };
+
+                    const layout = {
+                        title: { text: `Wealth Accumulation (${sim.value.startYear}-${lastYear})`, font: { color: '#fff' } },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        font: { color: '#fff' },
+                        yaxis: { categoryorder: 'total ascending' },
+                        height: 700,
+                        margin: { l: 150, t: 50, b: 50, r: 50 }
+                    };
+
+                    Plotly.newPlot('race-chart-container', [trace], layout);
+                };
+
+                // CB Analysis
+                const analyzeCB = async () => {
+                    loadingCB.value = true;
+                    cbResult.value = null;
+                    try {
+                        const res = await fetch(`/api/cb/analyze?code=${cbInput.value}`);
+                        const data = await res.json();
+                        cbResult.value = data;
+                    } catch (e) { console.error(e); }
+                    loadingCB.value = false;
+                };
+
+                // Helpers
+                const getActionColor = (action) => {
+                    if (!action) return 'text-gray-500';
+                    if (action.includes('BUY')) return 'text-green-400';
+                    if (action.includes('SELL')) return 'text-red-500';
+                    return 'text-yellow-400';
+                };
+
+                const getBorderColor = (action) => {
+                    if (!action) return 'border-gray-500';
+                    if (action.includes('BUY')) return 'border-green-400 from-green-500/10';
+                    if (action.includes('SELL')) return 'border-red-500 from-red-500/10';
+                    return 'border-yellow-400 from-yellow-500/10';
+                };
+
+                // Init
+                onMounted(() => {
+                    fetchMars();
+
+                    watch(currentTab, (newTab) => {
+                        if (newTab === 'race') recalculate();
+                    });
+                });
+
+                return { currentTab, marsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency };
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>

@@ -94,7 +94,7 @@ class ROICalculator:
             "history": portfolio_history
         }
 
-    def calculate_complex_simulation(self, df: pd.DataFrame, start_year: int, principal: float = 1_000_000, dividend_data: dict = None, stock_code: str = ""):
+    def calculate_complex_simulation(self, df: pd.DataFrame, start_year: int, principal: float = 1_000_000, annual_investment: float = 60_000, dividend_data: dict = None, stock_code: str = ""):
         """
         Simulate Mars Strategy: 
         1. Principal 1M (Buy at Year 1 First Close).
@@ -157,13 +157,13 @@ class ROICalculator:
             # 1. Invest Capital
             if i == 0:
                 # Initial Principal + Extra Input (Screenshot shows 1.12M for 2 years => 1M + 60k + 60k)
-                amt = principal + 60_000 # Principal AND Extra in Year 1
+                amt = principal + annual_investment # Principal AND Extra in Year 1
                 shares_bought = amt / p_first
                 current_shares += shares_bought
                 total_invested_cash += amt
             else:
                 # Yearly Extra Input
-                amt = 60_000
+                amt = annual_investment
                 shares_bought = amt / p_first
                 current_shares += shares_bought
                 total_invested_cash += amt

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Martian Investment System</title>
 
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (Local) -->
+    <script src="/static/vendor/tailwindcss.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -26,8 +26,8 @@
         }
     </script>
 
-    <!-- Plotly.js (CDN) -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- Plotly.js (Local) -->
+    <script src="/static/vendor/plotly.min.js"></script>
 
     <!-- Styles -->
     <style>
@@ -47,15 +47,40 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        [v-cloak] {
-            display: none;
+        <style>[v-cloak] {
+            display: none !important;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0e1117;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f2ea;
         }
     </style>
 </head>
 
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <div id="app" v-cloak class="flex-1 flex flex-col h-full">
+    <div id="loading-msg"
+        class="absolute inset-0 flex items-center justify-center text-cyber-cyan font-bold z-[100] bg-black">
+        Initializing Martian System...
+    </div>
+
+    <div id="app" v-cloak class="flex-1 flex flex-col h-full relative"
+        @vue:mounted="document.getElementById('loading-msg').style.display='none'">
         <!-- Header -->
         <header class="h-16 border-b border-white/10 flex items-center px-6 justify-between bg-cyber-panel z-50">
             <h1 class="text-2xl font-bold text-cyber-cyan neon-text">🚀 Martian Investment</h1>
@@ -76,7 +101,7 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-auto p-6 relative flex gap-6">
 
-            <!-- SIDEBAR: SIMULATION SETTINGS (Visible for Mars & Race) -->
+            <!-- SIDEBAR: SIMULATION SETTINGS -->
             <aside v-if="['mars', 'race'].includes(currentTab)" class="w-80 flex-shrink-0 space-y-4">
                 <div class="glass-panel p-5 rounded-xl">
                     <h3
@@ -102,7 +127,7 @@
 
                         <button @click="recalculate"
                             class="w-full bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-bold py-2 rounded transition">
-                            Apply Simulation
+                            Apply (Recalculate)
                         </button>
                     </div>
                 </div>
@@ -123,9 +148,9 @@
             <!-- MARS STRATEGY TAB -->
             <div v-show="currentTab === 'mars'" class="flex-1 space-y-6">
                 <div class="glass-panel rounded-xl overflow-hidden h-full flex flex-col">
-                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center white">
                         <h2 class="font-bold">Top 50 Survivors (Final Wealth)</h2>
-                        <span class="text-xs text-gray-400">Sorted by Simulated Final Value</span>
+                        <span class="text-xs text-gray-400">Click row for Details</span>
                     </div>
 
                     <div class="flex-1 overflow-auto">
@@ -135,20 +160,29 @@
                                     <th class="px-6 py-3">Rank</th>
                                     <th class="px-6 py-3">ID</th>
                                     <th class="px-6 py-3">Name</th>
-                                    <th class="px-6 py-3 text-right">Simulated Final ($)</th>
-                                    <th class="px-6 py-3 text-right">CAGR %</th>
+                                    <th @click="sortBy('finalValue')"
+                                        class="px-6 py-3 text-right cursor-pointer hover:text-white select-none">
+                                        Simulated Final ($)
+                                        <span :class="getSortIcon('finalValue')">▼</span>
+                                    </th>
+                                    <th @click="sortBy('cagr')"
+                                        class="px-6 py-3 text-right cursor-pointer hover:text-white select-none">
+                                        CAGR %
+                                        <span :class="getSortIcon('cagr')">▼</span>
+                                    </th>
                                     <th class="px-6 py-3 text-right">Volatility %</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/10">
-                                <tr v-for="(stock, idx) in marsList" :key="stock.id"
-                                    class="hover:bg-white/5 transition">
+                                <tr v-for="(stock, idx) in marsList" :key="stock.id" @click="openDetail(stock)"
+                                    class="hover:bg-white/10 transition cursor-pointer">
                                     <td class="px-6 py-4 text-gray-500 font-mono">{{ idx + 1 }}</td>
                                     <td class="px-6 py-4 font-mono text-cyber-cyan">{{ stock.id }}</td>
                                     <td class="px-6 py-4">{{ stock.name }}</td>
                                     <td class="px-6 py-4 text-right font-bold text-cyber-gold">{{
                                         formatCurrency(stock.finalValue) }}</td>
-                                    <td class="px-6 py-4 text-right text-green-400">{{ (stock.cagr_pct || 0).toFixed(2)
+                                    <td class="px-6 py-4 text-right text-green-400">{{ (stock.cagr_pct ||
+                                        0).toFixed(2)
                                         }}%</td>
                                     <td class="px-6 py-4 text-right text-gray-300">{{ (stock.volatility_pct ||
                                         0).toFixed(2) }}%</td>
@@ -161,8 +195,44 @@
 
             <!-- RACE TAB -->
             <div v-show="currentTab === 'race'" class="flex-1 flex flex-col h-full">
-                <div id="race-chart-container" class="flex-1 glass-panel rounded-xl p-4 relative min-h-[600px]">
-                    <!-- Plotly renders here -->
+                <div class="glass-panel rounded-xl p-4 h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                        <div class="flex items-center gap-4">
+                            <h3 class="font-bold text-cyber-cyan text-lg">Dynamic Wealth Race</h3>
+                            <!-- Metric Selector -->
+                            <div class="flex bg-black/50 rounded-lg p-1 border border-white/10">
+                                <button @click="raceMetric = 'wealth'; resetRace()"
+                                    :class="{'bg-cyber-cyan text-black': raceMetric === 'wealth', 'text-gray-400 hover:text-white': raceMetric !== 'wealth'}"
+                                    class="px-3 py-1 text-xs font-bold rounded transition">
+                                    Final Wealth ($)
+                                </button>
+                                <button @click="raceMetric = 'cagr'; resetRace()"
+                                    :class="{'bg-cyber-cyan text-black': raceMetric === 'cagr', 'text-gray-400 hover:text-white': raceMetric !== 'cagr'}"
+                                    class="px-3 py-1 text-xs font-bold rounded transition">
+                                    Performance (CAGR %)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="flex gap-2">
+                            <button @click="playRace"
+                                class="flex items-center gap-1 bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
+                                ▶ Play
+                            </button>
+                            <button @click="pauseRace"
+                                class="flex items-center gap-1 bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded hover:bg-yellow-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
+                                ⏸ Pause
+                            </button>
+                            <button @click="resetRace"
+                                class="flex items-center gap-1 bg-white/10 border border-white/20 text-gray-300 px-4 py-2 rounded hover:bg-white/20 transition font-bold uppercase text-xs tracking-wider">
+                                ↺ Reset
+                            </button>
+                        </div>
+                    </div>
+                    <div id="race-chart-container" class="flex-1 relative min-h-[500px]">
+                        <!-- Plotly -->
+                    </div>
                 </div>
             </div>
 
@@ -211,11 +281,81 @@
             </div>
 
         </main>
+
+        <!-- DETAIL MODAL -->
+        <div v-if="detailStock"
+            class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+            @click.self="detailStock = null">
+            <div
+                class="bg-cyber-panel border border-white/20 w-full max-w-5xl h-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+                <!-- Modal Header -->
+                <div class="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
+                    <h2 class="text-xl font-bold">Result: <span class="text-cyber-cyan">{{ detailStock.name }} ({{
+                            detailStock.id }})</span></h2>
+                    <button @click="detailStock = null" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="flex-1 overflow-auto p-6 space-y-6">
+                    <!-- Summary Stats -->
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div class="bg-black/30 p-4 rounded-lg">
+                            <div class="text-gray-400">Amount Inv.</div>
+                            <div class="text-xl font-bold">{{ formatCurrency(sim.principal) }} + {{
+                                formatCurrency(sim.contribution) }}/yr</div>
+                        </div>
+                        <div class="bg-black/30 p-4 rounded-lg">
+                            <div class="text-gray-400">Total Years</div>
+                            <div class="text-xl font-bold">{{ 2025 - sim.startYear }} Years</div>
+                        </div>
+                        <div class="bg-black/30 p-4 rounded-lg">
+                            <div class="text-gray-400">Yearly ROI (CAGR)</div>
+                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr || 0).toFixed(2) }}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Table -->
+                    <table class="w-full text-center border-collapse">
+                        <thead class="bg-cyber-gold text-black font-bold">
+                            <tr>
+                                <th class="p-3">Strategy</th>
+                                <th class="p-3">Buy At Yearly Opening</th>
+                                <th class="p-3 opacity-50">Buy At Yearly Highest (N/A)</th>
+                                <th class="p-3 opacity-50">Buy At Yearly Lowest (N/A)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10 bg-white/5">
+                            <tr>
+                                <td class="p-3 font-bold text-left pl-6">Final Value</td>
+                                <td class="p-3 text-xl font-bold text-cyber-cyan">{{
+                                    formatCurrency(detailStock.finalValue) }}</td>
+                                <td class="p-3 text-gray-500">-</td>
+                                <td class="p-3 text-gray-500">-</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-bold text-left pl-6">Total ROI</td>
+                                <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
+                                <td class="p-3 text-gray-500">-</td>
+                                <td class="p-3 text-gray-500">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Chart -->
+                    <div class="glass-panel p-4 rounded-xl">
+                        <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
+                        <div id="detail-chart" class="h-[300px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Vue 3 App Logic -->
     <script type="module">
-        import { createApp, ref, onMounted, computed, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+        import { createApp, ref, onMounted, computed, watch, nextTick } from '/static/vendor/vue.esm-browser.js'
 
         createApp({
             setup() {
@@ -223,15 +363,20 @@
                 const rawMarsData = ref([]);
                 const rawRaceData = ref([]);
                 const marsList = ref([]); // Processed
+                const detailStock = ref(null); // Selected for Modal
                 const cbInput = ref('6533');
                 const cbResult = ref(null);
                 const loadingCB = ref(false);
 
+                // Sorting State
+                const sortKey = ref('finalValue');
+                const sortDesc = ref(true);
+
                 // Simulation State
                 const sim = ref({
                     startYear: 2006,
-                    principal: 100000,
-                    contribution: 120000 // 10k/month
+                    principal: 1000000,
+                    contribution: 60000
                 });
 
                 const stats = computed(() => ({
@@ -239,88 +384,109 @@
                     filtered: rawMarsData.value.filter(s => s.valid_years > 5).length
                 }));
 
+                // Sorting Logic
+                const sortedMarsList = computed(() => {
+                    return [...marsList.value].sort((a, b) => {
+                        let valA = a[sortKey.value];
+                        let valB = b[sortKey.value];
+
+                        // Handle numbers
+                        if (typeof valA === 'string' && !valA.includes('%')) valA = parseFloat(valA) || valA;
+                        if (typeof valB === 'string' && !valB.includes('%')) valB = parseFloat(valB) || valB;
+
+                        if (valA < valB) return sortDesc.value ? 1 : -1;
+                        if (valA > valB) return sortDesc.value ? -1 : 1;
+                        return 0;
+                    });
+                });
+
+                const sortBy = (key) => {
+                    if (sortKey.value === key) {
+                        sortDesc.value = !sortDesc.value;
+                    } else {
+                        sortKey.value = key;
+                        sortDesc.value = true; // Default to descending for new metrics
+                    }
+                };
+
+                const getSortIcon = (key) => {
+                    if (sortKey.value !== key) return 'opacity-30';
+                    return sortDesc.value ? 'text-cyber-cyan' : 'text-cyber-cyan rotate-180 inline-block';
+                };
+
                 const formatCurrency = (val) => {
                     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
                 };
 
-                // Logic: Calculate Wealth Path for a single stock
-                // Returns: Array of { year, value }
+                // Logic: Calculate Wealth Path & Cost Path
                 const calculateWealthPath = (stockId, startYear, principal, annualContrib) => {
-                    // Find rows for this stock in race data
-                    // Race data from API: { year, id, roi (cumulative %) }
-                    // We need to derive annual return.
-                    // Or simpler: The 'roi' field in API is 's2006e{YEAR}bao', which is Cumulative (Start -> Year).
-                    // If StartYear != 2006, we must re-base.
-
-                    // Filter stock data sorted by year
                     const history = rawRaceData.value.filter(d => d.id === stockId).sort((a, b) => a.year - b.year);
-
                     let wealth = principal;
+                    let cost = principal;
                     let path = [];
 
-                    // Handle range
-                    for (let y = startYear; y <= 2025; y++) {
-                        // Find Cumulative ROI for current year Y and previous year Y-1
-                        // API Data 'roi' is cumulative from 2006 (Base).
-                        // ROI_Y = (Price_Y / Price_Base) - 1
-                        // Annual_Y = (1 + ROI_Y) / (1 + ROI_Y-1) - 1
+                    // Initial Point: Year (start-1)
+                    // ROI is 0%
+                    path.push({ year: startYear - 1, value: wealth, cost: cost, roi: 0, id: stockId, name: 'Start' });
 
+                    for (let y = startYear; y <= 2025; y++) {
                         const cur = history.find(h => h.year === y);
                         const prev = history.find(h => h.year === y - 1);
-
-                        let annualReturn = 0;
-                        if (y === 2006) {
-                            // Special case. API 2006 ROI is annual return for 2006?
-                            // Usually yes for 'bao'.
-                            // If base is 2006, ROI_2006 might be 0? 
-                            // Let's assume API ROI is effective return from base.
-                            // If prev is missing, use current ROI directly?
-                            // Actually, let's treat strictly:
-                            // Wealth_T = Wealth_T-1 * (1 + Annual_Ret) + Contrib
-                        }
-
-                        // We need robust Annual Return derivation
-                        // If we lack 2006 base price, we rely on ratio of Accum ROIs.
-                        // 1 + R_cum_t = (1 + r1)(1 + r2)...(1 + rt)
-                        // 1 + R_cum_t-1 = (1 + r1)...(1 + rt-1)
-                        // Ratio = 1 + rt
 
                         const getCum = (record) => record ? (1 + record.roi / 100) : 1.0;
                         const cumCur = getCum(cur);
                         const cumPrev = getCum(prev);
 
-                        // Annual Return for year Y
-                        const annualFactor = (cumPrev > 0) ? (cumCur / cumPrev) : 1.0;
+                        let annualFactor = 1.0;
+                        if (y === 2006) {
+                            annualFactor = cumCur; // Base year return
+                        } else {
+                            annualFactor = (cumPrev > 0) ? (cumCur / cumPrev) : 1.0;
+                        }
 
-                        // Update Wealth (End of Year)
-                        // Compound Return first, then Add Contribution (End of period)
                         wealth = wealth * annualFactor;
-
-                        // Add contribution if NOT the very first moment? 
-                        // MoneyCome typically: Principal grows, + Annual Contrib (at end).
                         wealth += annualContrib;
+                        cost += annualContrib;
 
-                        path.push({ year: y, value: wealth, id: stockId, name: cur ? cur.name : stockId });
+                        // Cumulative ROI %
+                        const roiPct = ((wealth - cost) / cost) * 100;
+
+                        path.push({
+                            year: y,
+                            value: wealth,
+                            cost: cost,
+                            roi: roiPct,
+                            id: stockId,
+                            name: cur ? cur.name : stockId
+                        });
                     }
                     return path;
                 };
 
-                // Master Recalculate Function
                 const recalculate = () => {
                     if (!rawRaceData.value.length) return;
+                    raceRendered.value = false; // Force re-render of race chart
 
-                    // 1. Calculate Final Wealth for All Stocks (For Mars Table)
                     const simulatedList = rawMarsData.value.map(stock => {
                         const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
                         const final = path.length ? path[path.length - 1].value : 0;
-                        return { ...stock, finalValue: final };
+                        const finalROI = path.length ? path[path.length - 1].roi : 0;
+
+                        return {
+                            ...stock,
+                            finalValue: final,
+                            wealthPath: path,
+                            totalROI: finalROI.toFixed(1),
+                            cagr: stock.cagr_pct // Pre-calculated
+                        };
                     });
 
-                    // Sort descending by Final Wealth
-                    marsList.value = simulatedList.sort((a, b) => b.finalValue - a.finalValue);
+                    // Base list updated. Sorting handled by computed.
+                    marsList.value = simulatedList;
 
-                    // 2. Render Race Chart with simulated paths
-                    if (currentTab.value === 'race') renderRaceChart();
+                    // Always pre-render the race chart so it's ready on tab switch
+                    // Use setTimeout to allow the UI to update the table first
+                    setTimeout(renderRaceChart, 50);
                 };
 
                 const fetchMars = async () => {
@@ -331,62 +497,204 @@
                         ]);
                         if (res1.ok) rawMarsData.value = await res1.json();
                         if (res2.ok) rawRaceData.value = await res2.json();
-
-                        recalculate(); // Initial Calc
+                        recalculate();
                     } catch (e) { console.error(e); }
                 };
 
-                const renderRaceChart = () => {
-                    // Generate full path data for Top 20 (Simulated)
-                    // Optimization: Onlycalc for top stocks? Or all? All is safer for race dynamics.
-                    // But expensive in JS? 1800 stocks * 20 years = 36k ops. Fast enough.
+                const animationFrames = ref([]); // Store frame names for playback
+                const raceRendered = ref(false); // Track if race chart has been rendered
 
-                    const longData = [];
+                const raceMetric = ref('wealth'); // Default: Wealth
+
+                // Dynamic Race Chart (Frames)
+                const renderRaceChart = () => {
+                    if (!rawMarsData.value.length) return;
+                    raceRendered.value = false; // Reset during render
+
+                    const raceMap = new Map();
                     rawMarsData.value.forEach(stock => {
                         const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
-                        longData.push(...path);
+                        path.forEach(p => {
+                            if (!raceMap.has(p.year)) raceMap.set(p.year, []);
+                            // Include Start Year - 1 (Initial State) so chart isn't empty
+                            if (p.year >= sim.value.startYear - 1) {
+                                raceMap.get(p.year).push({
+                                    id: p.id,
+                                    name: p.name,
+                                    value: raceMetric.value === 'wealth' ? p.value : p.roi,
+                                    raw_wealth: p.value
+                                });
+                            }
+                        });
                     });
 
-                    // Filter for Animation
-                    // Group by Year, Take Top 15
+                    // Only include years that actually have data
+                    const years = Array.from(raceMap.keys())
+                        .filter(y => raceMap.get(y).length > 0)
+                        .sort((a, b) => a - b);
+
                     const frames = [];
-                    const years = [...new Set(longData.map(d => d.year))].sort((a, b) => a - b);
 
-                    // Note: Plotly JS Animation requires specific structure. 
-                    // Simplified for prototype: Render just the final year for now? 
-                    // Valid "Race" in JS is hard without robust data structure.
-                    // Let's rely on Plotly's `frame` object support if possible, or simpler loop.
+                    years.forEach(year => {
+                        // Top 25
+                        const yearData = raceMap.get(year).sort((a, b) => a.value - b.value).slice(-25); // Ascending for horizontal bars (top is bottom)
 
-                    // For No-Build MVP: Static Chart of Final Year
-                    // OR: Use `Plotly.animate`
+                        // Calculate Max for Zoom-to-Fit
+                        const maxVal = Math.max(...yearData.map(d => d.value));
+                        const minVal = Math.min(0, ...yearData.map(d => d.value));
 
-                    const lastYear = years[years.length - 1];
-                    const topLastYear = longData.filter(d => d.year === lastYear).sort((a, b) => b.value - a.value).slice(0, 15);
+                        frames.push({
+                            name: String(year),
+                            data: [{
+                                x: yearData.map(d => d.value),
+                                y: yearData.map((_, i) => i), // Rank-based Y (0,1,2...) for smooth sliding
+                                ids: yearData.map(d => d.id), // Object Constancy
+                                text: yearData.map(d => {
+                                    const valStr = raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`;
+                                    return `${d.name} (${d.id})  |  ${valStr}`;
+                                }),
+                                textposition: 'inside', // or 'auto'
+                                marker: { color: yearData.map(d => d.value), colorscale: 'Viridis' },
+                                insidetextanchor: 'start', // Align text to left of bar
+                                type: 'bar',
+                                orientation: 'h'
+                            }],
+                            layout: {
+                                xaxis: { range: [minVal, maxVal * 1.1] },
+                                annotations: [{
+                                    text: String(year),
+                                    font: { size: 120, color: 'rgba(255,255,255,0.15)', family: 'Inter, sans-serif', weight: 900 },
+                                    showarrow: false,
+                                    x: 0.95, y: 0.1,
+                                    xref: 'paper', yref: 'paper',
+                                    xanchor: 'right', yanchor: 'bottom'
+                                }]
+                            }
+                        });
+                    });
 
-                    const trace = {
-                        x: topLastYear.map(d => d.value),
-                        y: topLastYear.map(d => `${d.name} (${d.id})`),
-                        text: topLastYear.map(d => formatCurrency(d.value)),
-                        textposition: 'inside',
-                        type: 'bar',
-                        orientation: 'h',
-                        marker: { color: topLastYear.map(d => d.value), colorscale: 'Viridis' }
-                    };
+                    if (!frames.length) return;
+
+                    // Store for playback
+                    animationFrames.value = frames.map(f => f.name);
+
+                    const startFrame = frames[0];
+                    const firstMax = Math.max(...startFrame.data[0].x);
 
                     const layout = {
-                        title: { text: `Wealth Accumulation (${sim.value.startYear}-${lastYear})`, font: { color: '#fff' } },
+                        title: { text: raceMetric.value === 'wealth' ? `Wealth Race ($)` : `Cumulative ROI Race (%)`, font: { color: '#fff', size: 24 } },
                         paper_bgcolor: 'rgba(0,0,0,0)',
                         plot_bgcolor: 'rgba(0,0,0,0)',
                         font: { color: '#fff' },
-                        yaxis: { categoryorder: 'total ascending' },
+                        xaxis: {
+                            title: raceMetric.value === 'wealth' ? 'Total Wealth ($)' : 'Cumulative ROI %',
+                            range: [0, firstMax * 1.1],
+                            autorange: false
+                        },
+                        yaxis: {
+                            autorange: false,
+                            range: [-0.5, 24.5], // Fixed slots for 25 items
+                            showticklabels: false, // Hide 0,1,2...
+                            gridcolor: 'rgba(255,255,255,0.05)'
+                        },
                         height: 700,
-                        margin: { l: 150, t: 50, b: 50, r: 50 }
+                        margin: { l: 20, r: 50, t: 50, b: 50 }, // Less left margin needed
+                        annotations: [{
+                            text: String(years[0]),
+                            font: { size: 120, color: 'rgba(255,255,255,0.15)', family: 'Inter, sans-serif', weight: 900 },
+                            showarrow: false,
+                            x: 0.95, y: 0.1,
+                            xref: 'paper', yref: 'paper',
+                            xanchor: 'right', yanchor: 'bottom'
+                        }],
+                        updatemenus: []
                     };
 
-                    Plotly.newPlot('race-chart-container', [trace], layout);
+                    const config = { responsive: true, displayModeBar: false };
+
+                    Plotly.newPlot('race-chart-container', [{ ...startFrame.data[0], type: 'bar', orientation: 'h' }], layout, config).then(() => {
+                        Plotly.addFrames('race-chart-container', frames);
+                        raceRendered.value = true;
+                    });
+                }; // End renderRaceChart
+
+                const isPlaying = ref(false);
+                const currentFrameIndex = ref(0);
+                let animationInterval = null;
+
+                const pauseRace = () => {
+                    isPlaying.value = false;
+                    if (animationInterval) clearInterval(animationInterval);
+                    animationInterval = null;
                 };
 
-                // CB Analysis
+                const playRace = () => {
+                    // console.log('Playing race with frames:', animationFrames.value);
+                    if (isPlaying.value || !animationFrames.value.length) return;
+
+                    isPlaying.value = true;
+
+                    // Start loop
+                    animationInterval = setInterval(() => {
+                        const nextIndex = currentFrameIndex.value + 1;
+
+                        // Stop if end reached
+                        if (nextIndex >= animationFrames.value.length) {
+                            pauseRace();
+                            return;
+                        }
+
+                        const nextFrameName = animationFrames.value[nextIndex];
+
+                        // Animate to specific frame
+                        Plotly.animate('race-chart-container', [nextFrameName], {
+                            mode: 'immediate',
+                            fromcurrent: true,
+                            transition: { duration: 500, easing: 'cubic-in-out' },
+                            frame: { duration: 500, redraw: true }
+                        });
+
+                        currentFrameIndex.value = nextIndex;
+
+                    }, 1000); // 1-second interval ensures completion
+                };
+
+                const resetRace = () => {
+                    pauseRace();
+                    currentFrameIndex.value = 0;
+                    renderRaceChart();
+                };
+
+                const openDetail = (stock) => {
+                    detailStock.value = stock;
+                    nextTick(() => renderDetailChart(stock));
+                };
+
+                const renderDetailChart = (stock) => {
+                    const trace = {
+                        x: stock.wealthPath.map(d => d.year),
+                        y: stock.wealthPath.map(d => d.value),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Buy At Opening',
+                        line: { color: '#00f2ea', width: 3 },
+                        fill: 'tozeroy',
+                        fillcolor: 'rgba(0, 242, 234, 0.1)'
+                    };
+
+                    const layout = {
+                        title: false,
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(255,255,255,0.05)',
+                        font: { color: '#aaa' },
+                        margin: { t: 20, l: 40, r: 20, b: 40 },
+                        xaxis: { gridcolor: '#333' },
+                        yaxis: { gridcolor: '#333' }
+                    };
+
+                    Plotly.newPlot('detail-chart', [trace], layout);
+                };
+
                 const analyzeCB = async () => {
                     loadingCB.value = true;
                     cbResult.value = null;
@@ -398,7 +706,6 @@
                     loadingCB.value = false;
                 };
 
-                // Helpers
                 const getActionColor = (action) => {
                     if (!action) return 'text-gray-500';
                     if (action.includes('BUY')) return 'text-green-400';
@@ -413,18 +720,29 @@
                     return 'border-yellow-400 from-yellow-500/10';
                 };
 
-                // Init
                 onMounted(() => {
+                    // Remove loading screen
+                    const loader = document.getElementById('loading-msg');
+                    if (loader) loader.style.display = 'none';
+
                     fetchMars();
 
                     watch(currentTab, (newTab) => {
-                        if (newTab === 'race') recalculate();
+                        if (newTab === 'race') {
+                            if (raceRendered.value) {
+                                // Just resize if already rendered (Instant Switch)
+                                setTimeout(() => Plotly.Plots.resize('race-chart-container'), 50);
+                            } else {
+                                // First render
+                                setTimeout(renderRaceChart, 100);
+                            }
+                        }
                     });
                 });
 
-                return { currentTab, marsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency };
+                return { currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail, renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric };
             }
-        }).mount('#app');
+        }).mount('#app')
     </script>
 </body>
 

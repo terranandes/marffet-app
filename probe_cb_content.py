@@ -1,6 +1,5 @@
 import httpx
 import asyncio
-import json
 
 async def probe_cb_content():
     url = "https://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php"

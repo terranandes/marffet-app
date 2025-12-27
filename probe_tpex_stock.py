@@ -34,10 +34,9 @@ async def probe_tpex():
                     break
             
             if not found:
-                print(f"  NOT FOUND in TPEx")
+                print("  NOT FOUND in TPEx")
                 
         except Exception as e:
             print(f"  Error: {e}")
 
-import asyncio
 asyncio.run(probe_tpex())

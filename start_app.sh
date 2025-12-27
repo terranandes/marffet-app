@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Kill any existing processes on port 8000 (Backend)
+# Kill any existing processes on port 8000 (Backend) and 3000 (Frontend)
 fuser -k 8000/tcp || true
+fuser -k 3000/tcp || true
 
 echo "🚀 Starting Martian Investment System..."
 
@@ -33,8 +34,9 @@ if [ ! -d "node_modules" ]; then
 fi
 
 echo "✅ Frontend Ready"
-echo "Starting React Frontend..."
-npm run dev -- --host &
+echo "Starting Next.js Frontend..."
+# Note: Host is bound via package.json script "dev"
+npm run dev &
 FRONTEND_PID=$!
 
 # Cleanup on exit

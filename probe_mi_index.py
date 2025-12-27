@@ -50,5 +50,4 @@ async def probe():
             
             await asyncio.sleep(2)
 
-import asyncio
 asyncio.run(probe())

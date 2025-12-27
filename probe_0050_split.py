@@ -1,6 +1,4 @@
 import requests
-import json
-import time
 
 def probe_split_detail():
     # 1. TWT49U for 20250618

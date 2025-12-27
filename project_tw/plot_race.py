@@ -1,7 +1,6 @@
 
 import plotly.express as px
 import pandas as pd
-import numpy as np
 
 def generate_bar_chart_race_plotly(df_rois: pd.DataFrame, n_bars: int = 10, title: str = "Stock ROI Race"):
     """

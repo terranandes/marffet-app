@@ -1,6 +1,5 @@
 import pandas as pd
 import yfinance as yf
-import httpx
 import asyncio
 import os
 

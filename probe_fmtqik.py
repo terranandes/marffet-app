@@ -19,5 +19,4 @@ async def probe():
         except Exception as e:
             print(f"  Error: {e}")
 
-import asyncio
 asyncio.run(probe())

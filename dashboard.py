@@ -1,7 +1,6 @@
 
 import streamlit as st
 import pandas as pd
-import asyncio
 from project_tw.strategies.mars import MarsStrategy
 from project_tw.strategies.cb import CBStrategy
 from project_tw.crawler import get_stock_history_df

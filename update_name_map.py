@@ -1,7 +1,6 @@
 import httpx
 import pandas as pd
 import asyncio
-import os
 
 async def fetch_names():
     name_map = {}
@@ -62,7 +61,7 @@ async def fetch_names():
                     code = r[0]
                     name = r[1]
                     name_map[code] = name
-        except Exception as e:
+        except Exception:
             pass
 
     print(f"Collected {len(name_map)} names.")

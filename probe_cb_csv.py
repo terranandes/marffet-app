@@ -30,7 +30,7 @@ async def probe_cb_csv():
                 print(f"Content-Type: {ct}")
                 
                 if "text/csv" in ct or "application/csv" in ct or "ms-excel" in ct:
-                    print(f"SUCCESS: Headers imply CSV/Excel!")
+                    print("SUCCESS: Headers imply CSV/Excel!")
                     print(f"Snippet: {resp.text[:200]}")
                 else:
                     if len(resp.text) < 1000:

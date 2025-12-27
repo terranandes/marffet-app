@@ -1,6 +1,6 @@
 # Implementation Plan - Stock Analysis App
 
-## Goal Description
+## Goal Description - **[Owner: Product Manager]**
 Transform the existing scripts (`main_async_httpx.py`, `pandas_stock.py`) into a robust, object-oriented Web Application.
 Key objectives from README:
 -   **Visualization**: Implement **Bar Chart Race** to visualize stock ROI over time.
@@ -21,11 +21,9 @@ Key objectives from README:
 -   **Tab 1: Mars Strategy**:
     -   API integration to `GET /api/mars/portfolio`.
     -   Table component (TanStack Table) for the Top 50.
--   **Tab 2: CB Strategy**:
-    -   Interactive Form for `CBPrice`, `StockPrice`, `ConvPrice`.
-    -   Displays colored "Signal Card" (Red/Green/Blue logic).
 -   **Tab 3: Visualization**:
-    -   **Plotly.js** component to render the Bar Chart Race.
+    -   **Bar Chart Race** (using `framer-motion` for smooth interpolation and ranking swaps).
+    -   **Cyberpunk Finance** aesthetic (Neons, Glassmorphism).
 
 ### Backend Application (FastAPI)
 #### [MODIFY] `app/main.py`
@@ -34,8 +32,9 @@ Key objectives from README:
 -   Endpoints remain similar to current plan, but standardized JSON responses.
 
 ### Core Logic (Shared)
+### Core Logic (Shared)
 -   `project_tw/crawler.py`: (Unchanged)
--   `project_tw/strategies/`: (Unchanged)
+-   `project_tw/strategies/`: Implemented `mars.py` and `cb.py`.
 
 ## Proposed Changes
 
@@ -71,24 +70,41 @@ Key objectives from README:
 -   **Class**: `ROICalculator`
     -   Shared utility for calculating ROI and Volatility for the `MarsStrategy`.
 
-### Backend Application (FastAPI)
+### Backend Application (FastAPI) - **[Owner: Main Coder]**
 #### [NEW] `app/main.py`
 -   **Endpoints**:
     -   `GET /api/mars/portfolio`: Returns current "Mars 50" list.
     -   `GET /api/mars/rebalance`: Returns recommended swaps (Sell X, Buy Y).
     -   `GET /api/cb/watchlist`: Returns tracked CB stocks.
     -   `POST /api/cb/notify`: Triggers check for CB signals.
-    -   `GET /api/data/race`: Visuals.
+    -   `GET /api/race-data`: Returns year-by-year cumulative ROI for Bar Chart Race.
 
-### Frontend Application
-#### [NEW] `frontend/`
--   **Framework**: React + Vite + TailwindCSS.
--   **Charts**: Use `echarts` or `d3.js` for the Bar Chart Race (it needs smooth interpolation).
+### Frontend Application - **[Owner: UI Manager]**
+#### [NEW] `app/static/` (No-Build Architecture)
+-   **Framework**: Vue 3 (ESM) + TailwindCSS (CDN).
+-   **Charts**: Plotly.js (CDN).
+-   **Structure**: Single Page App (SPA) served by FastAPI.
 -   **Dashboard**:
-    -   Configuration Panel (Start/End Year, Capital).
-    -   Real-time Crawler Status Log.
+    -   `index.html`: Shell.
+    -   `js/app.js`: Main Logic.
 
-## Verification Plan
+### 11. Bar Chart Race Visualization - **[Owner: UI Manager]**
+
+#### Goal
+Implement a high-performance "Bar Chart Race" using **Plotly.js** directly in the browser.
+
+#### UI Design
+*   **Theme**: Cyberpunk Web UI (`#000` BG).
+*   **Library**: Plotly.js.
+*   **Input**: JSON from `/api/race-data`.
+
+#### Technical Roadmap
+1.  **Backend**: `app/main.py` mounts `app/static` to `/`.
+2.  **Frontend**: 
+    -   `app.js` fetches data.
+    -   Renders responsive Dashboard.
+
+## Verification Plan - **[Owner: Verification Agent]**
 
 ### Automated Tests
 -   **Unit Tests**: Test the new `Crawler` class methods in isolation.

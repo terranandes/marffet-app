@@ -1,6 +1,5 @@
 import httpx
 import asyncio
-import json
 
 async def debug_bond_fetch():
     base_url = "https://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php"

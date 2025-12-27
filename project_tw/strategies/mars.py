@@ -27,7 +27,7 @@ class MarsStrategy:
         for y in years:
              data = await self.crawler.fetch_ex_rights_history(y)
              # TPEx Dividends (Future)
-             tpex_div = await self.crawler_tpex.fetch_ex_rights_history(y, y) # Start/End same year
+             tpex_div = await self.crawler_tpex.fetch_ex_rights_history(y) # Start/End same year
              if tpex_div:
                  data.update(tpex_div)
                  
@@ -350,9 +350,9 @@ class MarsStrategy:
         if 'valid_lasting_years' in df.columns:
             yrs_val = df['valid_lasting_years']
         else:
-            yrs_val = 0
-            
-        df['id_name_yrs'] = df['id'].astype(str) + '_' + df['name'] + '_' + yrs_val.astype(str)
+           # Legacy: "{id}-{name}-{valid_years}" (Hyphen separator per Golden Reference)
+            yrs_val = 0 # Ensure yrs_val is defined even if 'valid_lasting_years' is not in columns
+        df['id_name_yrs'] = df['id'].astype(str) + '-' + df['name'].astype(str) + '-' + yrs_val.astype(str)
         
         # Column cleanup
         # Remove s{start}e{advancing}yrs columns from calculator

@@ -1,5 +1,4 @@
 import json
-import math
 import os
 
 def check_verification():

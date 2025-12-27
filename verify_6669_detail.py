@@ -1,5 +1,4 @@
 import json
-import math
 
 def simulate_2019():
     print("--- 6669 2019 Simulation Verification ---")
@@ -35,15 +34,15 @@ def simulate_2019():
     extra = 60_000
     invest_amt = principal + extra
     
-    print(f"1. Investment Date/Price:")
-    print(f"   - Buy Date: Start of 2019 (Listing ~3/27)")
+    print("1. Investment Date/Price:")
+    print("   - Buy Date: Start of 2019 (Listing ~3/27)")
     print(f"   - Buy Price: {p_start}")
     print(f"   - Invest Amount: {invest_amt}")
     
     shares = invest_amt / p_start
     print(f"   - Shares Bought: {shares:.4f}")
     
-    print(f"\n2. Dividend Application:")
+    print("\n2. Dividend Application:")
     print(f"   - Cash Div: {cash_div}")
     total_cash_div = shares * cash_div
     print(f"   - Total Cash Recv: {total_cash_div:.2f}")
@@ -60,7 +59,7 @@ def simulate_2019():
     final_shares = shares + shares_added
     print(f"   - Total Shares: {final_shares:.4f}")
     
-    print(f"\n3. End of 2019:")
+    print("\n3. End of 2019:")
     print(f"   - End Price: {p_end}")
     final_value = final_shares * p_end
     print(f"   - Final Value: {final_value:.2f}")

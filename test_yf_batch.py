@@ -1,5 +1,4 @@
 import yfinance as yf
-import pandas as pd
 
 def test_batch():
     tickers = ["6640.TWO", "006201.TWO", "5274.TWO"] # 6640, 006201, 5274 (Generic)

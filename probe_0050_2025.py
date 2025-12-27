@@ -1,5 +1,4 @@
 import requests
-import json
 
 def probe():
     date_str = "20251210" # Today according to metadata, or yesterday if time diff
@@ -41,7 +40,7 @@ def probe():
              d9 = data.get('data9', [])
              for r in d9:
                  if r[0] == "0050":
-                     print(f"Found 0050 in data9")
+                     print("Found 0050 in data9")
                      print(f"Row: {r}")
 
     except Exception as e:

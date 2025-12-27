@@ -1,38 +1,51 @@
 # Task: Build Stock Analysis App
 
-## Phase 1: Planning and Architecture
-- [/] Analyze existing code and data flow <!-- id: 0 -->
-    - [x] Analyze `main_async_httpx.py` (Old Crawler - `moneycome.in`)
-    - [x] Analyze `run_all.py` (Pipeline Driver)
-    - [x] Analyze `pandas_stock.py` (Data Filtering)
-    - [x] Analyze `README` (Project Goals)
-- [x] Research & Design New Crawler (TWSE) <!-- id: 1 -->
-    - [x] Research TWSE Data Endpoints (ROI vs Raw Price)
-    - [x] Design Data Normalization Layer (TWSE -> Native Format)
-    - [x] Updates to calculator logic (if raw data only)
-- [ ] Define Application Requirements <!-- id: 2 -->
-    - [ ] Confirm Web App vs Dashboard (Pending User Feedback)
-    - [x] Requirement: Bar Chart Race Visualization
-    - [x] Requirement: OOP Refactoring
-    - [x] Requirement: Support for future `project_usa`/`project_cn`
-- [x] Create Technical Design Document (`implementation_plan.md`) <!-- id: 2 -->
-    - [x] Propose Tech Stack (Switched to Streamlit Dashboard)
-    - [x] Design OOP Class Structure for Crawler
-    - [x] Design "Shared Package" architecture
-    - [x] Design "Mars" Strategy Module (Volatility & Rebalancing)
-    - [x] Design "CB" Strategy Module (Bond Data & Notifications)
+## 1. 👔 Product Manager (Vision & Market)
+- [ ] **Vision Definition**
+    - [ ] Define "Martian Investment System" core value proposition.
+    - [ ] Identify target user persona (Quantitative Investor).
 
-## Phase 2: Implementation
-- [x] **Infrastructure & Core**
-    - [x] Setup Project Structure (Streamlit Prototype Done)
-    - [x] Implement TWSE Crawler (Price & Dividend)
-    - [x] Implement CB Strategy Logic (User Rules)
-    - [x] Clean up legacy files
-- [x] **UI Layer (Web App Upgrade)**
-    - [x] **Frontend**: Initialize Vite + React Project
-    - [x] **Frontend**: Implement Mars Dashboard (Table & API)
-    - [x] **Frontend**: Implement CB Calculator Component
-    - [x] **Frontend**: Integrate Plotly.js for Bar Chart Race
-- [x] **Data & Automation (Next)**
-    - [x] **Mars Batch Integration**: Connect Dashboard to `stock_list` to analyze *all* stocks. (Implemented via API batch)
-    - [ ] **CB Automation**: Crawl TPEX for real-time bond prices.
+## 2. 📅 Project Leader (Timeline & Resources)
+- [ ] **Project Management**
+    - [ ] track overall project timeline.
+    - [ ] Coordinate handoffs between agents (e.g., Coder -> Verify).
+
+## 3. 🧠 SPEC Manager (You)
+- [x] **Project Initialization**
+    - [x] Analyze existing codebase (`main_async_httpx.py`, `run_all.py`).
+    - [x] Create `implementation_plan.md`.
+    - [x] Define Agent Roles & Responsibilities.
+- [/] **Spec Definition**
+    - [x] Define Data Layer Specs (Crawler/Normalizer).
+    - [x] Define Strategy Specs (Mars/CB).
+    - [x] Define UI/UX Specs for "Bar Chart Race". ([Spec Link](specs/bar_chart_race.md))
+    - [x] Review & Approve "Full Pipeline" methodology. ([Spec Link](specs/data_pipeline.md))
+
+## 4. 🎨 UI Manager (Experience)
+- [x] **Infrastructure**
+    - [x] Initialize Vite + React Project (`frontend/`). (BLOCKED: npm issues).
+    - [x] **Pivot 1**: Adopt Streamlit for Python-native Dashboard. (Completed).
+    - [x] **Pivot 2**: **Web Based UI** (No-Build).
+- [ ] **Implementation**
+    - [x] **Task**: Update `app/main.py` to serve `/static`. (Verified: curl 200).
+    - [x] **Task**: Create `app/static/index.html` (Cyberpunk Shell). (Verified: Vue/Tailwind injected).
+    - [x] **Task**: Implement features in `app/static/js/app.js` (Vue 3). (Verified: API logic robust).
+    - [x] **Task**: **Interactive Simulation**: Add "MoneyCome-style" inputs (Principal/Contrib) and logic. (Verified: Vue.js Logic).
+
+## 5. 💻 Main Coder (Implementation)
+- [x] **Core Infrastructure**
+    - [x] Setup Python Environment & Dependencies.
+    - [x] Implement TWSE Crawler (`project_tw/crawler.py`).
+    - [x] Implement TPEX Crawler (`project_tw/crawler_tpex.py`).
+- [ ] **Data Pipeline**
+    - [x] **Task**: Run `run_analysis.py` to generate full `stock_list.csv`.
+    - [x] **Task**: Implement API Endpoints in `app/main.py`.
+    - [x] **Task**: Create `ROICalculator` class for shared logic.
+    - [x] **Task**: Implement CB Strategy Crawler & Logic (`project_tw/strategies/cb.py`). (Verified: Retrieves Prices + Static Info correctly).
+
+## 6. 🔍 Verification Agent (Quality)
+- [ ] **Verification**
+    - [x] Verify TPEX Dividend Crawler (Output JSON checked).
+    - [x] **Test**: Verify `stock_list.csv` format and column logic. (Note: Legacy `bah`/`bal` cols missing due to different data source; ROI varies by ~5% for high-div stocks).
+    - [x] **Test**: Verify UI "Bar Chart Race" performance (Smoothness). (Verified: Plotly Animation Frame).
+    - [x] **Quality**: Review Codebase for OOP standards. (Certified: Clean Class Structure in Strategies).

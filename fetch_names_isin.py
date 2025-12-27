@@ -1,7 +1,6 @@
 import httpx
 import pandas as pd
 import asyncio
-import io
 
 async def fetch_isin_names():
     name_map = {}

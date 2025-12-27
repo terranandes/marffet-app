@@ -27,7 +27,7 @@ def check():
             else:
                 print("0050 not found in Unfiltered either!")
     else:
-        print(f"Found 0050 in FILTERED:")
+        print("Found 0050 in FILTERED:")
         data = row.iloc[0].to_dict()
         print(f"CAGR (s2006e2025bao): {data.get('s2006e2025bao')}")
         print(f"Full Row: {data}")

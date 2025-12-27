@@ -177,19 +177,104 @@ class TPEXCrawler:
             
         return list(set(codes))
 
-    async def fetch_ex_rights_history(self, start_year, end_year):
+    async def fetch_ex_rights_history(self, year: int):
         """
-        Fetch Dividend History.
-        To be implemented.
+        Fetch Dividend History for TPEx stocks using YFinance.
+        Returns dict: {stock_code: {'cash': float, 'stock': float}}
         """
-        print("TPEx Dividend Fetching not yet implemented.")
-        return {}
+        import yfinance as yf
+        import logging
+        import asyncio
+        import json
+        
+        # Silence yfinance "possibly delisted" spam
+        logging.getLogger('yfinance').setLevel(logging.CRITICAL)
+        logging.getLogger('yahoo_utils').setLevel(logging.CRITICAL)
+        
+        results = {}
+        
+        # 0. Check Cache
+        cache_file = os.path.join(self.data_dir, f"TPEx_Dividends_{year}.json")
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r') as f:
+                    results = json.load(f)
+                print(f"Loaded TPEx Dividends for Year {year} from Cache ({len(results)} items).")
+                return results
+            except Exception as e:
+                print(f"Error loading cache for {year}: {e}")
 
-    async def fetch_ex_rights_history(self, start_year, end_year):
-        """
-        Fetch Dividend History.
-        To be implemented (HTML Parsing).
-        For now returns empty dict to avoid breaking pipeline.
-        """
-        print("TPEx Dividend Fetching not yet implemented.")
-        return {}
+        # 1. Get Universe
+        async with httpx.AsyncClient(verify=False) as client:
+            universe = await self._get_tpex_universe(client)
+            
+        print(f"Fetching Dividends for {len(universe)} TPEx stocks (Year {year})...")
+        
+        import socket
+        socket.setdefaulttimeout(15) # Prevent infinite hangs
+        
+        # 2. Batch Processing
+        batch_size = 10 # Reduced to prevent stalls
+        yf_tickers = [c + ".TWO" for c in universe]
+        
+        total = len(yf_tickers)
+        for i in range(0, total, batch_size):
+            if i % 50 == 0:
+                print(f"  Processing TPEx Dividend Batch {i}/{total}...")
+            batch = yf_tickers[i:i+batch_size]
+            
+            try:
+                if i > 0: await asyncio.sleep(0.5)
+                
+                # Run blocking yfinance IO in a separate thread
+                def fetch_batch_history():
+                    batch_results = {}
+                    tickers_obj = yf.Tickers(" ".join(batch))
+                    
+                    for ticker_id, ticker_obj in tickers_obj.tickers.items():
+                         try:
+                             # Sync call
+                             hist = ticker_obj.history(start=start_date, end=end_date, actions=True)
+                             if hist.empty: continue
+                             
+                             code = ticker_id.replace('.TWO', '')
+                             
+                             cash_div = 0.0
+                             stock_div_par = 0.0
+                             
+                             if 'Dividends' in hist.columns:
+                                 cash_div = hist['Dividends'].sum()
+                                 
+                             if 'Stock Splits' in hist.columns:
+                                 splits = hist[hist['Stock Splits'] != 0]['Stock Splits']
+                                 for date, ratio in splits.items():
+                                     if ratio > 1.0:
+                                         sdf = (ratio - 1.0) * 10.0
+                                         stock_div_par += sdf
+                                         
+                             if cash_div > 0 or stock_div_par > 0:
+                                 batch_results[code] = {
+                                     'cash': float(cash_div),
+                                     'stock': float(stock_div_par)
+                                 }
+                         except Exception:
+                             pass
+                    return batch_results
+
+                # Await the thread
+                batch_data = await asyncio.to_thread(fetch_batch_history)
+                results.update(batch_data)
+                        
+            except Exception as e:
+                print(f"  Batch Error: {e}")
+                
+        # Cache logic if needed, but for now just return results
+        # Calling logic handles merging
+        
+        if True: # Always cache to prevent re-scanning empty years
+            cache_file = os.path.join(self.data_dir, f"TPEx_Dividends_{year}.json")
+            with open(cache_file, 'w') as f:
+                json.dump(results, f)
+            print(f"Saved TPEx Dividends to {cache_file} ({len(results)} items)")
+        
+        return results

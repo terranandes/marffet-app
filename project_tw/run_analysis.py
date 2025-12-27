@@ -19,6 +19,13 @@ async def main():
         df_list['code'] = df_list['code'].astype(str)
         # Handle 'name'
         name_map = dict(zip(df_list['code'], df_list['name']))
+        # Force Demo Mode for Speed (Top stocks + some variation)
+        # Full 'ALL' scan takes hours. For development, we use a representative subset.
+        # stock_universe = ["2330", "0050", "2317", "2454", "2308", "2881", "2891", "1101", "2412", "0056"]
+        # Add some TPEX stocks to Verify integration (3293 IGS, 8069, 8299 Phison, 6669 Wiwynn-TWSE)
+        # stock_universe.extend(["3293", "8299", "6669"])
+        
+        # PRODUCTION: Full Scan
         stock_universe = df_list['code'].tolist()
         # stock_universe = stock_universe[:50] # Debug Limit
         # stock_universe = stock_universe[:50] # Debug Limit

@@ -1,5 +1,4 @@
 import requests
-import json
 
 def probe_dividend():
     # TWT49U: Stock Dividend and Capital Increase

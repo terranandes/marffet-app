@@ -98,6 +98,9 @@
                 <button @click="currentTab = 'cb'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'cb'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">Convertible Bond</button>
+                <button @click="currentTab = 'portfolio'"
+                    :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'portfolio'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">📊 Portfolio</button>
             </nav>
         </header>
 
@@ -309,76 +312,247 @@
                 </div>
             </div>
 
-        </main>
+            <!-- PORTFOLIO TAB -->
+            <div v-show="currentTab === 'portfolio'" class="flex-1 space-y-4">
+                <!-- Portfolio Header -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-cyber-cyan">📊 My Portfolio</h2>
+                        <button @click="showAddGroup = !showAddGroup"
+                            class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
+                            + New Group
+                        </button>
+                    </div>
 
-        <!-- DETAIL MODAL -->
-        <div v-if="detailStock"
-            class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
-            @click.self="detailStock = null">
-            <div
-                class="bg-cyber-panel border border-white/20 w-full max-w-5xl h-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-                <!-- Modal Header -->
-                <div class="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
-                    <h2 class="text-xl font-bold">Result: <span class="text-cyber-cyan">{{ detailStock.name }} ({{
-                            detailStock.id }})</span></h2>
-                    <button @click="detailStock = null" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                    <!-- Add Group Form -->
+                    <div v-if="showAddGroup" class="mb-4 p-3 bg-black/30 rounded-lg">
+                        <input v-model="newGroupName" @keyup.enter="createGroup" type="text"
+                            placeholder="Group name (e.g. 火星借券)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 mr-2 text-sm">
+                        <button @click="createGroup"
+                            class="bg-cyber-cyan text-black px-3 py-2 rounded text-sm font-bold">Create</button>
+                    </div>
+
+                    <!-- Group Tabs -->
+                    <div class="flex gap-2 flex-wrap">
+                        <button v-for="group in portfolioGroups" :key="group.id" @click="selectGroup(group.id)"
+                            :class="{'bg-cyber-cyan text-black': selectedGroupId === group.id}"
+                            class="px-4 py-2 rounded-lg text-sm font-medium border border-white/20 hover:border-cyber-cyan transition">
+                            {{ group.name }}
+                            <span @click.stop="deleteGroup(group.id)"
+                                class="ml-2 text-red-400 hover:text-red-300">×</span>
+                        </button>
+                        <span v-if="!portfolioGroups.length" class="text-gray-500 text-sm">No groups yet. Create one
+                            above.</span>
+                    </div>
                 </div>
 
-                <!-- Modal Content -->
-                <div class="flex-1 overflow-auto p-6 space-y-6">
-                    <!-- Summary Stats -->
-                    <div class="grid grid-cols-3 gap-4 text-sm">
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Amount Inv.</div>
-                            <div class="text-xl font-bold">{{ formatCurrency(sim.principal) }} + {{
-                                formatCurrency(sim.contribution) }}/yr</div>
-                        </div>
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Total Years</div>
-                            <div class="text-xl font-bold">{{ 2025 - sim.startYear }} Years</div>
-                        </div>
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Yearly ROI (CAGR)</div>
-                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr || 0).toFixed(2) }}%
+                <!-- Targets & Transactions -->
+                <div v-if="selectedGroupId" class="glass-panel p-5 rounded-xl">
+                    <!-- Add Target Form -->
+                    <div class="flex gap-2 mb-4">
+                        <input v-model="newTargetId" type="text" placeholder="Stock Code (e.g. 2330)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm w-32">
+                        <input v-model="newTargetName" type="text" placeholder="Stock Name (optional)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm flex-1">
+                        <button @click="addTarget"
+                            class="bg-cyber-gold text-black px-4 py-2 rounded text-sm font-bold">+ Add Stock</button>
+                    </div>
+
+                    <!-- Targets Table (Yahoo-style) -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/10 text-gray-400 text-xs">
+                                    <th class="text-left p-2">股名/股號</th>
+                                    <th class="text-right p-2">股價/漲跌(%)</th>
+                                    <th class="text-right p-2">持有股數</th>
+                                    <th class="text-right p-2">持股成本/均價</th>
+                                    <th class="text-right p-2">市值</th>
+                                    <th class="text-right p-2">已實現損益</th>
+                                    <th class="text-right p-2">未實現損益</th>
+                                    <th class="text-center p-2">交易筆數</th>
+                                    <th class="text-center p-2">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="target in groupTargets" :key="target.id"
+                                    class="border-b border-white/5 hover:bg-white/5">
+                                    <!-- Stock Name/ID -->
+                                    <td class="p-2">
+                                        <div class="font-bold">{{ target.stock_name || target.stock_id }}</div>
+                                        <div class="text-xs text-gray-500">{{ target.stock_id }}</div>
+                                    </td>
+                                    <!-- Live Price + Change -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono font-bold">{{ target.livePrice?.price || '-' }}</div>
+                                        <div class="text-xs"
+                                            :class="target.livePrice?.change >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ target.livePrice?.change >= 0 ? '▲' : '▼' }}
+                                            {{ Math.abs(target.livePrice?.change || 0).toFixed(2) }}
+                                            ({{ Math.abs(target.livePrice?.change_pct || 0).toFixed(2) }}%)
+                                        </div>
+                                    </td>
+                                    <!-- Shares -->
+                                    <td class="text-right p-2 font-mono">{{ target.summary?.total_shares || 0 }} 股</td>
+                                    <!-- Cost Basis / Avg Cost -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono">${{ formatCurrency(target.summary?.total_cost || 0) }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">均價 ${{ target.summary?.avg_cost?.toFixed(2)
+                                            || '0.00' }}</div>
+                                    </td>
+                                    <!-- Market Value -->
+                                    <td class="text-right p-2 font-mono font-bold">
+                                        ${{ formatCurrency(target.summary?.market_value || 0) }}
+                                    </td>
+                                    <!-- Realized P/L -->
+                                    <td class="text-right p-2 font-mono"
+                                        :class="(target.summary?.realized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                        formatCurrency(target.summary?.realized_pnl || 0) }}
+                                    </td>
+                                    <!-- Unrealized P/L -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono"
+                                            :class="(target.summary?.unrealized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                            formatCurrency(target.summary?.unrealized_pnl || 0) }}
+                                        </div>
+                                        <div class="text-xs"
+                                            :class="(target.summary?.unrealized_pnl_pct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            ({{ target.summary?.unrealized_pnl_pct?.toFixed(2) || 0 }}%)
+                                        </div>
+                                    </td>
+                                    <!-- Tx Count -->
+                                    <td class="text-center p-2 font-mono">{{ target.summary?.tx_count || 0 }} 筆</td>
+                                    <!-- Actions -->
+                                    <td class="text-center p-2">
+                                        <button @click="showTxForm = target.id"
+                                            class="text-cyber-cyan hover:underline text-xs mr-2">+交易</button>
+                                        <button @click="deleteTarget(target.id)"
+                                            class="text-red-400 hover:text-red-300 text-xs">刪除</button>
+                                    </td>
+                                </tr>
+                                <tr v-if="!groupTargets.length">
+                                    <td colspan="9" class="text-center text-gray-500 py-8">
+                                        No stocks in this group. Add one above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transaction Form (Modal) -->
+                <div v-if="showTxForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    @click.self="showTxForm = null">
+                    <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96">
+                        <h3 class="text-lg font-bold mb-4">新增交易</h3>
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <button @click="newTx.type = 'buy'"
+                                    :class="{'bg-green-500 text-black': newTx.type === 'buy'}"
+                                    class="flex-1 py-2 rounded border border-green-500 text-green-400 font-bold">
+                                    買入
+                                </button>
+                                <button @click="newTx.type = 'sell'"
+                                    :class="{'bg-red-500 text-black': newTx.type === 'sell'}"
+                                    class="flex-1 py-2 rounded border border-red-500 text-red-400 font-bold">
+                                    賣出
+                                </button>
+                            </div>
+                            <input v-model="newTx.shares" type="number" placeholder="股數"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <input v-model="newTx.price" type="number" step="0.01" placeholder="成本/股"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <input v-model="newTx.date" type="date"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <div class="flex gap-2">
+                                <button @click="addTransaction"
+                                    class="flex-1 bg-cyber-cyan text-black py-2 rounded font-bold">
+                                    確認
+                                </button>
+                                <button @click="showTxForm = null" class="flex-1 border border-white/20 py-2 rounded">
+                                    取消
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+    </div>
 
-                    <!-- Result Table -->
-                    <table class="w-full text-center border-collapse">
-                        <thead class="bg-cyber-gold text-black font-bold">
-                            <tr>
-                                <th class="p-3">Strategy</th>
-                                <th class="p-3">Buy At Yearly Opening</th>
-                                <th class="p-3 opacity-50">Buy At Yearly Highest (N/A)</th>
-                                <th class="p-3 opacity-50">Buy At Yearly Lowest (N/A)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-white/10 bg-white/5">
-                            <tr>
-                                <td class="p-3 font-bold text-left pl-6">Final Value</td>
-                                <td class="p-3 text-xl font-bold text-cyber-cyan">{{
-                                    formatCurrency(detailStock.finalValue) }}</td>
-                                <td class="p-3 text-gray-500">-</td>
-                                <td class="p-3 text-gray-500">-</td>
-                            </tr>
-                            <tr>
-                                <td class="p-3 font-bold text-left pl-6">Total ROI</td>
-                                <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
-                                <td class="p-3 text-gray-500">-</td>
-                                <td class="p-3 text-gray-500">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+    </main>
 
-                    <!-- Chart -->
-                    <div class="glass-panel p-4 rounded-xl">
-                        <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
-                        <div id="detail-chart" class="h-[300px]"></div>
+    <!-- DETAIL MODAL -->
+    <div v-if="detailStock"
+        class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+        @click.self="detailStock = null">
+        <div
+            class="bg-cyber-panel border border-white/20 w-full max-w-5xl h-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
+                <h2 class="text-xl font-bold">Result: <span class="text-cyber-cyan">{{ detailStock.name }} ({{
+                        detailStock.id }})</span></h2>
+                <button @click="detailStock = null" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="flex-1 overflow-auto p-6 space-y-6">
+                <!-- Summary Stats -->
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Amount Inv.</div>
+                        <div class="text-xl font-bold">{{ formatCurrency(sim.principal) }} + {{
+                            formatCurrency(sim.contribution) }}/yr</div>
                     </div>
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Total Years</div>
+                        <div class="text-xl font-bold">{{ 2025 - sim.startYear }} Years</div>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Yearly ROI (CAGR)</div>
+                        <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr || 0).toFixed(2) }}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Table -->
+                <table class="w-full text-center border-collapse">
+                    <thead class="bg-cyber-gold text-black font-bold">
+                        <tr>
+                            <th class="p-3">Strategy</th>
+                            <th class="p-3">Buy At Yearly Opening</th>
+                            <th class="p-3 opacity-50">Buy At Yearly Highest (N/A)</th>
+                            <th class="p-3 opacity-50">Buy At Yearly Lowest (N/A)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/10 bg-white/5">
+                        <tr>
+                            <td class="p-3 font-bold text-left pl-6">Final Value</td>
+                            <td class="p-3 text-xl font-bold text-cyber-cyan">{{
+                                formatCurrency(detailStock.finalValue) }}</td>
+                            <td class="p-3 text-gray-500">-</td>
+                            <td class="p-3 text-gray-500">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-bold text-left pl-6">Total ROI</td>
+                            <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
+                            <td class="p-3 text-gray-500">-</td>
+                            <td class="p-3 text-gray-500">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Chart -->
+                <div class="glass-panel p-4 rounded-xl">
+                    <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
+                    <div id="detail-chart" class="h-[300px]"></div>
                 </div>
             </div>
         </div>
+    </div>
 
     </div>
 
@@ -903,12 +1077,148 @@
                     return 'border-yellow-400 from-yellow-500/10';
                 };
 
+                // ============== PORTFOLIO STATE ==============
+                const portfolioGroups = ref([]);
+                const selectedGroupId = ref(null);
+                const groupTargets = ref([]);
+                const showAddGroup = ref(false);
+                const newGroupName = ref('');
+                const newTargetId = ref('');
+                const newTargetName = ref('');
+                const showTxForm = ref(null);
+                const newTx = ref({ type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] });
+
+                // Fetch all groups
+                const fetchGroups = async () => {
+                    try {
+                        const res = await fetch('/api/portfolio/groups');
+                        portfolioGroups.value = await res.json();
+                        // Auto-select first group
+                        if (portfolioGroups.value.length && !selectedGroupId.value) {
+                            selectGroup(portfolioGroups.value[0].id);
+                        }
+                    } catch (e) { console.error('Fetch groups error:', e); }
+                };
+
+                // Create group
+                const createGroup = async () => {
+                    if (!newGroupName.value.trim()) return;
+                    try {
+                        const res = await fetch('/api/portfolio/groups', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: newGroupName.value.trim() })
+                        });
+                        if (res.ok) {
+                            newGroupName.value = '';
+                            showAddGroup.value = false;
+                            await fetchGroups();
+                        } else {
+                            const err = await res.json();
+                            alert(err.error || 'Create failed');
+                        }
+                    } catch (e) { console.error('Create group error:', e); }
+                };
+
+                // Delete group
+                const deleteGroup = async (groupId) => {
+                    if (!confirm('Delete this group and all targets?')) return;
+                    try {
+                        await fetch(`/api/portfolio/groups/${groupId}`, { method: 'DELETE' });
+                        if (selectedGroupId.value === groupId) {
+                            selectedGroupId.value = null;
+                            groupTargets.value = [];
+                        }
+                        await fetchGroups();
+                    } catch (e) { console.error('Delete group error:', e); }
+                };
+
+                // Select group and load targets
+                // Select group and load targets with live prices
+                const selectGroup = async (groupId) => {
+                    selectedGroupId.value = groupId;
+                    try {
+                        const res = await fetch(`/api/portfolio/groups/${groupId}/targets`);
+                        const targets = await res.json();
+
+                        // Collect all stock IDs for batch price fetch
+                        const stockIds = targets.map(t => t.stock_id).join(',');
+
+                        // Fetch live prices (parallel)
+                        let livePrices = {};
+                        if (stockIds) {
+                            try {
+                                const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${stockIds}`);
+                                livePrices = await priceRes.json();
+                            } catch (e) { console.warn('Live price fetch failed:', e); }
+                        }
+
+                        // Fetch summary for each target with live price
+                        for (const t of targets) {
+                            const livePrice = livePrices[t.stock_id]?.price || null;
+                            t.livePrice = livePrices[t.stock_id] || { price: 0, change: 0, change_pct: 0 };
+
+                            // Fetch summary with current price for P/L calculation
+                            const sumUrl = livePrice
+                                ? `/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
+                                : `/api/portfolio/targets/${t.id}/summary`;
+                            const sumRes = await fetch(sumUrl);
+                            t.summary = await sumRes.json();
+                        }
+                        groupTargets.value = targets;
+                    } catch (e) { console.error('Load targets error:', e); }
+                };
+
+                // Add target
+                const addTarget = async () => {
+                    if (!newTargetId.value.trim() || !selectedGroupId.value) return;
+                    try {
+                        const res = await fetch(`/api/portfolio/groups/${selectedGroupId.value}/targets`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ stock_id: newTargetId.value.trim(), stock_name: newTargetName.value.trim() || null })
+                        });
+                        if (res.ok) {
+                            newTargetId.value = '';
+                            newTargetName.value = '';
+                            await selectGroup(selectedGroupId.value);
+                        }
+                    } catch (e) { console.error('Add target error:', e); }
+                };
+
+                // Delete target
+                const deleteTarget = async (targetId) => {
+                    if (!confirm('Delete this stock and all transactions?')) return;
+                    try {
+                        await fetch(`/api/portfolio/targets/${targetId}`, { method: 'DELETE' });
+                        await selectGroup(selectedGroupId.value);
+                    } catch (e) { console.error('Delete target error:', e); }
+                };
+
+                // Add transaction
+                const addTransaction = async () => {
+                    if (!showTxForm.value || !newTx.value.shares || !newTx.value.price) return;
+                    try {
+                        const res = await fetch(`/api/portfolio/targets/${showTxForm.value}/transactions`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newTx.value)
+                        });
+                        if (res.ok) {
+                            showTxForm.value = null;
+                            newTx.value = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] };
+                            await selectGroup(selectedGroupId.value);
+                        }
+                    } catch (e) { console.error('Add transaction error:', e); }
+                };
+
                 onMounted(() => {
                     // Remove loading screen
                     const loader = document.getElementById('loading-msg');
                     if (loader) loader.style.display = 'none';
 
                     fetchMars();
+                    fetchGroups(); // Load portfolio on startup
 
                     watch(currentTab, (newTab) => {
                         if (newTab === 'race') {
@@ -919,11 +1229,22 @@
                                 // First render
                                 setTimeout(renderRaceChart, 100);
                             }
+                        } else if (newTab === 'portfolio') {
+                            fetchGroups(); // Refresh when entering portfolio
                         }
                     });
                 });
 
-                return { currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail, renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric, animationFrames, currentFrameIndex, seekToFrame, isCalculating };
+                return {
+                    currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB,
+                    getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail,
+                    renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric,
+                    animationFrames, currentFrameIndex, seekToFrame, isCalculating,
+                    // Portfolio
+                    portfolioGroups, selectedGroupId, groupTargets, showAddGroup, newGroupName,
+                    newTargetId, newTargetName, showTxForm, newTx,
+                    fetchGroups, createGroup, deleteGroup, selectGroup, addTarget, deleteTarget, addTransaction
+                };
             }
         }).mount('#app')
     </script>

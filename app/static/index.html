@@ -1448,6 +1448,7 @@
                 const selectedMonth = ref(null);
                 const portfolioRaceData = ref([]);
                 const portfolioRacePlaying = ref(false);
+                const trendLivePrices = ref({});
 
                 // Computed: max trend cost for chart scaling
                 const maxTrendCost = computed(() => {
@@ -1467,7 +1468,17 @@
 
                         // Fetch asset groups
                         const groupRes = await fetch('/api/portfolio/by-type');
-                        assetGroups.value = await groupRes.json();
+                        const groups = await groupRes.json();
+                        assetGroups.value = groups;
+
+                        // Collect all stock IDs to fetch current prices
+                        const allTargets = [...(groups.stock || []), ...(groups.etf || []), ...(groups.cb || [])];
+                        const ids = allTargets.map(t => t.stock_id).filter(id => id).join(',');
+
+                        if (ids) {
+                            const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${ids}`);
+                            trendLivePrices.value = await priceRes.json();
+                        }
 
                         // Fetch race data
                         const raceRes = await fetch('/api/portfolio/race-data');
@@ -1475,10 +1486,15 @@
                     } catch (e) { console.error('Fetch trend error:', e); }
                 };
 
-                // Get group total (placeholder - will be calculated with live prices)
+                // Get group total (Calculated with live prices)
                 const getGroupTotal = (type) => {
-                    // TODO: Calculate actual total with live prices
-                    return 0;
+                    const targets = assetGroups.value[type] || [];
+                    let total = 0;
+                    for (const t of targets) {
+                        const price = trendLivePrices.value[t.stock_id]?.price || 0;
+                        total += (t.total_shares || 0) * price;
+                    }
+                    return total;
                 };
 
                 // Portfolio race controls

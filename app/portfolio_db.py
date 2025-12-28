@@ -368,7 +368,9 @@ def get_all_targets_by_type(user_id: str = "default") -> dict:
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT gt.id, gt.stock_id, gt.stock_name, gt.asset_type, gt.group_id, ug.name as group_name
+            SELECT gt.*, ug.name as group_name,
+            COALESCE((SELECT SUM(CASE WHEN t.type='buy' THEN t.shares WHEN t.type='sell' THEN -t.shares ELSE 0 END) 
+                      FROM transactions t WHERE t.target_id = gt.id), 0) as total_shares
             FROM group_targets gt
             JOIN user_groups ug ON gt.group_id = ug.id
             WHERE ug.user_id = ?

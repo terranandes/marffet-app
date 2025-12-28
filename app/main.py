@@ -86,7 +86,9 @@ from app.portfolio_db import (
     init_db, create_group, list_groups, delete_group,
     add_target, list_targets, delete_target,
     add_transaction, list_transactions, delete_transaction,
-    get_target_summary, fetch_live_prices
+    get_target_summary, fetch_live_prices,
+    get_all_targets_by_type, get_portfolio_history, get_portfolio_race_data,
+    sync_all_dividends, get_dividend_history, get_total_dividends
 )
 from pydantic import BaseModel
 from typing import Optional
@@ -100,6 +102,7 @@ class GroupCreate(BaseModel):
 class TargetCreate(BaseModel):
     stock_id: str
     stock_name: Optional[str] = None
+    asset_type: Optional[str] = "stock"  # "stock" or "etf"
 
 class TransactionCreate(BaseModel):
     type: str  # 'buy' or 'sell'
@@ -146,9 +149,9 @@ def api_list_targets(group_id: str):
 
 @app.post("/api/portfolio/groups/{group_id}/targets")
 def api_add_target(group_id: str, data: TargetCreate):
-    """Add a target to a group"""
+    """Add a target (stock/ETF) to a group"""
     try:
-        return add_target(group_id, data.stock_id, data.stock_name)
+        return add_target(group_id, data.stock_id, data.stock_name, data.asset_type or "stock")
     except ValueError as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
     except Exception as e:
@@ -213,6 +216,63 @@ def api_live_prices(stock_ids: str):
         if not ids:
             return {}
         return fetch_live_prices(ids)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# Trend Dashboard Endpoints
+@app.get("/api/portfolio/trend")
+def api_portfolio_trend(months: int = 12):
+    """Get monthly portfolio cost history for trend chart"""
+    try:
+        return get_portfolio_history(months=months)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/portfolio/by-type")
+def api_portfolio_by_type():
+    """Get all targets grouped by asset type (stock/etf)"""
+    try:
+        return get_all_targets_by_type()
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/portfolio/race-data")
+def api_portfolio_race():
+    """Get race data for live portfolio BCR animation"""
+    try:
+        return get_portfolio_race_data()
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# Dividend Tracking Endpoints
+@app.post("/api/portfolio/sync-dividends")
+def api_sync_dividends():
+    """Sync dividends for all user's targets"""
+    try:
+        result = sync_all_dividends()
+        return result
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/portfolio/targets/{target_id}/dividends")
+def api_target_dividends(target_id: str):
+    """Get dividend history for a target"""
+    try:
+        return get_dividend_history(target_id)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/portfolio/cash")
+def api_dividend_cash():
+    """Get total dividend cash"""
+    try:
+        return get_total_dividends()
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

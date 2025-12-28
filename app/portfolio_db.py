@@ -50,30 +50,53 @@ def init_db():
             )
         """)
         
-        # Group Targets (watched stocks)
+        # Group Targets (watched stocks/ETFs/CB)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS group_targets (
                 id TEXT PRIMARY KEY,
                 group_id TEXT NOT NULL,
                 stock_id TEXT NOT NULL,
                 stock_name TEXT,
+                asset_type TEXT DEFAULT 'stock' CHECK(asset_type IN ('stock', 'etf', 'cb')),
                 added_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
                 UNIQUE(group_id, stock_id)
             )
         """)
         
-        # Transactions
+        # Migration: Add asset_type column if not exists (for existing DBs)
+        try:
+            cursor.execute("ALTER TABLE group_targets ADD COLUMN asset_type TEXT DEFAULT 'stock'")
+        except:
+            pass  # Column already exists
+        
+        # Transactions (buy, sell, dividend)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS transactions (
                 id TEXT PRIMARY KEY,
                 target_id TEXT NOT NULL,
-                type TEXT CHECK(type IN ('buy', 'sell')) NOT NULL,
+                type TEXT CHECK(type IN ('buy', 'sell', 'dividend')) NOT NULL,
                 shares INTEGER NOT NULL,
                 price REAL NOT NULL,
                 date TEXT NOT NULL,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (target_id) REFERENCES group_targets(id) ON DELETE CASCADE
+            )
+        """)
+        
+        # Dividend History (for tracking dividend payments)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS dividend_history (
+                id TEXT PRIMARY KEY,
+                target_id TEXT NOT NULL,
+                ex_date TEXT NOT NULL,
+                pay_date TEXT,
+                amount_per_share REAL NOT NULL,
+                shares_held INTEGER NOT NULL,
+                total_cash REAL NOT NULL,
+                synced_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (target_id) REFERENCES group_targets(id) ON DELETE CASCADE,
+                UNIQUE(target_id, ex_date)
             )
         """)
         
@@ -126,8 +149,11 @@ def delete_group(group_id: str) -> bool:
 
 # ============== TARGET OPERATIONS ==============
 
-def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None) -> dict:
-    """Add a stock target to a group."""
+def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, asset_type: str = "stock") -> dict:
+    """Add a stock/ETF target to a group."""
+    if asset_type not in ('stock', 'etf', 'cb'):
+        asset_type = 'stock'  # Default to stock
+    
     with get_db() as conn:
         cursor = conn.cursor()
         
@@ -139,10 +165,10 @@ def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None) -
         
         target_id = str(uuid.uuid4())
         cursor.execute(
-            "INSERT INTO group_targets (id, group_id, stock_id, stock_name) VALUES (?, ?, ?, ?)",
-            (target_id, group_id, stock_id, stock_name)
+            "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
+            (target_id, group_id, stock_id, stock_name, asset_type)
         )
-        return {"id": target_id, "group_id": group_id, "stock_id": stock_id, "stock_name": stock_name}
+        return {"id": target_id, "group_id": group_id, "stock_id": stock_id, "stock_name": stock_name, "asset_type": asset_type}
 
 
 def list_targets(group_id: str) -> list:
@@ -150,7 +176,7 @@ def list_targets(group_id: str) -> list:
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, stock_id, stock_name, added_at FROM group_targets WHERE group_id = ? ORDER BY added_at",
+            "SELECT id, stock_id, stock_name, asset_type, added_at FROM group_targets WHERE group_id = ? ORDER BY added_at",
             (group_id,)
         )
         return [dict(row) for row in cursor.fetchall()]
@@ -330,6 +356,286 @@ def fetch_live_prices(stock_ids: list) -> dict:
                 prices[sid] = {"price": 0, "change": 0, "change_pct": 0, "error": str(e)}
     
     return prices
+
+
+# ============== PORTFOLIO TREND ==============
+
+def get_all_targets_by_type(user_id: str = "default") -> dict:
+    """
+    Get all portfolio targets grouped by asset type.
+    Returns: {"stock": [...], "etf": [...]}
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT gt.id, gt.stock_id, gt.stock_name, gt.asset_type, gt.group_id, ug.name as group_name
+            FROM group_targets gt
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+            ORDER BY gt.asset_type, gt.added_at
+        """, (user_id,))
+        
+        result = {"stock": [], "etf": [], "cb": []}
+        for row in cursor.fetchall():
+            target = dict(row)
+            asset_type = target.get("asset_type", "stock") or "stock"
+            if asset_type not in result:
+                asset_type = "stock"
+            result[asset_type].append(target)
+        
+        return result
+
+
+def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
+    """
+    Get monthly portfolio value history.
+    Returns: [{"month": "2024-01", "cost": 1000000, "tx_count": 5}, ...]
+    """
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    
+    # Calculate start date (months ago)
+    end_date = datetime.now()
+    start_date = end_date - relativedelta(months=months)
+    
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        # Get all transactions for user's targets within date range
+        cursor.execute("""
+            SELECT t.date, t.type, t.shares, t.price
+            FROM transactions t
+            JOIN group_targets gt ON t.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ? AND t.date >= ?
+            ORDER BY t.date
+        """, (user_id, start_date.strftime("%Y-%m-%d")))
+        
+        transactions = cursor.fetchall()
+    
+    # Build monthly aggregates
+    monthly_data = {}
+    running_cost = 0
+    running_shares = 0
+    
+    for tx in transactions:
+        month = tx['date'][:7]  # "YYYY-MM"
+        if month not in monthly_data:
+            monthly_data[month] = {"month": month, "cost": 0, "tx_count": 0}
+        
+        if tx['type'] == 'buy':
+            running_cost += tx['shares'] * tx['price']
+            running_shares += tx['shares']
+        else:
+            if running_shares > 0:
+                avg_cost = running_cost / running_shares
+                running_shares -= tx['shares']
+                running_cost = running_shares * avg_cost
+        
+        monthly_data[month]['cost'] = round(running_cost, 2)
+        monthly_data[month]['tx_count'] += 1
+    
+    # Fill in missing months
+    result = []
+    current = start_date
+    prev_cost = 0
+    while current <= end_date:
+        month_key = current.strftime("%Y-%m")
+        if month_key in monthly_data:
+            result.append(monthly_data[month_key])
+            prev_cost = monthly_data[month_key]['cost']
+        else:
+            result.append({"month": month_key, "cost": prev_cost, "tx_count": 0})
+        current += relativedelta(months=1)
+    
+    return result
+
+
+def get_portfolio_race_data(user_id: str = "default") -> list:
+    """
+    Build race data for live portfolio BCR.
+    Returns data structure compatible with existing D3.js race chart.
+    """
+    targets_by_type = get_all_targets_by_type(user_id)
+    all_targets = targets_by_type['stock'] + targets_by_type['etf']
+    
+    if not all_targets:
+        return []
+    
+    # Get all unique transaction dates
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT DISTINCT substr(t.date, 1, 7) as month
+            FROM transactions t
+            JOIN group_targets gt ON t.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+            ORDER BY month
+        """, (user_id,))
+        months = [row['month'] for row in cursor.fetchall()]
+    
+    if not months:
+        return []
+    
+    # Build race data per month
+    race_data = []
+    for month in months:
+        for target in all_targets:
+            # Get cumulative value for this target up to this month
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT type, shares, price FROM transactions
+                    WHERE target_id = ? AND date <= ?
+                    ORDER BY date
+                """, (target['id'], month + "-31"))
+                transactions = cursor.fetchall()
+            
+            total_shares = 0
+            total_cost = 0
+            for tx in transactions:
+                if tx['type'] == 'buy':
+                    total_shares += tx['shares']
+                    total_cost += tx['shares'] * tx['price']
+                else:
+                    if total_shares > 0:
+                        avg = total_cost / total_shares
+                        total_shares -= tx['shares']
+                        total_cost = total_shares * avg
+            
+            if total_cost > 0:
+                race_data.append({
+                    "month": month,
+                    "id": target['stock_id'],
+                    "name": target['stock_name'] or target['stock_id'],
+                    "value": round(total_cost, 2),
+                    "asset_type": target.get('asset_type', 'stock')
+                })
+    
+    return race_data
+
+
+# ============== DIVIDEND TRACKING ==============
+
+def sync_dividends_for_target(target_id: str, stock_id: str) -> list:
+    """
+    Fetch and sync dividends from yfinance for a target.
+    Returns list of newly recorded dividends.
+    """
+    import yfinance as yf
+    from datetime import datetime
+    
+    # Try TW and TWO suffixes
+    new_dividends = []
+    
+    for suffix in ['.TW', '.TWO']:
+        try:
+            ticker = yf.Ticker(f"{stock_id}{suffix}")
+            dividends = ticker.dividends
+            
+            if dividends.empty:
+                continue
+            
+            # Get current shares held for this target
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT SUM(CASE WHEN type='buy' THEN shares ELSE -shares END) as total_shares
+                    FROM transactions 
+                    WHERE target_id = ? AND type IN ('buy', 'sell')
+                """, (target_id,))
+                result = cursor.fetchone()
+                shares_held = result['total_shares'] or 0
+            
+            if shares_held <= 0:
+                break
+            
+            # Process each dividend
+            for ex_date, amount in dividends.items():
+                ex_date_str = ex_date.strftime('%Y-%m-%d')
+                total_cash = shares_held * amount
+                
+                # Check if already recorded
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT id FROM dividend_history WHERE target_id = ? AND ex_date = ?",
+                        (target_id, ex_date_str)
+                    )
+                    if cursor.fetchone():
+                        continue  # Already exists
+                    
+                    # Record new dividend
+                    div_id = str(uuid.uuid4())
+                    cursor.execute("""
+                        INSERT INTO dividend_history 
+                        (id, target_id, ex_date, amount_per_share, shares_held, total_cash)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (div_id, target_id, ex_date_str, amount, shares_held, total_cash))
+                    
+                    new_dividends.append({
+                        "id": div_id,
+                        "ex_date": ex_date_str,
+                        "amount_per_share": round(amount, 4),
+                        "shares_held": shares_held,
+                        "total_cash": round(total_cash, 2)
+                    })
+            
+            break  # Success, no need to try other suffix
+            
+        except Exception as e:
+            continue
+    
+    return new_dividends
+
+
+def get_dividend_history(target_id: str) -> list:
+    """Get dividend history for a target."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, ex_date, pay_date, amount_per_share, shares_held, total_cash, synced_at
+            FROM dividend_history WHERE target_id = ?
+            ORDER BY ex_date DESC
+        """, (target_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_total_dividends(user_id: str = "default") -> dict:
+    """Get total dividend cash for a user."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT SUM(dh.total_cash) as total_cash, COUNT(dh.id) as dividend_count
+            FROM dividend_history dh
+            JOIN group_targets gt ON dh.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+        """, (user_id,))
+        result = cursor.fetchone()
+        return {
+            "total_cash": round(result['total_cash'] or 0, 2),
+            "dividend_count": result['dividend_count'] or 0
+        }
+
+
+def sync_all_dividends(user_id: str = "default") -> dict:
+    """Sync dividends for all user's targets."""
+    targets_by_type = get_all_targets_by_type(user_id)
+    all_targets = targets_by_type.get('stock', []) + targets_by_type.get('etf', []) + targets_by_type.get('cb', [])
+    
+    synced = []
+    for target in all_targets:
+        new_divs = sync_dividends_for_target(target['id'], target['stock_id'])
+        for div in new_divs:
+            div['stock_id'] = target['stock_id']
+            synced.append(div)
+    
+    return {
+        "synced_count": len(synced),
+        "dividends": synced
+    }
 
 
 # Initialize on import

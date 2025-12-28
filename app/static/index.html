@@ -29,6 +29,9 @@
     <!-- Plotly.js (Local) -->
     <script src="/static/vendor/plotly.min.js"></script>
 
+    <!-- D3.js (Local) - for Bar Chart Race -->
+    <script src="/static/vendor/d3.min.js"></script>
+
     <!-- Styles -->
     <style>
         body {
@@ -47,7 +50,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        <style>[v-cloak] {
+        [v-cloak] {
             display: none !important;
         }
 
@@ -149,7 +152,21 @@
             <div v-show="currentTab === 'mars'" class="flex-1 space-y-6">
                 <div class="glass-panel rounded-xl overflow-hidden h-full flex flex-col">
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center white">
-                        <h2 class="font-bold">Top 50 Survivors (Final Wealth)</h2>
+                        <div class="flex items-center gap-3">
+                            <h2 class="font-bold">Top 50 Survivors (Final Wealth)</h2>
+                            <!-- Loading Indicator -->
+                            <div v-if="isCalculating" class="flex items-center gap-2 text-cyber-cyan animate-pulse">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <span class="text-xs">Calculating...</span>
+                            </div>
+                        </div>
                         <span class="text-xs text-gray-400">Click row for Details</span>
                     </div>
 
@@ -231,7 +248,19 @@
                         </div>
                     </div>
                     <div id="race-chart-container" class="flex-1 relative min-h-[500px]">
-                        <!-- Plotly -->
+                        <!-- D3.js Race Chart -->
+                    </div>
+                    <!-- Timeline Scrubber (Flourish-style rollback) -->
+                    <div class="mt-4 px-4">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-400 font-mono w-16">{{ animationFrames.length ?
+                                animationFrames[currentFrameIndex]?.year : '-' }}</span>
+                            <input type="range" :min="0" :max="animationFrames.length - 1" :value="currentFrameIndex"
+                                @input="seekToFrame($event.target.value)"
+                                class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyber-cyan">
+                            <span class="text-xs text-gray-400 font-mono w-16 text-right">{{ animationFrames.length ?
+                                animationFrames[animationFrames.length - 1]?.year : '-' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -379,6 +408,12 @@
                     contribution: 60000
                 });
 
+                // Loading state for background calculations
+                const isCalculating = ref(false);
+
+                // Cache calculated wealth paths (keyed by stockId) to avoid recalculating for BCR
+                const cachedPaths = ref(new Map());
+
                 const stats = computed(() => ({
                     total: rawMarsData.value.length,
                     filtered: rawMarsData.value.filter(s => s.valid_years > 5).length
@@ -451,11 +486,20 @@
                         // Cumulative ROI %
                         const roiPct = ((wealth - cost) / cost) * 100;
 
+                        // Proper CAGR calculation: (CurrentWealth/InitialPrincipal)^(1/years) - 1
+                        // Using initial principal (not total cost) as base for meaningful CAGR
+                        const yearsElapsed = y - startYear + 1;
+                        let cagrPct = 0;
+                        if (yearsElapsed > 0 && principal > 0 && wealth > 0) {
+                            cagrPct = (Math.pow(wealth / principal, 1 / yearsElapsed) - 1) * 100;
+                        }
+
                         path.push({
                             year: y,
                             value: wealth,
                             cost: cost,
                             roi: roiPct,
+                            cagr: cagrPct, // Add proper CAGR
                             id: stockId,
                             name: cur ? cur.name : stockId
                         });
@@ -465,28 +509,46 @@
 
                 const recalculate = () => {
                     if (!rawRaceData.value.length) return;
-                    raceRendered.value = false; // Force re-render of race chart
 
-                    const simulatedList = rawMarsData.value.map(stock => {
-                        const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
-                        const final = path.length ? path[path.length - 1].value : 0;
-                        const finalROI = path.length ? path[path.length - 1].roi : 0;
+                    // Show loading indicator
+                    isCalculating.value = true;
+                    raceRendered.value = false;
 
-                        return {
-                            ...stock,
-                            finalValue: final,
-                            wealthPath: path,
-                            totalROI: finalROI.toFixed(1),
-                            cagr: stock.cagr_pct // Pre-calculated
-                        };
-                    });
+                    // Use setTimeout to allow UI to show spinner before heavy calc
+                    setTimeout(() => {
+                        const pathCache = new Map();
 
-                    // Base list updated. Sorting handled by computed.
-                    marsList.value = simulatedList;
+                        const simulatedList = rawMarsData.value.map(stock => {
+                            const stockId = String(stock.id);
+                            const path = calculateWealthPath(stockId, sim.value.startYear, sim.value.principal, sim.value.contribution);
 
-                    // Always pre-render the race chart so it's ready on tab switch
-                    // Use setTimeout to allow the UI to update the table first
-                    setTimeout(renderRaceChart, 50);
+                            // Cache the path for BCR to reuse (avoid recalculation)
+                            pathCache.set(stockId, path);
+
+                            const final = path.length ? path[path.length - 1].value : 0;
+                            const finalROI = path.length ? path[path.length - 1].roi : 0;
+
+                            return {
+                                ...stock,
+                                finalValue: final,
+                                wealthPath: path,
+                                totalROI: finalROI.toFixed(1),
+                                cagr: stock.cagr_pct
+                            };
+                        });
+
+                        // Store cache for BCR to use
+                        cachedPaths.value = pathCache;
+
+                        // Base list updated. Sorting handled by computed.
+                        marsList.value = simulatedList;
+
+                        // Hide loading
+                        isCalculating.value = false;
+
+                        // Pre-render the race chart using cached paths
+                        setTimeout(renderRaceChart, 50);
+                    }, 10); // Small delay to let spinner render
                 };
 
                 const fetchMars = async () => {
@@ -501,121 +563,233 @@
                     } catch (e) { console.error(e); }
                 };
 
-                const animationFrames = ref([]); // Store frame names for playback
+                const animationFrames = ref([]); // Store frame data for playback
                 const raceRendered = ref(false); // Track if race chart has been rendered
 
                 const raceMetric = ref('wealth'); // Default: Wealth
 
-                // Dynamic Race Chart (Frames)
-                const renderRaceChart = () => {
-                    if (!rawMarsData.value.length) return;
-                    raceRendered.value = false; // Reset during render
+                // D3.js Bar Chart Race Configuration
+                const raceConfig = {
+                    barHeight: 22,
+                    barPadding: 2,
+                    topN: 25, // User requested 25 instead of 15
+                    duration: 1200, // Slower animation (user request)
+                    margin: { top: 60, right: 20, bottom: 80, left: 200 }
+                };
 
+                // Dynamic Race Chart (D3.js with smooth transitions)
+                const renderRaceChart = () => {
+                    console.log('[D3 Race] renderRaceChart called. rawMarsData:', rawMarsData.value.length);
+                    if (!rawMarsData.value.length) {
+                        console.log('[D3 Race] No rawMarsData, returning');
+                        return;
+                    }
+                    raceRendered.value = false;
+
+                    const container = document.getElementById('race-chart-container');
+                    console.log('[D3 Race] Container:', container);
+                    if (!container) {
+                        console.log('[D3 Race] No container found, returning');
+                        return;
+                    }
+
+                    // Clear previous
+                    container.innerHTML = '';
+
+                    // Build keyframes data from CACHED paths (avoid recalculation)
                     const raceMap = new Map();
+                    // Create name lookup to avoid "Start" placeholder
+                    const stockNameMap = new Map();
+                    // Create CAGR lookup from pre-calculated API values (same as Mars table)
+                    const stockCagrMap = new Map();
                     rawMarsData.value.forEach(stock => {
-                        const path = calculateWealthPath(String(stock.id), sim.value.startYear, sim.value.principal, sim.value.contribution);
+                        stockNameMap.set(String(stock.id), stock.name || String(stock.id));
+                        stockCagrMap.set(String(stock.id), stock.cagr_pct || 0); // Use API's pre-calculated CAGR
+                    });
+
+                    // Use cached paths if available, otherwise calculate (fallback)
+                    const pathsToUse = cachedPaths.value.size > 0 ? cachedPaths.value : null;
+
+                    rawMarsData.value.forEach(stock => {
+                        const stockId = String(stock.id);
+                        // Use cached path if available
+                        const path = pathsToUse ? pathsToUse.get(stockId) : calculateWealthPath(stockId, sim.value.startYear, sim.value.principal, sim.value.contribution);
+                        if (!path) return;
+
+                        // For CAGR mode, use pre-calculated value from API (same as Mars table)
+                        const stockCagr = stockCagrMap.get(stockId) || 0;
+
+                        // DEBUG: trace first stock's values
+                        if (stockId === '6669') {
+                            console.log('[DEBUG CAGR]', {
+                                stockId,
+                                raceMetricValue: raceMetric.value,
+                                stockCagr,
+                                rawCagrPct: stock.cagr_pct,
+                                firstPathValue: path[0]?.value
+                            });
+                        }
+
                         path.forEach(p => {
                             if (!raceMap.has(p.year)) raceMap.set(p.year, []);
-                            // Include Start Year - 1 (Initial State) so chart isn't empty
                             if (p.year >= sim.value.startYear - 1) {
                                 raceMap.get(p.year).push({
                                     id: p.id,
-                                    name: p.name,
-                                    value: raceMetric.value === 'wealth' ? p.value : p.roi,
-                                    raw_wealth: p.value
+                                    name: stockNameMap.get(p.id) || p.id,
+                                    // Use per-year calculated CAGR for racing animation
+                                    value: raceMetric.value === 'wealth' ? p.value : p.cagr
                                 });
                             }
                         });
                     });
 
-                    // Only include years that actually have data
-                    const years = Array.from(raceMap.keys())
-                        .filter(y => raceMap.get(y).length > 0)
-                        .sort((a, b) => a - b);
+                    const years = Array.from(raceMap.keys()).filter(y => raceMap.get(y).length > 0).sort((a, b) => a - b);
 
-                    const frames = [];
-
-                    years.forEach(year => {
-                        // Top 25
-                        const yearData = raceMap.get(year).sort((a, b) => a.value - b.value).slice(-25); // Ascending for horizontal bars (top is bottom)
-
-                        // Calculate Max for Zoom-to-Fit
-                        const maxVal = Math.max(...yearData.map(d => d.value));
-                        const minVal = Math.min(0, ...yearData.map(d => d.value));
-
-                        frames.push({
-                            name: String(year),
-                            data: [{
-                                x: yearData.map(d => d.value),
-                                y: yearData.map((_, i) => i), // Rank-based Y (0,1,2...) for smooth sliding
-                                ids: yearData.map(d => d.id), // Object Constancy
-                                text: yearData.map(d => {
-                                    const valStr = raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`;
-                                    return `${d.name} (${d.id})  |  ${valStr}`;
-                                }),
-                                textposition: 'inside', // or 'auto'
-                                marker: { color: yearData.map(d => d.value), colorscale: 'Viridis' },
-                                insidetextanchor: 'start', // Align text to left of bar
-                                type: 'bar',
-                                orientation: 'h'
-                            }],
-                            layout: {
-                                xaxis: { range: [minVal, maxVal * 1.1] },
-                                annotations: [{
-                                    text: String(year),
-                                    font: { size: 120, color: 'rgba(255,255,255,0.15)', family: 'Inter, sans-serif', weight: 900 },
-                                    showarrow: false,
-                                    x: 0.95, y: 0.1,
-                                    xref: 'paper', yref: 'paper',
-                                    xanchor: 'right', yanchor: 'bottom'
-                                }]
-                            }
-                        });
+                    // Build keyframes: each frame = { year, data: [ { id, name, value, rank } ] }
+                    const keyframes = years.map(year => {
+                        const sorted = raceMap.get(year).sort((a, b) => b.value - a.value).slice(0, raceConfig.topN);
+                        sorted.forEach((d, i) => d.rank = i);
+                        return { year, data: sorted };
                     });
 
-                    if (!frames.length) return;
+                    if (!keyframes.length) {
+                        console.log('[D3 Race] No keyframes generated, returning');
+                        return;
+                    }
 
-                    // Store for playback
-                    animationFrames.value = frames.map(f => f.name);
+                    console.log('[D3 Race] Keyframes generated:', keyframes.length, 'years:', years);
+                    animationFrames.value = keyframes;
 
-                    const startFrame = frames[0];
-                    const firstMax = Math.max(...startFrame.data[0].x);
+                    // SVG Setup
+                    const width = container.clientWidth || 800; // Fallback if hidden
+                    const height = raceConfig.topN * (raceConfig.barHeight + raceConfig.barPadding) + raceConfig.margin.top + raceConfig.margin.bottom;
 
-                    const layout = {
-                        title: { text: raceMetric.value === 'wealth' ? `Wealth Race ($)` : `Cumulative ROI Race (%)`, font: { color: '#fff', size: 24 } },
-                        paper_bgcolor: 'rgba(0,0,0,0)',
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        font: { color: '#fff' },
-                        xaxis: {
-                            title: raceMetric.value === 'wealth' ? 'Total Wealth ($)' : 'Cumulative ROI %',
-                            range: [0, firstMax * 1.1],
-                            autorange: false
-                        },
-                        yaxis: {
-                            autorange: false,
-                            range: [-0.5, 24.5], // Fixed slots for 25 items
-                            showticklabels: false, // Hide 0,1,2...
-                            gridcolor: 'rgba(255,255,255,0.05)'
-                        },
-                        height: 700,
-                        margin: { l: 20, r: 50, t: 50, b: 50 }, // Less left margin needed
-                        annotations: [{
-                            text: String(years[0]),
-                            font: { size: 120, color: 'rgba(255,255,255,0.15)', family: 'Inter, sans-serif', weight: 900 },
-                            showarrow: false,
-                            x: 0.95, y: 0.1,
-                            xref: 'paper', yref: 'paper',
-                            xanchor: 'right', yanchor: 'bottom'
-                        }],
-                        updatemenus: []
+                    console.log('[D3 Race] Container dimensions:', width, 'x', height, 'd3 defined:', typeof d3);
+
+                    const svg = d3.select(container)
+                        .append('svg')
+                        .attr('width', width)
+                        .attr('height', height)
+                        .attr('viewBox', `0 0 ${width} ${height}`)
+                        .style('background', 'transparent');
+
+                    console.log('[D3 Race] SVG created:', svg.node());
+
+                    // Scales
+                    const xScale = d3.scaleLinear().range([raceConfig.margin.left, width - raceConfig.margin.right]);
+                    const yScale = d3.scaleLinear().range([raceConfig.margin.top, height - raceConfig.margin.bottom - raceConfig.barHeight]);
+                    const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+
+                    // X-Axis
+                    const xAxis = svg.append('g')
+                        .attr('class', 'x-axis')
+                        .attr('transform', `translate(0, ${raceConfig.margin.top - 10})`);
+
+                    // Year Label (big watermark)
+                    const yearLabel = svg.append('text')
+                        .attr('class', 'year-label')
+                        .attr('x', width - 50)
+                        .attr('y', height - 30)
+                        .attr('text-anchor', 'end')
+                        .attr('fill', 'rgba(255,255,255,0.15)')
+                        .attr('font-size', '100px')
+                        .attr('font-weight', '900')
+                        .attr('font-family', 'Inter, sans-serif');
+
+                    // Bar Group
+                    const barsGroup = svg.append('g').attr('class', 'bars');
+                    const labelsGroup = svg.append('g').attr('class', 'labels');
+                    const valuesGroup = svg.append('g').attr('class', 'values');
+
+                    // Update function for each frame
+                    window.updateRaceFrame = (frameData, instant = false) => {
+                        const dur = instant ? 0 : raceConfig.duration;
+                        const data = frameData.data;
+                        const maxValue = d3.max(data, d => d.value) || 1;
+
+                        xScale.domain([0, maxValue * 1.1]);
+                        yScale.domain([0, raceConfig.topN - 1]);
+
+                        // X-Axis transition
+                        xAxis.transition().duration(dur).call(d3.axisTop(xScale).ticks(5).tickFormat(d => raceMetric.value === 'wealth' ? formatCurrency(d) : `${d.toFixed(0)}%`));
+                        xAxis.selectAll('text').attr('fill', '#888');
+                        xAxis.selectAll('line, path').attr('stroke', '#333');
+
+                        // Year watermark
+                        yearLabel.text(frameData.year);
+
+                        // BARS with key-based join for object constancy
+                        const bars = barsGroup.selectAll('rect').data(data, d => d.id);
+
+                        bars.exit().transition().duration(dur).attr('width', 0).remove();
+
+                        bars.enter()
+                            .append('rect')
+                            .attr('x', raceConfig.margin.left)
+                            .attr('y', d => yScale(d.rank))
+                            .attr('height', raceConfig.barHeight)
+                            .attr('fill', d => colorScale(d.id))
+                            .attr('rx', 4)
+                            .attr('width', 0)
+                            .merge(bars)
+                            .transition()
+                            .duration(dur)
+                            .ease(d3.easeCubicInOut)
+                            .attr('y', d => yScale(d.rank)) // SMOOTH Y transition
+                            .attr('width', d => xScale(d.value) - raceConfig.margin.left);
+
+                        // LABELS (stock names on left)
+                        const labels = labelsGroup.selectAll('text').data(data, d => d.id);
+
+                        labels.exit().transition().duration(dur).style('opacity', 0).remove();
+
+                        labels.enter()
+                            .append('text')
+                            .attr('x', raceConfig.margin.left - 5)
+                            .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                            .attr('text-anchor', 'end')
+                            .attr('fill', '#fff')
+                            .attr('font-size', '12px')
+                            .attr('dominant-baseline', 'middle')
+                            .style('opacity', 0)
+                            .merge(labels)
+                            .transition()
+                            .duration(dur)
+                            .ease(d3.easeCubicInOut)
+                            .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2) // SMOOTH Y transition
+                            .style('opacity', 1)
+                            .text(d => `${d.name} (${d.id})`);
+
+                        // VALUES (inside bars on right)
+                        const values = valuesGroup.selectAll('text').data(data, d => d.id);
+
+                        values.exit().transition().duration(dur).style('opacity', 0).remove();
+
+                        values.enter()
+                            .append('text')
+                            .attr('x', d => xScale(d.value) - 5)
+                            .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                            .attr('text-anchor', 'end')
+                            .attr('fill', '#000')
+                            .attr('font-size', '11px')
+                            .attr('font-weight', 'bold')
+                            .attr('dominant-baseline', 'middle')
+                            .style('opacity', 0)
+                            .merge(values)
+                            .transition()
+                            .duration(dur)
+                            .ease(d3.easeCubicInOut)
+                            .attr('x', d => xScale(d.value) - 5)
+                            .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2) // SMOOTH Y transition
+                            .style('opacity', 1)
+                            .text(d => raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`);
                     };
 
-                    const config = { responsive: true, displayModeBar: false };
-
-                    Plotly.newPlot('race-chart-container', [{ ...startFrame.data[0], type: 'bar', orientation: 'h' }], layout, config).then(() => {
-                        Plotly.addFrames('race-chart-container', frames);
-                        raceRendered.value = true;
-                    });
+                    // Initial render (first frame)
+                    console.log('[D3 Race] Calling updateRaceFrame with first keyframe:', keyframes[0]);
+                    window.updateRaceFrame(keyframes[0], true);
+                    console.log('[D3 Race] renderRaceChart complete. raceRendered:', true);
+                    raceRendered.value = true;
                 }; // End renderRaceChart
 
                 const isPlaying = ref(false);
@@ -629,12 +803,11 @@
                 };
 
                 const playRace = () => {
-                    // console.log('Playing race with frames:', animationFrames.value);
                     if (isPlaying.value || !animationFrames.value.length) return;
 
                     isPlaying.value = true;
 
-                    // Start loop
+                    // Start D3.js animation loop
                     animationInterval = setInterval(() => {
                         const nextIndex = currentFrameIndex.value + 1;
 
@@ -644,25 +817,35 @@
                             return;
                         }
 
-                        const nextFrameName = animationFrames.value[nextIndex];
-
-                        // Animate to specific frame
-                        Plotly.animate('race-chart-container', [nextFrameName], {
-                            mode: 'immediate',
-                            fromcurrent: true,
-                            transition: { duration: 500, easing: 'cubic-in-out' },
-                            frame: { duration: 500, redraw: true }
-                        });
+                        // Get next keyframe and update D3 chart with smooth transition
+                        const nextFrame = animationFrames.value[nextIndex];
+                        if (window.updateRaceFrame) {
+                            window.updateRaceFrame(nextFrame, false);
+                        }
 
                         currentFrameIndex.value = nextIndex;
 
-                    }, 1000); // 1-second interval ensures completion
+                    }, 1500); // 1500ms interval for slower animation (user request)
                 };
 
                 const resetRace = () => {
                     pauseRace();
                     currentFrameIndex.value = 0;
+                    // ALWAYS re-render the chart to rebuild keyframes with current raceMetric
+                    // This is needed because metric switch requires new keyframe values
                     renderRaceChart();
+                };
+
+                // Timeline scrubber seek function (Flourish-style rollback)
+                const seekToFrame = (index) => {
+                    pauseRace();
+                    const targetIndex = parseInt(index, 10);
+                    if (targetIndex >= 0 && targetIndex < animationFrames.value.length) {
+                        currentFrameIndex.value = targetIndex;
+                        if (window.updateRaceFrame) {
+                            window.updateRaceFrame(animationFrames.value[targetIndex], false);
+                        }
+                    }
                 };
 
                 const openDetail = (stock) => {
@@ -740,7 +923,7 @@
                     });
                 });
 
-                return { currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail, renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric };
+                return { currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB, getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail, renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric, animationFrames, currentFrameIndex, seekToFrame, isCalculating };
             }
         }).mount('#app')
     </script>

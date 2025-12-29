@@ -141,6 +141,81 @@ class CBStrategy:
                 
         return results
 
+    async def analyze_specific_cbs(self, cb_codes: list):
+        """
+        Analyze a specific list of CB codes (e.g. from Portfolio).
+        Infers Stock Code by taking the first 4 digits.
+        """
+        results = []
+        
+        # Ensure initialized
+        if not self.issuance_data:
+            await self.initialize()
+
+        for cb_code in cb_codes:
+            # Infer Stock Code (First 4 digits)
+            stock = cb_code[:4]
+            
+            # 3. Fetch Market Data
+            cb_price, st_price, success = await self.crawler.get_market_data(cb_code, stock)
+            
+            if not success or cb_price == 0 or st_price == 0:
+                 continue
+                 
+            # 4. Determine Conversion Price (Repetitive logic - could be refactored)
+            conv_price = 0.0
+            cb_name = f"{cb_code}_UNKNOWN"
+            
+            for record in self.issuance_data:
+                issuer = record.get('IssuerCode', '').strip()
+                if issuer == stock or issuer.endswith(stock):
+                    cb_name = record.get('ShortName', cb_name)
+                    # Try to match specific CB if possible, but for now use first match's price 
+                    # or try to refine matching logic? 
+                    # Ideally we match SeriesNumber but we don't have it easily mapped.
+                    # Simplification: Use the first one found for the issuer.
+                    try:
+                        cp_str = record.get('Conversion/ExchangePriceAtIssuance', '0')
+                        conv_price = float(cp_str)
+                    except: pass
+                    break
+            
+            if conv_price == 0:
+                result = {
+                    'code': cb_code,
+                    'name': cb_name,
+                    'cb_price': cb_price,
+                    'stock_price': st_price,
+                    'conv_price': 'N/A',
+                    'premium': 'N/A',
+                    'action': 'UNKNOWN',
+                    'confidence': 'LOW'
+                }
+            else:
+                # 5. Calculate Metrics
+                parity = (st_price / conv_price) * 100
+                premium = ((cb_price - parity) / parity) * 100 if parity > 0 else 0
+                
+                # 6. Evaluate
+                eval_res = self.evaluate(cb_code, premium)
+                
+                result = {
+                    'code': cb_code,
+                    'name': cb_name,
+                    'cb_price': cb_price,
+                    'stock_price': st_price,
+                    'conv_price': conv_price,
+                    'parity': round(parity, 2),
+                    'premium': round(premium, 2),
+                    'action': eval_res['action'],
+                    'description': eval_res['description'],
+                    'confidence': eval_res['confidence']
+                }
+            
+            results.append(result)
+            
+        return results
+
     def evaluate(self, cb_code: str, premium_rate: float, expiry_days: int = 365):
         """
         Evaluate action based on Premium Rate (%).

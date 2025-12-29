@@ -80,6 +80,28 @@ async def analyze_cb(code: str):
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/api/cb/portfolio")
+async def analyze_portfolio_cb():
+    """Analyze all CBs in user's portfolio"""
+    try:
+        # 1. Get all CB targets from portfolio (user_id="default")
+        portfolio_data = get_all_targets_by_type()
+        cb_targets = portfolio_data.get("cb", [])
+        
+        if not cb_targets:
+            return []
+            
+        # Extract codes (e.g. '65331')
+        cb_codes = [t['id'] for t in cb_targets]
+        
+        # 2. Analyze
+        strategy = CBStrategy()
+        results = await strategy.analyze_specific_cbs(cb_codes)
+        
+        return results
+    except Exception as e:
+        return {"error": str(e)}
+
 
 # ---------------- Portfolio API ----------------
 from app.portfolio_db import (

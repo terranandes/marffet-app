@@ -5,6 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Martian Investment System</title>
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            fetch('/api/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    level: 'error',
+                    message: msg,
+                    stack: error ? error.stack : `${url}:${line}:${col}`
+                })
+            });
+        };
+        window.addEventListener('unhandledrejection', function (event) {
+            fetch('/api/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    level: 'promise_rejection',
+                    message: event.reason ? event.reason.message : 'Unknown Promise Rejection',
+                    stack: event.reason ? event.reason.stack : ''
+                })
+            });
+        });
+    </script>
 
     <!-- Tailwind CSS (Local) -->
     <script src="/static/vendor/tailwindcss.js"></script>
@@ -899,11 +923,64 @@
                             <option value="myrace">🏎️ My Race</option>
                         </select>
                     </div>
-                    <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.0.0 | {{ isPremium ? '⭐
+
+                    <!-- API Key -->
+                    <div class="mb-4">
+                        <label class="font-bold text-sm mb-2 block">🔑 Gemini API Key</label>
+                        <input v-model="appSettings.apiKey" @change="saveSettings()" type="password"
+                            placeholder="Enter your Gemini API Key"
+                            class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder-gray-500">
+                        <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
+                    </div>
+
+                    <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐
                         Premium' : '🆓 Free Tier' }}</div>
                 </div>
             </div>
         </div>
+
+        <!-- CHAT WIDGET -->
+        <!-- FAB -->
+        <button @click="showChat = !showChat"
+            class="fixed bottom-6 right-6 w-14 h-14 bg-cyber-pink rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-110 transition z-50">
+            <span class="text-2xl">🤖</span>
+        </button>
+
+        <!-- CHAT PANEL -->
+        <div v-if="showChat"
+            class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
+            <!-- Header -->
+            <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
+                <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
+                <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
+            </div>
+
+            <!-- History -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div v-for="(msg, idx) in chatHistory" :key="idx"
+                    :class="msg.role === 'user' ? 'text-right' : 'text-left'">
+                    <div class="inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm"
+                        :class="msg.role === 'user' ? 'bg-cyber-cyan text-black font-medium' : 'bg-gray-700 text-gray-200'">
+                        {{ msg.text }}
+                    </div>
+                </div>
+                <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
+            </div>
+
+            <!-- Input -->
+            <div class="p-3 border-t border-white/10 bg-black/20">
+                <div class="flex gap-2">
+                    <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
+                        placeholder="Ask about your portfolio..."
+                        class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
+                    <button @click="sendMessage" :disabled="isChatLoading"
+                        class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 
@@ -921,6 +998,15 @@
                 const cbInput = ref('6533');
                 const cbResult = ref(null);
                 const loadingCB = ref(false);
+
+                // ========== NOTIFICATIONS SYSTEM ==========
+                const showNotifications = ref(false);
+                const notifications = ref([{ message: 'Welcome to Martian Investment! 🚀', time: 'Now', read: false }]);
+                const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
+                const markAllRead = () => { notifications.value.forEach(n => n.read = true); };
+                const clearNotifications = () => { notifications.value = []; showNotifications.value = false; };
+                const deleteNotification = (idx) => { notifications.value.splice(idx, 1); };
+                const addNotification = (msg) => { notifications.value.unshift({ message: msg, time: new Date().toLocaleTimeString(), read: false }); };
 
                 // ========== CB PORTFOLIO ==========
                 const portfolioCBs = ref([]);
@@ -940,12 +1026,99 @@
 
                 // ========== SETTINGS SYSTEM ==========
                 const showSettings = ref(false);
-                const defaultSettings = { region: 'TW', gmMode: false, defaultTab: 'mars' };
+                const defaultSettings = { region: 'TW', gmMode: false, defaultTab: 'mars', apiKey: '' };
                 const appSettings = ref({ ...defaultSettings });
+
+                // ========== AI COPILOT ==========
+                const showChat = ref(false);
+                const chatInput = ref('');
+                const isChatLoading = ref(false);
+                const chatHistory = ref([
+                    { role: 'model', text: 'Hello! I am Mars AI 🤖. How can I help you with your investments today?' }
+                ]);
+
+
+                const sendMessage = async () => {
+                    if (!chatInput.value.trim()) return;
+                    if (!appSettings.value.apiKey) {
+                        chatHistory.value.push({ role: 'model', text: 'Please set your Gemini API Key in Settings ⚙️ to chat.' });
+                        return;
+                    }
+
+                    const userMsg = chatInput.value;
+                    chatHistory.value.push({ role: 'user', text: userMsg });
+                    chatInput.value = '';
+                    isChatLoading.value = true;
+
+                    // Build Context
+                    const context = `
+                        Portfolio Summary:
+                        - Total Groups: ${portfolioGroups.value.length}
+                        - Total Value: ${formatCurrency(stats.value?.totalValue || 0)}
+                        - Total Cost: ${formatCurrency(stats.value?.totalCost || 0)}
+                        - Total P/L: ${formatCurrency(stats.value?.totalPL || 0)}
+                        - Premium User: ${isPremium.value}
+                    `;
+
+                    try {
+                        const res = await fetch('/api/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                message: userMsg,
+                                context: context,
+                                apiKey: appSettings.value.apiKey,
+                                isPremium: isPremium.value
+                            })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            chatHistory.value.push({ role: 'model', text: data.response });
+                        } else {
+                            chatHistory.value.push({ role: 'model', text: `Error: ${data.error}` });
+                        }
+                    } catch (e) {
+                        chatHistory.value.push({ role: 'model', text: 'Network Error.' });
+                    } finally {
+                        isChatLoading.value = false;
+                        // Scroll to bottom
+                        nextTick(() => {
+                            const container = document.getElementById('chat-container');
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                };
+
+                // ========== PREMIUM NOTIFICATIONS ==========
+                const fetchStrategyAlerts = async () => {
+                    if (!isPremium.value) return; // Premium only
+                    try {
+                        const res = await fetch('/api/notifications/check');
+                        if (res.ok) {
+                            const alerts = await res.json();
+                            alerts.forEach(alert => {
+                                // Add to notification list with special icon
+                                notifications.value.unshift({
+                                    message: `${alert.message}`,
+                                    time: new Date().toLocaleTimeString(),
+                                    read: false,
+                                    type: 'strategy'
+                                });
+                            });
+                            if (alerts.length > 0) addNotification(`Found ${alerts.length} strategy alerts! 🔔`);
+                        }
+                    } catch (e) {
+                        console.error('Strategy alerts fetch error:', e);
+                    }
+                };
+
                 const loadSettings = () => {
                     try {
                         const saved = localStorage.getItem('martian_settings');
                         if (saved) appSettings.value = { ...defaultSettings, ...JSON.parse(saved) };
+
+                        // Check alerts on load if premium
+                        if (appSettings.value.gmMode) fetchStrategyAlerts();
                     } catch (e) { console.error('Load settings error:', e); }
                 };
                 const saveSettings = () => {
@@ -955,14 +1128,7 @@
                 const toggleGMMode = () => { appSettings.value.gmMode = !appSettings.value.gmMode; saveSettings(); };
                 const isPremium = computed(() => appSettings.value.gmMode);
 
-                // ========== NOTIFICATIONS SYSTEM ==========
-                const showNotifications = ref(false);
-                const notifications = ref([{ message: 'Welcome to Martian Investment! 🚀', time: 'Now', read: false }]);
-                const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-                const markAllRead = () => { notifications.value.forEach(n => n.read = true); };
-                const clearNotifications = () => { notifications.value = []; showNotifications.value = false; };
-                const deleteNotification = (idx) => { notifications.value.splice(idx, 1); };
-                const addNotification = (msg) => { notifications.value.unshift({ message: msg, time: new Date().toLocaleTimeString(), read: false }); };
+
 
                 // Sorting State
                 const sortKey = ref('finalValue');
@@ -1789,7 +1955,9 @@
                     // Settings System
                     showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV,
                     // Notifications System
-                    showNotifications, notifications, unreadCount, markAllRead, clearNotifications, deleteNotification
+                    showNotifications, notifications, unreadCount, markAllRead, clearNotifications, deleteNotification, addNotification,
+                    // AI Copilot
+                    showChat, chatInput, isChatLoading, chatHistory, sendMessage
                 };
             }
         }).mount('#app')

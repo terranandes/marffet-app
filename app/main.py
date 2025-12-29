@@ -13,10 +13,60 @@ sys.path.append(os.getcwd())
 
 from project_tw.strategies.cb import CBStrategy
 from project_tw.calculator import ROICalculator
+from app.services.notifications import NotificationEngine
+from app.portfolio_db import get_all_targets_by_type
 
 app = FastAPI(title="Martian Investment System")
 
-# CORS
+# ... (CORS logic remains) ...
+
+# ---------------- Notification Engine ----------------
+notification_engine = NotificationEngine()
+
+@app.get("/api/notifications/check")
+async def check_notifications():
+    """Trigger generic strategy alerts"""
+    try:
+        # Get flattened targets
+        portfolio_data = get_all_targets_by_type()
+        targets = []
+        for cat in portfolio_data.values():
+            targets.extend(cat)
+            
+        # Get Txns to calculate shares
+        # Hack: We need a way to get shares.
+        # Let's assume we can fetch shares from 'portfolio_db' directly or re-use logic.
+        # For this prototype: Fetch all transactions and sum them up.
+        from app.portfolio_db import get_transactions
+        
+        enriched_targets = []
+        for t in targets:
+            txns = get_transactions(t['id'])
+            shares = sum(tx['shares'] for tx in txns) # Simple sum (buy + sell is -shares?)
+            # Wait, get_transactions returns dictionary list?
+            # Standard logic: Buy is +, Sell is -
+            # Let's just pass the raw targets and let Engine handle if needed,
+            # BUT Engine needs live price to know value.
+            # Simplified: Use a 'shares' field if available, or just mocking for now?
+            # User wants "How many stocks".
+            # I will implement a quick share calculator here.
+            
+            total_shares = 0
+            for tx in txns:
+                if tx['type'] == 'buy': total_shares += tx['shares']
+                elif tx['type'] == 'sell': total_shares -= tx['shares']
+            
+            if total_shares > 0:
+                t['shares'] = total_shares
+                enriched_targets.append(t)
+            
+        alerts = await notification_engine.generate_alerts({'targets': enriched_targets})
+        return alerts
+    except Exception as e:
+        print(f"Notification Error: {e}")
+        return []
+
+# ---------------- AI Copilot ----------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,6 +76,77 @@ app.add_middleware(
 )
 
 # ---------------- API Endpoints ----------------
+
+from pydantic import BaseModel
+
+class LogMessage(BaseModel):
+    level: str
+    message: str
+    stack: str | None = None
+
+@app.post("/api/log")
+async def client_log(log: LogMessage):
+    print(f"CLIENT_ERROR: [{log.level}] {log.message}\nStack: {log.stack}")
+    return {"status": "ok"}
+
+# ---------------- AI Copilot ----------------
+import google.generativeai as genai
+
+class ChatRequest(BaseModel):
+    message: str
+    context: str # Portfolio summary
+    apiKey: str
+    isPremium: bool = False
+
+# System Prompts
+PROMPT_FREE = (
+    "You are Mars AI (Free Tier), an investment educator designed to build CONFIDENCE. "
+    "Your Goal: Explain WHY the 'Mars Strategy' (Buying Top 50 Past Performers & Holding) works. "
+    "Key Traits: Encouraging, Patient, Educational. "
+    "Evidence to Cite: Use the 'Bar Chart Race' (BCR) and historical 'CAGR' as proof that long-term leaders win. "
+    "If the user is anxious about volatility, remind them: 'History shows the Top 50 recover. Hold forever.' "
+    "Restriction: Do NOT give specific rebalancing advice. Focus on the philosophy."
+)
+
+PROMPT_PREMIUM = (
+    "You are Mars AI (Premium Tier), a ruthless wealth manager designed to enforce DISCIPLINE. "
+    "Your Goal: Optimize returns through active REBALANCING. "
+    "Key Traits: Precise, Data-Driven, Action-Oriented. "
+    "Focus: Monitor 'SMA Divergence' and 'Market Cap Ratios'. "
+    "If the user asks about a stock, analyze if it is still a 'Top 50' leader. "
+    "If a stock is overheated (+20% vs SMA), strongly suggest selling to rebalance. "
+    "Command: 'Execute the strategy. Don't fall in love with a stock.'"
+)
+
+@app.post("/api/chat")
+async def chat_with_mars(req: ChatRequest):
+    """Chat with Mars AI Copilot"""
+    if not req.apiKey:
+        return JSONResponse(status_code=400, content={"error": "Missing API Key"})
+    
+    try:
+        genai.configure(api_key=req.apiKey)
+        # Use premium model if possible/configured, but for now standard flash is fine for both with different prompts
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
+        
+        system_prompt = (
+            f"{base_prompt}\n"
+            "----------------\n"
+            "USER PORTFOLIO CONTEXT:\n"
+            f"{req.context}"
+        )
+        
+        chat = model.start_chat(history=[
+            {"role": "user", "parts": system_prompt},
+            {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
+        ])
+        
+        response = chat.send_message(req.message)
+        return {"response": response.text}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")
 def get_results():

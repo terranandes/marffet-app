@@ -1138,8 +1138,7 @@
                         <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
                     </div>
 
-                    <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐
-                        Premium' : '🆓 Free Tier' }}</div>
+                    <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐ Premium' : '🆓 Free Tier' }}</div>
                 </div>
             </div>
         </div>
@@ -2180,6 +2179,8 @@
                             currentUser.value = user;
                             newNickname.value = user.nickname || '';
                             loadDashboard();
+                            // Hide loader after dashboard init
+                            if (loader) loader.style.display = 'none';
                         } else {
                             // User not logged in, show Overlay
                             if (loader) loader.style.display = 'none';

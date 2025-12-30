@@ -162,52 +162,124 @@ class NotificationEngine:
 
     async def check_cb_alerts(self, targets: List[Dict]) -> List[Dict]:
         """
-        Strategy C: Convertible Bond Alerts
+        Strategy C: Convertible Bond Alerts (Premium Tier)
         Triggers:
-        1. Arbitrage: Premium < -1%
-        2. Strong Sell: Premium >= 30%
+        1. Arbitrage: Premium < -1% → Buy CB, Sell Stock
+        2. Strong Sell: Premium >= 30% → Sell CB, Buy Stock
+        
+        Includes rebalancing advice with calculated share quantities.
         """
         alerts = []
-        cb_codes = []
+        cb_targets = {}
+        stock_targets = {}
         
-        # 1. Identify CBs (Suffix 1-9 or 5 digits)
+        # 1. Separate CBs and Stocks, build lookup maps
         for t in targets:
             code = t['id']
-            # Simple heuristic: CBs often 5 digits (65331) or end with digit
             if len(code) == 5 and code.isdigit():
-                 cb_codes.append(code)
+                cb_targets[code] = t  # CB
+            elif len(code) == 4 and code.isdigit():
+                stock_targets[code] = t  # Stock
         
-        if not cb_codes:
+        if not cb_targets:
             return []
             
         try:
-            # Import Strategy (Lazy import to avoid circular dependency if any)
             from project_tw.strategies.cb import CBStrategy
             strategy = CBStrategy()
-            results = await strategy.analyze_specific_cbs(cb_codes)
+            results = await strategy.analyze_specific_cbs(list(cb_targets.keys()))
             
             for res in results:
                 premium = res.get('premium')
-                if isinstance(premium, (int, float)):
-                    # Case 1: Arbitrage (< -1%)
-                    if premium < -1:
-                        msg = f"⚡ CB Arbitrage: {res['name']} ({res['code']}) Premium is {premium}%! {res['description']}"
-                        alerts.append({
-                            "type": "strategy_cb_arb",
-                            "level": "critical", # High Priority
-                            "message": msg,
-                            "target_id": res['code']
-                        })
+                if not isinstance(premium, (int, float)):
+                    continue
+                
+                cb_code = res['code']
+                stock_code = cb_code[:4]  # Infer stock from CB (e.g., 65331 -> 6533)
+                
+                # Get portfolio holdings
+                cb_holding = cb_targets.get(cb_code, {})
+                stock_holding = stock_targets.get(stock_code, {})
+                
+                cb_shares = cb_holding.get('shares', 0)
+                stock_shares = stock_holding.get('shares', 0)
+                
+                cb_price = res.get('cb_price', 0)
+                stock_price = res.get('stock_price', 0)
+                conv_price = res.get('conv_price', 0)
+                
+                # === Case 1: Arbitrage (< -1%) → Buy CB, Sell Stock ===
+                if premium < -1:
+                    # Calculate rebalance: Sell 30% of stock, use proceeds to buy CB
+                    if stock_shares > 0 and stock_price > 0 and cb_price > 0:
+                        shares_to_sell = max(1, int(stock_shares * 0.3))
+                        proceeds = shares_to_sell * stock_price
+                        cb_to_buy = int(proceeds / (cb_price * 1000) * 1000)  # CB traded in 1000 units
+                        
+                        rebalance_msg = (
+                            f"\n📊 **Rebalance Action**:\n"
+                            f"  • 賣出 {shares_to_sell} 股 {stock_code} (現股) @ ${stock_price:.2f}\n"
+                            f"  • 買入 {cb_to_buy} 張 {cb_code} (CB) @ ${cb_price:.2f}\n"
+                            f"  • 預計獲利空間: {abs(premium):.1f}% (套利)"
+                        )
+                    else:
+                        rebalance_msg = "\n📊 **建議**: 買入CB，同時賣出現股進行套利。"
                     
-                    # Case 2: Strong Sell (>= 30%)
-                    elif premium >= 30:
-                        msg = f"⚡ CB Sell Alert: {res['name']} ({res['code']}) Premium is {premium}%! {res['description']}"
-                        alerts.append({
-                            "type": "strategy_cb_sell",
-                            "level": "warning",
-                            "message": msg,
-                            "target_id": res['code']
-                        })
+                    msg = (
+                        f"⚡ CB Arbitrage: {res['name']} ({cb_code})\n"
+                        f"溢價率: {premium:.2f}% (< -1%)\n"
+                        f"{res['description']}"
+                        f"{rebalance_msg}"
+                    )
+                    alerts.append({
+                        "type": "strategy_cb_arb",
+                        "level": "critical",
+                        "message": msg,
+                        "target_id": cb_code,
+                        "rebalance": {
+                            "action": "buy_cb_sell_stock",
+                            "cb_code": cb_code,
+                            "stock_code": stock_code,
+                            "premium": premium
+                        }
+                    })
+                
+                # === Case 2: Strong Sell (>= 30%) → Sell CB, Buy Stock ===
+                elif premium >= 30:
+                    # Calculate rebalance: Sell 50% of CB, use proceeds to buy stock
+                    if cb_shares > 0 and cb_price > 0 and stock_price > 0:
+                        cb_to_sell = max(1, int(cb_shares * 0.5))
+                        proceeds = cb_to_sell * cb_price * 1000  # CB value
+                        stock_to_buy = int(proceeds / stock_price)
+                        
+                        rebalance_msg = (
+                            f"\n📊 **Rebalance Action**:\n"
+                            f"  • 賣出 {cb_to_sell} 張 {cb_code} (CB) @ ${cb_price:.2f}\n"
+                            f"  • 買入 {stock_to_buy} 股 {stock_code} (現股) @ ${stock_price:.2f}\n"
+                            f"  • 理由: 溢價過高 ({premium:.1f}%)，轉持現股參與更多上漲空間"
+                        )
+                    else:
+                        rebalance_msg = "\n📊 **建議**: 賣出CB，買入現股以最大化獲利潛力。"
+                    
+                    msg = (
+                        f"⚡ CB Sell Alert: {res['name']} ({cb_code})\n"
+                        f"溢價率: {premium:.2f}% (>= 30%)\n"
+                        f"{res['description']}"
+                        f"{rebalance_msg}"
+                    )
+                    alerts.append({
+                        "type": "strategy_cb_sell",
+                        "level": "warning",
+                        "message": msg,
+                        "target_id": cb_code,
+                        "rebalance": {
+                            "action": "sell_cb_buy_stock",
+                            "cb_code": cb_code,
+                            "stock_code": stock_code,
+                            "premium": premium
+                        }
+                    })
+                    
         except Exception as e:
             print(f"CB Check Error: {e}")
             

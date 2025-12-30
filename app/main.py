@@ -1,8 +1,9 @@
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
 import pandas as pd
 import asyncio
 import os
@@ -10,25 +11,49 @@ import sys
 
 # Ensure project root is in path
 sys.path.append(os.getcwd())
+load_dotenv()
 
 from project_tw.strategies.cb import CBStrategy
 from project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
+from app.auth import router as auth_router, get_current_user
 from app.portfolio_db import get_all_targets_by_type
 
 app = FastAPI(title="Martian Investment System")
 
+# Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
 # ... (CORS logic remains) ...
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production with Auth, this should be specific domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 # ---------------- Notification Engine ----------------
 notification_engine = NotificationEngine()
 
 @app.get("/api/notifications/check")
-async def check_notifications():
+async def check_notifications(user: dict = Depends(get_current_user)):
     """Trigger generic strategy alerts"""
+    # If no user, default to 'default' (legacy)
+    user_id = user['id'] if user else 'default'
+    print(f"Checking notifications for user: {user_id}")
+    
     try:
-        # Get flattened targets
-        portfolio_data = get_all_targets_by_type()
+        # Get targets for specific user
+        # Implementation Detail: create a specific getter in portfolio_db or update existing
+        # Hack: update get_all_targets_by_type to accept user_id? 
+        # Or just fetch raw here.
+        # Let's assume get_all_targets_by_type has been updated (I need to update it next!)
+        portfolio_data = get_all_targets_by_type(user_id=user_id) 
+
         targets = []
         for cat in portfolio_data.values():
             targets.extend(cat)

@@ -40,13 +40,25 @@ def init_db():
     with get_db() as conn:
         cursor = conn.cursor()
         
+        # Users (Google Auth)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY, -- Google sub ID
+                email TEXT,
+                name TEXT,
+                picture TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # User Groups
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_groups (
                 id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL DEFAULT 'default',
+                user_id TEXT NOT NULL DEFAULT 'default', 
                 name TEXT NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
         

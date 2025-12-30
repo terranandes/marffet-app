@@ -228,41 +228,41 @@ class CBStrategy:
             'confidence': 'NEUTRAL'
         }
         
-        # Logic Hierarchy
-        if premium_rate < self.buy_threshold:
-            # < 0%
-            result['action'] = 'STRONG_BUY'
+        # Logic Hierarchy (User Defined)
+        if premium_rate < -1:
+            # < -1%
+            result['action'] = "馬上買入CB,賣出現股"
             result['description'] = "套利警報：訊號出現！立即精算所有交易成本，確認利潤空間。(或有轉換價值)"
             result['confidence'] = 'HIGH'
             
-        elif self.buy_threshold <= premium_rate < self.consider_buy_threshold:
-            # 0 ~ 3.5%
-            result['action'] = 'BUY'
+        elif premium_rate < 3.5:
+            # -1 ~ 3.5%
+            result['action'] = "考慮買入CB,賣出現股"
             result['description'] = "最佳買點：此時買入CB的性價比最高，是建立多頭部位的首選。(到期日前還是得轉換)"
             result['confidence'] = 'MEDIUM'
             
-        elif self.consider_buy_threshold <= premium_rate < self.hold_threshold:
+        elif premium_rate < 7.0:
             # 3.5 ~ 7%
-            result['action'] = 'HOLD'
-            result['description'] = "續抱：利潤開始擴大，但尚未達到瘋狂程度。(享受主升段)"
-            result['confidence'] = 'HIGH'
-            
-        elif self.hold_threshold <= premium_rate < self.consider_sell_threshold:
-            # 7 ~ 15%
-            result['action'] = 'CONSIDER_SELL'
-            result['description'] = "考慮賣出：漲幅已大，注意回檔風險。(可開始分批獲利)"
+            result['action'] = "中立"
+            result['description'] = "安心持有：價格合理，享受CB攻守兼備的特性。(到期日前還是得轉換)"
             result['confidence'] = 'MEDIUM'
             
-        elif self.consider_sell_threshold <= premium_rate < self.sell_threshold:
+        elif premium_rate < 15.0:
+            # 7 ~ 15%
+            result['action'] = "考慮賣出CB,買入現股"
+            result['description'] = "評估信心 (1)：保險費開始變貴，開始問自己：我是否該為了更高報酬而放棄保險？(到期日前還是得轉換)"
+            result['confidence'] = 'MEDIUM'
+            
+        elif premium_rate < 30.0:
             # 15 ~ 30%
-            result['action'] = 'SELL'
-            result['description'] = "賣出CB，買回現股：機會成本過高，轉持現股參與更有利。(若看好後市)"
+            result['action'] = "賣出CB,買入現股"
+            result['description'] = "評估信心 (2)：保險費很貴！若非極度看好後市，否則持有現股的機會成本很高。以最大化潛在獲利。(到期日前還是得轉換)"
             result['confidence'] = 'HIGH'
             
         else:
             # >= 30%
-            result['action'] = 'STRONG_SELL'
-            result['description'] = "立即賣出：乖離過大，價格極度不合理。(獲利了結，尋找下一個標的)"
+            result['action'] = "馬上賣出CB,買入現股"
+            result['description'] = "強烈行動訊號：保險費極貴！將「帳面獲利」轉化為「實際報酬潛力」，避免因高溢價而壓縮未來上漲空間。(到期日前還是得轉換)"
             result['confidence'] = 'HIGH'
             
         return result

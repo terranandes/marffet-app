@@ -63,6 +63,7 @@ async def auth_callback(request: Request):
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
 
+
 @router.get("/logout")
 async def logout(request: Request):
     request.session.pop('user', None)
@@ -70,4 +71,9 @@ async def logout(request: Request):
 
 @router.get("/me")
 async def get_me(user: dict = Depends(get_current_user)):
-    return user or {"id": None}
+    if not user: return {"id": None}
+    from .portfolio_db import get_user_public_profile
+    # Fetch fresh DB data (e.g. nickname)
+    db_profile = get_user_public_profile(user['id'])
+    # Merge DB data into session data for response
+    return {**user, **db_profile}

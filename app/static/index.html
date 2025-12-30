@@ -192,6 +192,9 @@
                 <button @click="currentTab = 'trend'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'trend'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">📈 Trend</button>
+                <button @click="currentTab = 'ladder'"
+                    :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'ladder'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">🏆 Ladder</button>
                 <button @click="currentTab = 'myrace'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'myrace'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">🏎️ My Race</button>
@@ -878,6 +881,114 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- LADDER TAB -->
+            <div v-show="currentTab === 'ladder'" class="flex-1 flex flex-col items-center pt-8 overflow-auto">
+                <h2 class="text-4xl font-bold text-center mb-2 neon-text tracking-wider">MARTIAN HALL OF FAME</h2>
+                <p class="text-gray-400 mb-8 text-sm uppercase tracking-widest">Top Performing Portfolios by ROI</p>
+
+                <!-- Loading -->
+                <div v-if="loadingLadder" class="flex-1 flex items-center justify-center text-cyber-cyan animate-pulse">
+                    <span class="text-2xl">Scanning Universe...</span>
+                </div>
+
+                <div v-else class="w-full max-w-4xl space-y-10 pb-20">
+                    <!-- PODIUM (Top 3) -->
+                    <div class="flex justify-center items-end gap-4 md:gap-8 h-64 mb-10">
+                        <!-- Rank 2 -->
+                        <div v-if="leaderboard[1]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
+                            <div class="relative mb-4">
+                                <img :src="leaderboard[1].picture"
+                                    class="w-20 h-20 rounded-full border-4 border-gray-300 shadow-[0_0_20px_rgba(200,200,200,0.3)]">
+                                <div
+                                    class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gray-300 text-black font-bold px-2 py-0.5 rounded text-xs shadow">
+                                    #2</div>
+                            </div>
+                            <div
+                                class="bg-gradient-to-t from-gray-500/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-gray-300 h-full flex flex-col justify-end transition-all group-hover:bg-gray-500/30">
+                                <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[1].nickname }}
+                                </div>
+                                <div class="text-2xl font-bold text-gray-300">{{ leaderboard[1].roi }}%</div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 1 -->
+                        <div v-if="leaderboard[0]"
+                            class="flex flex-col items-center w-1/3 max-w-[180px] z-10 -mt-8 group">
+                            <div class="relative mb-4 transform scale-125">
+                                <img :src="leaderboard[0].picture"
+                                    class="w-20 h-20 rounded-full border-4 border-cyber-gold shadow-[0_0_30px_rgba(255,215,0,0.5)]">
+                                <div
+                                    class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-cyber-gold text-black font-bold px-3 py-1 rounded text-sm shadow-xl">
+                                    👑 #1</div>
+                            </div>
+                            <div
+                                class="bg-gradient-to-t from-cyber-gold/20 to-transparent w-full rounded-t-xl p-4 text-center border-t-4 border-cyber-gold h-[120%] flex flex-col justify-end shadow-[0_-10px_40px_rgba(255,215,0,0.1)] transition-all group-hover:bg-cyber-gold/30">
+                                <div class="font-bold text-white text-lg mb-1 truncate w-full">{{
+                                    leaderboard[0].nickname }}</div>
+                                <div class="text-4xl font-bold text-cyber-gold neon-text">{{ leaderboard[0].roi }}%
+                                </div>
+                                <div class="text-[10px] text-cyber-gold mt-1 uppercase tracking-wider">Grandmaster</div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 3 -->
+                        <div v-if="leaderboard[2]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
+                            <div class="relative mb-4">
+                                <img :src="leaderboard[2].picture"
+                                    class="w-20 h-20 rounded-full border-4 border-yellow-700 shadow-[0_0_20px_rgba(180,100,0,0.3)]">
+                                <div
+                                    class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-700 text-white font-bold px-2 py-0.5 rounded text-xs shadow">
+                                    #3</div>
+                            </div>
+                            <div
+                                class="bg-gradient-to-t from-yellow-700/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-yellow-700 h-3/4 flex flex-col justify-end transition-all group-hover:bg-yellow-700/30">
+                                <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[2].nickname }}
+                                </div>
+                                <div class="text-2xl font-bold text-yellow-600">{{ leaderboard[2].roi }}%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIST (Rank 4+) -->
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-white/5 text-gray-400 text-xs uppercase">
+                                <tr>
+                                    <th class="px-6 py-4">Rank</th>
+                                    <th class="px-6 py-4">User</th>
+                                    <th class="px-6 py-4 text-right">Portfolio ROI</th>
+                                    <th class="px-6 py-4 text-center">Top Secret Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/10">
+                                <tr v-for="(user, idx) in leaderboard.slice(3)" :key="idx"
+                                    class="hover:bg-white/5 transition">
+                                    <td class="px-6 py-4 font-mono text-gray-500 font-bold">#{{ idx + 4 }}</td>
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        <img :src="user.picture" class="w-8 h-8 rounded-full border border-white/10">
+                                        <span class="font-bold text-white">{{ user.nickname }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono font-bold text-cyber-cyan">{{ user.roi }}%
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-2xl filter blur-sm hover:blur-none transition duration-500 cursor-help"
+                                        title="Top Secret">{{ user.top_stock }}</td>
+                                </tr>
+                                <tr v-if="leaderboard.length < 4 && leaderboard.length > 0">
+                                    <td colspan="4" class="text-center py-6 text-gray-500">Only top contenders shown.
+                                    </td>
+                                </tr>
+                                <tr v-if="!leaderboard.length">
+                                    <td colspan="4" class="text-center py-8 text-gray-500">No ranked users yet. Be the
+                                        first!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <!-- DETAIL MODAL -->
@@ -1002,7 +1113,20 @@
                             <option value="portfolio">📊 Portfolio</option>
                             <option value="trend">📈 Trend</option>
                             <option value="myrace">🏎️ My Race</option>
+                            <option value="ladder">🏆 Ladder</option>
                         </select>
+                    </div>
+
+                    <!-- Nickname Update -->
+                    <div>
+                        <label class="font-bold text-sm mb-2 block">👤 Nickname (Public)</label>
+                        <div class="flex gap-2">
+                            <input v-model="newNickname" type="text" placeholder="Enter public nickname"
+                                class="flex-1 bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white">
+                            <button @click="updateProfile"
+                                class="bg-cyber-cyan text-black px-3 py-2 rounded font-bold text-sm hover:opacity-90">Save</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Shown on Leaderboard.</p>
                     </div>
 
                     <!-- API Key -->
@@ -1985,6 +2109,36 @@
                     } catch (e) { console.error('Fetch race data error:', e); }
                 };
 
+                // ============== LEADERBOARD & PROFILE ==============
+                const leaderboard = ref([]);
+                const loadingLadder = ref(false);
+                const newNickname = ref('');
+
+                const fetchLeaderboard = async () => {
+                    loadingLadder.value = true;
+                    try {
+                        const res = await fetch('/api/leaderboard');
+                        leaderboard.value = await res.json();
+                    } catch (e) { console.error('Leaderboard error:', e); }
+                    loadingLadder.value = false;
+                };
+
+                const updateProfile = async () => {
+                    if (!newNickname.value.trim()) return;
+                    try {
+                        const res = await fetch('/api/auth/profile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ nickname: newNickname.value.trim() })
+                        });
+                        const data = await res.json();
+                        if (data.status === 'ok') {
+                            currentUser.value.nickname = data.nickname;
+                            alert('Nickname updated!');
+                        }
+                    } catch (e) { alert('Update failed'); }
+                };
+
                 onMounted(async () => {
                     const loader = document.getElementById('loading-msg');
 
@@ -2012,6 +2166,8 @@
                                 fetchPortfolioRaceData();
                             } else if (newTab === 'cb') {
                                 fetchPortfolioCBs();
+                            } else if (newTab === 'ladder') {
+                                fetchLeaderboard();
                             }
                         });
                     };
@@ -2022,6 +2178,7 @@
                         const user = await res.json();
                         if (user && user.id) {
                             currentUser.value = user;
+                            newNickname.value = user.nickname || '';
                             loadDashboard();
                         } else {
                             // User not logged in, show Overlay
@@ -2048,6 +2205,8 @@
                     // Trend Dashboard & My Race
                     trendData, assetGroups, expandedGroup, selectedMonth, maxTrendCost, portfolioRaceData,
                     fetchTrendData, getGroupTotal, playPortfolioRace, pausePortfolioRace, fetchPortfolioRaceData,
+                    // Leaderboard
+                    leaderboard, loadingLadder, newNickname, updateProfile,
                     // Settings System
                     showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV,
                     // Notifications System

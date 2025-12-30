@@ -46,10 +46,17 @@ def init_db():
                 id TEXT PRIMARY KEY, -- Google sub ID
                 email TEXT,
                 name TEXT,
+                nickname TEXT, -- Display Name for Leaderboard
                 picture TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        
+        # Migration: Add nickname if not exists
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN nickname TEXT")
+        except:
+            pass
 
         # User Groups
         cursor.execute("""
@@ -650,6 +657,34 @@ def sync_all_dividends(user_id: str = "default") -> dict:
         "synced_count": len(synced),
         "dividends": synced
     }
+
+
+# ============== USER PROFILE & LEADERBOARD ==============
+
+def update_user_nickname(user_id: str, nickname: str) -> bool:
+    """Update user's public nickname."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET nickname = ? WHERE id = ?", (nickname, user_id))
+        return cursor.rowcount > 0
+
+def get_leaderboard_candidates() -> list:
+    """
+    Fetch all users to calculate leaderboard.
+    Returns: [{id, nickname, name, picture}, ...]
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nickname, name, picture FROM users")
+        return [dict(row) for row in cursor.fetchall()]
+
+def get_user_public_profile(user_id: str) -> dict:
+    """Get public profile for a user."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nickname, name, picture FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else {}
 
 
 # Initialize on import

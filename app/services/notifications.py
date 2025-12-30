@@ -159,6 +159,60 @@ class NotificationEngine:
                 
         return alerts
 
+
+    async def check_cb_alerts(self, targets: List[Dict]) -> List[Dict]:
+        """
+        Strategy C: Convertible Bond Alerts
+        Triggers:
+        1. Arbitrage: Premium < -1%
+        2. Strong Sell: Premium >= 30%
+        """
+        alerts = []
+        cb_codes = []
+        
+        # 1. Identify CBs (Suffix 1-9 or 5 digits)
+        for t in targets:
+            code = t['id']
+            # Simple heuristic: CBs often 5 digits (65331) or end with digit
+            if len(code) == 5 and code.isdigit():
+                 cb_codes.append(code)
+        
+        if not cb_codes:
+            return []
+            
+        try:
+            # Import Strategy (Lazy import to avoid circular dependency if any)
+            from project_tw.strategies.cb import CBStrategy
+            strategy = CBStrategy()
+            results = await strategy.analyze_specific_cbs(cb_codes)
+            
+            for res in results:
+                premium = res.get('premium')
+                if isinstance(premium, (int, float)):
+                    # Case 1: Arbitrage (< -1%)
+                    if premium < -1:
+                        msg = f"⚡ CB Arbitrage: {res['name']} ({res['code']}) Premium is {premium}%! {res['description']}"
+                        alerts.append({
+                            "type": "strategy_cb_arb",
+                            "level": "critical", # High Priority
+                            "message": msg,
+                            "target_id": res['code']
+                        })
+                    
+                    # Case 2: Strong Sell (>= 30%)
+                    elif premium >= 30:
+                        msg = f"⚡ CB Sell Alert: {res['name']} ({res['code']}) Premium is {premium}%! {res['description']}"
+                        alerts.append({
+                            "type": "strategy_cb_sell",
+                            "level": "warning",
+                            "message": msg,
+                            "target_id": res['code']
+                        })
+        except Exception as e:
+            print(f"CB Check Error: {e}")
+            
+        return alerts
+
     async def generate_alerts(self, portfolio: Dict) -> List[Dict]:
         """
         Main entry point.
@@ -171,12 +225,14 @@ class NotificationEngine:
             return []
 
         # Run checks in parallel
-        sma_alerts, cap_alerts = await asyncio.gather(
+        sma_alerts, cap_alerts, cb_alerts = await asyncio.gather(
             self.check_sma_divergence(targets),
-            self.check_market_cap_rebalance(targets)
+            self.check_market_cap_rebalance(targets),
+            self.check_cb_alerts(targets)
         )
         
         all_alerts.extend(sma_alerts)
         all_alerts.extend(cap_alerts)
+        all_alerts.extend(cb_alerts)
         
         return all_alerts

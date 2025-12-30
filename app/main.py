@@ -264,6 +264,73 @@ from typing import Optional
 # Initialize portfolio DB on startup
 init_db()
 
+# ---------------- Leaderboard & Profile ----------------
+
+class ProfileUpdate(BaseModel):
+    nickname: str
+
+@app.post("/api/auth/profile")
+async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_user)):
+    if not user: raise HTTPException(status_code=401, detail="Unauthorized")
+    from app.portfolio_db import update_user_nickname
+    
+    success = update_user_nickname(user['id'], data.nickname)
+    if success:
+        return {"status": "ok", "nickname": data.nickname}
+    return {"status": "error"}
+
+@app.get("/api/leaderboard")
+async def get_leaderboard():
+    """Calculates Live Leaderboard based on Portfolio ROI."""
+    from app.portfolio_db import get_leaderboard_candidates, get_all_targets_by_type, fetch_live_prices, get_target_summary
+    
+    candidates = get_leaderboard_candidates()
+    leaderboard = []
+    
+    # Pre-fetch live prices for global cache (optimization)
+    # in real world, we'd batch this. For now, per user is okay or simple global fetch?
+    # Let's do per user for simplicity.
+    
+    for cand in candidates:
+        if not cand.get('nickname'): continue 
+        
+        targets_map = get_all_targets_by_type(cand['id'])
+        all_targets = targets_map['stock'] + targets_map['etf'] + targets_map['cb']
+        
+        if not all_targets: continue
+        
+        # Calculate Total ROI
+        stock_ids = list(set(t['stock_id'] for t in all_targets))
+        if not stock_ids: continue
+        
+        prices = fetch_live_prices(stock_ids)
+        
+        total_market_value = 0
+        total_cost = 0
+        
+        for t in all_targets:
+            price = prices.get(t['stock_id'], {}).get('price', 0)
+            shares = t['total_shares']
+            if shares > 0:
+                total_market_value += shares * price
+                summary = get_target_summary(t['id'])
+                total_cost += summary['total_cost']
+
+        if total_cost > 0:
+            roi_pct = ((total_market_value - total_cost) / total_cost) * 100
+        else:
+            roi_pct = 0
+            
+        leaderboard.append({
+            "nickname": cand['nickname'],
+            "roi": round(roi_pct, 2),
+            "picture": cand['picture'],
+            "top_stock": "㊙️"
+        })
+        
+    leaderboard.sort(key=lambda x: x['roi'], reverse=True)
+    return leaderboard[:10]
+
 class GroupCreate(BaseModel):
     name: str
 

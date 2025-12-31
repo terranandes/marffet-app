@@ -378,8 +378,8 @@
                         <div class="flex items-center gap-4">
                             <span class="text-xs text-gray-400 font-mono w-16">{{ animationFrames.length ?
                                 animationFrames[currentFrameIndex]?.year : '-' }}</span>
-                            <input type="range" :min="0" :max="animationFrames.length - 1"
-                                :value="currentFrameIndex" @input="seekToFrame($event.target.value)"
+                            <input type="range" :min="0" :max="animationFrames.length - 1" :value="currentFrameIndex"
+                                @input="seekToFrame($event.target.value)"
                                 class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyber-cyan">
                             <span class="text-xs text-gray-400 font-mono w-16 text-right">{{ animationFrames.length
                                 ?
@@ -387,775 +387,772 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- CB TAB -->
-                <div v-show="currentTab === 'cb'" class="flex-1 flex flex-col items-center pt-10 space-y-8 pb-10">
-                    <!-- MY PORTFOLIO CBs -->
-                    <div class="w-full max-w-2xl glass-panel p-6 rounded-2xl border border-cyber-cyan/30">
-                        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span class="text-cyber-cyan">💼</span> My Portfolio CBs
-                        </h2>
-                        <div v-if="loadingPortfolioCBs" class="text-center text-cyber-cyan animate-pulse">Loading
-                            portfolio
-                            CBs...</div>
-                        <div v-else-if="!portfolioCBs.length" class="text-center text-gray-500 py-4 text-sm">No CBs in
-                            your
-                            portfolio. Add them in the Portfolio tab.</div>
-                        <div v-else class="space-y-4">
-                            <div v-for="cb in portfolioCBs" :key="cb.code"
-                                class="bg-black/40 rounded-xl p-4 border-l-4 transition hover:bg-white/5"
-                                :class="getBorderColor(cb.action)">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <div class="font-bold text-lg text-white">{{ cb.code }} {{ cb.name }}</div>
-                                        <div class="text-xs text-gray-400">Stock: {{ cb.stock_price }} | CB: {{
-                                            cb.cb_price
-                                            }} | Conv: {{ cb.conv_price }}</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-2xl font-bold" :class="getActionColor(cb.action)">{{ cb.premium
-                                            }}%
-                                        </div>
-                                        <div class="text-[10px] uppercase tracking-wider text-gray-500">Premium</div>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <div class="inline-block px-2 py-1 rounded text-xs font-bold"
-                                        :class="getActionColor(cb.action) + ' bg-opacity-20'">{{ cb.action }}</div>
-                                    <div class="text-xs text-gray-400 italic truncate ml-2">{{ cb.description }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ANALYZE LOOKUP -->
-                    <div
-                        class="w-full max-w-2xl glass-panel p-8 rounded-2xl border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                            <span class="text-cyber-cyan">💰</span> CB Arbitrage Analyzer
-                        </h2>
-
-                        <div class="flex gap-4 mb-8">
-                            <input v-model="cbInput" @keyup.enter="analyzeCB" type="text"
-                                placeholder="Enter Stock Code (e.g. 6533)"
-                                class="flex-1 bg-black/50 border border-white/20 rounded-lg px-4 py-3 focus:border-cyber-cyan outline-none text-white placeholder-gray-600 transition">
-                            <button @click="analyzeCB" :disabled="loadingCB"
-                                class="bg-cyber-cyan text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition">
-                                <span v-if="loadingCB">Scanning...</span>
-                                <span v-else>Analyze</span>
-                            </button>
-                        </div>
-
-                        <div v-if="cbResult" class="animate-pulse-once">
-                            <div class="flex justify-between items-baseline mb-4">
-                                <h3 class="text-3xl font-bold">{{ cbResult.code }} {{ cbResult.name }}</h3>
-                                <span :class="getActionColor(cbResult.action)" class="text-xl font-mono font-bold">{{
-                                    cbResult.action }}</span>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-2 mb-6 text-sm text-gray-400 bg-black/30 p-4 rounded-lg">
-                                <div>Stock: <span class="text-white">{{ cbResult.stock_price }}</span></div>
-                                <div>CB: <span class="text-white">{{ cbResult.cb_price }}</span></div>
-                                <div>Conv: <span class="text-white">{{ cbResult.conv_price }}</span></div>
-                            </div>
-
-                            <div class="p-4 rounded-lg bg-gradient-to-r from-white/5 to-transparent border-l-4"
-                                :class="getBorderColor(cbResult.action)">
-                                <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Premium Rate</div>
-                                <div class="text-4xl font-bold mb-2" :class="getActionColor(cbResult.action)">
-                                    {{ cbResult.premium }}%
-                                </div>
-                                <p class="text-sm italic text-gray-300">{{ cbResult.description }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PORTFOLIO TAB -->
-                <div v-show="currentTab === 'portfolio'" class="flex-1 space-y-4">
-                    <!-- Portfolio Header -->
-                    <div class="glass-panel p-5 rounded-xl">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h2 class="text-2xl font-bold text-cyber-cyan">📊 My Portfolio</h2>
-                                <div class="text-sm text-gray-400 mt-1">
-                                    💰 Dividend Cash: <span class="text-green-400 font-mono font-bold">${{
-                                        formatCurrency(dividendCash.total_cash || 0) }}</span>
-                                    <span class="text-gray-500 ml-2">({{ dividendCash.dividend_count || 0 }}
-                                        payments)</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button @click="syncDividends" :disabled="syncingDividends"
-                                    class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition text-sm font-bold">
-                                    {{ syncingDividends ? '⏳ Syncing...' : '🔄 Sync Dividends' }}
-                                </button>
-                                <button @click="showAddGroup = !showAddGroup"
-                                    class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
-                                    + New Group
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Add Group Form -->
-                        <div v-if="showAddGroup" class="mb-4 p-3 bg-black/30 rounded-lg">
-                            <input v-model="newGroupName" @keyup.enter="createGroup" type="text"
-                                placeholder="Group name (e.g. 火星借券)"
-                                class="bg-black/50 border border-white/20 rounded px-3 py-2 mr-2 text-sm">
-                            <button @click="createGroup"
-                                class="bg-cyber-cyan text-black px-3 py-2 rounded text-sm font-bold">Create</button>
-                        </div>
-
-                        <!-- Group Tabs -->
-                        <div class="flex gap-2 flex-wrap">
-                            <button v-for="group in portfolioGroups" :key="group.id" @click="selectGroup(group.id)"
-                                :class="{'bg-cyber-cyan text-black': selectedGroupId === group.id}"
-                                class="px-4 py-2 rounded-lg text-sm font-medium border border-white/20 hover:border-cyber-cyan transition">
-                                {{ group.name }}
-                                <span @click.stop="deleteGroup(group.id)"
-                                    class="ml-2 text-red-400 hover:text-red-300">×</span>
-                            </button>
-                            <span v-if="!portfolioGroups.length" class="text-gray-500 text-sm">No groups yet. Create one
-                                above.</span>
-                        </div>
-                    </div>
-
-                    <!-- Targets & Transactions -->
-                    <div v-if="selectedGroupId" class="glass-panel p-5 rounded-xl">
-                        <!-- Add Target Form -->
-                        <div class="flex gap-2 mb-4">
-                            <input v-model="newTargetId" type="text" placeholder="Stock Code (e.g. 2330)"
-                                class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm w-32">
-                            <input v-model="newTargetName" type="text" placeholder="Stock Name (optional)"
-                                class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm flex-1">
-                            <button @click="addTarget"
-                                class="bg-cyber-gold text-black px-4 py-2 rounded text-sm font-bold">+ Add
-                                Stock</button>
-                        </div>
-
-                        <!-- Targets Table (Yahoo-style) -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="border-b border-white/10 text-gray-400 text-xs">
-                                        <th class="text-left p-2">股名/股號</th>
-                                        <th class="text-right p-2">股價/漲跌(%)</th>
-                                        <th class="text-right p-2">持有股數</th>
-                                        <th class="text-right p-2">持股成本/均價</th>
-                                        <th class="text-right p-2">市值</th>
-                                        <th class="text-right p-2">已實現損益</th>
-                                        <th class="text-right p-2">未實現損益</th>
-                                        <th class="text-center p-2">交易筆數</th>
-                                        <th class="text-center p-2">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="target in groupTargets" :key="target.id"
-                                        class="border-b border-white/5 hover:bg-white/5">
-                                        <!-- Stock Name/ID -->
-                                        <td class="p-2">
-                                            <div class="font-bold">{{ target.stock_name || target.stock_id }}</div>
-                                            <div class="text-xs text-gray-500">{{ target.stock_id }}</div>
-                                        </td>
-                                        <!-- Live Price + Change -->
-                                        <td class="text-right p-2">
-                                            <div class="font-mono font-bold">{{ target.livePrice?.price || '-' }}</div>
-                                            <div class="text-xs"
-                                                :class="target.livePrice?.change >= 0 ? 'text-red-400' : 'text-green-400'">
-                                                {{ target.livePrice?.change >= 0 ? '▲' : '▼' }}
-                                                {{ Math.abs(target.livePrice?.change || 0).toFixed(2) }}
-                                                ({{ Math.abs(target.livePrice?.change_pct || 0).toFixed(2) }}%)
-                                            </div>
-                                        </td>
-                                        <!-- Shares -->
-                                        <td class="text-right p-2 font-mono">{{ target.summary?.total_shares || 0 }} 股
-                                        </td>
-                                        <!-- Cost Basis / Avg Cost -->
-                                        <td class="text-right p-2">
-                                            <div class="font-mono">${{ formatCurrency(target.summary?.total_cost || 0)
-                                                }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">均價 ${{
-                                                target.summary?.avg_cost?.toFixed(2)
-                                                || '0.00' }}</div>
-                                        </td>
-                                        <!-- Market Value -->
-                                        <td class="text-right p-2 font-mono font-bold">
-                                            ${{ formatCurrency(target.summary?.market_value || 0) }}
-                                        </td>
-                                        <!-- Realized P/L -->
-                                        <td class="text-right p-2 font-mono"
-                                            :class="(target.summary?.realized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                            {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}${{
-                                            formatCurrency(target.summary?.realized_pnl || 0) }}
-                                        </td>
-                                        <!-- Unrealized P/L -->
-                                        <td class="text-right p-2">
-                                            <div class="font-mono"
-                                                :class="(target.summary?.unrealized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                                {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}${{
-                                                formatCurrency(target.summary?.unrealized_pnl || 0) }}
-                                            </div>
-                                            <div class="text-xs"
-                                                :class="(target.summary?.unrealized_pnl_pct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                                ({{ target.summary?.unrealized_pnl_pct?.toFixed(2) || 0 }}%)
-                                            </div>
-                                        </td>
-                                        <!-- Tx Count -->
-                                        <td class="text-center p-2 font-mono">{{ target.summary?.tx_count || 0 }} 筆</td>
-                                        <!-- Actions -->
-                                        <td class="text-center p-2">
-                                            <button @click="showTxForm = target.id"
-                                                class="text-cyber-cyan hover:underline text-xs mr-2">+交易</button>
-                                            <button @click="deleteTarget(target.id)"
-                                                class="text-red-400 hover:text-red-300 text-xs">刪除</button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="!groupTargets.length">
-                                        <td colspan="9" class="text-center text-gray-500 py-8">
-                                            No stocks in this group. Add one above.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Transaction Form (Modal) -->
-                    <div v-if="showTxForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-                        @click.self="showTxForm = null">
-                        <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96">
-                            <h3 class="text-lg font-bold mb-4">新增交易</h3>
-                            <div class="space-y-3">
-                                <div class="flex gap-2">
-                                    <button @click="newTx.type = 'buy'"
-                                        :class="{'bg-green-500 text-black': newTx.type === 'buy'}"
-                                        class="flex-1 py-2 rounded border border-green-500 text-green-400 font-bold">
-                                        買入
-                                    </button>
-                                    <button @click="newTx.type = 'sell'"
-                                        :class="{'bg-red-500 text-black': newTx.type === 'sell'}"
-                                        class="flex-1 py-2 rounded border border-red-500 text-red-400 font-bold">
-                                        賣出
-                                    </button>
-                                </div>
-                                <input v-model="newTx.shares" type="number" placeholder="股數"
-                                    class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                                <input v-model="newTx.price" type="number" step="0.01" placeholder="成本/股"
-                                    class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                                <input v-model="newTx.date" type="date"
-                                    class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                                <div class="flex gap-2">
-                                    <button @click="addTransaction"
-                                        class="flex-1 bg-cyber-cyan text-black py-2 rounded font-bold">
-                                        確認
-                                    </button>
-                                    <button @click="showTxForm = null"
-                                        class="flex-1 border border-white/20 py-2 rounded">
-                                        取消
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TREND TAB -->
-                <div v-show="currentTab === 'trend'" class="flex-1 space-y-4">
-                    <!-- Trend Header -->
-                    <div class="glass-panel p-5 rounded-xl">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-bold text-cyber-cyan">📈 Portfolio Trend</h2>
-                            <button @click="fetchTrendData"
-                                class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded text-sm font-bold hover:bg-cyber-cyan hover:text-black transition">
-                                🔄 Refresh
-                            </button>
-                        </div>
-
-                        <!-- Monthly Trend Chart -->
-                        <div class="bg-black/30 rounded-lg p-4 mb-4">
-                            <h3 class="text-sm text-gray-400 mb-2">Net Investment Over Time</h3>
-                            <div class="h-48 flex items-end gap-1" v-if="trendData.length">
-                                <div v-for="(item, idx) in trendData" :key="idx"
-                                    class="flex-1 flex flex-col items-center group cursor-pointer"
-                                    @click="selectedMonth = item.month">
-                                    <div class="w-full bg-cyber-cyan/80 rounded-t transition-all duration-300 hover:bg-cyber-cyan"
-                                        :style="{height: ((item.cost / maxTrendCost) * 150) + 'px'}"
-                                        :class="{'bg-cyber-gold': selectedMonth === item.month}">
-                                    </div>
-                                    <span class="text-xs text-gray-500 mt-1 transform -rotate-45 origin-top-left">
-                                        {{ item.month.slice(5) }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div v-else class="text-center text-gray-500 py-8">
-                                No transaction data yet. Add transactions in Portfolio tab.
-                            </div>
-                        </div>
-
-                        <!-- Selected Month Info -->
-                        <div v-if="selectedMonth" class="text-center text-sm">
-                            <span class="text-gray-400">Selected: </span>
-                            <span class="text-cyber-cyan font-bold">{{ selectedMonth }}</span>
-                            <span class="text-gray-400"> | Cost: </span>
-                            <span class="text-white font-mono">${{ formatCurrency(trendData.find(t => t.month ===
-                                selectedMonth)?.cost || 0) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Collapsible Asset Groups -->
-                    <div class="glass-panel p-5 rounded-xl">
-                        <h3 class="text-lg font-bold mb-4">Asset Groups</h3>
-
-                        <!-- Stock Group -->
-                        <div class="mb-3">
-                            <div @click="expandedGroup = expandedGroup === 'stock' ? null : 'stock'"
-                                class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xl">{{ expandedGroup === 'stock' ? '▼' : '▶' }}</span>
-                                    <span class="font-bold text-lg">📊 Stock</span>
-                                    <span class="text-gray-400 text-sm">({{ assetGroups.stock?.length || 0 }}
-                                        targets)</span>
-                                </div>
-                                <span class="text-cyber-cyan font-mono font-bold">${{
-                                    formatCurrency(getGroupTotal('stock'))
-                                    }}</span>
-                            </div>
-                            <div v-if="expandedGroup === 'stock'" class="pl-8 mt-2 space-y-1">
-                                <div v-for="t in assetGroups.stock" :key="t.id"
-                                    class="flex justify-between p-2 bg-black/20 rounded text-sm">
-                                    <span>{{ t.stock_name || t.stock_id }}</span>
-                                    <span class="text-gray-400">{{ t.stock_id }}</span>
-                                </div>
-                                <div v-if="!assetGroups.stock?.length" class="text-gray-500 text-sm py-2">No stocks
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ETF Group -->
-                        <div class="mb-3">
-                            <div @click="expandedGroup = expandedGroup === 'etf' ? null : 'etf'"
-                                class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xl">{{ expandedGroup === 'etf' ? '▼' : '▶' }}</span>
-                                    <span class="font-bold text-lg">📈 ETF</span>
-                                    <span class="text-gray-400 text-sm">({{ assetGroups.etf?.length || 0 }}
-                                        targets)</span>
-                                </div>
-                                <span class="text-cyber-gold font-mono font-bold">${{
-                                    formatCurrency(getGroupTotal('etf'))
-                                    }}</span>
-                            </div>
-                            <div v-if="expandedGroup === 'etf'" class="pl-8 mt-2 space-y-1">
-                                <div v-for="t in assetGroups.etf" :key="t.id"
-                                    class="flex justify-between p-2 bg-black/20 rounded text-sm">
-                                    <span>{{ t.stock_name || t.stock_id }}</span>
-                                    <span class="text-gray-400">{{ t.stock_id }}</span>
-                                </div>
-                                <div v-if="!assetGroups.etf?.length" class="text-gray-500 text-sm py-2">No ETFs</div>
-                            </div>
-                        </div>
-
-                        <!-- CB (Convertible Bond) Group -->
-                        <div class="mb-3">
-                            <div @click="expandedGroup = expandedGroup === 'cb' ? null : 'cb'"
-                                class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xl">{{ expandedGroup === 'cb' ? '▼' : '▶' }}</span>
-                                    <span class="font-bold text-lg">💰 CB</span>
-                                    <span class="text-gray-400 text-sm">({{ assetGroups.cb?.length || 0 }}
-                                        targets)</span>
-                                </div>
-                                <span class="text-green-400 font-mono font-bold">${{ formatCurrency(getGroupTotal('cb'))
-                                    }}</span>
-                            </div>
-                            <div v-if="expandedGroup === 'cb'" class="pl-8 mt-2 space-y-1">
-                                <div v-for="t in assetGroups.cb" :key="t.id"
-                                    class="flex justify-between p-2 bg-black/20 rounded text-sm">
-                                    <span>{{ t.stock_name || t.stock_id }}</span>
-                                    <span class="text-gray-400">{{ t.stock_id }}</span>
-                                </div>
-                                <div v-if="!assetGroups.cb?.length" class="text-gray-500 text-sm py-2">No CBs</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Link to My Race -->
-                    <div class="glass-panel p-4 rounded-xl text-center">
-                        <span class="text-gray-400">See your investments compete! →</span>
-                        <button @click="currentTab = 'myrace'" class="ml-2 text-cyber-cyan font-bold hover:underline">
-                            🏎️ Open My Race Tab
-                        </button>
-                    </div>
-                </div>
-
-                <!-- MY RACE TAB -->
-                <div v-show="currentTab === 'myrace'" class="flex-1 flex flex-col space-y-4">
-                    <!-- Race Header -->
-                    <div class="glass-panel p-5 rounded-xl">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-bold text-cyber-cyan">🏎️ My Portfolio Race</h2>
-                                <p class="text-sm text-gray-400">Top 50 of your investments racing in real-time</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button @click="playPortfolioRace"
-                                    class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded font-bold hover:bg-green-500 hover:text-black transition">
-                                    ▶ Play
-                                </button>
-                                <button @click="pausePortfolioRace"
-                                    class="bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded font-bold hover:bg-yellow-500 hover:text-black transition">
-                                    ⏸ Pause
-                                </button>
-                                <button @click="fetchPortfolioRaceData"
-                                    class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded font-bold hover:bg-cyber-cyan hover:text-black transition">
-                                    🔄 Refresh
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Race Chart Area (Full Height) -->
-                    <div class="glass-panel p-5 rounded-xl flex-1 min-h-[500px]">
-                        <div id="my-portfolio-race-chart"
-                            class="h-full bg-black/30 rounded-lg flex items-center justify-center">
-                            <div v-if="!portfolioRaceData.length" class="text-center">
-                                <p class="text-gray-500 text-lg mb-2">No race data yet</p>
-                                <p class="text-gray-600 text-sm">Add transactions in Portfolio tab to see your
-                                    investments
-                                    race!</p>
-                            </div>
-                            <div v-else class="text-center">
-                                <p class="text-cyber-cyan text-lg mb-2">{{ portfolioRaceData.length }} data points ready
-                                </p>
-                                <p class="text-gray-400 text-sm">Click Play to start the race!</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Race Stats -->
-                    <div class="glass-panel p-4 rounded-xl">
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                                <div class="text-2xl font-bold text-cyber-cyan">{{ assetGroups.stock?.length || 0 }}
-                                </div>
-                                <div class="text-xs text-gray-400">Stocks</div>
-                            </div>
-                            <div>
-                                <div class="text-2xl font-bold text-cyber-gold">{{ assetGroups.etf?.length || 0 }}</div>
-                                <div class="text-xs text-gray-400">ETFs</div>
-                            </div>
-                            <div>
-                                <div class="text-2xl font-bold text-green-400">{{ assetGroups.cb?.length || 0 }}</div>
-                                <div class="text-xs text-gray-400">CBs</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- LADDER TAB -->
-            <div v-show="currentTab === 'ladder'" class="flex-1 flex flex-col items-center pt-8 overflow-auto">
-                <h2 class="text-4xl font-bold text-center mb-2 neon-text tracking-wider">MARTIAN HALL OF FAME</h2>
-                <p class="text-gray-400 mb-8 text-sm uppercase tracking-widest">Top Performing Portfolios by ROI</p>
-
-                <!-- Loading -->
-                <div v-if="loadingLadder" class="flex-1 flex items-center justify-center text-cyber-cyan animate-pulse">
-                    <span class="text-2xl">Scanning Universe...</span>
-                </div>
-
-                <div v-else class="w-full max-w-4xl space-y-10 pb-20">
-                    <!-- PODIUM (Top 3) -->
-                    <div class="flex justify-center items-end gap-4 md:gap-8 h-64 mb-10">
-                        <!-- Rank 2 -->
-                        <div v-if="leaderboard[1]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
-                            <div class="relative mb-4">
-                                <img :src="leaderboard[1].picture"
-                                    class="w-20 h-20 rounded-full border-4 border-gray-300 shadow-[0_0_20px_rgba(200,200,200,0.3)]">
-                                <div
-                                    class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gray-300 text-black font-bold px-2 py-0.5 rounded text-xs shadow">
-                                    #2</div>
-                            </div>
-                            <div
-                                class="bg-gradient-to-t from-gray-500/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-gray-300 h-full flex flex-col justify-end transition-all group-hover:bg-gray-500/30">
-                                <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[1].nickname }}
+            <!-- CB TAB -->
+            <div v-show="currentTab === 'cb'" class="flex-1 flex flex-col items-center pt-10 space-y-8 pb-10">
+                <!-- MY PORTFOLIO CBs -->
+                <div class="w-full max-w-2xl glass-panel p-6 rounded-2xl border border-cyber-cyan/30">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-cyber-cyan">💼</span> My Portfolio CBs
+                    </h2>
+                    <div v-if="loadingPortfolioCBs" class="text-center text-cyber-cyan animate-pulse">Loading
+                        portfolio
+                        CBs...</div>
+                    <div v-else-if="!portfolioCBs.length" class="text-center text-gray-500 py-4 text-sm">No CBs in
+                        your
+                        portfolio. Add them in the Portfolio tab.</div>
+                    <div v-else class="space-y-4">
+                        <div v-for="cb in portfolioCBs" :key="cb.code"
+                            class="bg-black/40 rounded-xl p-4 border-l-4 transition hover:bg-white/5"
+                            :class="getBorderColor(cb.action)">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <div class="font-bold text-lg text-white">{{ cb.code }} {{ cb.name }}</div>
+                                    <div class="text-xs text-gray-400">Stock: {{ cb.stock_price }} | CB: {{
+                                        cb.cb_price
+                                        }} | Conv: {{ cb.conv_price }}</div>
                                 </div>
-                                <div class="text-2xl font-bold text-gray-300">{{ leaderboard[1].roi }}%</div>
-                            </div>
-                        </div>
-
-                        <!-- Rank 1 -->
-                        <div v-if="leaderboard[0]"
-                            class="flex flex-col items-center w-1/3 max-w-[180px] z-10 -mt-8 group">
-                            <div class="relative mb-4 transform scale-125">
-                                <img :src="leaderboard[0].picture"
-                                    class="w-20 h-20 rounded-full border-4 border-cyber-gold shadow-[0_0_30px_rgba(255,215,0,0.5)]">
-                                <div
-                                    class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-cyber-gold text-black font-bold px-3 py-1 rounded text-sm shadow-xl">
-                                    👑 #1</div>
-                            </div>
-                            <div
-                                class="bg-gradient-to-t from-cyber-gold/20 to-transparent w-full rounded-t-xl p-4 text-center border-t-4 border-cyber-gold h-[120%] flex flex-col justify-end shadow-[0_-10px_40px_rgba(255,215,0,0.1)] transition-all group-hover:bg-cyber-gold/30">
-                                <div class="font-bold text-white text-lg mb-1 truncate w-full">{{
-                                    leaderboard[0].nickname }}</div>
-                                <div class="text-4xl font-bold text-cyber-gold neon-text">{{ leaderboard[0].roi }}%
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold" :class="getActionColor(cb.action)">{{ cb.premium
+                                        }}%
+                                    </div>
+                                    <div class="text-[10px] uppercase tracking-wider text-gray-500">Premium</div>
                                 </div>
-                                <div class="text-[10px] text-cyber-gold mt-1 uppercase tracking-wider">Grandmaster</div>
                             </div>
-                        </div>
-
-                        <!-- Rank 3 -->
-                        <div v-if="leaderboard[2]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
-                            <div class="relative mb-4">
-                                <img :src="leaderboard[2].picture"
-                                    class="w-20 h-20 rounded-full border-4 border-yellow-700 shadow-[0_0_20px_rgba(180,100,0,0.3)]">
-                                <div
-                                    class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-700 text-white font-bold px-2 py-0.5 rounded text-xs shadow">
-                                    #3</div>
-                            </div>
-                            <div
-                                class="bg-gradient-to-t from-yellow-700/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-yellow-700 h-3/4 flex flex-col justify-end transition-all group-hover:bg-yellow-700/30">
-                                <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[2].nickname }}
-                                </div>
-                                <div class="text-2xl font-bold text-yellow-600">{{ leaderboard[2].roi }}%</div>
+                            <div class="flex justify-between items-center">
+                                <div class="inline-block px-2 py-1 rounded text-xs font-bold"
+                                    :class="getActionColor(cb.action) + ' bg-opacity-20'">{{ cb.action }}</div>
+                                <div class="text-xs text-gray-400 italic truncate ml-2">{{ cb.description }}</div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- LIST (Rank 4+) -->
-                    <div class="glass-panel rounded-xl overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-white/5 text-gray-400 text-xs uppercase">
-                                <tr>
-                                    <th class="px-6 py-4">Rank</th>
-                                    <th class="px-6 py-4">User</th>
-                                    <th class="px-6 py-4 text-right">Portfolio ROI</th>
-                                    <th class="px-6 py-4 text-center">Top Secret Stock</th>
+                <!-- ANALYZE LOOKUP -->
+                <div
+                    class="w-full max-w-2xl glass-panel p-8 rounded-2xl border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <span class="text-cyber-cyan">💰</span> CB Arbitrage Analyzer
+                    </h2>
+
+                    <div class="flex gap-4 mb-8">
+                        <input v-model="cbInput" @keyup.enter="analyzeCB" type="text"
+                            placeholder="Enter Stock Code (e.g. 6533)"
+                            class="flex-1 bg-black/50 border border-white/20 rounded-lg px-4 py-3 focus:border-cyber-cyan outline-none text-white placeholder-gray-600 transition">
+                        <button @click="analyzeCB" :disabled="loadingCB"
+                            class="bg-cyber-cyan text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition">
+                            <span v-if="loadingCB">Scanning...</span>
+                            <span v-else>Analyze</span>
+                        </button>
+                    </div>
+
+                    <div v-if="cbResult" class="animate-pulse-once">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="text-3xl font-bold">{{ cbResult.code }} {{ cbResult.name }}</h3>
+                            <span :class="getActionColor(cbResult.action)" class="text-xl font-mono font-bold">{{
+                                cbResult.action }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-6 text-sm text-gray-400 bg-black/30 p-4 rounded-lg">
+                            <div>Stock: <span class="text-white">{{ cbResult.stock_price }}</span></div>
+                            <div>CB: <span class="text-white">{{ cbResult.cb_price }}</span></div>
+                            <div>Conv: <span class="text-white">{{ cbResult.conv_price }}</span></div>
+                        </div>
+
+                        <div class="p-4 rounded-lg bg-gradient-to-r from-white/5 to-transparent border-l-4"
+                            :class="getBorderColor(cbResult.action)">
+                            <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Premium Rate</div>
+                            <div class="text-4xl font-bold mb-2" :class="getActionColor(cbResult.action)">
+                                {{ cbResult.premium }}%
+                            </div>
+                            <p class="text-sm italic text-gray-300">{{ cbResult.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PORTFOLIO TAB -->
+            <div v-show="currentTab === 'portfolio'" class="flex-1 space-y-4">
+                <!-- Portfolio Header -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-cyber-cyan">📊 My Portfolio</h2>
+                            <div class="text-sm text-gray-400 mt-1">
+                                💰 Dividend Cash: <span class="text-green-400 font-mono font-bold">${{
+                                    formatCurrency(dividendCash.total_cash || 0) }}</span>
+                                <span class="text-gray-500 ml-2">({{ dividendCash.dividend_count || 0 }}
+                                    payments)</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="syncDividends" :disabled="syncingDividends"
+                                class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition text-sm font-bold">
+                                {{ syncingDividends ? '⏳ Syncing...' : '🔄 Sync Dividends' }}
+                            </button>
+                            <button @click="showAddGroup = !showAddGroup"
+                                class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
+                                + New Group
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Add Group Form -->
+                    <div v-if="showAddGroup" class="mb-4 p-3 bg-black/30 rounded-lg">
+                        <input v-model="newGroupName" @keyup.enter="createGroup" type="text"
+                            placeholder="Group name (e.g. 火星借券)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 mr-2 text-sm">
+                        <button @click="createGroup"
+                            class="bg-cyber-cyan text-black px-3 py-2 rounded text-sm font-bold">Create</button>
+                    </div>
+
+                    <!-- Group Tabs -->
+                    <div class="flex gap-2 flex-wrap">
+                        <button v-for="group in portfolioGroups" :key="group.id" @click="selectGroup(group.id)"
+                            :class="{'bg-cyber-cyan text-black': selectedGroupId === group.id}"
+                            class="px-4 py-2 rounded-lg text-sm font-medium border border-white/20 hover:border-cyber-cyan transition">
+                            {{ group.name }}
+                            <span @click.stop="deleteGroup(group.id)"
+                                class="ml-2 text-red-400 hover:text-red-300">×</span>
+                        </button>
+                        <span v-if="!portfolioGroups.length" class="text-gray-500 text-sm">No groups yet. Create one
+                            above.</span>
+                    </div>
+                </div>
+
+                <!-- Targets & Transactions -->
+                <div v-if="selectedGroupId" class="glass-panel p-5 rounded-xl">
+                    <!-- Add Target Form -->
+                    <div class="flex gap-2 mb-4">
+                        <input v-model="newTargetId" type="text" placeholder="Stock Code (e.g. 2330)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm w-32">
+                        <input v-model="newTargetName" type="text" placeholder="Stock Name (optional)"
+                            class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm flex-1">
+                        <button @click="addTarget"
+                            class="bg-cyber-gold text-black px-4 py-2 rounded text-sm font-bold">+ Add
+                            Stock</button>
+                    </div>
+
+                    <!-- Targets Table (Yahoo-style) -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/10 text-gray-400 text-xs">
+                                    <th class="text-left p-2">股名/股號</th>
+                                    <th class="text-right p-2">股價/漲跌(%)</th>
+                                    <th class="text-right p-2">持有股數</th>
+                                    <th class="text-right p-2">持股成本/均價</th>
+                                    <th class="text-right p-2">市值</th>
+                                    <th class="text-right p-2">已實現損益</th>
+                                    <th class="text-right p-2">未實現損益</th>
+                                    <th class="text-center p-2">交易筆數</th>
+                                    <th class="text-center p-2">操作</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/10">
-                                <tr v-for="(user, idx) in leaderboard.slice(3)" :key="idx"
-                                    class="hover:bg-white/5 transition">
-                                    <td class="px-6 py-4 font-mono text-gray-500 font-bold">#{{ idx + 4 }}</td>
-                                    <td class="px-6 py-4 flex items-center gap-3">
-                                        <img :src="user.picture" class="w-8 h-8 rounded-full border border-white/10">
-                                        <span class="font-bold text-white">{{ user.nickname }}</span>
+                            <tbody>
+                                <tr v-for="target in groupTargets" :key="target.id"
+                                    class="border-b border-white/5 hover:bg-white/5">
+                                    <!-- Stock Name/ID -->
+                                    <td class="p-2">
+                                        <div class="font-bold">{{ target.stock_name || target.stock_id }}</div>
+                                        <div class="text-xs text-gray-500">{{ target.stock_id }}</div>
                                     </td>
-                                    <td class="px-6 py-4 text-right font-mono font-bold text-cyber-cyan">{{ user.roi }}%
+                                    <!-- Live Price + Change -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono font-bold">{{ target.livePrice?.price || '-' }}</div>
+                                        <div class="text-xs"
+                                            :class="target.livePrice?.change >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ target.livePrice?.change >= 0 ? '▲' : '▼' }}
+                                            {{ Math.abs(target.livePrice?.change || 0).toFixed(2) }}
+                                            ({{ Math.abs(target.livePrice?.change_pct || 0).toFixed(2) }}%)
+                                        </div>
                                     </td>
-                                    <td class="px-6 py-4 text-center text-2xl filter blur-sm hover:blur-none transition duration-500 cursor-help"
-                                        title="Top Secret">{{ user.top_stock }}</td>
+                                    <!-- Shares -->
+                                    <td class="text-right p-2 font-mono">{{ target.summary?.total_shares || 0 }} 股
+                                    </td>
+                                    <!-- Cost Basis / Avg Cost -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono">${{ formatCurrency(target.summary?.total_cost || 0)
+                                            }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">均價 ${{
+                                            target.summary?.avg_cost?.toFixed(2)
+                                            || '0.00' }}</div>
+                                    </td>
+                                    <!-- Market Value -->
+                                    <td class="text-right p-2 font-mono font-bold">
+                                        ${{ formatCurrency(target.summary?.market_value || 0) }}
+                                    </td>
+                                    <!-- Realized P/L -->
+                                    <td class="text-right p-2 font-mono"
+                                        :class="(target.summary?.realized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                        formatCurrency(target.summary?.realized_pnl || 0) }}
+                                    </td>
+                                    <!-- Unrealized P/L -->
+                                    <td class="text-right p-2">
+                                        <div class="font-mono"
+                                            :class="(target.summary?.unrealized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                            formatCurrency(target.summary?.unrealized_pnl || 0) }}
+                                        </div>
+                                        <div class="text-xs"
+                                            :class="(target.summary?.unrealized_pnl_pct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            ({{ target.summary?.unrealized_pnl_pct?.toFixed(2) || 0 }}%)
+                                        </div>
+                                    </td>
+                                    <!-- Tx Count -->
+                                    <td class="text-center p-2 font-mono">{{ target.summary?.tx_count || 0 }} 筆</td>
+                                    <!-- Actions -->
+                                    <td class="text-center p-2">
+                                        <button @click="showTxForm = target.id"
+                                            class="text-cyber-cyan hover:underline text-xs mr-2">+交易</button>
+                                        <button @click="deleteTarget(target.id)"
+                                            class="text-red-400 hover:text-red-300 text-xs">刪除</button>
+                                    </td>
                                 </tr>
-                                <tr v-if="leaderboard.length < 4 && leaderboard.length > 0">
-                                    <td colspan="4" class="text-center py-6 text-gray-500">Only top contenders shown.
+                                <tr v-if="!groupTargets.length">
+                                    <td colspan="9" class="text-center text-gray-500 py-8">
+                                        No stocks in this group. Add one above.
                                     </td>
-                                </tr>
-                                <tr v-if="!leaderboard.length">
-                                    <td colspan="4" class="text-center py-8 text-gray-500">No ranked users yet. Be the
-                                        first!</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- Transaction Form (Modal) -->
+                <div v-if="showTxForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    @click.self="showTxForm = null">
+                    <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96">
+                        <h3 class="text-lg font-bold mb-4">新增交易</h3>
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <button @click="newTx.type = 'buy'"
+                                    :class="{'bg-green-500 text-black': newTx.type === 'buy'}"
+                                    class="flex-1 py-2 rounded border border-green-500 text-green-400 font-bold">
+                                    買入
+                                </button>
+                                <button @click="newTx.type = 'sell'"
+                                    :class="{'bg-red-500 text-black': newTx.type === 'sell'}"
+                                    class="flex-1 py-2 rounded border border-red-500 text-red-400 font-bold">
+                                    賣出
+                                </button>
+                            </div>
+                            <input v-model="newTx.shares" type="number" placeholder="股數"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <input v-model="newTx.price" type="number" step="0.01" placeholder="成本/股"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <input v-model="newTx.date" type="date"
+                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
+                            <div class="flex gap-2">
+                                <button @click="addTransaction"
+                                    class="flex-1 bg-cyber-cyan text-black py-2 rounded font-bold">
+                                    確認
+                                </button>
+                                <button @click="showTxForm = null" class="flex-1 border border-white/20 py-2 rounded">
+                                    取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-        </main>
+            <!-- TREND TAB -->
+            <div v-show="currentTab === 'trend'" class="flex-1 space-y-4">
+                <!-- Trend Header -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-cyber-cyan">📈 Portfolio Trend</h2>
+                        <button @click="fetchTrendData"
+                            class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded text-sm font-bold hover:bg-cyber-cyan hover:text-black transition">
+                            🔄 Refresh
+                        </button>
+                    </div>
 
-        <!-- DETAIL MODAL -->
-        <div v-if="detailStock"
-            class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
-            @click.self="detailStock = null">
-            <div
-                class="bg-cyber-panel border border-white/20 w-full max-w-5xl h-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-                <!-- Modal Header -->
-                <div class="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
-                    <h2 class="text-xl font-bold">Result: <span class="text-cyber-cyan">{{ detailStock.name }} ({{
-                            detailStock.id }})</span></h2>
-                    <button @click="detailStock = null" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                    <!-- Monthly Trend Chart -->
+                    <div class="bg-black/30 rounded-lg p-4 mb-4">
+                        <h3 class="text-sm text-gray-400 mb-2">Net Investment Over Time</h3>
+                        <div class="h-48 flex items-end gap-1" v-if="trendData.length">
+                            <div v-for="(item, idx) in trendData" :key="idx"
+                                class="flex-1 flex flex-col items-center group cursor-pointer"
+                                @click="selectedMonth = item.month">
+                                <div class="w-full bg-cyber-cyan/80 rounded-t transition-all duration-300 hover:bg-cyber-cyan"
+                                    :style="{height: ((item.cost / maxTrendCost) * 150) + 'px'}"
+                                    :class="{'bg-cyber-gold': selectedMonth === item.month}">
+                                </div>
+                                <span class="text-xs text-gray-500 mt-1 transform -rotate-45 origin-top-left">
+                                    {{ item.month.slice(5) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div v-else class="text-center text-gray-500 py-8">
+                            No transaction data yet. Add transactions in Portfolio tab.
+                        </div>
+                    </div>
+
+                    <!-- Selected Month Info -->
+                    <div v-if="selectedMonth" class="text-center text-sm">
+                        <span class="text-gray-400">Selected: </span>
+                        <span class="text-cyber-cyan font-bold">{{ selectedMonth }}</span>
+                        <span class="text-gray-400"> | Cost: </span>
+                        <span class="text-white font-mono">${{ formatCurrency(trendData.find(t => t.month ===
+                            selectedMonth)?.cost || 0) }}</span>
+                    </div>
                 </div>
 
-                <!-- Modal Content -->
-                <div class="flex-1 overflow-auto p-6 space-y-6">
-                    <!-- Summary Stats -->
-                    <div class="grid grid-cols-3 gap-4 text-sm">
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Amount Inv.</div>
-                            <div class="text-xl font-bold">{{ formatCurrency(sim.principal) }} + {{
-                                formatCurrency(sim.contribution) }}/yr</div>
+                <!-- Collapsible Asset Groups -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h3 class="text-lg font-bold mb-4">Asset Groups</h3>
+
+                    <!-- Stock Group -->
+                    <div class="mb-3">
+                        <div @click="expandedGroup = expandedGroup === 'stock' ? null : 'stock'"
+                            class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">{{ expandedGroup === 'stock' ? '▼' : '▶' }}</span>
+                                <span class="font-bold text-lg">📊 Stock</span>
+                                <span class="text-gray-400 text-sm">({{ assetGroups.stock?.length || 0 }}
+                                    targets)</span>
+                            </div>
+                            <span class="text-cyber-cyan font-mono font-bold">${{
+                                formatCurrency(getGroupTotal('stock'))
+                                }}</span>
                         </div>
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Total Years</div>
-                            <div class="text-xl font-bold">{{ 2025 - sim.startYear }} Years</div>
-                        </div>
-                        <div class="bg-black/30 p-4 rounded-lg">
-                            <div class="text-gray-400">Yearly ROI (CAGR)</div>
-                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr || 0).toFixed(2) }}%
+                        <div v-if="expandedGroup === 'stock'" class="pl-8 mt-2 space-y-1">
+                            <div v-for="t in assetGroups.stock" :key="t.id"
+                                class="flex justify-between p-2 bg-black/20 rounded text-sm">
+                                <span>{{ t.stock_name || t.stock_id }}</span>
+                                <span class="text-gray-400">{{ t.stock_id }}</span>
+                            </div>
+                            <div v-if="!assetGroups.stock?.length" class="text-gray-500 text-sm py-2">No stocks
                             </div>
                         </div>
                     </div>
 
-                    <!-- Result Table -->
-                    <table class="w-full text-center border-collapse">
-                        <thead class="bg-cyber-gold text-black font-bold">
-                            <tr>
-                                <th class="p-3">Strategy</th>
-                                <th class="p-3">Buy At Yearly Opening</th>
-                                <th class="p-3 opacity-50">Buy At Yearly Highest (N/A)</th>
-                                <th class="p-3 opacity-50">Buy At Yearly Lowest (N/A)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-white/10 bg-white/5">
-                            <tr>
-                                <td class="p-3 font-bold text-left pl-6">Final Value</td>
-                                <td class="p-3 text-xl font-bold text-cyber-cyan">{{
-                                    formatCurrency(detailStock.finalValue) }}</td>
-                                <td class="p-3 text-gray-500">-</td>
-                                <td class="p-3 text-gray-500">-</td>
-                            </tr>
-                            <tr>
-                                <td class="p-3 font-bold text-left pl-6">Total ROI</td>
-                                <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
-                                <td class="p-3 text-gray-500">-</td>
-                                <td class="p-3 text-gray-500">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Chart -->
-                    <div class="glass-panel p-4 rounded-xl">
-                        <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
-                        <div id="detail-chart" class="h-[300px]"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SETTINGS MODAL -->
-        <div v-if="showSettings"
-            class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
-            @click.self="showSettings = false">
-            <div class="bg-cyber-panel border border-white/20 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                <div class="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
-                    <h2 class="text-lg font-bold">⚙️ Settings</h2>
-                    <button @click="showSettings = false"
-                        class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <div class="p-6 space-y-5">
-                    <!-- GM Mode -->
-                    <div class="flex items-center justify-between">
-                        <div><label class="font-bold text-cyber-gold">🎮 GM Mode</label>
-                            <p class="text-xs text-gray-400">Unlock all Premium features</p>
+                    <!-- ETF Group -->
+                    <div class="mb-3">
+                        <div @click="expandedGroup = expandedGroup === 'etf' ? null : 'etf'"
+                            class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">{{ expandedGroup === 'etf' ? '▼' : '▶' }}</span>
+                                <span class="font-bold text-lg">📈 ETF</span>
+                                <span class="text-gray-400 text-sm">({{ assetGroups.etf?.length || 0 }}
+                                    targets)</span>
+                            </div>
+                            <span class="text-cyber-gold font-mono font-bold">${{
+                                formatCurrency(getGroupTotal('etf'))
+                                }}</span>
                         </div>
-                        <button @click="toggleGMMode" :class="appSettings.gmMode ? 'bg-cyber-gold' : 'bg-gray-600'"
-                            class="w-14 h-7 rounded-full relative transition-colors duration-200">
-                            <span :class="appSettings.gmMode ? 'translate-x-7' : 'translate-x-1'"
-                                class="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
-                        </button>
-                    </div>
-                    <hr class="border-white/10">
-                    <!-- Region Selector -->
-                    <div>
-                        <label class="font-bold text-sm mb-2 block">🌍 Market Region</label>
-                        <div class="flex gap-2">
-                            <button @click="appSettings.region = 'TW'; saveSettings()"
-                                :class="appSettings.region === 'TW' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                class="flex-1 py-2 rounded font-bold text-sm transition">🇹🇼 Taiwan</button>
-                            <button @click="appSettings.region = 'CN'; saveSettings()"
-                                :class="appSettings.region === 'CN' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
-                                :disabled="!isPremium">🇨🇳 China</button>
-                            <button @click="appSettings.region = 'US'; saveSettings()"
-                                :class="appSettings.region === 'US' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
-                                :disabled="!isPremium">🇺🇸 USA</button>
+                        <div v-if="expandedGroup === 'etf'" class="pl-8 mt-2 space-y-1">
+                            <div v-for="t in assetGroups.etf" :key="t.id"
+                                class="flex justify-between p-2 bg-black/20 rounded text-sm">
+                                <span>{{ t.stock_name || t.stock_id }}</span>
+                                <span class="text-gray-400">{{ t.stock_id }}</span>
+                            </div>
+                            <div v-if="!assetGroups.etf?.length" class="text-gray-500 text-sm py-2">No ETFs</div>
                         </div>
-                        <p v-if="!isPremium" class="text-xs text-gray-500 mt-1">⭐ China & USA require Premium</p>
-                    </div>
-                    <hr class="border-white/10">
-                    <!-- Default Tab -->
-                    <div>
-                        <label class="font-bold text-sm mb-2 block">🏠 Default Tab</label>
-                        <select v-model="appSettings.defaultTab" @change="saveSettings()"
-                            class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm">
-                            <option value="mars">Mars Strategy</option>
-                            <option value="race">Bar Chart Race</option>
-                            <option value="cb">Convertible Bond</option>
-                            <option value="portfolio">📊 Portfolio</option>
-                            <option value="trend">📈 Trend</option>
-                            <option value="myrace">🏎️ My Race</option>
-                            <option value="ladder">🏆 Ladder</option>
-                        </select>
                     </div>
 
-                    <!-- Nickname Update -->
-                    <div>
-                        <label class="font-bold text-sm mb-2 block">👤 Nickname (Public)</label>
-                        <div class="flex gap-2">
-                            <input v-model="newNickname" type="text" placeholder="Enter public nickname"
-                                class="flex-1 bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white">
-                            <button @click="updateProfile"
-                                class="bg-cyber-cyan text-black px-3 py-2 rounded font-bold text-sm hover:opacity-90">Save</button>
+                    <!-- CB (Convertible Bond) Group -->
+                    <div class="mb-3">
+                        <div @click="expandedGroup = expandedGroup === 'cb' ? null : 'cb'"
+                            class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">{{ expandedGroup === 'cb' ? '▼' : '▶' }}</span>
+                                <span class="font-bold text-lg">💰 CB</span>
+                                <span class="text-gray-400 text-sm">({{ assetGroups.cb?.length || 0 }}
+                                    targets)</span>
+                            </div>
+                            <span class="text-green-400 font-mono font-bold">${{ formatCurrency(getGroupTotal('cb'))
+                                }}</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Shown on Leaderboard.</p>
-                    </div>
-
-                    <!-- API Key -->
-                    <div class="mb-4">
-                        <label class="font-bold text-sm mb-2 block">🔑 Gemini API Key</label>
-                        <input v-model="appSettings.apiKey" @change="saveSettings()" type="password"
-                            placeholder="Enter your Gemini API Key"
-                            class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder-gray-500">
-                        <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
-                    </div>
-
-                    <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐ Premium' : '🆓 Free Tier' }}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CHAT WIDGET -->
-        <!-- FAB -->
-        <button @click="showChat = !showChat"
-            class="fixed bottom-6 right-6 w-14 h-14 bg-cyber-pink rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-110 transition z-50">
-            <span class="text-2xl">🤖</span>
-        </button>
-
-        <!-- CHAT PANEL -->
-        <div v-if="showChat"
-            class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
-            <!-- Header -->
-            <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
-                <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
-                <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
-            </div>
-
-            <!-- History -->
-            <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3">
-                <div v-for="(msg, idx) in chatHistory" :key="idx"
-                    :class="msg.role === 'user' ? 'text-right' : 'text-left'">
-                    <div class="inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm"
-                        :class="msg.role === 'user' ? 'bg-cyber-cyan text-black font-medium' : 'bg-gray-700 text-gray-200'">
-                        {{ msg.text }}
+                        <div v-if="expandedGroup === 'cb'" class="pl-8 mt-2 space-y-1">
+                            <div v-for="t in assetGroups.cb" :key="t.id"
+                                class="flex justify-between p-2 bg-black/20 rounded text-sm">
+                                <span>{{ t.stock_name || t.stock_id }}</span>
+                                <span class="text-gray-400">{{ t.stock_id }}</span>
+                            </div>
+                            <div v-if="!assetGroups.cb?.length" class="text-gray-500 text-sm py-2">No CBs</div>
+                        </div>
                     </div>
                 </div>
-                <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
-            </div>
 
-            <!-- Input -->
-            <div class="p-3 border-t border-white/10 bg-black/20">
-                <div class="flex gap-2">
-                    <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
-                        placeholder="Ask about your portfolio..."
-                        class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
-                    <button @click="sendMessage" :disabled="isChatLoading"
-                        class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">
-                        ➤
+                <!-- Quick Link to My Race -->
+                <div class="glass-panel p-4 rounded-xl text-center">
+                    <span class="text-gray-400">See your investments compete! →</span>
+                    <button @click="currentTab = 'myrace'" class="ml-2 text-cyber-cyan font-bold hover:underline">
+                        🏎️ Open My Race Tab
                     </button>
                 </div>
             </div>
+
+            <!-- MY RACE TAB -->
+            <div v-show="currentTab === 'myrace'" class="flex-1 flex flex-col space-y-4">
+                <!-- Race Header -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-cyber-cyan">🏎️ My Portfolio Race</h2>
+                            <p class="text-sm text-gray-400">Top 50 of your investments racing in real-time</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="playPortfolioRace"
+                                class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded font-bold hover:bg-green-500 hover:text-black transition">
+                                ▶ Play
+                            </button>
+                            <button @click="pausePortfolioRace"
+                                class="bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded font-bold hover:bg-yellow-500 hover:text-black transition">
+                                ⏸ Pause
+                            </button>
+                            <button @click="fetchPortfolioRaceData"
+                                class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded font-bold hover:bg-cyber-cyan hover:text-black transition">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Race Chart Area (Full Height) -->
+                <div class="glass-panel p-5 rounded-xl flex-1 min-h-[500px]">
+                    <div id="my-portfolio-race-chart"
+                        class="h-full bg-black/30 rounded-lg flex items-center justify-center">
+                        <div v-if="!portfolioRaceData.length" class="text-center">
+                            <p class="text-gray-500 text-lg mb-2">No race data yet</p>
+                            <p class="text-gray-600 text-sm">Add transactions in Portfolio tab to see your
+                                investments
+                                race!</p>
+                        </div>
+                        <div v-else class="text-center">
+                            <p class="text-cyber-cyan text-lg mb-2">{{ portfolioRaceData.length }} data points ready
+                            </p>
+                            <p class="text-gray-400 text-sm">Click Play to start the race!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Race Stats -->
+                <div class="glass-panel p-4 rounded-xl">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-cyber-cyan">{{ assetGroups.stock?.length || 0 }}
+                            </div>
+                            <div class="text-xs text-gray-400">Stocks</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-cyber-gold">{{ assetGroups.etf?.length || 0 }}</div>
+                            <div class="text-xs text-gray-400">ETFs</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-green-400">{{ assetGroups.cb?.length || 0 }}</div>
+                            <div class="text-xs text-gray-400">CBs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </div>
+
+    <!-- LADDER TAB -->
+    <div v-show="currentTab === 'ladder'" class="flex-1 flex flex-col items-center pt-8 overflow-auto">
+        <h2 class="text-4xl font-bold text-center mb-2 neon-text tracking-wider">MARTIAN HALL OF FAME</h2>
+        <p class="text-gray-400 mb-8 text-sm uppercase tracking-widest">Top Performing Portfolios by ROI</p>
+
+        <!-- Loading -->
+        <div v-if="loadingLadder" class="flex-1 flex items-center justify-center text-cyber-cyan animate-pulse">
+            <span class="text-2xl">Scanning Universe...</span>
         </div>
+
+        <div v-else class="w-full max-w-4xl space-y-10 pb-20">
+            <!-- PODIUM (Top 3) -->
+            <div class="flex justify-center items-end gap-4 md:gap-8 h-64 mb-10">
+                <!-- Rank 2 -->
+                <div v-if="leaderboard[1]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
+                    <div class="relative mb-4">
+                        <img :src="leaderboard[1].picture"
+                            class="w-20 h-20 rounded-full border-4 border-gray-300 shadow-[0_0_20px_rgba(200,200,200,0.3)]">
+                        <div
+                            class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gray-300 text-black font-bold px-2 py-0.5 rounded text-xs shadow">
+                            #2</div>
+                    </div>
+                    <div
+                        class="bg-gradient-to-t from-gray-500/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-gray-300 h-full flex flex-col justify-end transition-all group-hover:bg-gray-500/30">
+                        <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[1].nickname }}
+                        </div>
+                        <div class="text-2xl font-bold text-gray-300">{{ leaderboard[1].roi }}%</div>
+                    </div>
+                </div>
+
+                <!-- Rank 1 -->
+                <div v-if="leaderboard[0]" class="flex flex-col items-center w-1/3 max-w-[180px] z-10 -mt-8 group">
+                    <div class="relative mb-4 transform scale-125">
+                        <img :src="leaderboard[0].picture"
+                            class="w-20 h-20 rounded-full border-4 border-cyber-gold shadow-[0_0_30px_rgba(255,215,0,0.5)]">
+                        <div
+                            class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-cyber-gold text-black font-bold px-3 py-1 rounded text-sm shadow-xl">
+                            👑 #1</div>
+                    </div>
+                    <div
+                        class="bg-gradient-to-t from-cyber-gold/20 to-transparent w-full rounded-t-xl p-4 text-center border-t-4 border-cyber-gold h-[120%] flex flex-col justify-end shadow-[0_-10px_40px_rgba(255,215,0,0.1)] transition-all group-hover:bg-cyber-gold/30">
+                        <div class="font-bold text-white text-lg mb-1 truncate w-full">{{
+                            leaderboard[0].nickname }}</div>
+                        <div class="text-4xl font-bold text-cyber-gold neon-text">{{ leaderboard[0].roi }}%
+                        </div>
+                        <div class="text-[10px] text-cyber-gold mt-1 uppercase tracking-wider">Grandmaster</div>
+                    </div>
+                </div>
+
+                <!-- Rank 3 -->
+                <div v-if="leaderboard[2]" class="flex flex-col items-center w-1/3 max-w-[160px] group">
+                    <div class="relative mb-4">
+                        <img :src="leaderboard[2].picture"
+                            class="w-20 h-20 rounded-full border-4 border-yellow-700 shadow-[0_0_20px_rgba(180,100,0,0.3)]">
+                        <div
+                            class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-700 text-white font-bold px-2 py-0.5 rounded text-xs shadow">
+                            #3</div>
+                    </div>
+                    <div
+                        class="bg-gradient-to-t from-yellow-700/20 to-transparent w-full rounded-t-lg p-4 text-center border-t-2 border-yellow-700 h-3/4 flex flex-col justify-end transition-all group-hover:bg-yellow-700/30">
+                        <div class="font-bold text-white mb-1 truncate w-full">{{ leaderboard[2].nickname }}
+                        </div>
+                        <div class="text-2xl font-bold text-yellow-600">{{ leaderboard[2].roi }}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIST (Rank 4+) -->
+            <div class="glass-panel rounded-xl overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-white/5 text-gray-400 text-xs uppercase">
+                        <tr>
+                            <th class="px-6 py-4">Rank</th>
+                            <th class="px-6 py-4">User</th>
+                            <th class="px-6 py-4 text-right">Portfolio ROI</th>
+                            <th class="px-6 py-4 text-center">Top Secret Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/10">
+                        <tr v-for="(user, idx) in leaderboard.slice(3)" :key="idx" class="hover:bg-white/5 transition">
+                            <td class="px-6 py-4 font-mono text-gray-500 font-bold">#{{ idx + 4 }}</td>
+                            <td class="px-6 py-4 flex items-center gap-3">
+                                <img :src="user.picture" class="w-8 h-8 rounded-full border border-white/10">
+                                <span class="font-bold text-white">{{ user.nickname }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-mono font-bold text-cyber-cyan">{{ user.roi }}%
+                            </td>
+                            <td class="px-6 py-4 text-center text-2xl filter blur-sm hover:blur-none transition duration-500 cursor-help"
+                                title="Top Secret">{{ user.top_stock }}</td>
+                        </tr>
+                        <tr v-if="leaderboard.length < 4 && leaderboard.length > 0">
+                            <td colspan="4" class="text-center py-6 text-gray-500">Only top contenders shown.
+                            </td>
+                        </tr>
+                        <tr v-if="!leaderboard.length">
+                            <td colspan="4" class="text-center py-8 text-gray-500">No ranked users yet. Be the
+                                first!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </main>
+
+    <!-- DETAIL MODAL -->
+    <div v-if="detailStock"
+        class="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+        @click.self="detailStock = null">
+        <div
+            class="bg-cyber-panel border border-white/20 w-full max-w-5xl h-full max-h-[90vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
+                <h2 class="text-xl font-bold">Result: <span class="text-cyber-cyan">{{ detailStock.name }} ({{
+                        detailStock.id }})</span></h2>
+                <button @click="detailStock = null" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="flex-1 overflow-auto p-6 space-y-6">
+                <!-- Summary Stats -->
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Amount Inv.</div>
+                        <div class="text-xl font-bold">{{ formatCurrency(sim.principal) }} + {{
+                            formatCurrency(sim.contribution) }}/yr</div>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Total Years</div>
+                        <div class="text-xl font-bold">{{ 2025 - sim.startYear }} Years</div>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <div class="text-gray-400">Yearly ROI (CAGR)</div>
+                        <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr || 0).toFixed(2) }}%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Table -->
+                <table class="w-full text-center border-collapse">
+                    <thead class="bg-cyber-gold text-black font-bold">
+                        <tr>
+                            <th class="p-3">Strategy</th>
+                            <th class="p-3">Buy At Yearly Opening</th>
+                            <th class="p-3 opacity-50">Buy At Yearly Highest (N/A)</th>
+                            <th class="p-3 opacity-50">Buy At Yearly Lowest (N/A)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/10 bg-white/5">
+                        <tr>
+                            <td class="p-3 font-bold text-left pl-6">Final Value</td>
+                            <td class="p-3 text-xl font-bold text-cyber-cyan">{{
+                                formatCurrency(detailStock.finalValue) }}</td>
+                            <td class="p-3 text-gray-500">-</td>
+                            <td class="p-3 text-gray-500">-</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-bold text-left pl-6">Total ROI</td>
+                            <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
+                            <td class="p-3 text-gray-500">-</td>
+                            <td class="p-3 text-gray-500">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Chart -->
+                <div class="glass-panel p-4 rounded-xl">
+                    <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
+                    <div id="detail-chart" class="h-[300px]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div v-if="showSettings"
+        class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+        @click.self="showSettings = false">
+        <div class="bg-cyber-panel border border-white/20 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+            <div class="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
+                <h2 class="text-lg font-bold">⚙️ Settings</h2>
+                <button @click="showSettings = false" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-5">
+                <!-- GM Mode -->
+                <div class="flex items-center justify-between">
+                    <div><label class="font-bold text-cyber-gold">🎮 GM Mode</label>
+                        <p class="text-xs text-gray-400">Unlock all Premium features</p>
+                    </div>
+                    <button @click="toggleGMMode" :class="appSettings.gmMode ? 'bg-cyber-gold' : 'bg-gray-600'"
+                        class="w-14 h-7 rounded-full relative transition-colors duration-200">
+                        <span :class="appSettings.gmMode ? 'translate-x-7' : 'translate-x-1'"
+                            class="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                    </button>
+                </div>
+                <hr class="border-white/10">
+                <!-- Region Selector -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">🌍 Market Region</label>
+                    <div class="flex gap-2">
+                        <button @click="appSettings.region = 'TW'; saveSettings()"
+                            :class="appSettings.region === 'TW' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition">🇹🇼 Taiwan</button>
+                        <button @click="appSettings.region = 'CN'; saveSettings()"
+                            :class="appSettings.region === 'CN' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
+                            :disabled="!isPremium">🇨🇳 China</button>
+                        <button @click="appSettings.region = 'US'; saveSettings()"
+                            :class="appSettings.region === 'US' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
+                            :disabled="!isPremium">🇺🇸 USA</button>
+                    </div>
+                    <p v-if="!isPremium" class="text-xs text-gray-500 mt-1">⭐ China & USA require Premium</p>
+                </div>
+                <hr class="border-white/10">
+                <!-- Default Tab -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">🏠 Default Tab</label>
+                    <select v-model="appSettings.defaultTab" @change="saveSettings()"
+                        class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm">
+                        <option value="mars">Mars Strategy</option>
+                        <option value="race">Bar Chart Race</option>
+                        <option value="cb">Convertible Bond</option>
+                        <option value="portfolio">📊 Portfolio</option>
+                        <option value="trend">📈 Trend</option>
+                        <option value="myrace">🏎️ My Race</option>
+                        <option value="ladder">🏆 Ladder</option>
+                    </select>
+                </div>
+
+                <!-- Nickname Update -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">👤 Nickname (Public)</label>
+                    <div class="flex gap-2">
+                        <input v-model="newNickname" type="text" placeholder="Enter public nickname"
+                            class="flex-1 bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white">
+                        <button @click="updateProfile"
+                            class="bg-cyber-cyan text-black px-3 py-2 rounded font-bold text-sm hover:opacity-90">Save</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Shown on Leaderboard.</p>
+                </div>
+
+                <!-- API Key -->
+                <div class="mb-4">
+                    <label class="font-bold text-sm mb-2 block">🔑 Gemini API Key</label>
+                    <input v-model="appSettings.apiKey" @change="saveSettings()" type="password"
+                        placeholder="Enter your Gemini API Key"
+                        class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder-gray-500">
+                    <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
+                </div>
+
+                <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐
+                    Premium' : '🆓 Free Tier' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT WIDGET -->
+    <!-- FAB -->
+    <button @click="showChat = !showChat"
+        class="fixed bottom-6 right-6 w-14 h-14 bg-cyber-pink rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-110 transition z-50">
+        <span class="text-2xl">🤖</span>
+    </button>
+
+    <!-- CHAT PANEL -->
+    <div v-if="showChat"
+        class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
+        <!-- Header -->
+        <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
+            <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
+            <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
+        </div>
+
+        <!-- History -->
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <div v-for="(msg, idx) in chatHistory" :key="idx" :class="msg.role === 'user' ? 'text-right' : 'text-left'">
+                <div class="inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm"
+                    :class="msg.role === 'user' ? 'bg-cyber-cyan text-black font-medium' : 'bg-gray-700 text-gray-200'">
+                    {{ msg.text }}
+                </div>
+            </div>
+            <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
+        </div>
+
+        <!-- Input -->
+        <div class="p-3 border-t border-white/10 bg-black/20">
+            <div class="flex gap-2">
+                <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
+                    placeholder="Ask about your portfolio..."
+                    class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
+                <button @click="sendMessage" :disabled="isChatLoading"
+                    class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">
+                    ➤
+                </button>
+            </div>
+        </div>
+    </div>
 
 
     </div>

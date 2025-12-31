@@ -23,7 +23,13 @@ app = FastAPI(title="Martian Investment System")
 
 # Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key=SECRET_KEY,
+    same_site='lax',      # Required for OAuth redirects
+    https_only=False,     # Allow HTTP for localhost
+    max_age=60 * 60 * 24 * 7  # 7 days
+)
 
 # ... (CORS logic remains) ...
 app.add_middleware(

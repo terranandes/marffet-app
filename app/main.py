@@ -48,8 +48,10 @@ notification_engine = NotificationEngine()
 @app.get("/api/notifications/check")
 async def check_notifications(user: dict = Depends(get_current_user)):
     """Trigger generic strategy alerts"""
-    # If no user, default to 'default' (legacy)
-    user_id = user['id'] if user else 'default'
+    # If no user or user.id is None, return empty (no notifications for unauth users)
+    if not user or not user.get('id'):
+        return []
+    user_id = user['id']
     print(f"Checking notifications for user: {user_id}")
     
     try:
@@ -158,7 +160,7 @@ async def chat_with_mars(req: ChatRequest):
     try:
         genai.configure(api_key=req.apiKey)
         # Use premium model if possible/configured, but for now standard flash is fine for both with different prompts
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
         
         base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
         

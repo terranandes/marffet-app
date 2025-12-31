@@ -374,44 +374,16 @@
                         <!-- D3.js Race Chart -->
                     </div>
                     <!-- Timeline Scrubber (Flourish-style rollback) -->
-                    <div id="app" class="min-h-screen pb-20 relative">
-                        <!-- 🔐 Login Overlay -->
-                        <div v-if="!currentUser"
-                            class="fixed inset-0 z-[100] flex items-center justify-center bg-cyber-black bg-opacity-95 backdrop-blur-md">
-                            <div
-                                class="glass-panel p-10 rounded-2xl text-center max-w-sm w-full border border-cyber-cyan border-opacity-30 shadow-[0_0_40px_rgba(0,242,234,0.15)] transform transition-all duration-500 hover:scale-[1.02]">
-                                <div class="mb-6 flex justify-center">
-                                    <span class="text-6xl">🪐</span>
-                                </div>
-                                <h1 class="text-4xl font-bold mb-2 neon-text font-mono tracking-tighter">MARTIAN</h1>
-                                <p class="text-gray-400 mb-8 text-sm tracking-widest uppercase">Investment System</p>
-
-                                <a href="/auth/login"
-                                    class="block w-full bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-cyber-cyan hover:text-black transition-all duration-300 flex items-center justify-center gap-3 group">
-                                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24"
-                                        fill="currentColor">
-                                        <path
-                                            d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
-                                    </svg>
-                                    Sign in with Google
-                                </a>
-
-                                <p class="mt-6 text-xs text-gray-600">Secure Access • Multi-User Environment</p>
-                            </div>
-                        </div>
-
-                        <!-- 🚀 Header -->
-                        <div class="mt-4 px-4">
-                            <div class="flex items-center gap-4">
-                                <span class="text-xs text-gray-400 font-mono w-16">{{ animationFrames.length ?
-                                    animationFrames[currentFrameIndex]?.year : '-' }}</span>
-                                <input type="range" :min="0" :max="animationFrames.length - 1"
-                                    :value="currentFrameIndex" @input="seekToFrame($event.target.value)"
-                                    class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyber-cyan">
-                                <span class="text-xs text-gray-400 font-mono w-16 text-right">{{ animationFrames.length
-                                    ?
-                                    animationFrames[animationFrames.length - 1]?.year : '-' }}</span>
-                            </div>
+                    <div class="mt-4 px-4">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-400 font-mono w-16">{{ animationFrames.length ?
+                                animationFrames[currentFrameIndex]?.year : '-' }}</span>
+                            <input type="range" :min="0" :max="animationFrames.length - 1"
+                                :value="currentFrameIndex" @input="seekToFrame($event.target.value)"
+                                class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyber-cyan">
+                            <span class="text-xs text-gray-400 font-mono w-16 text-right">{{ animationFrames.length
+                                ?
+                                animationFrames[animationFrames.length - 1]?.year : '-' }}</span>
                         </div>
                     </div>
                 </div>

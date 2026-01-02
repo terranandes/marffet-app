@@ -96,13 +96,19 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #00f2ea;
         }
+
+        /* Date Input Fix for Dark Mode */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <div id="loading-msg"
-        class="absolute inset-0 flex items-center justify-center text-cyber-cyan font-bold z-[100] bg-black">
+    <div id="loading-msg" onclick="this.style.display='none'"
+        class="absolute inset-0 flex items-center justify-center text-cyber-cyan font-bold z-[100] bg-black cursor-pointer">
         Initializing Martian System...
     </div>
 
@@ -134,7 +140,7 @@
         </div>
 
         <!-- Header -->
-        <header class="h-16 border-b border-white/10 flex items-center px-6 justify-between bg-cyber-panel z-50">
+        <header class="h-16 border-b border-white/10 flex items-center px-6 justify-between bg-cyber-panel z-[1000]">
             <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-bold text-cyber-cyan neon-text">🚀 Martian Investment</h1>
                 <!-- Notification Bell -->
@@ -147,7 +153,7 @@
                     </button>
                     <!-- Notification Dropdown -->
                     <div v-if="showNotifications"
-                        class="absolute top-10 left-0 w-80 bg-cyber-panel border border-white/20 rounded-xl shadow-2xl z-[200] overflow-hidden">
+                        class="absolute top-10 left-0 w-80 bg-cyber-panel border border-white/20 rounded-xl shadow-2xl z-[2001] overflow-hidden">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                             <span class="font-bold text-sm">🔔 Notifications</span>
                             <div class="flex gap-2">
@@ -165,7 +171,8 @@
                                 class="px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex justify-between"
                                 @click="n.read = true">
                                 <div class="flex-1">
-                                    <p class="text-sm" :class="n.read ? 'text-gray-400' : 'text-white'">{{ n.message }}
+                                    <p class="text-sm whitespace-pre-wrap leading-relaxed"
+                                        :class="n.read ? 'text-gray-400' : 'text-white'">{{ n.message }}
                                     </p><span class="text-xs text-gray-500">{{ n.time }}</span>
                                 </div>
                                 <button @click.stop="deleteNotification(idx)"
@@ -179,25 +186,26 @@
             <nav class="flex gap-4">
                 <button @click="currentTab = 'mars'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'mars'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Mars Strategy</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">{{ t('nav_mars') }}</button>
                 <button @click="currentTab = 'race'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'race'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Bar Chart Race</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">{{ t('nav_race') }}</button>
                 <button @click="currentTab = 'cb'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'cb'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">Convertible Bond</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">{{ t('nav_cb') }}</button>
                 <button @click="currentTab = 'portfolio'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'portfolio'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">📊 Portfolio</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">📊 {{ t('nav_portfolio')
+                    }}</button>
                 <button @click="currentTab = 'trend'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'trend'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">📈 Trend</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">📈 {{ t('nav_trend') }}</button>
                 <button @click="currentTab = 'ladder'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'ladder'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">🏆 Ladder</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">🏆 {{ t('nav_ladder') }}</button>
                 <button @click="currentTab = 'myrace'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'myrace'}"
-                    class="px-3 py-2 text-sm font-medium hover:text-white transition">🏎️ My Race</button>
+                    class="px-3 py-2 text-sm font-medium hover:text-white transition">🏎️ {{ t('nav_myrace') }}</button>
             </nav>
 
             <!-- Settings & Premium Indicator -->
@@ -215,11 +223,13 @@
 
                 <span v-if="isPremium" class="text-xs bg-cyber-gold text-black px-2 py-1 rounded font-bold">⭐
                     PREMIUM</span>
-                <button @click="showSettings = true" class="text-gray-400 hover:text-cyber-cyan transition text-xl"
+                <button @click.stop="console.log('Settings clicked'); showSettings = true"
+                    class="text-gray-400 hover:text-cyber-cyan transition text-xl relative z-[1100] cursor-pointer pointer-events-auto"
                     title="Settings">⚙️</button>
             </div>
         </header>
 
+        <!-- Settings Modal (Moved conceptually higher in Z-Stack) -->
         <!-- Main Content -->
         <main class="flex-1 overflow-auto p-6 relative flex gap-6">
 
@@ -297,20 +307,20 @@
                         <table class="w-full text-left">
                             <thead class="bg-white/5 text-xs uppercase text-gray-400 sticky top-0 bg-[#0e1117] z-10">
                                 <tr>
-                                    <th class="px-6 py-3">Rank</th>
-                                    <th class="px-6 py-3">ID</th>
-                                    <th class="px-6 py-3">Name</th>
+                                    <th class="px-6 py-3">{{ t('lb_rank') }}</th>
+                                    <th class="px-6 py-3">{{ t('lb_id') }}</th>
+                                    <th class="px-6 py-3">{{ t('lb_name') }}</th>
                                     <th @click="sortBy('finalValue')"
                                         class="px-6 py-3 text-right cursor-pointer hover:text-white select-none">
-                                        Simulated Final ($)
+                                        {{ t('lb_sim_final') }}
                                         <span :class="getSortIcon('finalValue')">▼</span>
                                     </th>
                                     <th @click="sortBy('cagr')"
                                         class="px-6 py-3 text-right cursor-pointer hover:text-white select-none">
-                                        CAGR %
+                                        {{ t('lb_cagr') }}
                                         <span :class="getSortIcon('cagr')">▼</span>
                                     </th>
-                                    <th class="px-6 py-3 text-right">Volatility %</th>
+                                    <th class="px-6 py-3 text-right">{{ t('lb_vol') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/10">
@@ -338,18 +348,18 @@
                 <div class="glass-panel rounded-xl p-4 h-full flex flex-col">
                     <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
                         <div class="flex items-center gap-4">
-                            <h3 class="font-bold text-cyber-cyan text-lg">Dynamic Wealth Race</h3>
+                            <h3 class="font-bold text-cyber-cyan text-lg">{{ t('race_title') }}</h3>
                             <!-- Metric Selector -->
                             <div class="flex bg-black/50 rounded-lg p-1 border border-white/10">
                                 <button @click="raceMetric = 'wealth'; resetRace()"
                                     :class="{'bg-cyber-cyan text-black': raceMetric === 'wealth', 'text-gray-400 hover:text-white': raceMetric !== 'wealth'}"
                                     class="px-3 py-1 text-xs font-bold rounded transition">
-                                    Final Wealth ($)
+                                    {{ t('race_wealth') }}
                                 </button>
                                 <button @click="raceMetric = 'cagr'; resetRace()"
                                     :class="{'bg-cyber-cyan text-black': raceMetric === 'cagr', 'text-gray-400 hover:text-white': raceMetric !== 'cagr'}"
                                     class="px-3 py-1 text-xs font-bold rounded transition">
-                                    Performance (CAGR %)
+                                    {{ t('race_cagr') }}
                                 </button>
                             </div>
                         </div>
@@ -358,15 +368,15 @@
                         <div class="flex gap-2">
                             <button @click="playRace"
                                 class="flex items-center gap-1 bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
-                                ▶ Play
+                                ▶ {{ t('race_play') }}
                             </button>
                             <button @click="pauseRace"
                                 class="flex items-center gap-1 bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded hover:bg-yellow-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
-                                ⏸ Pause
+                                ⏸ {{ t('race_pause') }}
                             </button>
                             <button @click="resetRace"
                                 class="flex items-center gap-1 bg-white/10 border border-white/20 text-gray-300 px-4 py-2 rounded hover:bg-white/20 transition font-bold uppercase text-xs tracking-wider">
-                                ↺ Reset
+                                ↺ {{ t('race_reset') }}
                             </button>
                         </div>
                     </div>
@@ -394,7 +404,7 @@
                 <!-- MY PORTFOLIO CBs -->
                 <div class="w-full max-w-2xl glass-panel p-6 rounded-2xl border border-cyber-cyan/30">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span class="text-cyber-cyan">💼</span> My Portfolio CBs
+                        <span class="text-cyber-cyan">💼</span> {{ t('cb_title') }}
                     </h2>
                     <div v-if="loadingPortfolioCBs" class="text-center text-cyber-cyan animate-pulse">Loading
                         portfolio
@@ -409,15 +419,19 @@
                             <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <div class="font-bold text-lg text-white">{{ cb.code }} {{ cb.name }}</div>
-                                    <div class="text-xs text-gray-400">Stock: {{ cb.stock_price }} | CB: {{
+                                    <div class="text-xs text-gray-400">{{ t('cb_stock') }}: {{ cb.stock_price }} |
+                                        {{
+                                        t('cb_cb') }}: {{
                                         cb.cb_price
-                                        }} | Conv: {{ cb.conv_price }}</div>
+                                        }} | {{ t('cb_conv') }}: {{ cb.conv_price }}</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-2xl font-bold" :class="getActionColor(cb.action)">{{ cb.premium
                                         }}%
                                     </div>
-                                    <div class="text-[10px] uppercase tracking-wider text-gray-500">Premium</div>
+                                    <div class="text-[10px] uppercase tracking-wider text-gray-500">{{
+                                        t('cb_premium')
+                                        }}</div>
                                 </div>
                             </div>
                             <div class="flex justify-between items-center">
@@ -433,17 +447,16 @@
                 <div
                     class="w-full max-w-2xl glass-panel p-8 rounded-2xl border border-cyber-cyan/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
                     <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <span class="text-cyber-cyan">💰</span> CB Arbitrage Analyzer
+                        <span class="text-cyber-cyan">💰</span> {{ t('cb_analyzer') }}
                     </h2>
 
                     <div class="flex gap-4 mb-8">
-                        <input v-model="cbInput" @keyup.enter="analyzeCB" type="text"
-                            placeholder="Enter Stock Code (e.g. 6533)"
+                        <input v-model="cbInput" @keyup.enter="analyzeCB" type="text" :placeholder="t('in_code')"
                             class="flex-1 bg-black/50 border border-white/20 rounded-lg px-4 py-3 focus:border-cyber-cyan outline-none text-white placeholder-gray-600 transition">
                         <button @click="analyzeCB" :disabled="loadingCB"
                             class="bg-cyber-cyan text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition">
-                            <span v-if="loadingCB">Scanning...</span>
-                            <span v-else>Analyze</span>
+                            <span v-if="loadingCB">{{ t('cb_scanning') }}</span>
+                            <span v-else>{{ t('cb_analyze') }}</span>
                         </button>
                     </div>
 
@@ -455,14 +468,16 @@
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 mb-6 text-sm text-gray-400 bg-black/30 p-4 rounded-lg">
-                            <div>Stock: <span class="text-white">{{ cbResult.stock_price }}</span></div>
-                            <div>CB: <span class="text-white">{{ cbResult.cb_price }}</span></div>
-                            <div>Conv: <span class="text-white">{{ cbResult.conv_price }}</span></div>
+                            <div>{{ t('cb_stock') }}: <span class="text-white">{{ cbResult.stock_price }}</span>
+                            </div>
+                            <div>{{ t('cb_cb') }}: <span class="text-white">{{ cbResult.cb_price }}</span></div>
+                            <div>{{ t('cb_conv') }}: <span class="text-white">{{ cbResult.conv_price }}</span></div>
                         </div>
 
                         <div class="p-4 rounded-lg bg-gradient-to-r from-white/5 to-transparent border-l-4"
                             :class="getBorderColor(cbResult.action)">
-                            <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Premium Rate</div>
+                            <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">{{ t('cb_premium') }}
+                            </div>
                             <div class="text-4xl font-bold mb-2" :class="getActionColor(cbResult.action)">
                                 {{ cbResult.premium }}%
                             </div>
@@ -480,20 +495,20 @@
                         <div>
                             <h2 class="text-2xl font-bold text-cyber-cyan">📊 My Portfolio</h2>
                             <div class="text-sm text-gray-400 mt-1">
-                                💰 Dividend Cash: <span class="text-green-400 font-mono font-bold">${{
+                                💰 {{ t('p_div_cash') }}: <span class="text-green-400 font-mono font-bold">${{
                                     formatCurrency(dividendCash.total_cash || 0) }}</span>
                                 <span class="text-gray-500 ml-2">({{ dividendCash.dividend_count || 0 }}
-                                    payments)</span>
+                                    {{ t('p_payments') }})</span>
                             </div>
                         </div>
                         <div class="flex gap-2">
                             <button @click="syncDividends" :disabled="syncingDividends"
                                 class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition text-sm font-bold">
-                                {{ syncingDividends ? '⏳ Syncing...' : '🔄 Sync Dividends' }}
+                                {{ syncingDividends ? '⏳ Syncing...' : '🔄 ' + t('p_sync_div') }}
                             </button>
                             <button @click="showAddGroup = !showAddGroup"
                                 class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
-                                + New Group
+                                + {{ t('p_new_group') }}
                             </button>
                         </div>
                     </div>
@@ -501,10 +516,11 @@
                     <!-- Add Group Form -->
                     <div v-if="showAddGroup" class="mb-4 p-3 bg-black/30 rounded-lg">
                         <input v-model="newGroupName" @keyup.enter="createGroup" type="text"
-                            placeholder="Group name (e.g. 火星借券)"
+                            :placeholder="t('in_group_name')"
                             class="bg-black/50 border border-white/20 rounded px-3 py-2 mr-2 text-sm">
                         <button @click="createGroup"
-                            class="bg-cyber-cyan text-black px-3 py-2 rounded text-sm font-bold">Create</button>
+                            class="bg-cyber-cyan text-black px-3 py-2 rounded text-sm font-bold">{{ t('in_create')
+                            }}</button>
                     </div>
 
                     <!-- Group Tabs -->
@@ -516,22 +532,64 @@
                             <span @click.stop="deleteGroup(group.id)"
                                 class="ml-2 text-red-400 hover:text-red-300">×</span>
                         </button>
-                        <span v-if="!portfolioGroups.length" class="text-gray-500 text-sm">No groups yet. Create one
-                            above.</span>
+                        <span v-if="!portfolioGroups.length" class="text-gray-500 text-sm">{{ t('in_no_groups')
+                            }}</span>
                     </div>
                 </div>
 
                 <!-- Targets & Transactions -->
                 <div v-if="selectedGroupId" class="glass-panel p-5 rounded-xl">
+                    <!-- Group Dashboard Summary -->
+                    <div
+                        class="flex items-center justify-between bg-black/40 p-4 rounded-xl border border-white/10 mb-6">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="text-4xl font-bold font-mono tracking-tight text-white flex items-baseline gap-2">
+                                <span class="text-xs text-gray-500 font-sans uppercase tracking-widest">{{
+                                    t('d_mkt_val') }}</span>
+                                {{ formatCurrency(groupStats.marketValue || 0) }}
+                                <span class="text-sm font-sans text-gray-400">TWD</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-8 text-right">
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{ t('d_realized')
+                                    }}
+                                </div>
+                                <div class="font-mono font-bold text-lg"
+                                    :class="(groupStats.realized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                    {{ (groupStats.realized || 0) >= 0 ? '+' : '' }}{{
+                                    formatCurrency(groupStats.realized || 0) }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{
+                                    t('d_unrealized') }}
+                                </div>
+                                <div class="font-mono font-bold text-lg"
+                                    :class="(groupStats.unrealized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                    {{ (groupStats.unrealized || 0) >= 0 ? '+' : '' }}{{
+                                    formatCurrency(groupStats.unrealized || 0) }}
+                                    <span class="text-sm ml-1"
+                                        :class="(groupStats.unrealizedPct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        ({{ (groupStats.unrealizedPct || 0) >= 0 ? '▲' : '▼' }}{{
+                                        Math.abs(groupStats.unrealizedPct || 0).toFixed(2) }}%)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Add Target Form -->
                     <div class="flex gap-2 mb-4">
-                        <input v-model="newTargetId" type="text" placeholder="Stock Code (e.g. 2330)"
+                        <input v-model="newTargetId" type="text" :placeholder="t('in_code')"
                             class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm w-32">
-                        <input v-model="newTargetName" type="text" placeholder="Stock Name (optional)"
+                        <input v-model="newTargetName" type="text" :placeholder="t('in_name')"
                             class="bg-black/50 border border-white/20 rounded px-3 py-2 text-sm flex-1">
                         <button @click="addTarget"
-                            class="bg-cyber-gold text-black px-4 py-2 rounded text-sm font-bold">+ Add
-                            Stock</button>
+                            class="bg-cyber-gold text-black px-4 py-2 rounded text-sm font-bold">+ {{
+                            t('in_add_stock')
+                            }}</button>
                     </div>
 
                     <!-- Targets Table (Yahoo-style) -->
@@ -539,15 +597,15 @@
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-white/10 text-gray-400 text-xs">
-                                    <th class="text-left p-2">股名/股號</th>
-                                    <th class="text-right p-2">股價/漲跌(%)</th>
-                                    <th class="text-right p-2">持有股數</th>
-                                    <th class="text-right p-2">持股成本/均價</th>
-                                    <th class="text-right p-2">市值</th>
-                                    <th class="text-right p-2">已實現損益</th>
-                                    <th class="text-right p-2">未實現損益</th>
-                                    <th class="text-center p-2">交易筆數</th>
-                                    <th class="text-center p-2">操作</th>
+                                    <th class="text-left p-2">{{ t('th_stock') }}</th>
+                                    <th class="text-right p-2">{{ t('th_price') }}</th>
+                                    <th class="text-right p-2">{{ t('th_shares') }}</th>
+                                    <th class="text-right p-2">{{ t('th_cost') }}</th>
+                                    <th class="text-right p-2">{{ t('th_mkt') }}</th>
+                                    <th class="text-right p-2">{{ t('th_realized') }}</th>
+                                    <th class="text-right p-2">{{ t('th_unrealized') }}</th>
+                                    <th class="text-center p-2">{{ t('th_tx_count') }}</th>
+                                    <th class="text-center p-2">{{ t('th_actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -573,8 +631,7 @@
                                     </td>
                                     <!-- Cost Basis / Avg Cost -->
                                     <td class="text-right p-2">
-                                        <div class="font-mono">${{ formatCurrency(target.summary?.total_cost || 0)
-                                            }}
+                                        <div class="font-mono">{{ formatCurrency(target.summary?.total_cost || 0) }}
                                         </div>
                                         <div class="text-xs text-gray-500">均價 ${{
                                             target.summary?.avg_cost?.toFixed(2)
@@ -582,19 +639,19 @@
                                     </td>
                                     <!-- Market Value -->
                                     <td class="text-right p-2 font-mono font-bold">
-                                        ${{ formatCurrency(target.summary?.market_value || 0) }}
+                                        {{ formatCurrency(target.summary?.market_value || 0) }}
                                     </td>
                                     <!-- Realized P/L -->
                                     <td class="text-right p-2 font-mono"
                                         :class="(target.summary?.realized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                        {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                        {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}{{
                                         formatCurrency(target.summary?.realized_pnl || 0) }}
                                     </td>
                                     <!-- Unrealized P/L -->
                                     <td class="text-right p-2">
                                         <div class="font-mono"
                                             :class="(target.summary?.unrealized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                            {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}${{
+                                            {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}{{
                                             formatCurrency(target.summary?.unrealized_pnl || 0) }}
                                         </div>
                                         <div class="text-xs"
@@ -603,10 +660,14 @@
                                         </div>
                                     </td>
                                     <!-- Tx Count -->
-                                    <td class="text-center p-2 font-mono">{{ target.summary?.tx_count || 0 }} 筆</td>
+                                    <td class="text-center p-2 font-mono cursor-pointer hover:text-cyber-cyan transition underline decoration-dashed"
+                                        @click="openHistory(target)">
+                                        {{ target.summary?.tx_count || 0 }} 筆
+                                    </td>
                                     <!-- Actions -->
                                     <td class="text-center p-2">
-                                        <button @click="showTxForm = target.id"
+                                        <button
+                                            @click="showTxForm = target.id; newTx = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] }"
                                             class="text-cyber-cyan hover:underline text-xs mr-2">+交易</button>
                                         <button @click="deleteTarget(target.id)"
                                             class="text-red-400 hover:text-red-300 text-xs">刪除</button>
@@ -623,38 +684,123 @@
                 </div>
 
                 <!-- Transaction Form (Modal) -->
-                <div v-if="showTxForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-                    @click.self="showTxForm = null">
-                    <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96">
-                        <h3 class="text-lg font-bold mb-4">新增交易</h3>
-                        <div class="space-y-3">
-                            <div class="flex gap-2">
+                <div v-if="showTxForm" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]"
+                    @click.self="showTxForm = null; newTx.id=null;">
+                    <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96 relative shadow-xl">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            {{ newTx.id ? '✏️ ' + t('m_edit_tx') : '➕ ' + t('m_new_tx') }}
+                        </h3>
+
+                        <div class="space-y-4">
+                            <!-- Type Toggle -->
+                            <div class="grid grid-cols-2 gap-2">
                                 <button @click="newTx.type = 'buy'"
-                                    :class="{'bg-green-500 text-black': newTx.type === 'buy'}"
-                                    class="flex-1 py-2 rounded border border-green-500 text-green-400 font-bold">
-                                    買入
-                                </button>
+                                    :class="newTx.type === 'buy' ? 'bg-green-500 text-black shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'border border-green-500/50 text-green-500/50'"
+                                    class="py-2 rounded font-bold transition-all">{{ t('m_buy') }}</button>
                                 <button @click="newTx.type = 'sell'"
-                                    :class="{'bg-red-500 text-black': newTx.type === 'sell'}"
-                                    class="flex-1 py-2 rounded border border-red-500 text-red-400 font-bold">
-                                    賣出
-                                </button>
+                                    :class="newTx.type === 'sell' ? 'bg-red-500 text-black shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border border-red-500/50 text-red-500/50'"
+                                    class="py-2 rounded font-bold transition-all">{{ t('m_sell') }}</button>
                             </div>
-                            <input v-model="newTx.shares" type="number" placeholder="股數"
-                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                            <input v-model="newTx.price" type="number" step="0.01" placeholder="成本/股"
-                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                            <input v-model="newTx.date" type="date"
-                                class="w-full bg-black/50 border border-white/20 rounded px-3 py-2">
-                            <div class="flex gap-2">
+
+                            <!-- Date -->
+                            <div>
+                                <label class="text-xs text-gray-400 mb-1 block">{{ t('m_date') }}</label>
+                                <input v-model="newTx.date" type="date" onclick="try{this.showPicker()}catch(e){}"
+                                    class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-white focus:border-cyber-cyan outline-none active:bg-black/80 transition-colors">
+                            </div>
+
+                            <!-- Shares & Price -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs text-gray-400 mb-1 block">{{ t('m_shares') }}</label>
+                                    <input v-model="newTx.shares" type="number"
+                                        class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-white focus:border-cyber-cyan outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 mb-1 block">{{ t('m_price') }}</label>
+                                    <input v-model="newTx.price" type="number" step="0.01"
+                                        class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-white focus:border-cyber-cyan outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 pt-2">
                                 <button @click="addTransaction"
-                                    class="flex-1 bg-cyber-cyan text-black py-2 rounded font-bold">
-                                    確認
+                                    class="flex-1 bg-cyber-cyan text-black py-2 rounded font-bold hover:bg-cyan-400 transition-colors shadow-lg">
+                                    {{ newTx.id ? t('m_update') : t('m_confirm') }}
                                 </button>
-                                <button @click="showTxForm = null" class="flex-1 border border-white/20 py-2 rounded">
-                                    取消
+                                <button @click="showTxForm = null; newTx.id=null;"
+                                    class="flex-1 border border-white/20 py-2 rounded hover:bg-white/10 transition-colors">
+                                    {{ t('m_cancel') }}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History Modal -->
+                <div v-if="showTxHistory" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    @click.self="showTxHistory = null">
+                    <div
+                        class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold flex items-center gap-2">📜 {{ t('m_history') }}</h3>
+                            <button
+                                @click="showTxForm = showTxHistory; newTx = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] }"
+                                class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-3 py-1 rounded text-sm hover:bg-cyber-cyan hover:text-black transition">
+                                + {{ t('m_add') }}
+                            </button>
+                        </div>
+
+                        <div class="overflow-auto flex-1">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-white/5 text-gray-400 sticky top-0 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">{{ t('h_date') }}</th>
+                                        <th class="p-3">{{ t('h_type') }}</th>
+                                        <th class="p-3 text-right">{{ t('th_shares') }}</th>
+                                        <th class="p-3 text-right">{{ t('th_price') }}</th>
+                                        <th class="p-3 text-right">{{ t('h_total') }}</th>
+                                        <th class="p-3 text-center">{{ t('th_actions') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/10">
+                                    <tr v-for="tx in txHistory" :key="tx.id" class="hover:bg-white/5 transition">
+                                        <td class="p-3 font-mono text-gray-300">{{ tx.date }}</td>
+                                        <td class="p-3">
+                                            <span
+                                                :class="tx.type === 'buy' ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'"
+                                                class="px-2 py-0.5 rounded text-xs border uppercase font-bold">
+                                                {{ tx.type }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right font-mono">{{ tx.shares }}</td>
+                                        <td class="p-3 text-right font-mono">${{ tx.price }}</td>
+                                        <td class="p-3 text-right font-mono text-gray-300">${{ (tx.shares *
+                                            tx.price).toFixed(0) }}</td>
+                                        <td class="p-3 text-center flex justify-center gap-2">
+                                            <button @click="openEditTx(tx)"
+                                                class="text-gray-400 hover:text-cyber-cyan transition" title="Edit">
+                                                ✏️
+                                            </button>
+                                            <button @click="deleteTx(tx.id)"
+                                                class="text-gray-400 hover:text-red-500 transition" title="Delete">
+                                                🗑️
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="txHistory.length === 0">
+                                        <td colspan="6" class="text-center py-8 text-gray-500">No transactions yet.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-white/10 text-right">
+                            <button @click="showTxHistory = null"
+                                class="px-6 py-2 bg-white/10 hover:bg-white/20 rounded transition text-sm">{{
+                                t('m_close') }}</button>
                         </div>
                     </div>
                 </div>
@@ -665,16 +811,16 @@
                 <!-- Trend Header -->
                 <div class="glass-panel p-5 rounded-xl">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold text-cyber-cyan">📈 Portfolio Trend</h2>
+                        <h2 class="text-2xl font-bold text-cyber-cyan">📈 {{ t('trend_title') }}</h2>
                         <button @click="fetchTrendData"
                             class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded text-sm font-bold hover:bg-cyber-cyan hover:text-black transition">
-                            🔄 Refresh
+                            🔄 {{ t('trend_refresh') }}
                         </button>
                     </div>
 
                     <!-- Monthly Trend Chart -->
                     <div class="bg-black/30 rounded-lg p-4 mb-4">
-                        <h3 class="text-sm text-gray-400 mb-2">Net Investment Over Time</h3>
+                        <h3 class="text-sm text-gray-400 mb-2">{{ t('trend_net_inv') }}</h3>
                         <div class="h-48 flex items-end gap-1" v-if="trendData.length">
                             <div v-for="(item, idx) in trendData" :key="idx"
                                 class="flex-1 flex flex-col items-center group cursor-pointer"
@@ -705,7 +851,7 @@
 
                 <!-- Collapsible Asset Groups -->
                 <div class="glass-panel p-5 rounded-xl">
-                    <h3 class="text-lg font-bold mb-4">Asset Groups</h3>
+                    <h3 class="text-lg font-bold mb-4">{{ t('trend_asset_groups') }}</h3>
 
                     <!-- Stock Group -->
                     <div class="mb-3">
@@ -713,7 +859,7 @@
                             class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
                             <div class="flex items-center gap-2">
                                 <span class="text-xl">{{ expandedGroup === 'stock' ? '▼' : '▶' }}</span>
-                                <span class="font-bold text-lg">📊 Stock</span>
+                                <span class="font-bold text-lg">📊 {{ t('trend_stock') }}</span>
                                 <span class="text-gray-400 text-sm">({{ assetGroups.stock?.length || 0 }}
                                     targets)</span>
                             </div>
@@ -738,7 +884,7 @@
                             class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
                             <div class="flex items-center gap-2">
                                 <span class="text-xl">{{ expandedGroup === 'etf' ? '▼' : '▶' }}</span>
-                                <span class="font-bold text-lg">📈 ETF</span>
+                                <span class="font-bold text-lg">📈 {{ t('trend_etf') }}</span>
                                 <span class="text-gray-400 text-sm">({{ assetGroups.etf?.length || 0 }}
                                     targets)</span>
                             </div>
@@ -762,7 +908,7 @@
                             class="flex justify-between items-center p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition">
                             <div class="flex items-center gap-2">
                                 <span class="text-xl">{{ expandedGroup === 'cb' ? '▼' : '▶' }}</span>
-                                <span class="font-bold text-lg">💰 CB</span>
+                                <span class="font-bold text-lg">💰 {{ t('trend_cb') }}</span>
                                 <span class="text-gray-400 text-sm">({{ assetGroups.cb?.length || 0 }}
                                     targets)</span>
                             </div>
@@ -899,7 +1045,8 @@
                                     leaderboard[0].nickname }}</div>
                                 <div class="text-4xl font-bold text-cyber-gold neon-text">{{ leaderboard[0].roi }}%
                                 </div>
-                                <div class="text-[10px] text-cyber-gold mt-1 uppercase tracking-wider">Grandmaster</div>
+                                <div class="text-[10px] text-cyber-gold mt-1 uppercase tracking-wider">Grandmaster
+                                </div>
                             </div>
                         </div>
 
@@ -940,17 +1087,20 @@
                                         <img :src="user.picture" class="w-8 h-8 rounded-full border border-white/10">
                                         <span class="font-bold text-white">{{ user.nickname }}</span>
                                     </td>
-                                    <td class="px-6 py-4 text-right font-mono font-bold text-cyber-cyan">{{ user.roi }}%
+                                    <td class="px-6 py-4 text-right font-mono font-bold text-cyber-cyan">{{ user.roi
+                                        }}%
                                     </td>
                                     <td class="px-6 py-4 text-center text-2xl filter blur-sm hover:blur-none transition duration-500 cursor-help"
                                         title="Top Secret">{{ user.top_stock }}</td>
                                 </tr>
                                 <tr v-if="leaderboard.length < 4 && leaderboard.length > 0">
-                                    <td colspan="4" class="text-center py-6 text-gray-500">Only top contenders shown.
+                                    <td colspan="4" class="text-center py-6 text-gray-500">Only top contenders
+                                        shown.
                                     </td>
                                 </tr>
                                 <tr v-if="!leaderboard.length">
-                                    <td colspan="4" class="text-center py-8 text-gray-500">No ranked users yet. Be the
+                                    <td colspan="4" class="text-center py-8 text-gray-500">No ranked users yet. Be
+                                        the
                                         first!</td>
                                 </tr>
                             </tbody>
@@ -1031,1166 +1181,160 @@
 
             <!-- SETTINGS MODAL -->
             <div v-if="showSettings"
-                class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+                class="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
                 @click.self="showSettings = false">
                 <div
                     class="bg-cyber-panel border border-white/20 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
                     <div class="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-white/5">
-                        <h2 class="text-lg font-bold">⚙️ Settings</h2>
+                        <h2 class="text-lg font-bold">⚙️ {{ t('s_title') }}</h2>
                         <button @click="showSettings = false"
                             class="text-gray-400 hover:text-white text-2xl">&times;</button>
                     </div>
-                    <div class="p-6 space-y-5">
-                        <!-- GM Mode -->
-                        <div class="flex items-center justify-between">
-                            <div><label class="font-bold text-cyber-gold">🎮 GM Mode</label>
-                                <p class="text-xs text-gray-400">Unlock all Premium features</p>
+                </div>
+
+                <!-- CHAT WIDGET -->
+                <!-- FAB -->
+                <button @click="showChat = !showChat"
+                    class="fixed bottom-6 right-6 w-14 h-14 bg-cyber-pink rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-110 transition z-50">
+                    <span class="text-2xl">🤖</span>
+                </button>
+
+                <!-- CHAT PANEL -->
+                <div v-if="showChat"
+                    class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
+                    <!-- Header -->
+                    <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
+                        <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
+                        <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
+                    </div>
+
+                    <!-- History -->
+                    <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+                        <div v-for="(msg, idx) in chatHistory" :key="idx"
+                            :class="msg.role === 'user' ? 'text-right' : 'text-left'">
+                            <div class="inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm"
+                                :class="msg.role === 'user' ? 'bg-cyber-cyan text-black font-medium' : 'bg-gray-700 text-gray-200'">
+                                {{ msg.text }}
                             </div>
-                            <button @click="toggleGMMode" :class="appSettings.gmMode ? 'bg-cyber-gold' : 'bg-gray-600'"
-                                class="w-14 h-7 rounded-full relative transition-colors duration-200">
-                                <span :class="appSettings.gmMode ? 'translate-x-7' : 'translate-x-1'"
-                                    class="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                        </div>
+                        <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="p-3 border-t border-white/10 bg-black/20">
+                        <div class="flex gap-2">
+                            <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
+                                placeholder="Ask about your portfolio..."
+                                class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
+                            <button @click="sendMessage" :disabled="isChatLoading"
+                                class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">
+                                ➤
                             </button>
                         </div>
-                        <hr class="border-white/10">
-                        <!-- Region Selector -->
-                        <div>
-                            <label class="font-bold text-sm mb-2 block">🌍 Market Region</label>
-                            <div class="flex gap-2">
-                                <button @click="appSettings.region = 'TW'; saveSettings()"
-                                    :class="appSettings.region === 'TW' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                    class="flex-1 py-2 rounded font-bold text-sm transition">🇹🇼 Taiwan</button>
-                                <button @click="appSettings.region = 'CN'; saveSettings()"
-                                    :class="appSettings.region === 'CN' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                    class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
-                                    :disabled="!isPremium">🇨🇳 China</button>
-                                <button @click="appSettings.region = 'US'; saveSettings()"
-                                    :class="appSettings.region === 'US' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
-                                    class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
-                                    :disabled="!isPremium">🇺🇸 USA</button>
-                            </div>
-                            <p v-if="!isPremium" class="text-xs text-gray-500 mt-1">⭐ China & USA require Premium</p>
-                        </div>
-                        <hr class="border-white/10">
-                        <!-- Default Tab -->
-                        <div>
-                            <label class="font-bold text-sm mb-2 block">🏠 Default Tab</label>
-                            <select v-model="appSettings.defaultTab" @change="saveSettings()"
-                                class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm">
-                                <option value="mars">Mars Strategy</option>
-                                <option value="race">Bar Chart Race</option>
-                                <option value="cb">Convertible Bond</option>
-                                <option value="portfolio">📊 Portfolio</option>
-                                <option value="trend">📈 Trend</option>
-                                <option value="myrace">🏎️ My Race</option>
-                                <option value="ladder">🏆 Ladder</option>
-                            </select>
-                        </div>
-
-                        <!-- Nickname Update -->
-                        <div>
-                            <label class="font-bold text-sm mb-2 block">👤 Nickname (Public)</label>
-                            <div class="flex gap-2">
-                                <input v-model="newNickname" type="text" placeholder="Enter public nickname"
-                                    class="flex-1 bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white">
-                                <button @click="updateProfile"
-                                    class="bg-cyber-cyan text-black px-3 py-2 rounded font-bold text-sm hover:opacity-90">Save</button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Shown on Leaderboard.</p>
-                        </div>
-
-                        <!-- API Key -->
-                        <div class="mb-4">
-                            <label class="font-bold text-sm mb-2 block">🔑 Gemini API Key</label>
-                            <input v-model="appSettings.apiKey" @change="saveSettings()" type="password"
-                                placeholder="Enter your Gemini API Key"
-                                class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder-gray-500">
-                            <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
-                        </div>
-
-                        <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium ? '⭐ Premium' : '🆓 Free Tier' }}</div>
                     </div>
                 </div>
+
+
             </div>
-
-            <!-- CHAT WIDGET -->
-            <!-- FAB -->
-            <button @click="showChat = !showChat"
-                class="fixed bottom-6 right-6 w-14 h-14 bg-cyber-pink rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-110 transition z-50">
-                <span class="text-2xl">🤖</span>
-            </button>
-
-            <!-- CHAT PANEL -->
-            <div v-if="showChat"
-                class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
-                <!-- Header -->
-                <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
-                    <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
-                    <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
-                </div>
-
-                <!-- History -->
-                <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <div v-for="(msg, idx) in chatHistory" :key="idx"
-                        :class="msg.role === 'user' ? 'text-right' : 'text-left'">
-                        <div class="inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm"
-                            :class="msg.role === 'user' ? 'bg-cyber-cyan text-black font-medium' : 'bg-gray-700 text-gray-200'">
-                            {{ msg.text }}
-                        </div>
-                    </div>
-                    <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
-                </div>
-
-                <!-- Input -->
-                <div class="p-3 border-t border-white/10 bg-black/20">
-                    <div class="flex gap-2">
-                        <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
-                            placeholder="Ask about your portfolio..."
-                            class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
-                        <button @click="sendMessage" :disabled="isChatLoading"
-                            class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">
-                            ➤
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-
         </div>
     </div>
 
-        <!-- Vue 3 App Logic -->
-        <script type="module">
-            import { createApp, ref, onMounted, computed, watch, nextTick } from '/static/vendor/vue.esm-browser.js'
-
-            createApp({
-                setup() {
-                    const currentUser = ref(null); // Auth State
-                    const currentTab = ref('mars');
-                    const rawMarsData = ref([]);
-                    const rawRaceData = ref([]);
-                    const marsList = ref([]); // Processed
-                    const detailStock = ref(null); // Selected for Modal
-                    const cbInput = ref('6533');
-                    const cbResult = ref(null);
-                    const loadingCB = ref(false);
-
-                    // ========== NOTIFICATIONS SYSTEM ==========
-                    const showNotifications = ref(false);
-                    const notifications = ref([{ message: 'Welcome to Martian Investment! 🚀', time: 'Now', read: false }]);
-                    const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-                    const markAllRead = () => { notifications.value.forEach(n => n.read = true); };
-                    const clearNotifications = () => { notifications.value = []; showNotifications.value = false; };
-                    const deleteNotification = (idx) => { notifications.value.splice(idx, 1); };
-                    const addNotification = (msg) => { notifications.value.unshift({ message: msg, time: new Date().toLocaleTimeString(), read: false }); };
-
-                    // ========== CB PORTFOLIO ==========
-                    const portfolioCBs = ref([]);
-                    const loadingPortfolioCBs = ref(false);
-                    const fetchPortfolioCBs = async () => {
-                        loadingPortfolioCBs.value = true;
-                        try {
-                            const res = await fetch('/api/cb/portfolio');
-                            if (res.ok) portfolioCBs.value = await res.json();
-                        } catch (e) {
-                            console.error(e);
-                            addNotification('❌ Failed to load Portfolio CBs');
-                        } finally {
-                            loadingPortfolioCBs.value = false;
-                        }
-                    };
-
-                    // ========== SETTINGS SYSTEM ==========
-                    const showSettings = ref(false);
-                    const defaultSettings = { region: 'TW', gmMode: false, defaultTab: 'mars', apiKey: '' };
-                    const appSettings = ref({ ...defaultSettings });
-
-                    // ========== AI COPILOT ==========
-                    const showChat = ref(false);
-                    const chatInput = ref('');
-                    const isChatLoading = ref(false);
-                    const chatHistory = ref([
-                        { role: 'model', text: 'Hello! I am Mars AI 🤖. How can I help you with your investments today?' }
-                    ]);
-
-
-                    const sendMessage = async () => {
-                        if (!chatInput.value.trim()) return;
-                        if (!appSettings.value.apiKey) {
-                            chatHistory.value.push({ role: 'model', text: 'Please set your Gemini API Key in Settings ⚙️ to chat.' });
-                            return;
-                        }
-
-                        const userMsg = chatInput.value;
-                        chatHistory.value.push({ role: 'user', text: userMsg });
-                        chatInput.value = '';
-                        isChatLoading.value = true;
-
-                        // Build Context
-                        const context = `
-                        Portfolio Summary:
-                        - Total Groups: ${portfolioGroups.value.length}
-                        - Total Value: ${formatCurrency(stats.value?.totalValue || 0)}
-                        - Total Cost: ${formatCurrency(stats.value?.totalCost || 0)}
-                        - Total P/L: ${formatCurrency(stats.value?.totalPL || 0)}
-                        - Premium User: ${isPremium.value}
-                    `;
-
-                        try {
-                            const res = await fetch('/api/chat', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    message: userMsg,
-                                    context: context,
-                                    apiKey: appSettings.value.apiKey,
-                                    isPremium: isPremium.value
-                                })
-                            });
-                            const data = await res.json();
-                            if (res.ok) {
-                                chatHistory.value.push({ role: 'model', text: data.response });
-                            } else {
-                                chatHistory.value.push({ role: 'model', text: `Error: ${data.error}` });
-                            }
-                        } catch (e) {
-                            chatHistory.value.push({ role: 'model', text: 'Network Error.' });
-                        } finally {
-                            isChatLoading.value = false;
-                            // Scroll to bottom
-                            nextTick(() => {
-                                const container = document.getElementById('chat-container');
-                                if (container) container.scrollTop = container.scrollHeight;
-                            });
-                        }
-                    };
-
-                    // ========== PREMIUM NOTIFICATIONS ==========
-                    const fetchStrategyAlerts = async () => {
-                        if (!isPremium.value) return; // Premium only
-                        try {
-                            const res = await fetch('/api/notifications/check');
-                            if (res.ok) {
-                                const alerts = await res.json();
-                                alerts.forEach(alert => {
-                                    // Add to notification list with special icon
-                                    notifications.value.unshift({
-                                        message: `${alert.message}`,
-                                        time: new Date().toLocaleTimeString(),
-                                        read: false,
-                                        type: 'strategy'
-                                    });
-                                });
-                                if (alerts.length > 0) addNotification(`Found ${alerts.length} strategy alerts! 🔔`);
-                            }
-                        } catch (e) {
-                            console.error('Strategy alerts fetch error:', e);
-                        }
-                    };
-
-                    const loadSettings = () => {
-                        try {
-                            const saved = localStorage.getItem('martian_settings');
-                            if (saved) appSettings.value = { ...defaultSettings, ...JSON.parse(saved) };
-
-                            // Check alerts on load if premium
-                            if (appSettings.value.gmMode) fetchStrategyAlerts();
-                        } catch (e) { console.error('Load settings error:', e); }
-                    };
-                    const saveSettings = () => {
-                        try { localStorage.setItem('martian_settings', JSON.stringify(appSettings.value)); }
-                        catch (e) { console.error('Save settings error:', e); }
-                    };
-                    const toggleGMMode = () => { appSettings.value.gmMode = !appSettings.value.gmMode; saveSettings(); };
-                    const isPremium = computed(() => appSettings.value.gmMode);
-
-
-
-                    // Sorting State
-                    const sortKey = ref('finalValue');
-                    const sortDesc = ref(true);
-
-                    // Simulation State
-                    const sim = ref({
-                        startYear: 2006,
-                        principal: 1000000,
-                        contribution: 60000
-                    });
-
-                    // Loading state for background calculations
-                    const isCalculating = ref(false);
-
-                    // Cache calculated wealth paths (keyed by stockId) to avoid recalculating for BCR
-                    const cachedPaths = ref(new Map());
-
-                    const stats = computed(() => ({
-                        total: rawMarsData.value.length,
-                        filtered: rawMarsData.value.filter(s => s.valid_years > 5).length
-                    }));
-
-                    // Sorting Logic
-                    const sortedMarsList = computed(() => {
-                        return [...marsList.value].sort((a, b) => {
-                            let valA = a[sortKey.value];
-                            let valB = b[sortKey.value];
-
-                            // Handle numbers
-                            if (typeof valA === 'string' && !valA.includes('%')) valA = parseFloat(valA) || valA;
-                            if (typeof valB === 'string' && !valB.includes('%')) valB = parseFloat(valB) || valB;
-
-                            if (valA < valB) return sortDesc.value ? 1 : -1;
-                            if (valA > valB) return sortDesc.value ? -1 : 1;
-                            return 0;
-                        });
-                    });
-
-                    const sortBy = (key) => {
-                        if (sortKey.value === key) {
-                            sortDesc.value = !sortDesc.value;
-                        } else {
-                            sortKey.value = key;
-                            sortDesc.value = true; // Default to descending for new metrics
-                        }
-                    };
-
-                    const getSortIcon = (key) => {
-                        if (sortKey.value !== key) return 'opacity-30';
-                        return sortDesc.value ? 'text-cyber-cyan' : 'text-cyber-cyan rotate-180 inline-block';
-                    };
-
-                    const formatCurrency = (val) => {
-                        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-                    };
-
-                    // Logic: Calculate Wealth Path & Cost Path
-                    const calculateWealthPath = (stockId, startYear, principal, annualContrib) => {
-                        const history = rawRaceData.value.filter(d => d.id === stockId).sort((a, b) => a.year - b.year);
-                        let wealth = principal;
-                        let cost = principal;
-                        let path = [];
-
-                        // Initial Point: Year (start-1)
-                        // ROI is 0%
-                        path.push({ year: startYear - 1, value: wealth, cost: cost, roi: 0, id: stockId, name: 'Start' });
-
-                        for (let y = startYear; y <= 2025; y++) {
-                            const cur = history.find(h => h.year === y);
-                            const prev = history.find(h => h.year === y - 1);
-
-                            const getCum = (record) => record ? (1 + record.roi / 100) : 1.0;
-                            const cumCur = getCum(cur);
-                            const cumPrev = getCum(prev);
-
-                            let annualFactor = 1.0;
-                            if (y === 2006) {
-                                annualFactor = cumCur; // Base year return
-                            } else {
-                                annualFactor = (cumPrev > 0) ? (cumCur / cumPrev) : 1.0;
-                            }
-
-                            wealth = wealth * annualFactor;
-                            wealth += annualContrib;
-                            cost += annualContrib;
-
-                            // Cumulative ROI %
-                            const roiPct = ((wealth - cost) / cost) * 100;
-
-                            // Proper CAGR calculation: (CurrentWealth/InitialPrincipal)^(1/years) - 1
-                            // Using initial principal (not total cost) as base for meaningful CAGR
-                            const yearsElapsed = y - startYear + 1;
-                            let cagrPct = 0;
-                            if (yearsElapsed > 0 && principal > 0 && wealth > 0) {
-                                cagrPct = (Math.pow(wealth / principal, 1 / yearsElapsed) - 1) * 100;
-                            }
-
-                            path.push({
-                                year: y,
-                                value: wealth,
-                                cost: cost,
-                                roi: roiPct,
-                                cagr: cagrPct, // Add proper CAGR
-                                id: stockId,
-                                name: cur ? cur.name : stockId
-                            });
-                        }
-                        return path;
-                    };
-
-                    const recalculate = () => {
-                        if (!rawRaceData.value.length) return;
-
-                        // Show loading indicator
-                        isCalculating.value = true;
-                        raceRendered.value = false;
-
-                        // Use setTimeout to allow UI to show spinner before heavy calc
-                        setTimeout(() => {
-                            const pathCache = new Map();
-
-                            const simulatedList = rawMarsData.value.map(stock => {
-                                const stockId = String(stock.id);
-                                const path = calculateWealthPath(stockId, sim.value.startYear, sim.value.principal, sim.value.contribution);
-
-                                // Cache the path for BCR to reuse (avoid recalculation)
-                                pathCache.set(stockId, path);
-
-                                const final = path.length ? path[path.length - 1].value : 0;
-                                const finalROI = path.length ? path[path.length - 1].roi : 0;
-
-                                return {
-                                    ...stock,
-                                    finalValue: final,
-                                    wealthPath: path,
-                                    totalROI: finalROI.toFixed(1),
-                                    cagr: stock.cagr_pct
-                                };
-                            });
-
-                            // Store cache for BCR to use
-                            cachedPaths.value = pathCache;
-
-                            // Base list updated. Sorting handled by computed.
-                            marsList.value = simulatedList;
-
-                            // Hide loading
-                            isCalculating.value = false;
-
-                            // Pre-render the race chart using cached paths
-                            setTimeout(renderRaceChart, 50);
-                        }, 10); // Small delay to let spinner render
-                    };
-
-                    // ========== EXPORT TO CSV ==========
-                    const exportToCSV = () => {
-                        const dataToExport = isPremium.value ? sortedMarsList.value : rawMarsData.value;
-                        const headers = ['Stock ID', 'Name', 'CAGR %', 'Valid Years', 'Final Value ($)', 'Total ROI %'];
-                        let csvContent = '# Martian Investment Export\n';
-                        csvContent += '# Export Date: ' + new Date().toISOString() + '\n';
-                        csvContent += '# Simulation: Start Year=' + sim.value.startYear + ', Principal=$' + sim.value.principal + ', Annual Contrib=$' + sim.value.contribution + '\n';
-                        csvContent += '# Tier: ' + (isPremium.value ? 'Premium (Filtered)' : 'Free (Raw)') + '\n';
-                        csvContent += '# ---\n';
-                        csvContent += headers.join(',') + '\n';
-                        dataToExport.forEach(stock => {
-                            const row = [
-                                stock.id,
-                                '"' + (stock.name || '') + '"',
-                                stock.cagr_pct || stock.cagr || 0,
-                                stock.valid_years || 0,
-                                stock.finalValue ? Math.round(stock.finalValue) : 0,
-                                stock.totalROI || 0
-                            ];
-                            csvContent += row.join(',') + '\n';
-                        });
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = 'martian_export_' + (isPremium.value ? 'filtered' : 'raw') + '_' + Date.now() + '.csv';
-                        link.click();
-                        addNotification('📥 Exported ' + dataToExport.length + ' stocks to CSV');
-                    };
-
-                    const fetchMars = async () => {
-                        try {
-                            const [res1, res2] = await Promise.all([
-                                fetch('/api/results'),
-                                fetch('/api/race-data')
-                            ]);
-                            if (res1.ok) rawMarsData.value = await res1.json();
-                            if (res2.ok) rawRaceData.value = await res2.json();
-                            recalculate();
-                        } catch (e) { console.error(e); }
-                    };
-
-                    const animationFrames = ref([]); // Store frame data for playback
-                    const raceRendered = ref(false); // Track if race chart has been rendered
-
-                    const raceMetric = ref('wealth'); // Default: Wealth
-
-                    // D3.js Bar Chart Race Configuration
-                    const raceConfig = {
-                        barHeight: 22,
-                        barPadding: 2,
-                        topN: 25, // User requested 25 instead of 15
-                        duration: 1200, // Slower animation (user request)
-                        margin: { top: 60, right: 20, bottom: 80, left: 200 }
-                    };
-
-                    // Dynamic Race Chart (D3.js with smooth transitions)
-                    const renderRaceChart = () => {
-                        console.log('[D3 Race] renderRaceChart called. rawMarsData:', rawMarsData.value.length);
-                        if (!rawMarsData.value.length) {
-                            console.log('[D3 Race] No rawMarsData, returning');
-                            return;
-                        }
-                        raceRendered.value = false;
-
-                        const container = document.getElementById('race-chart-container');
-                        console.log('[D3 Race] Container:', container);
-                        if (!container) {
-                            console.log('[D3 Race] No container found, returning');
-                            return;
-                        }
-
-                        // Clear previous
-                        container.innerHTML = '';
-
-                        // Build keyframes data from CACHED paths (avoid recalculation)
-                        const raceMap = new Map();
-                        // Create name lookup to avoid "Start" placeholder
-                        const stockNameMap = new Map();
-                        // Create CAGR lookup from pre-calculated API values (same as Mars table)
-                        const stockCagrMap = new Map();
-                        rawMarsData.value.forEach(stock => {
-                            stockNameMap.set(String(stock.id), stock.name || String(stock.id));
-                            stockCagrMap.set(String(stock.id), stock.cagr_pct || 0); // Use API's pre-calculated CAGR
-                        });
-
-                        // Use cached paths if available, otherwise calculate (fallback)
-                        const pathsToUse = cachedPaths.value.size > 0 ? cachedPaths.value : null;
-
-                        rawMarsData.value.forEach(stock => {
-                            const stockId = String(stock.id);
-                            // Use cached path if available
-                            const path = pathsToUse ? pathsToUse.get(stockId) : calculateWealthPath(stockId, sim.value.startYear, sim.value.principal, sim.value.contribution);
-                            if (!path) return;
-
-                            // For CAGR mode, use pre-calculated value from API (same as Mars table)
-                            const stockCagr = stockCagrMap.get(stockId) || 0;
-
-                            // DEBUG: trace first stock's values
-                            if (stockId === '6669') {
-                                console.log('[DEBUG CAGR]', {
-                                    stockId,
-                                    raceMetricValue: raceMetric.value,
-                                    stockCagr,
-                                    rawCagrPct: stock.cagr_pct,
-                                    firstPathValue: path[0]?.value
-                                });
-                            }
-
-                            path.forEach(p => {
-                                if (!raceMap.has(p.year)) raceMap.set(p.year, []);
-                                if (p.year >= sim.value.startYear - 1) {
-                                    raceMap.get(p.year).push({
-                                        id: p.id,
-                                        name: stockNameMap.get(p.id) || p.id,
-                                        // Use per-year calculated CAGR for racing animation
-                                        value: raceMetric.value === 'wealth' ? p.value : p.cagr
-                                    });
-                                }
-                            });
-                        });
-
-                        const years = Array.from(raceMap.keys()).filter(y => raceMap.get(y).length > 0).sort((a, b) => a - b);
-
-                        // Build keyframes: each frame = { year, data: [ { id, name, value, rank } ] }
-                        const keyframes = years.map(year => {
-                            const sorted = raceMap.get(year).sort((a, b) => b.value - a.value).slice(0, raceConfig.topN);
-                            sorted.forEach((d, i) => d.rank = i);
-                            return { year, data: sorted };
-                        });
-
-                        if (!keyframes.length) {
-                            console.log('[D3 Race] No keyframes generated, returning');
-                            return;
-                        }
-
-                        console.log('[D3 Race] Keyframes generated:', keyframes.length, 'years:', years);
-                        animationFrames.value = keyframes;
-
-                        // SVG Setup
-                        const width = container.clientWidth || 800; // Fallback if hidden
-                        const height = raceConfig.topN * (raceConfig.barHeight + raceConfig.barPadding) + raceConfig.margin.top + raceConfig.margin.bottom;
-
-                        console.log('[D3 Race] Container dimensions:', width, 'x', height, 'd3 defined:', typeof d3);
-
-                        const svg = d3.select(container)
-                            .append('svg')
-                            .attr('width', width)
-                            .attr('height', height)
-                            .attr('viewBox', `0 0 ${width} ${height}`)
-                            .style('background', 'transparent');
-
-                        console.log('[D3 Race] SVG created:', svg.node());
-
-                        // Scales
-                        const xScale = d3.scaleLinear().range([raceConfig.margin.left, width - raceConfig.margin.right]);
-                        const yScale = d3.scaleLinear().range([raceConfig.margin.top, height - raceConfig.margin.bottom - raceConfig.barHeight]);
-                        const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
-
-                        // X-Axis
-                        const xAxis = svg.append('g')
-                            .attr('class', 'x-axis')
-                            .attr('transform', `translate(0, ${raceConfig.margin.top - 10})`);
-
-                        // Year Label (big watermark)
-                        const yearLabel = svg.append('text')
-                            .attr('class', 'year-label')
-                            .attr('x', width - 50)
-                            .attr('y', height - 30)
-                            .attr('text-anchor', 'end')
-                            .attr('fill', 'rgba(255,255,255,0.15)')
-                            .attr('font-size', '100px')
-                            .attr('font-weight', '900')
-                            .attr('font-family', 'Inter, sans-serif');
-
-                        // Bar Group
-                        const barsGroup = svg.append('g').attr('class', 'bars');
-                        const labelsGroup = svg.append('g').attr('class', 'labels');
-                        const valuesGroup = svg.append('g').attr('class', 'values');
-
-                        // Update function for each frame
-                        window.updateRaceFrame = (frameData, instant = false) => {
-                            const dur = instant ? 0 : raceConfig.duration;
-                            const data = frameData.data;
-                            const maxValue = d3.max(data, d => d.value) || 1;
-
-                            xScale.domain([0, maxValue * 1.1]);
-                            yScale.domain([0, raceConfig.topN - 1]);
-
-                            // X-Axis transition
-                            xAxis.transition().duration(dur).call(d3.axisTop(xScale).ticks(5).tickFormat(d => raceMetric.value === 'wealth' ? formatCurrency(d) : `${d.toFixed(0)}%`));
-                            xAxis.selectAll('text').attr('fill', '#888');
-                            xAxis.selectAll('line, path').attr('stroke', '#333');
-
-                            // Year watermark
-                            yearLabel.text(frameData.year);
-
-                            // BARS with key-based join for object constancy
-                            const bars = barsGroup.selectAll('rect').data(data, d => d.id);
-
-                            bars.exit().transition().duration(dur).attr('width', 0).remove();
-
-                            bars.enter()
-                                .append('rect')
-                                .attr('x', raceConfig.margin.left)
-                                .attr('y', d => yScale(d.rank))
-                                .attr('height', raceConfig.barHeight)
-                                .attr('fill', d => colorScale(d.id))
-                                .attr('rx', 4)
-                                .attr('width', 0)
-                                .merge(bars)
-                                .transition()
-                                .duration(dur)
-                                .ease(d3.easeCubicInOut)
-                                .attr('y', d => yScale(d.rank)) // SMOOTH Y transition
-                                .attr('width', d => xScale(d.value) - raceConfig.margin.left);
-
-                            // LABELS (stock names on left)
-                            const labels = labelsGroup.selectAll('text').data(data, d => d.id);
-
-                            labels.exit().transition().duration(dur).style('opacity', 0).remove();
-
-                            labels.enter()
-                                .append('text')
-                                .attr('x', raceConfig.margin.left - 5)
-                                .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
-                                .attr('text-anchor', 'end')
-                                .attr('fill', '#fff')
-                                .attr('font-size', '12px')
-                                .attr('dominant-baseline', 'middle')
-                                .style('opacity', 0)
-                                .merge(labels)
-                                .transition()
-                                .duration(dur)
-                                .ease(d3.easeCubicInOut)
-                                .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2) // SMOOTH Y transition
-                                .style('opacity', 1)
-                                .text(d => `${d.name} (${d.id})`);
-
-                            // VALUES (inside bars on right)
-                            const values = valuesGroup.selectAll('text').data(data, d => d.id);
-
-                            values.exit().transition().duration(dur).style('opacity', 0).remove();
-
-                            values.enter()
-                                .append('text')
-                                .attr('x', d => xScale(d.value) - 5)
-                                .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
-                                .attr('text-anchor', 'end')
-                                .attr('fill', '#000')
-                                .attr('font-size', '11px')
-                                .attr('font-weight', 'bold')
-                                .attr('dominant-baseline', 'middle')
-                                .style('opacity', 0)
-                                .merge(values)
-                                .transition()
-                                .duration(dur)
-                                .ease(d3.easeCubicInOut)
-                                .attr('x', d => xScale(d.value) - 5)
-                                .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2) // SMOOTH Y transition
-                                .style('opacity', 1)
-                                .text(d => raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`);
-                        };
-
-                        // Initial render (first frame)
-                        console.log('[D3 Race] Calling updateRaceFrame with first keyframe:', keyframes[0]);
-                        window.updateRaceFrame(keyframes[0], true);
-                        console.log('[D3 Race] renderRaceChart complete. raceRendered:', true);
-                        raceRendered.value = true;
-                    }; // End renderRaceChart
-
-                    const isPlaying = ref(false);
-                    const currentFrameIndex = ref(0);
-                    let animationInterval = null;
-
-                    const pauseRace = () => {
-                        isPlaying.value = false;
-                        if (animationInterval) clearInterval(animationInterval);
-                        animationInterval = null;
-                    };
-
-                    const playRace = () => {
-                        if (isPlaying.value || !animationFrames.value.length) return;
-
-                        isPlaying.value = true;
-
-                        // Start D3.js animation loop
-                        animationInterval = setInterval(() => {
-                            const nextIndex = currentFrameIndex.value + 1;
-
-                            // Stop if end reached
-                            if (nextIndex >= animationFrames.value.length) {
-                                pauseRace();
-                                return;
-                            }
-
-                            // Get next keyframe and update D3 chart with smooth transition
-                            const nextFrame = animationFrames.value[nextIndex];
-                            if (window.updateRaceFrame) {
-                                window.updateRaceFrame(nextFrame, false);
-                            }
-
-                            currentFrameIndex.value = nextIndex;
-
-                        }, 1500); // 1500ms interval for slower animation (user request)
-                    };
-
-                    const resetRace = () => {
-                        pauseRace();
-                        currentFrameIndex.value = 0;
-                        // ALWAYS re-render the chart to rebuild keyframes with current raceMetric
-                        // This is needed because metric switch requires new keyframe values
-                        renderRaceChart();
-                    };
-
-                    // Timeline scrubber seek function (Flourish-style rollback)
-                    const seekToFrame = (index) => {
-                        pauseRace();
-                        const targetIndex = parseInt(index, 10);
-                        if (targetIndex >= 0 && targetIndex < animationFrames.value.length) {
-                            currentFrameIndex.value = targetIndex;
-                            if (window.updateRaceFrame) {
-                                window.updateRaceFrame(animationFrames.value[targetIndex], false);
-                            }
-                        }
-                    };
-
-                    const openDetail = (stock) => {
-                        detailStock.value = stock;
-                        nextTick(() => renderDetailChart(stock));
-                    };
-
-                    const renderDetailChart = (stock) => {
-                        const trace = {
-                            x: stock.wealthPath.map(d => d.year),
-                            y: stock.wealthPath.map(d => d.value),
-                            type: 'scatter',
-                            mode: 'lines+markers',
-                            name: 'Buy At Opening',
-                            line: { color: '#00f2ea', width: 3 },
-                            fill: 'tozeroy',
-                            fillcolor: 'rgba(0, 242, 234, 0.1)'
-                        };
-
-                        const layout = {
-                            title: false,
-                            paper_bgcolor: 'rgba(0,0,0,0)',
-                            plot_bgcolor: 'rgba(255,255,255,0.05)',
-                            font: { color: '#aaa' },
-                            margin: { t: 20, l: 40, r: 20, b: 40 },
-                            xaxis: { gridcolor: '#333' },
-                            yaxis: { gridcolor: '#333' }
-                        };
-
-                        Plotly.newPlot('detail-chart', [trace], layout);
-                    };
-
-                    const analyzeCB = async () => {
-                        loadingCB.value = true;
-                        cbResult.value = null;
-                        try {
-                            const res = await fetch(`/api/cb/analyze?code=${cbInput.value}`);
-                            const data = await res.json();
-                            cbResult.value = data;
-                        } catch (e) { console.error(e); }
-                        loadingCB.value = false;
-                    };
-
-                    const getActionColor = (action) => {
-                        if (!action) return 'text-gray-500';
-                        if (action.includes('BUY')) return 'text-green-400';
-                        if (action.includes('SELL')) return 'text-red-500';
-                        return 'text-yellow-400';
-                    };
-
-                    const getBorderColor = (action) => {
-                        if (!action) return 'border-gray-500';
-                        if (action.includes('BUY')) return 'border-green-400 from-green-500/10';
-                        if (action.includes('SELL')) return 'border-red-500 from-red-500/10';
-                        return 'border-yellow-400 from-yellow-500/10';
-                    };
-
-                    // ============== PORTFOLIO STATE ==============
-                    const portfolioGroups = ref([]);
-                    const selectedGroupId = ref(null);
-                    const groupTargets = ref([]);
-                    const showAddGroup = ref(false);
-                    const newGroupName = ref('');
-                    const newTargetId = ref('');
-                    const newTargetName = ref('');
-                    const showTxForm = ref(null);
-                    const newTx = ref({ type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] });
-
-                    // Dividend tracking
-                    const dividendCash = ref({ total_cash: 0, dividend_count: 0 });
-                    const syncingDividends = ref(false);
-
-                    // Fetch dividend cash
-                    const fetchDividendCash = async () => {
-                        try {
-                            const res = await fetch('/api/portfolio/cash');
-                            dividendCash.value = await res.json();
-                        } catch (e) { console.error('Fetch dividend cash error:', e); }
-                    };
-
-                    // Sync dividends
-                    const syncDividends = async () => {
-                        syncingDividends.value = true;
-                        try {
-                            const res = await fetch('/api/portfolio/sync-dividends', { method: 'POST' });
-                            const result = await res.json();
-                            console.log('Synced dividends:', result);
-                            await fetchDividendCash();
-                            alert('Synced ' + (result.synced_count || 0) + ' new dividends!');
-                        } catch (e) { console.error('Sync dividends error:', e); }
-                        syncingDividends.value = false;
-                    };
-
-                    // Fetch all groups
-                    const fetchGroups = async () => {
-                        try {
-                            const res = await fetch('/api/portfolio/groups');
-                            portfolioGroups.value = await res.json();
-                            // Auto-select first group
-                            if (portfolioGroups.value.length && !selectedGroupId.value) {
-                                selectGroup(portfolioGroups.value[0].id);
-                            }
-                        } catch (e) { console.error('Fetch groups error:', e); }
-                    };
-
-                    // Create group
-                    const createGroup = async () => {
-                        if (!newGroupName.value.trim()) return;
-                        try {
-                            const res = await fetch('/api/portfolio/groups', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ name: newGroupName.value.trim() })
-                            });
-                            if (res.ok) {
-                                newGroupName.value = '';
-                                showAddGroup.value = false;
-                                await fetchGroups();
-                            } else {
-                                const err = await res.json();
-                                alert(err.error || 'Create failed');
-                            }
-                        } catch (e) { console.error('Create group error:', e); }
-                    };
-
-                    // Delete group
-                    const deleteGroup = async (groupId) => {
-                        if (!confirm('Delete this group and all targets?')) return;
-                        try {
-                            await fetch(`/api/portfolio/groups/${groupId}`, { method: 'DELETE' });
-                            if (selectedGroupId.value === groupId) {
-                                selectedGroupId.value = null;
-                                groupTargets.value = [];
-                            }
-                            await fetchGroups();
-                        } catch (e) { console.error('Delete group error:', e); }
-                    };
-
-                    // Select group and load targets
-                    // Select group and load targets with live prices
-                    const selectGroup = async (groupId) => {
-                        selectedGroupId.value = groupId;
-                        try {
-                            const res = await fetch(`/api/portfolio/groups/${groupId}/targets`);
-                            const targets = await res.json();
-
-                            // Collect all stock IDs for batch price fetch
-                            const stockIds = targets.map(t => t.stock_id).join(',');
-
-                            // Fetch live prices (parallel)
-                            let livePrices = {};
-                            if (stockIds) {
-                                try {
-                                    const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${stockIds}`);
-                                    livePrices = await priceRes.json();
-                                } catch (e) { console.warn('Live price fetch failed:', e); }
-                            }
-
-                            // Fetch summary for each target with live price
-                            for (const t of targets) {
-                                const livePrice = livePrices[t.stock_id]?.price || null;
-                                t.livePrice = livePrices[t.stock_id] || { price: 0, change: 0, change_pct: 0 };
-
-                                // Fetch summary with current price for P/L calculation
-                                const sumUrl = livePrice
-                                    ? `/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
-                                    : `/api/portfolio/targets/${t.id}/summary`;
-                                const sumRes = await fetch(sumUrl);
-                                t.summary = await sumRes.json();
-                            }
-                            groupTargets.value = targets;
-                        } catch (e) { console.error('Load targets error:', e); }
-                    };
-
-                    // Add target
-                    const addTarget = async () => {
-                        if (!newTargetId.value.trim() || !selectedGroupId.value) return;
-                        try {
-                            const res = await fetch(`/api/portfolio/groups/${selectedGroupId.value}/targets`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ stock_id: newTargetId.value.trim(), stock_name: newTargetName.value.trim() || null })
-                            });
-                            if (res.ok) {
-                                newTargetId.value = '';
-                                newTargetName.value = '';
-                                await selectGroup(selectedGroupId.value);
-                            }
-                        } catch (e) { console.error('Add target error:', e); }
-                    };
-
-                    // Delete target
-                    const deleteTarget = async (targetId) => {
-                        if (!confirm('Delete this stock and all transactions?')) return;
-                        try {
-                            await fetch(`/api/portfolio/targets/${targetId}`, { method: 'DELETE' });
-                            await selectGroup(selectedGroupId.value);
-                        } catch (e) { console.error('Delete target error:', e); }
-                    };
-
-                    // Add transaction
-                    const addTransaction = async () => {
-                        if (!showTxForm.value || !newTx.value.shares || !newTx.value.price) return;
-                        try {
-                            const res = await fetch(`/api/portfolio/targets/${showTxForm.value}/transactions`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(newTx.value)
-                            });
-                            if (res.ok) {
-                                showTxForm.value = null;
-                                newTx.value = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] };
-                                await selectGroup(selectedGroupId.value);
-                            }
-                        } catch (e) { console.error('Add transaction error:', e); }
-                    };
-
-                    // ============== TREND DASHBOARD STATE ==============
-                    const trendData = ref([]);
-                    const assetGroups = ref({ stock: [], etf: [], cb: [] });
-                    const expandedGroup = ref(null);
-                    const selectedMonth = ref(null);
-                    const portfolioRaceData = ref([]);
-                    const portfolioRacePlaying = ref(false);
-                    const trendLivePrices = ref({});
-
-                    // Computed: max trend cost for chart scaling
-                    const maxTrendCost = computed(() => {
-                        const costs = trendData.value.map(t => t.cost);
-                        return Math.max(1, ...costs);
-                    });
-
-                    // Fetch trend data
-                    const fetchTrendData = async () => {
-                        try {
-                            // Fetch trend history
-                            const trendRes = await fetch('/api/portfolio/trend?months=12');
-                            trendData.value = await trendRes.json();
-                            if (trendData.value.length) {
-                                selectedMonth.value = trendData.value[trendData.value.length - 1]?.month;
-                            }
-
-                            // Fetch asset groups
-                            const groupRes = await fetch('/api/portfolio/by-type');
-                            const groups = await groupRes.json();
-                            assetGroups.value = groups;
-
-                            // Collect all stock IDs to fetch current prices
-                            const allTargets = [...(groups.stock || []), ...(groups.etf || []), ...(groups.cb || [])];
-                            const ids = allTargets.map(t => t.stock_id).filter(id => id).join(',');
-
-                            if (ids) {
-                                const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${ids}`);
-                                trendLivePrices.value = await priceRes.json();
-                            }
-
-                            // Fetch race data
-                            const raceRes = await fetch('/api/portfolio/race-data');
-                            portfolioRaceData.value = await raceRes.json();
-                        } catch (e) { console.error('Fetch trend error:', e); }
-                    };
-
-                    // Get group total (Calculated with live prices)
-                    const getGroupTotal = (type) => {
-                        const targets = assetGroups.value[type] || [];
-                        let total = 0;
-                        for (const t of targets) {
-                            const price = trendLivePrices.value[t.stock_id]?.price || 0;
-                            total += (t.total_shares || 0) * price;
-                        }
-                        return total;
-                    };
-
-                    // Portfolio race controls
-                    const playPortfolioRace = () => {
-                        portfolioRacePlaying.value = true;
-                        console.log('Portfolio race started with', portfolioRaceData.value.length, 'data points');
-                    };
-
-                    const pausePortfolioRace = () => {
-                        portfolioRacePlaying.value = false;
-                    };
-
-                    // Fetch portfolio race data
-                    const fetchPortfolioRaceData = async () => {
-                        try {
-                            const raceRes = await fetch('/api/portfolio/race-data');
-                            portfolioRaceData.value = await raceRes.json();
-
-                            // Also fetch asset groups for stats
-                            const groupRes = await fetch('/api/portfolio/by-type');
-                            assetGroups.value = await groupRes.json();
-                        } catch (e) { console.error('Fetch race data error:', e); }
-                    };
-
-                    // ============== LEADERBOARD & PROFILE ==============
-                    const leaderboard = ref([]);
-                    const loadingLadder = ref(false);
-                    const newNickname = ref('');
-
-                    const fetchLeaderboard = async () => {
-                        loadingLadder.value = true;
-                        try {
-                            const res = await fetch('/api/leaderboard');
-                            leaderboard.value = await res.json();
-                        } catch (e) { console.error('Leaderboard error:', e); }
-                        loadingLadder.value = false;
-                    };
-
-                    const updateProfile = async () => {
-                        if (!newNickname.value.trim()) return;
-                        try {
-                            const res = await fetch('/api/auth/profile', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ nickname: newNickname.value.trim() })
-                            });
-                            const data = await res.json();
-                            if (data.status === 'ok') {
-                                currentUser.value.nickname = data.nickname;
-                                alert('Nickname updated!');
-                            }
-                        } catch (e) { alert('Update failed'); }
-                    };
-
-                    onMounted(async () => {
-                        const loader = document.getElementById('loading-msg');
-
-                        const loadDashboard = () => {
-                            // Load settings and apply default tab
-                            loadSettings();
-                            currentTab.value = appSettings.value.defaultTab || 'mars';
-
-                            fetchMars();
-                            fetchGroups(); // Load portfolio on startup
-                            fetchDividendCash(); // Load dividend cash
-
-                            watch(currentTab, (newTab) => {
-                                if (newTab === 'race') {
-                                    if (raceRendered.value) {
-                                        setTimeout(() => Plotly.Plots.resize('race-chart-container'), 50);
-                                    } else {
-                                        setTimeout(renderRaceChart, 100);
-                                    }
-                                } else if (newTab === 'portfolio') {
-                                    fetchGroups();
-                                } else if (newTab === 'trend') {
-                                    fetchTrendData();
-                                } else if (newTab === 'myrace') {
-                                    fetchPortfolioRaceData();
-                                } else if (newTab === 'cb') {
-                                    fetchPortfolioCBs();
-                                } else if (newTab === 'ladder') {
-                                    fetchLeaderboard();
-                                }
-                            });
-                        };
-
-                        // Check Auth
-                        try {
-                            const res = await fetch('/auth/me');
-                            const user = await res.json();
-                            if (user && user.id) {
-                                currentUser.value = user;
-                                newNickname.value = user.nickname || '';
-                                loadDashboard();
-                                // Hide loader after dashboard init
-                                if (loader) loader.style.display = 'none';
-                            } else {
-                                // User not logged in, show Overlay
-                                if (loader) loader.style.display = 'none';
-                            }
-                        } catch (e) {
-                            console.error('Auth Error', e);
-                            if (loader) loader.style.display = 'none';
-                        }
-                    });
-
-                    return {
-                        currentTab, marsList: sortedMarsList, stats, cbInput, cbResult, loadingCB, analyzeCB,
-                        portfolioCBs, loadingPortfolioCBs, fetchPortfolioCBs,
-                        getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail,
-                        renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric,
-                        animationFrames, currentFrameIndex, seekToFrame, isCalculating,
-                        // Portfolio
-                        portfolioGroups, selectedGroupId, groupTargets, showAddGroup, newGroupName,
-                        newTargetId, newTargetName, showTxForm, newTx,
-                        fetchGroups, createGroup, deleteGroup, selectGroup, addTarget, deleteTarget, addTransaction,
-                        // Dividend tracking
-                        dividendCash, syncingDividends, syncDividends, fetchDividendCash,
-                        // Trend Dashboard & My Race
-                        trendData, assetGroups, expandedGroup, selectedMonth, maxTrendCost, portfolioRaceData,
-                        fetchTrendData, getGroupTotal, playPortfolioRace, pausePortfolioRace, fetchPortfolioRaceData,
-                        // Leaderboard
-                        leaderboard, loadingLadder, newNickname, updateProfile,
-                        // Settings System
-                        showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV,
-                        // Notifications System
-                        showNotifications, notifications, unreadCount, markAllRead, clearNotifications, deleteNotification, addNotification,
-                        // AI Copilot
-                        showChat, chatInput, isChatLoading, chatHistory, sendMessage,
-                        // Auth
-                        currentUser
-                    };
-                }
-            }).mount('#app')
-        </script>
+    <!-- Settings Modal -->
+    <div v-if="showSettings"
+        class="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-10"
+        @click.self="showSettings = false">
+        <div class="glass-panel p-6 rounded-xl w-full max-w-lg relative bg-gray-900 border border-cyber-cyan/30">
+            <button @click="showSettings = false"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">✕</button>
+            <h2 class="text-xl font-bold text-cyber-cyan mb-2 flex items-center gap-2">⚙️ Global Settings</h2>
+            <div class="p-6 space-y-5">
+                <!-- GM Mode -->
+                <div class="flex items-center justify-between">
+                    <div><label class="font-bold text-cyber-gold">🎮 {{ t('s_gm') }}</label>
+                        <p class="text-xs text-gray-400">Unlock all Premium features</p>
+                    </div>
+                    <button @click="toggleGMMode" :class="appSettings.gmMode ? 'bg-cyber-gold' : 'bg-gray-600'"
+                        class="w-14 h-7 rounded-full relative transition-colors duration-200">
+                        <span :class="appSettings.gmMode ? 'translate-x-7' : 'translate-x-1'"
+                            class="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                    </button>
+                </div>
+                <hr class="border-white/10">
+                <!-- Region Selector -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">🌍 {{ t('s_region') }}</label>
+                    <div class="flex gap-2">
+                        <button @click="appSettings.region = 'TW'; saveSettings()"
+                            :class="appSettings.region === 'TW' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition">🇹🇼 Taiwan</button>
+                        <button @click="appSettings.region = 'CN'; saveSettings()"
+                            :class="appSettings.region === 'CN' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
+                            :disabled="!isPremium">🇨🇳 China</button>
+                        <button @click="appSettings.region = 'US'; saveSettings()"
+                            :class="appSettings.region === 'US' ? 'bg-cyber-cyan text-black' : 'bg-gray-700 text-gray-300'"
+                            class="flex-1 py-2 rounded font-bold text-sm transition opacity-50"
+                            :disabled="!isPremium">🇺🇸 USA</button>
+                    </div>
+                    <p v-if="!isPremium" class="text-xs text-gray-500 mt-1">⭐ China & USA require Premium
+                    </p>
+                </div>
+                <hr class="border-white/10">
+                <!-- Language -->
+                <div class="mb-4">
+                    <label class="font-bold text-sm mb-2 block">🌐 {{ t('s_lang') }}</label>
+                    <select v-model="appSettings.language" @change="saveSettings()"
+                        class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm">
+                        <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+                            {{ lang.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Default Tab -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">🏠 Default Tab</label>
+                    <select v-model="appSettings.defaultTab" @change="saveSettings()"
+                        class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm">
+                        <option value="mars">Mars Strategy</option>
+                        <option value="race">Bar Chart Race</option>
+                        <option value="cb">Convertible Bond</option>
+                        <option value="portfolio">📊 Portfolio</option>
+                        <option value="trend">📈 Trend</option>
+                        <option value="myrace">🏎️ My Race</option>
+                        <option value="ladder">🏆 Ladder</option>
+                    </select>
+                </div>
+
+                <!-- Nickname Update -->
+                <div>
+                    <label class="font-bold text-sm mb-2 block">👤 Nickname (Public)</label>
+                    <div class="flex gap-2">
+                        <input v-model="newNickname" type="text" placeholder="Enter public nickname"
+                            class="flex-1 bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white">
+                        <button @click="updateProfile"
+                            class="bg-cyber-cyan text-black px-3 py-2 rounded font-bold text-sm hover:opacity-90">{{
+                            t('s_save') }}</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Shown on Leaderboard.</p>
+                </div>
+
+                <!-- API Key -->
+                <div class="mb-4">
+                    <label class="font-bold text-sm mb-2 block">🔑 {{ t('s_api') }}</label>
+                    <input v-model="appSettings.apiKey" @change="saveSettings()" type="password"
+                        placeholder="Enter your Gemini API Key"
+                        class="w-full bg-gray-700 border border-white/20 rounded px-3 py-2 text-sm text-white placeholder-gray-500">
+                    <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
+                </div>
+
+                <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium
+                    ?
+                    '⭐ Premium' : '🆓 Free Tier' }}</div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/static/main.js"></script>
 </body>
 
 </html>

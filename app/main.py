@@ -246,7 +246,7 @@ async def analyze_portfolio_cb():
             return []
             
         # Extract codes (e.g. '65331')
-        cb_codes = [t['id'] for t in cb_targets]
+        cb_codes = [t['stock_id'] for t in cb_targets]
         
         # 2. Analyze
         strategy = CBStrategy()
@@ -428,6 +428,16 @@ def api_add_transaction(target_id: str, data: TransactionCreate):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+@app.put("/api/portfolio/transactions/{tx_id}")
+def api_update_transaction(tx_id: str, data: TransactionCreate):
+    """Update a transaction"""
+    try:
+        from app.portfolio_db import update_transaction
+        success = update_transaction(tx_id, data.shares, data.price, data.date)
+        return {"updated": success}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 @app.delete("/api/portfolio/transactions/{tx_id}")
 def api_delete_transaction(tx_id: str):
     """Delete a transaction"""
@@ -519,6 +529,31 @@ def api_dividend_cash():
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+
+
+# Notifications
+@app.get("/api/notifications/check")
+async def api_check_notifications():
+    """Trigger backend analysis for alerts (Rebalancing, CBs, etc.)"""
+    try:
+        from app.services.notifications import NotificationEngine
+        
+        # 1. Get Portfolio
+        groups = list_groups()
+        all_targets = []
+        for g in groups:
+            targets = list_targets(g['id'])
+            all_targets.extend(targets)
+            
+        portfolio = {"targets": all_targets}
+        
+        # 2. Generate Alerts
+        engine = NotificationEngine()
+        alerts = await engine.generate_alerts(portfolio)
+        
+        return alerts
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 # ---------------- Static Files ----------------
 # Must come LAST to avoid capturing API routes

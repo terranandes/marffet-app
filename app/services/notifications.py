@@ -208,76 +208,88 @@ class NotificationEngine:
                 stock_price = res.get('stock_price', 0)
                 conv_price = res.get('conv_price', 0)
                 
-                # === Case 1: Arbitrage (< -1%) → Buy CB, Sell Stock ===
+                # === Rebalancing Logic (Target: Equal Weight 50/50) ===
+                current_cb_val = cb_shares * (cb_price * 1000) # CB is 1000/share? usually 100 TWD face value, quoted as e.g. 105. 
+                # Wait, CB price in Taiwan is usually quoted as e.g. 110.5 (Dollars?). One sheet is 100,000 face value.
+                # Usually 1 "Share" in DB means 1 Sheet (100k)? Or 1 unit (100)?
+                # Let's assume input 'shares' for CB is number of 'sheets' (張).
+                # Live Price 101 means 101 TWD per 100 TWD face value? No, usually quote is 100-base.
+                # 1 Sheet = 100,000 TWD face value. Price 105 => Market Value 105,000.
+                # Crawler returns price? e.g. 120. 
+                # So Value = shares * price * 1000? 
+                # Wait, if price is 120, and face is 100. It's 1.2x.
+                # If face is 100,000. Value is 120,000.
+                # So Multiplier is 1000. (120 * 1000 = 120,000). Yes.
+
+                current_cb_val = cb_shares * cb_price * 1000
+                current_stock_val = stock_shares * stock_price
+                
+                total_val = current_cb_val + current_stock_val
+                target_val = total_val / 2
+                
+                # Deviation
+                diff_val = target_val - current_stock_val # If positive, buy stock. If negative, sell stock.
+                
+                rebalance_msg = ""
+                
+                # Alert Generation
+                msg_header = f"⚡ CB Premium Alert: {res['name']}"
+                
                 if premium < -1:
-                    # Calculate rebalance: Sell 30% of stock, use proceeds to buy CB
-                    if stock_shares > 0 and stock_price > 0 and cb_price > 0:
-                        shares_to_sell = max(1, int(stock_shares * 0.3))
-                        proceeds = shares_to_sell * stock_price
-                        cb_to_buy = int(proceeds / (cb_price * 1000) * 1000)  # CB traded in 1000 units
+                    # Case 1: Arbitrage (CB Cheap).
+                    # Suggestion: Buy CB, Sell Stock to reach Equal?
+                    # Or just Buy CB? User said "rebalance ... to be fair/equal".
+                    # We should move capital FROM Stock TO CB until equal.
+                    
+                    if current_cb_val < target_val:
+                        # CB is underweight (and cheap!). Buy CB.
+                        shortfall = target_val - current_cb_val
+                        # Sell Stock to fund it? Or just Buy?
+                        # "Rebalance" implies shifting.
+                        # Sell Stock amount = shortfall.
+                        stock_to_sell = int(shortfall / stock_price) if stock_price > 0 else 0
+                        cb_to_buy = int(shortfall / (cb_price * 1000)) if cb_price > 0 else 0
                         
                         rebalance_msg = (
-                            f"\n📊 **Rebalance Action**:\n"
-                            f"  • 賣出 {shares_to_sell} 股 {stock_code} (現股) @ ${stock_price:.2f}\n"
-                            f"  • 買入 {cb_to_buy} 張 {cb_code} (CB) @ ${cb_price:.2f}\n"
-                            f"  • 預計獲利空間: {abs(premium):.1f}% (套利)"
+                             f"\n⚖️ **Rebalance to Equal**:\n"
+                             f"  • Strategy: CB Undervalued (< -1%). Equalize weights.\n"
+                             f"  • Action: Sell {stock_to_sell:,} shares of Stock ({stock_code})\n"
+                             f"  • Action: Buy {cb_to_buy} units of CB ({cb_code})\n"
                         )
                     else:
-                        rebalance_msg = "\n📊 **建議**: 買入CB，同時賣出現股進行套利。"
-                    
-                    msg = (
-                        f"⚡ CB Arbitrage: {res['name']} ({cb_code})\n"
-                        f"溢價率: {premium:.2f}% (< -1%)\n"
-                        f"{res['description']}"
-                        f"{rebalance_msg}"
-                    )
+                         rebalance_msg = "\n⚖️ **Status**: CB is Cheap but already Overweight. Consider holding."
+
                     alerts.append({
                         "type": "strategy_cb_arb",
                         "level": "critical",
-                        "message": msg,
-                        "target_id": cb_code,
-                        "rebalance": {
-                            "action": "buy_cb_sell_stock",
-                            "cb_code": cb_code,
-                            "stock_code": stock_code,
-                            "premium": premium
-                        }
+                        "message": f"{msg_header}\nPremium: {premium:.2f}%\n{rebalance_msg}",
+                        "target_id": cb_code
                     })
-                
-                # === Case 2: Strong Sell (>= 30%) → Sell CB, Buy Stock ===
+
                 elif premium >= 30:
-                    # Calculate rebalance: Sell 50% of CB, use proceeds to buy stock
-                    if cb_shares > 0 and cb_price > 0 and stock_price > 0:
-                        cb_to_sell = max(1, int(cb_shares * 0.5))
-                        proceeds = cb_to_sell * cb_price * 1000  # CB value
-                        stock_to_buy = int(proceeds / stock_price)
+                    # Case 2: Expensive (CB Expensive).
+                    # Suggestion: Sell CB, Buy Stock?
+                    
+                    if current_cb_val > target_val:
+                        # CB is Overweight (and expensive!). Sell CB.
+                        excess = current_cb_val - target_val
+                        cb_to_sell = int(excess / (cb_price * 1000)) if cb_price > 0 else 0
+                        stock_to_buy = int(excess / stock_price) if stock_price > 0 else 0
                         
                         rebalance_msg = (
-                            f"\n📊 **Rebalance Action**:\n"
-                            f"  • 賣出 {cb_to_sell} 張 {cb_code} (CB) @ ${cb_price:.2f}\n"
-                            f"  • 買入 {stock_to_buy} 股 {stock_code} (現股) @ ${stock_price:.2f}\n"
-                            f"  • 理由: 溢價過高 ({premium:.1f}%)，轉持現股參與更多上漲空間"
+                             f"\n⚖️ **Rebalance to Equal**:\n"
+                             f"  • Strategy: CB Overvalued (>= 30%). Equalize weights.\n"
+                             f"  • Action: Sell {cb_to_sell} units of CB ({cb_code})\n"
+                             f"  • Action: Buy {stock_to_buy:,} shares of Stock ({stock_code})\n"
                         )
                     else:
-                        rebalance_msg = "\n📊 **建議**: 賣出CB，買入現股以最大化獲利潛力。"
-                    
-                    msg = (
-                        f"⚡ CB Sell Alert: {res['name']} ({cb_code})\n"
-                        f"溢價率: {premium:.2f}% (>= 30%)\n"
-                        f"{res['description']}"
-                        f"{rebalance_msg}"
-                    )
+                        rebalance_msg = "\n⚖️ **Status**: CB is Expensive but Underweight. Consider holding or selling all."
+
                     alerts.append({
                         "type": "strategy_cb_sell",
                         "level": "warning",
-                        "message": msg,
-                        "target_id": cb_code,
-                        "rebalance": {
-                            "action": "sell_cb_buy_stock",
-                            "cb_code": cb_code,
-                            "stock_code": stock_code,
-                            "premium": premium
-                        }
+                        "message": f"{msg_header}\nPremium: {premium:.2f}%\n{rebalance_msg}",
+                        "target_id": cb_code
                     })
                     
         except Exception as e:

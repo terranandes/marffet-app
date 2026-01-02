@@ -171,7 +171,13 @@ def delete_group(group_id: str) -> bool:
 def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, asset_type: str = "stock") -> dict:
     """Add a stock/ETF target to a group."""
     if asset_type not in ('stock', 'etf', 'cb'):
-        asset_type = 'stock'  # Default to stock
+        # Auto-detect asset type based on stock_id
+        if stock_id.startswith('00'):
+            asset_type = 'etf'
+        elif len(stock_id) == 5 and stock_id.isdigit():
+            asset_type = 'cb'
+        else:
+            asset_type = 'stock'
     
     with get_db() as conn:
         cursor = conn.cursor()
@@ -182,12 +188,19 @@ def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, a
         if count >= FREE_MAX_TARGETS_PER_GROUP:
             raise ValueError(f"Maximum {FREE_MAX_TARGETS_PER_GROUP} targets per group for free tier")
         
+        if not stock_name:
+            try:
+                stock_name = fetch_stock_name(stock_id)
+            except:
+                pass
+
         target_id = str(uuid.uuid4())
         cursor.execute(
             "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
             (target_id, group_id, stock_id, stock_name, asset_type)
         )
         return {"id": target_id, "group_id": group_id, "stock_id": stock_id, "stock_name": stock_name, "asset_type": asset_type}
+
 
 
 def list_targets(group_id: str) -> list:
@@ -250,6 +263,18 @@ def list_transactions(target_id: str) -> list:
             (target_id,)
         )
         return [dict(row) for row in cursor.fetchall()]
+
+
+
+def update_transaction(tx_id: str, shares: int, price: float, tx_date: str) -> bool:
+    """Update an existing transaction."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE transactions SET shares = ?, price = ?, date = ? WHERE id = ?",
+            (shares, price, tx_date, tx_id)
+        )
+        return cursor.rowcount > 0
 
 
 def delete_transaction(tx_id: str) -> bool:
@@ -375,6 +400,23 @@ def fetch_live_prices(stock_ids: list) -> dict:
                 prices[sid] = {"price": 0, "change": 0, "change_pct": 0, "error": str(e)}
     
     return prices
+
+
+def fetch_stock_name(stock_id: str) -> Optional[str]:
+    """Fetch stock name from yfinance."""
+    import yfinance as yf
+    try:
+        # Try TW then TWO
+        for suffix in ['.TW', '.TWO']:
+            ticker = yf.Ticker(f"{stock_id}{suffix}")
+            # Try fetching explicit name
+            info = ticker.info # This triggers a network request
+            name = info.get('longName') or info.get('shortName')
+            if name:
+                return name
+    except:
+        pass
+    return None
 
 
 # ============== PORTFOLIO TREND ==============
@@ -687,7 +729,31 @@ def get_user_public_profile(user_id: str) -> dict:
         return dict(row) if row else {}
 
 
+def fix_asset_types():
+    """One-time fix for existing targets with wrong asset_type."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        # Fix CBs: 5 digits, not starting with 00, currently 'stock'
+        cursor.execute("""
+            UPDATE group_targets 
+            SET asset_type = 'cb' 
+            WHERE length(stock_id) = 5 
+              AND substr(stock_id, 1, 2) != '00' 
+              AND asset_type = 'stock'
+        """)
+        # Fix ETFs: Starts with 00, currently 'stock'
+        cursor.execute("""
+            UPDATE group_targets 
+            SET asset_type = 'etf' 
+            WHERE substr(stock_id, 1, 2) = '00' 
+              AND asset_type = 'stock'
+        """)
+
 # Initialize on import
 if __name__ == "__main__":
     init_db()
+    fix_asset_types()
     print("Database initialized successfully!")
+else:
+    # Run fix on module load to ensure existing data is corrected
+    fix_asset_types()

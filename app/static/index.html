@@ -109,7 +109,7 @@
 
     <div id="loading-msg" onclick="this.style.display='none'"
         class="absolute inset-0 flex items-center justify-center text-cyber-cyan font-bold z-[100] bg-black cursor-pointer">
-        Initializing Martian System...
+        {{ t('l_init') }}
     </div>
 
     <div id="app" v-cloak class="flex-1 flex flex-col h-full relative"
@@ -132,10 +132,10 @@
                         <path
                             d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                     </svg>
-                    Sign in with Google
+                    {{ t('l_google') }}
                 </a>
 
-                <p class="mt-6 text-xs text-gray-600">Secure Access • Multi-User Environment</p>
+                <p class="mt-6 text-xs text-gray-600">{{ t('l_subtitle') }}</p>
             </div>
         </div>
 
@@ -155,17 +155,17 @@
                     <div v-if="showNotifications"
                         class="absolute top-10 left-0 w-80 bg-cyber-panel border border-white/20 rounded-xl shadow-2xl z-[2001] overflow-hidden">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
-                            <span class="font-bold text-sm">🔔 Notifications</span>
+                            <span class="font-bold text-sm">🔔 {{ t('n_title') }}</span>
                             <div class="flex gap-2">
-                                <button @click="markAllRead" class="text-xs text-cyber-cyan hover:underline">Mark all
-                                    read</button>
-                                <button @click="clearNotifications"
-                                    class="text-xs text-red-400 hover:underline">Clear</button>
+                                <button @click="markAllRead" class="text-xs text-cyber-cyan hover:underline">{{
+                                    t('n_read_all') }}</button>
+                                <button @click="clearNotifications" class="text-xs text-red-400 hover:underline">{{
+                                    t('n_clear') }}</button>
                             </div>
                         </div>
                         <div class="max-h-64 overflow-auto">
-                            <div v-if="notifications.length === 0" class="text-center text-gray-500 py-6 text-sm">No
-                                notifications</div>
+                            <div v-if="notifications.length === 0" class="text-center text-gray-500 py-6 text-sm">{{
+                                t('n_empty') }}</div>
                             <div v-for="(n, idx) in notifications" :key="idx"
                                 :class="n.read ? 'bg-transparent' : 'bg-cyber-cyan/10'"
                                 class="px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex justify-between"
@@ -238,16 +238,16 @@
                 <div class="glass-panel p-5 rounded-xl">
                     <h3
                         class="text-cyber-gold font-bold mb-4 uppercase text-xs tracking-wider border-b border-white/10 pb-2">
-                        Simulation Settings</h3>
+                        {{ t('sim_title') }}</h3>
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs text-gray-400 mb-1">Start Year (2006-2025)</label>
+                            <label class="block text-xs text-gray-400 mb-1">{{ t('sim_start') }} (2006-2025)</label>
                             <input v-model.number="sim.startYear" type="number" min="2006" max="2025"
                                 class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-400 mb-1">Initial Capital ($)</label>
+                            <label class="block text-xs text-gray-400 mb-1">{{ t('sim_cap') }} ($)</label>
                             <input v-model.number="sim.principal" type="number" step="10000"
                                 class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
                         </div>
@@ -1204,7 +1204,7 @@
                     class="fixed bottom-24 right-6 w-80 h-96 glass-panel rounded-xl flex flex-col z-50 overflow-hidden shadow-2xl border border-cyber-pink/30">
                     <!-- Header -->
                     <div class="bg-cyber-pink/10 p-3 border-b border-cyber-pink/20 flex justify-between items-center">
-                        <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 Mars Copilot</h3>
+                        <h3 class="font-bold text-cyber-pink flex items-center gap-2">🤖 {{ t('c_title') }}</h3>
                         <button @click="showChat = false" class="text-gray-400 hover:text-white">×</button>
                     </div>
 
@@ -1217,14 +1217,15 @@
                                 {{ msg.text }}
                             </div>
                         </div>
-                        <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">Thinking...</div>
+                        <div v-if="isChatLoading" class="text-xs text-gray-500 animate-pulse italic">{{ t('c_thinking')
+                            }}</div>
                     </div>
 
                     <!-- Input -->
                     <div class="p-3 border-t border-white/10 bg-black/20">
                         <div class="flex gap-2">
                             <input v-model="chatInput" @keyup.enter="sendMessage" type="text"
-                                placeholder="Ask about your portfolio..."
+                                :placeholder="t('c_placeholder')"
                                 class="flex-1 bg-black/50 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-cyber-pink outline-none">
                             <button @click="sendMessage" :disabled="isChatLoading"
                                 class="bg-cyber-pink text-white px-3 py-2 rounded text-sm font-bold hover:bg-pink-600 disabled:opacity-50">

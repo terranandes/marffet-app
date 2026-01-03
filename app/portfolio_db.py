@@ -747,9 +747,104 @@ def get_user_public_profile(user_id: str) -> dict:
     """Get public profile for a user."""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT nickname, name, picture FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT nickname, name, picture, created_at FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         return dict(row) if row else {}
+
+
+def get_public_portfolio(user_id: str) -> dict:
+    """
+    Get sanitized portfolio data for public viewing.
+    Returns ROI%, Asset Allocation %, and Top Holdings (symbols only).
+    NO absolute $ values.
+    """
+    # 1. Get User Profile
+    profile = get_user_public_profile(user_id)
+    if not profile:
+        return None
+        
+    # 2. Get Targets
+    targets_map = get_all_targets_by_type(user_id)
+    all_targets = targets_map['stock'] + targets_map['etf'] + targets_map['cb']
+    
+    if not all_targets:
+        return {
+            "nickname": profile.get("nickname") or profile.get("name"),
+            "picture": profile.get("picture"),
+            "joined_at": profile.get("created_at"),
+            "roi_pct": 0,
+            "net_worth_grade": "N/A", # Fun grading?
+            "allocation": [],
+            "top_holdings": []
+        }
+
+    # 3. Fetch Prices & Calc Value
+    stock_ids = list(set(t['stock_id'] for t in all_targets))
+    prices = fetch_live_prices(stock_ids)
+    
+    total_market_value = 0
+    total_cost = 0
+    holdings_value = [] # (symbol, value, type)
+    
+    type_values = {"Stock": 0, "ETF": 0, "CB": 0}
+    
+    for t in all_targets:
+        price = prices.get(t['stock_id'], {}).get('price', 0)
+        shares = t['total_shares'] or 0
+        
+        if shares > 0:
+            mv = shares * price
+            total_market_value += mv
+            
+            # Asset Allocation
+            atype = t.get('asset_type', 'stock')
+            if atype == 'etf': type_values["ETF"] += mv
+            elif atype == 'cb': type_values["CB"] += mv
+            else: type_values["Stock"] += mv
+            
+            # For Top Holdings
+            holdings_value.append({
+                "symbol": t['stock_id'],
+                "name": t['stock_name'],
+                "value": mv
+            })
+            
+            # Cost
+            # We need summary for cost? get_target_summary queries a lot. 
+            # Optimization: We can't easily get total cost without txns.
+            # get_target_summary(t['id']) is reliable but slow in loop?
+            # It's local DB, should be fine for <50 targets.
+            summary = get_target_summary(t['id'])
+            total_cost += summary['total_cost']
+
+    # 4. ROI
+    roi_pct = 0
+    if total_cost > 0:
+        roi_pct = ((total_market_value - total_cost) / total_cost) * 100
+        
+    # 5. Allocation %
+    allocation = []
+    if total_market_value > 0:
+        for k, v in type_values.items():
+            if v > 0:
+                pct = round((v / total_market_value) * 100, 1)
+                allocation.append({"label": k, "pct": pct})
+    
+    # 6. Top Holdings (Top 3 by value)
+    holdings_value.sort(key=lambda x: x['value'], reverse=True)
+    top_holdings = [
+        {"symbol": h['symbol'], "name": h['name']} 
+        for h in holdings_value[:5]
+    ]
+    
+    return {
+        "nickname": profile.get("nickname") or profile.get("name"),
+        "picture": profile.get("picture"),
+        "joined_at": profile.get("created_at")[:10], # YYYY-MM-DD
+        "roi_pct": round(roi_pct, 2),
+        "allocation": allocation,
+        "top_holdings": top_holdings
+    }
 
 
 def fix_asset_types():

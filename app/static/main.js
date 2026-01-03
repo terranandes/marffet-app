@@ -1148,9 +1148,9 @@ createApp({
                     await selectGroup(selectedGroupId.value);
                     // If history is open, refresh it
                     if (showTxHistory.value) await fetchTxHistory(showTxHistory.value);
-                    
+
                     // Refresh dependent data for other tabs
-                    fetchTrendData(); 
+                    fetchTrendData();
                     fetchPortfolioRaceData();
                     fetchLeaderboard();
                 }
@@ -1275,6 +1275,8 @@ createApp({
         const leaderboard = ref([]);
         const loadingLadder = ref(false);
         const newNickname = ref('');
+        const showProfileModal = ref(false);
+        const profileData = ref(null);
 
         const fetchLeaderboard = async () => {
             loadingLadder.value = true;
@@ -1283,6 +1285,29 @@ createApp({
                 leaderboard.value = await res.json();
             } catch (e) { console.error('Leaderboard error:', e); }
             loadingLadder.value = false;
+        };
+
+        const openProfile = async (userId) => {
+            try {
+                const res = await fetch(`/api/public/profile/${userId}`);
+                if (res.ok) {
+                    profileData.value = await res.json();
+                    showProfileModal.value = true;
+                }
+            } catch (e) { console.error('Profile fetch error:', e); }
+        };
+
+        const getDonutGradient = (allocation) => {
+            if (!allocation || !allocation.length) return 'gray 0% 100%';
+            let gradient = [];
+            let current = 0;
+            const colors = ['#00e5ff', '#ff2d55', '#ffcc00', '#aa00ff']; // Cyan, Pink, Gold, Purple
+            allocation.forEach((item, idx) => {
+                const next = current + item.pct;
+                gradient.push(`${colors[idx % colors.length]} ${current}% ${next}%`);
+                current = next;
+            });
+            return gradient.join(', ');
         };
 
         const updateProfile = async () => {
@@ -1301,8 +1326,23 @@ createApp({
             } catch (e) { alert('Update failed'); }
         };
 
+        const copyPublicLink = () => {
+            if (!currentUser.value || !currentUser.value.id) return;
+            const link = `${window.location.origin}/?profile=${currentUser.value.id}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Public Profile Link Copied! 🔗\n' + link);
+            });
+        };
+
         onMounted(async () => {
             const loader = document.getElementById('loading-msg');
+
+            // Check for Query Params (Profile Sharing)
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedProfileId = urlParams.get('profile');
+            if (sharedProfileId) {
+                openProfile(sharedProfileId);
+            }
 
             const loadDashboard = () => {
                 // Load settings and apply default tab
@@ -1373,7 +1413,9 @@ createApp({
             trendData, assetGroups, expandedGroup, selectedMonth, maxTrendCost, portfolioRaceData,
             fetchTrendData, getGroupTotal, playPortfolioRace, pausePortfolioRace, fetchPortfolioRaceData,
             // Leaderboard
-            leaderboard, loadingLadder, newNickname, updateProfile,
+            // Leaderboard & Profile
+            leaderboard, loadingLadder, newNickname, updateProfile, copyPublicLink,
+            showProfileModal, profileData, openProfile, getDonutGradient,
             // Settings System
             showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV, t,
             availableLanguages,

@@ -340,6 +340,18 @@ async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_u
         return {"status": "ok", "nickname": data.nickname}
     return {"status": "error"}
 
+@app.get("/api/public/profile/{user_id}")
+async def get_public_profile_api(user_id: str):
+    """Get sanitized public profile data for any user"""
+    from app.portfolio_db import get_public_portfolio
+    try:
+        data = get_public_portfolio(user_id)
+        if not data:
+            return JSONResponse(status_code=404, content={"error": "User not found"})
+        return data
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 @app.get("/api/leaderboard")
 async def get_leaderboard():
     """Calculates Live Leaderboard based on Portfolio ROI."""

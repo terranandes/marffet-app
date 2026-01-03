@@ -458,21 +458,23 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     from dateutil.relativedelta import relativedelta
     
     # Calculate start date (months ago)
+    # Calculate start date (months ago) for display
     end_date = datetime.now()
     start_date = end_date - relativedelta(months=months)
+    start_month_str = start_date.strftime("%Y-%m")
     
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Get all transactions for user's targets within date range
+        # Get ALL transactions for user's targets to calculate correct running cost
         cursor.execute("""
             SELECT t.date, t.type, t.shares, t.price
             FROM transactions t
             JOIN group_targets gt ON t.target_id = gt.id
             JOIN user_groups ug ON gt.group_id = ug.id
-            WHERE ug.user_id = ? AND t.date >= ?
+            WHERE ug.user_id = ?
             ORDER BY t.date
-        """, (user_id, start_date.strftime("%Y-%m-%d")))
+        """, (user_id,))
         
         transactions = cursor.fetchall()
     
@@ -484,8 +486,11 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     for tx in transactions:
         month = tx['date'][:7]  # "YYYY-MM"
         if month not in monthly_data:
-            monthly_data[month] = {"month": month, "cost": 0, "tx_count": 0}
-        
+            # Carry over previous cost if month gap? No, we just need snapshot at end of month.
+            # But here we are building "change events".
+            # Actually simplest finding state at end of each month.
+            pass
+
         if tx['type'] == 'buy':
             running_cost += tx['shares'] * tx['price']
             running_shares += tx['shares']
@@ -495,19 +500,37 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
                 running_shares -= tx['shares']
                 running_cost = running_shares * avg_cost
         
+        # Update/Overwrite the month's final state
+        # (Since rows are ordered by date, the last update for a month is the final state)
+        if month not in monthly_data:
+            monthly_data[month] = {"month": month, "cost": 0, "tx_count": 0}
+            
         monthly_data[month]['cost'] = round(running_cost, 2)
         monthly_data[month]['tx_count'] += 1
     
-    # Fill in missing months
+    # Fill in missing months and filter by requested window
     result = []
     current = start_date
+    
+    # Find initial cost basis before start_date
+    # Find latest month in monthly_data that is < start_month_str
     prev_cost = 0
+    sorted_months = sorted(monthly_data.keys())
+    
+    for m in sorted_months:
+        if m < start_month_str:
+            prev_cost = monthly_data[m]['cost']
+        else:
+            break
+            
     while current <= end_date:
         month_key = current.strftime("%Y-%m")
         if month_key in monthly_data:
+            # If we have data for this month, use it
             result.append(monthly_data[month_key])
             prev_cost = monthly_data[month_key]['cost']
         else:
+            # Carry forward previous cost
             result.append({"month": month_key, "cost": prev_cost, "tx_count": 0})
         current += relativedelta(months=1)
     

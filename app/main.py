@@ -159,26 +159,79 @@ async def chat_with_mars(req: ChatRequest):
     
     try:
         genai.configure(api_key=req.apiKey)
-        # Use premium model if possible/configured, but for now standard flash is fine for both with different prompts
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
         
+        # Construct parameters
         base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
-        
         system_prompt = (
             f"{base_prompt}\n"
             "----------------\n"
             "USER PORTFOLIO CONTEXT:\n"
             f"{req.context}"
         )
-        
-        chat = model.start_chat(history=[
+        history = [
             {"role": "user", "parts": system_prompt},
             {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
-        ])
-        
-        response = chat.send_message(req.message)
-        return {"response": response.text}
+        ]
+
+        # 1. Try Preferred Model (Quality/Pro)
+        try:
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            chat = model.start_chat(history=history)
+            response = chat.send_message(req.message)
+            return {"response": response.text}
+        except Exception as first_error:
+            # 2. If Error (404, 429, etc.), Attempt Robust Auto-Discovery
+            print(f"Default model failed ({first_error}). Attempting auto-discovery...")
+            
+            available_models = []
+            try:
+                for m in genai.list_models():
+                    if 'generateContent' in m.supported_generation_methods:
+                        available_models.append(m.name)
+            except Exception as e:
+                print(f"List models failed: {e}")
+                # If listing fails, try a hardcoded fallback list
+                available_models = ['models/gemini-1.5-pro', 'models/gemini-1.5-flash', 'models/gemini-pro']
+
+            print(f"Available models for key: {available_models}")
+            
+            # Build Candidate List based on priorities (Pro > Flash)
+            candidates = []
+            priorities = ['gemini-1.5-pro', 'gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro']
+            
+            # 1. Add Priority Matches
+            for p in priorities:
+                for avail in available_models:
+                    if p in avail and avail not in candidates:
+                        candidates.append(avail)
+            
+            # 2. Add Remaining Gemini Models
+            for avail in available_models:
+                if 'gemini' in avail and avail not in candidates:
+                    candidates.append(avail)
+
+            if not candidates:
+                 raise Exception(f"No Gemini models found. Available: {available_models}")
+
+            # Try Candidates One by One
+            last_error = first_error
+            for model_name in candidates:
+                print(f"  >> Trying candidate: {model_name}...")
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    chat = model.start_chat(history=history)
+                    response = chat.send_message(req.message)
+                    print(f"  >> Success with {model_name}!")
+                    return {"response": response.text}
+                except Exception as inner_e:
+                    print(f"  >> Failed {model_name}: {inner_e}")
+                    last_error = inner_e
+            
+            # If all failed
+            raise last_error
+
     except Exception as e:
+        print(f"Gemini Error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")

@@ -1148,6 +1148,11 @@ createApp({
                     await selectGroup(selectedGroupId.value);
                     // If history is open, refresh it
                     if (showTxHistory.value) await fetchTxHistory(showTxHistory.value);
+                    
+                    // Refresh dependent data for other tabs
+                    fetchTrendData(); 
+                    fetchPortfolioRaceData();
+                    fetchLeaderboard();
                 }
             } catch (e) { console.error('Transaction error:', e); }
         };

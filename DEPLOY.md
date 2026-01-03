@@ -1,0 +1,89 @@
+# Deployment Guide: Martian Investment System
+
+This guide covers how to deploy the "Martian" application as a **complete, all-in-one solution**.
+
+## 🏗️ Architecture Overview
+
+The Martian App is a **Monolith**:
+- **Backend**: Python (FastAPI) handles data, AI logic, and Database.
+- **Frontend**: Standard HTML/JS files served *by* the Python backend.
+
+**✅ You only need ONE host.**
+Reference the "Total Solution" section below. You do *not* need separate hosting (Netlify) for the frontend.
+
+---
+
+## 🚀 Option 1: Render (Recommended for Free Tier)
+[Render.com](https://render.com) offers a free tier for Web Services that is perfect for this application.
+
+### Steps:
+1.  **Push your code** to GitHub.
+2.  **Sign up/Log in** to Render.
+3.  Click **New +** and select **Web Service**.
+4.  Connect your `martian` GitHub repository.
+5.  **Configure the Service**:
+    - **Name**: `martian-app` (or similar)
+    - **Region**: Singapore (likely fastest for you) or Oregon.
+    - **Branch**: `master`
+    - **Runtime**: `Python 3`
+    - **Build Command**: `pip install -r requirements.txt`
+    - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+    - **Instance Type**: `Free`
+
+6.  **Environment Variables (Advanced)**:
+    You *must* set these for the app to work. Click "Advanced" -> "Add Environment Variable":
+    
+    | Key | Value (Example) |
+    | :--- | :--- |
+    | `PYTHON_VERSION` | `3.11.0` |
+    | `SECRET_KEY` | (Generate a random string) |
+    | `GOOGLE_CLIENT_ID` | (Your Google OAuth ID) |
+    | `GOOGLE_CLIENT_SECRET` | (Your Google OAuth Secret) |
+    | `GEMINI_API_KEY` | (Your Google Gemini AI Key) |
+
+7.  Click **Create Web Service**.
+
+**Wait 2-3 minutes.** Render will install dependencies and start the app. Once live, it will provide a URL like `https://martian-app.onrender.com`.
+
+---
+
+## ⚡ Option 2: Zeabur (Easiest / Best Performance)
+[Zeabur](https://zeabur.com) is extremely developer-friendly and often faster than Render's free tier.
+
+### Steps:
+1.  **Sign up** for Zeabur with GitHub.
+2.  Create a **New Project**.
+3.  Click **Deploy New Service** -> **Git**.
+4.  Select your `martian` repository.
+5.  **Zeabur will automatically detect** it is a Python app.
+6.  Go to the **Variables** tab for the service:
+    - Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`, etc.
+7.  Go to the **Networking** tab:
+    - Click "Generate Domain" or bind your own.
+
+---
+
+## 🔐 Google OAuth Configuration (Important!)
+Since you are deploying to a new public URL, you must update your Google Cloud Console:
+
+1.  Go to [Google Cloud Console](https://console.cloud.google.com/).
+2.  Navigate to **APIs & Services** -> **Credentials**.
+3.  Edit your **OAuth 2.0 Client ID**.
+4.  Add the **Authorized Redirect URI**:
+    - Format: `https://<YOUR-APP-URL>/auth/callback`
+    - Example: `https://martian-app.onrender.com/auth/callback`
+5.  Save.
+
+---
+
+## ❓ FAQ
+
+### Q: Why did Netlify show a blank page?
+**A:** Netlify only hosts "Static" files (HTML/Images). It cannot run the Python "Brain" of your app. Your app needs a server to "think" (fetch stock prices, talk to Gemini). Render/Zeabur provide that server.
+
+### Q: Is this a "Total Solution"?
+**A:** Yes! Because your `app/main.py` contains this line:
+```python
+app.mount("/", StaticFiles(directory="app/static", html=True), ...)
+```
+The Python server sends the HTML to the user's browser *and* answers the API requests. This means one deployment handles everything.

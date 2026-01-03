@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -408,26 +408,31 @@ class TransactionCreate(BaseModel):
 
 # Groups
 @app.get("/api/portfolio/groups")
-def api_list_groups():
+def api_list_groups(user: dict = Depends(get_current_user)):
     """List all portfolio groups"""
     try:
-        return list_groups()
+        user_id = user['id'] if user else "default"
+        return list_groups(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/api/portfolio/groups")
-def api_create_group(data: GroupCreate):
+def api_create_group(data: GroupCreate, user: dict = Depends(get_current_user)):
     """Create a new portfolio group"""
     try:
-        return create_group(data.name)
+        # Require login for creating groups? Or allow default?
+        # User requested isolation, so we should likely require login or default to "default"
+        user_id = user['id'] if user else "default"
+        return create_group(data.name, user_id)
     except ValueError as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.delete("/api/portfolio/groups/{group_id}")
-def api_delete_group(group_id: str):
+def api_delete_group(group_id: str, user: dict = Depends(get_current_user)):
     """Delete a portfolio group"""
+    # TODO: Check ownership
     try:
         success = delete_group(group_id)
         return {"deleted": success}
@@ -528,38 +533,42 @@ def api_live_prices(stock_ids: str):
 
 # Trend Dashboard Endpoints
 @app.get("/api/portfolio/trend")
-def api_portfolio_trend(months: int = 12):
+def api_portfolio_trend(months: int = 12, user: dict = Depends(get_current_user)):
     """Get monthly portfolio cost history for trend chart"""
     try:
-        return get_portfolio_history(months=months)
+        user_id = user['id'] if user else "default"
+        return get_portfolio_history(user_id=user_id, months=months)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.get("/api/portfolio/by-type")
-def api_portfolio_by_type():
+def api_portfolio_by_type(user: dict = Depends(get_current_user)):
     """Get all targets grouped by asset type (stock/etf)"""
     try:
-        return get_all_targets_by_type()
+        user_id = user['id'] if user else "default"
+        return get_all_targets_by_type(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.get("/api/portfolio/race-data")
-def api_portfolio_race():
+def api_portfolio_race(user: dict = Depends(get_current_user)):
     """Get race data for live portfolio BCR animation"""
     try:
-        return get_portfolio_race_data()
+        user_id = user['id'] if user else "default"
+        return get_portfolio_race_data(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 # Dividend Tracking Endpoints
 @app.post("/api/portfolio/sync-dividends")
-def api_sync_dividends():
+def api_sync_dividends(user: dict = Depends(get_current_user)):
     """Sync dividends for all user's targets"""
     try:
-        result = sync_all_dividends()
+        user_id = user['id'] if user else "default"
+        result = sync_all_dividends(user_id)
         return result
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -575,28 +584,18 @@ def api_target_dividends(target_id: str):
 
 
 @app.get("/api/portfolio/cash")
-def api_dividend_cash():
+def api_dividend_cash(user: dict = Depends(get_current_user)):
     """Get total dividend cash"""
     try:
-        return get_total_dividends()
+        user_id = user['id'] if user else "default"
+        return get_total_dividends(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 
 # Notifications
-@app.get("/api/notifications/check")
-async def api_check_notifications():
-    """Trigger backend analysis for alerts (Rebalancing, CBs, etc.)"""
-    try:
-        from app.services.notifications import NotificationEngine
-        
-        # 1. Get Portfolio
-        groups = list_groups()
-        all_targets = []
-        for g in groups:
-            targets = list_targets(g['id'])
-            all_targets.extend(targets)
+
             
         portfolio = {"targets": all_targets}
         

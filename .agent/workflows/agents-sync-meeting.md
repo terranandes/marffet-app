@@ -2,7 +2,7 @@
 description: 6 agents sync-up meeting
 ---
 
-Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] are starting a brift discussion on
+Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] are starting a brief discussion on
 - project progress
 - current bugs
 - bug triages

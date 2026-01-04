@@ -242,8 +242,10 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs text-gray-400 mb-1">{{ t('sim_start') }} (2006-2025)</label>
-                            <input v-model.number="sim.startYear" type="number" min="2006" max="2025"
+                            <label class="block text-xs text-gray-400 mb-1">{{ t('sim_start') }} (2006-{{ new
+                                Date().getFullYear() }})</label>
+                            <input v-model.number="sim.startYear" type="number" min="2006"
+                                :max="new Date().getFullYear()"
                                 class="w-full bg-black/50 border border-white/20 rounded px-3 py-2 text-sm">
                         </div>
                         <div>
@@ -1326,81 +1328,81 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Profile Modal -->
-    <div v-if="showProfileModal"
-        class="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        @click.self="showProfileModal = false">
-        <div
-            class="glass-panel p-0 rounded-xl w-full max-w-md relative bg-gray-900 border border-cyber-cyan/30 overflow-hidden">
-            <!-- Header with Banner -->
-            <div class="h-24 bg-gradient-to-r from-blue-900 to-purple-900 relative">
-                <button @click="showProfileModal = false"
-                    class="absolute top-2 right-2 text-white/50 hover:text-white text-xl z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/20">✕</button>
-                <!-- Avatar -->
-                <div
-                    class="absolute -bottom-10 left-6 w-20 h-20 rounded-full border-4 border-gray-900 overflow-hidden bg-black">
-                    <img :src="profileData?.picture || 'https://robohash.org/'+(profileData?.nickname||'user')+'?set=set4'"
-                        class="w-full h-full object-cover">
-                </div>
-            </div>
-
-            <!-- Body -->
-            <div class="pt-12 px-6 pb-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">{{ profileData?.nickname }}</h2>
-                        <p class="text-xs text-gray-400">Joined {{ profileData?.joined_at }}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="block text-2xl font-bold"
-                            :class="profileData?.roi_pct >= 0 ? 'text-green-400' : 'text-red-400'">
-                            {{ profileData?.roi_pct > 0 ? '+' : '' }}{{ profileData?.roi_pct }}%
-                        </span>
-                        <span class="text-xs text-gray-500 uppercase tracking-widest">Total ROI</span>
+        <!-- Profile Modal -->
+        <div v-if="showProfileModal"
+            class="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            @click.self="showProfileModal = false">
+            <div
+                class="glass-panel p-0 rounded-xl w-full max-w-md relative bg-gray-900 border border-cyber-cyan/30 overflow-hidden">
+                <!-- Header with Banner -->
+                <div class="h-24 bg-gradient-to-r from-blue-900 to-purple-900 relative">
+                    <button @click="showProfileModal = false"
+                        class="absolute top-2 right-2 text-white/50 hover:text-white text-xl z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/20">✕</button>
+                    <!-- Avatar -->
+                    <div
+                        class="absolute -bottom-10 left-6 w-20 h-20 rounded-full border-4 border-gray-900 overflow-hidden bg-black">
+                        <img :src="profileData?.picture || 'https://robohash.org/'+(profileData?.nickname||'user')+'?set=set4'"
+                            class="w-full h-full object-cover">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <!-- Asset Allocation Donut (CSS) -->
-                    <div class="bg-black/30 rounded-lg p-3 flex flex-col items-center justify-center">
-                        <div class="relative w-24 h-24 rounded-full"
-                            :style="`background: conic-gradient(${getDonutGradient(profileData?.allocation)})`">
-                            <div class="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
-                                <span class="text-xs text-gray-500 font-bold">Asset<br>Mix</span>
-                            </div>
+                <!-- Body -->
+                <div class="pt-12 px-6 pb-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">{{ profileData?.nickname }}</h2>
+                            <p class="text-xs text-gray-400">Joined {{ profileData?.joined_at }}</p>
                         </div>
-                        <div class="mt-2 text-xs text-gray-400 space-y-1 w-full">
-                            <div v-for="item in profileData?.allocation" :key="item.label"
-                                class="flex justify-between w-full">
-                                <span>{{ item.label }}</span>
-                                <span class="text-white">{{ item.pct }}%</span>
-                            </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-bold"
+                                :class="profileData?.roi_pct >= 0 ? 'text-green-400' : 'text-red-400'">
+                                {{ profileData?.roi_pct > 0 ? '+' : '' }}{{ profileData?.roi_pct }}%
+                            </span>
+                            <span class="text-xs text-gray-500 uppercase tracking-widest">Total ROI</span>
                         </div>
                     </div>
 
-                    <!-- Top Holdings -->
-                    <div class="bg-black/30 rounded-lg p-3">
-                        <h3 class="text-xs font-bold text-cyber-cyan mb-2 uppercase">Top Holdings</h3>
-                        <ul class="space-y-2">
-                            <li v-for="(stock, idx) in profileData?.top_holdings" :key="idx"
-                                class="flex items-center gap-2 text-sm text-gray-300">
-                                <span
-                                    class="w-5 h-5 flex items-center justify-center bg-gray-700 text-xxs rounded shrink-0">{{
-                                    idx + 1 }}</span>
-                                <span class="truncate">{{ stock.name || stock.symbol }}</span>
-                            </li>
-                            <li v-if="!profileData?.top_holdings?.length" class="text-xs text-gray-600 italic">No
-                                holdings yet</li>
-                        </ul>
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <!-- Asset Allocation Donut (CSS) -->
+                        <div class="bg-black/30 rounded-lg p-3 flex flex-col items-center justify-center">
+                            <div class="relative w-24 h-24 rounded-full"
+                                :style="`background: conic-gradient(${getDonutGradient(profileData?.allocation)})`">
+                                <div class="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
+                                    <span class="text-xs text-gray-500 font-bold">Asset<br>Mix</span>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-400 space-y-1 w-full">
+                                <div v-for="item in profileData?.allocation" :key="item.label"
+                                    class="flex justify-between w-full">
+                                    <span>{{ item.label }}</span>
+                                    <span class="text-white">{{ item.pct }}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Holdings -->
+                        <div class="bg-black/30 rounded-lg p-3">
+                            <h3 class="text-xs font-bold text-cyber-cyan mb-2 uppercase">Top Holdings</h3>
+                            <ul class="space-y-2">
+                                <li v-for="(stock, idx) in profileData?.top_holdings" :key="idx"
+                                    class="flex items-center gap-2 text-sm text-gray-300">
+                                    <span
+                                        class="w-5 h-5 flex items-center justify-center bg-gray-700 text-xxs rounded shrink-0">{{
+                                        idx + 1 }}</span>
+                                    <span class="truncate">{{ stock.name || stock.symbol }}</span>
+                                </li>
+                                <li v-if="!profileData?.top_holdings?.length" class="text-xs text-gray-600 italic">No
+                                    holdings yet</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
     <script type="module" src="/static/main.js"></script>
+    </div>
 </body>
 
 </html>

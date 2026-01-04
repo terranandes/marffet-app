@@ -2,13 +2,13 @@
 description: 6 agents sync-up meeting
 ---
 
-Here we're hold a sync-up meeting. Agents acting [PM]/[SPEC]/[PL]/[CORE]/[UI]/[CV] starting a brift meeting to discuss
-- project prgross
+Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] are starting a brift discussion on
+- project progress
 - current bugs
 - bug triages
 - performance improvement
 - features implemented
-- features unimplmented or defered
+- features unimplmented or deferred
 - features planned to next phase
 
-At the end of meeting, [PL] report to me (Terran) the summary and coordinate others agents consequtial jobs later-on 
+At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on

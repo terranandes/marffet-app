@@ -70,11 +70,11 @@ async def check_notifications(user: dict = Depends(get_current_user)):
         # Hack: We need a way to get shares.
         # Let's assume we can fetch shares from 'portfolio_db' directly or re-use logic.
         # For this prototype: Fetch all transactions and sum them up.
-        from app.portfolio_db import get_transactions
+        from app.portfolio_db import list_transactions
         
         enriched_targets = []
         for t in targets:
-            txns = get_transactions(t['id'])
+            txns = list_transactions(t['id'])
             shares = sum(tx['shares'] for tx in txns) # Simple sum (buy + sell is -shares?)
             # Wait, get_transactions returns dictionary list?
             # Standard logic: Buy is +, Sell is -
@@ -608,7 +608,13 @@ def api_dividend_cash(user: dict = Depends(get_current_user)):
 
 # Notifications
 
-            
+@app.get("/api/notifications")
+async def get_notifications(user: dict = Depends(get_current_user)):
+    """Get active alerts for the user's portfolio"""
+    try:
+        user_id = user['id'] if user else "default"
+        # 1. Fetch Portfolio Data
+        all_targets = get_all_targets_json(user_id)
         portfolio = {"targets": all_targets}
         
         # 2. Generate Alerts

@@ -503,7 +503,8 @@ createApp({
             // ROI is 0%
             path.push({ year: startYear - 1, value: wealth, cost: cost, roi: 0, id: stockId, name: 'Start' });
 
-            for (let y = startYear; y <= 2025; y++) {
+            const currentYear = new Date().getFullYear();
+            for (let y = startYear; y <= currentYear; y++) {
                 const cur = history.find(h => h.year === y);
                 const prev = history.find(h => h.year === y - 1);
 

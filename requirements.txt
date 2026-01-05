@@ -17,3 +17,4 @@ ruff
 pandera
 bandit
 itsdangerous
+python-dotenv

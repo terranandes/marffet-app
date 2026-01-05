@@ -11,4 +11,5 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - features unimplmented or deferred
 - features planned to next phase
 
-At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on
+At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
+And save the meeting node at "./meeting".

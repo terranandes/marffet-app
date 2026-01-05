@@ -499,9 +499,8 @@ createApp({
             let cost = principal;
             let path = [];
 
-            // Initial Point: Year (start-1)
-            // ROI is 0%
-            path.push({ year: startYear - 1, value: wealth, cost: cost, roi: 0, id: stockId, name: 'Start' });
+            // Initial Point Removed per user request (Project Leader)
+            // path.push({ year: startYear - 1, value: wealth, cost: cost, roi: 0, id: stockId, name: 'Start' });
 
             const currentYear = new Date().getFullYear();
             for (let y = startYear; y <= currentYear; y++) {

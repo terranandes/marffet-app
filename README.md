@@ -1,6 +1,8 @@
 # Martian Investment System 🚀
 
-A full-stack quantitative stock analysis platform integrating the **Mars Investment Method** and **Convertible Bond (CB) Arbitrage Strategies**.
+A full-stack quantitative stock analysis platform verifying that **"Time in the market beats timing the market."**
+
+Gamify your long-term investing by racing against the mechanized **Mars Strategy** and see if you can beat the market!
 
 ![Dashboard](https://via.placeholder.com/800x400?text=Martian+Dashboard+Preview)
 

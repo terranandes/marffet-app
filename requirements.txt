@@ -16,3 +16,4 @@ mypy
 ruff
 pandera
 bandit
+itsdangerous

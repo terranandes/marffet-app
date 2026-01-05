@@ -18,3 +18,4 @@ pandera
 bandit
 itsdangerous
 python-dotenv
+authlib

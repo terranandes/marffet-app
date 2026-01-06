@@ -58,6 +58,13 @@ def init_db():
         except:
             pass
 
+        # Migration: Add Leaderboard Stats columns
+        for col in ["total_wealth REAL DEFAULT 0", "total_cost REAL DEFAULT 0", "total_roi REAL DEFAULT 0", "last_synced TEXT"]:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col}")
+            except:
+                pass
+
         # User Groups
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_groups (
@@ -957,3 +964,171 @@ if __name__ == "__main__":
 else:
     # Run fix on module load to ensure existing data is corrected
     fix_asset_types()
+
+
+# ============== SOCIAL FEATURES ==============
+
+def update_user_stats(user_id: str) -> dict:
+    """
+    Calculate and cache user's total wealth/ROI for leaderboard.
+    Return: {"wealth": X, "roi": Y} or None if error.
+    """
+    try:
+        # 1. Fetch live prices for all holdings
+        targets_by_type = get_all_targets_by_type(user_id)
+        all_targets = targets_by_type['stock'] + targets_by_type['etf'] + targets_by_type['cb']
+        
+        if not all_targets:
+            return {"wealth": 0, "roi": 0}
+
+        stock_ids = list(set([t['stock_id'] for t in all_targets]))
+        live_prices = fetch_live_prices(stock_ids) # This can be slow, but it's a "Sync" action
+
+        total_cost = 0.0
+        total_value = 0.0
+        
+        # 2. Iterate and sum
+        for target in all_targets:
+            # We must get share count. simpler query than get_target_summary?
+            # Re-using get_target_summary logic is safest but heavy.
+            # Let's do a lighter query for just shares/cost.
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT type, shares, price FROM transactions WHERE target_id = ?
+                """, (target['id'],))
+                txs = cursor.fetchall()
+            
+            t_shares = 0
+            t_cost = 0.0
+            
+            for tx in txs:
+                if tx['type'] == 'buy':
+                    t_shares += tx['shares']
+                    t_cost += tx['shares'] * tx['price']
+                elif tx['type'] == 'sell':
+                    if t_shares > 0:
+                        avg = t_cost / t_shares
+                        t_shares -= tx['shares']
+                        t_cost = t_shares * avg
+            
+            if t_shares > 0:
+                # Use live price if available, else 0
+                price_info = live_prices.get(target['stock_id']) or {}
+                current_price = price_info.get('price', 0)
+                
+                market_val = t_shares * current_price
+                
+                total_cost += t_cost
+                total_value += market_val
+
+        # 3. Calculate Global ROI
+        total_roi = 0.0
+        if total_cost > 0:
+            total_roi = (total_value - total_cost) / total_cost * 100
+            
+        # 4. Update Users Table
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE users 
+                SET total_wealth = ?, total_cost = ?, total_roi = ?, last_synced = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (total_value, total_cost, total_roi, user_id))
+            
+        return {
+            "wealth": round(total_value, 2),
+            "cost": round(total_cost, 2),
+            "roi": round(total_roi, 2)
+        }
+            
+    except Exception as e:
+        print(f"[Stats Update Error] {e}")
+        return None
+
+
+def get_leaderboard(limit: int = 50) -> list:
+    """Get top users by ROI. Exclude users with < 1000 cost to prevent gamification."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, nickname, picture, total_roi, total_wealth, last_synced
+            FROM users
+            WHERE total_cost > 1000  -- Minimum invested capital to qualify
+            AND total_roi IS NOT NULL
+            ORDER BY total_roi DESC
+            LIMIT ?
+        """, (limit,))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_public_portfolio(user_id: str) -> dict:
+    """
+    Get read-only portfolio for a user (Sanitized).
+    Returns: {nickname, picture, holdings: [{ticker, name, weight_pct, roi_pct}]}
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nickname, picture, total_wealth, total_cost, total_roi, last_synced FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+    
+    if not user:
+        return None
+        
+    targets_by_type = get_all_targets_by_type(user_id)
+    all_targets = targets_by_type['stock'] + targets_by_type['etf'] + targets_by_type['cb']
+    
+    stock_ids = list(set([t['stock_id'] for t in all_targets]))
+    live_prices = fetch_live_prices(stock_ids)
+    
+    holdings = []
+    total_val = 0
+    
+    for t in all_targets:
+        price_info = live_prices.get(t['stock_id']) or {}
+        price = price_info.get('price', 0)
+        summary = get_target_summary(t['id'], current_price=price)
+        
+        if summary['total_shares'] > 0:
+            val = summary.get('market_value', 0)
+            total_val += val
+            holdings.append({
+                "ticker": t['stock_id'],
+                "name": t['stock_name'],
+                "value": val, # Temporary for sorting/weight
+                "roi_pct": summary.get('unrealized_pnl_pct', 0),
+                "asset_type": t['asset_type']
+            })
+            
+    # Normalize to Weight %
+    public_holdings = []
+    holdings.sort(key=lambda x: x['value'], reverse=True)
+    
+    # Calculate Allocation
+    alloc_map = {"stock": 0, "etf": 0, "cb": 0, "cash": 0}
+    
+    for h in holdings:
+        weight = (h['value'] / total_val * 100) if total_val > 0 else 0
+        h['weight_pct'] = round(weight, 1)
+        public_holdings.append(h)
+        
+        atype = h.get('asset_type', 'stock')
+        alloc_map[atype] = alloc_map.get(atype, 0) + weight
+        
+    allocation = []
+    for k, v in alloc_map.items():
+        if v > 0:
+            label = k.upper() if k != 'cb' else 'Bond'
+            allocation.append({"label": label, "pct": round(v, 1)})
+            
+    # Sort allocation by size
+    allocation.sort(key=lambda x: x['pct'], reverse=True)
+
+    return {
+        "nickname": user['nickname'] or "Anonymous Martian",
+        "picture": user['picture'],
+        "joined_at": user['last_synced'].split(" ")[0] if user['last_synced'] else "N/A",  # Mocking joined_at with last_synced for now
+        "roi_pct": round(user['total_roi'] or 0, 2),
+        "allocation": allocation,
+        "top_holdings": public_holdings[:5]
+    }

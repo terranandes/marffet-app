@@ -1385,6 +1385,18 @@
                         <p class="text-xs text-gray-500 mt-1">Required for AI Copilot. Stored locally.</p>
                     </div>
 
+                    <!-- Rank Sync -->
+                    <div class="mb-4 pt-4 border-t border-white/10">
+                        <label class="font-bold text-sm mb-2 block">🏆 Leaderboard Rank</label>
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-gray-400">Update your wealth stats on the global leaderboard.</p>
+                            <button @click="syncStats"
+                                class="bg-cyber-gold/20 text-cyber-gold hover:bg-cyber-gold/40 px-3 py-1 rounded text-xs font-bold border border-cyber-gold/50 transition">
+                                Sync Now
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="text-center text-xs text-gray-500 pt-2">Martian Investment v1.1.0 | {{ isPremium
                         ?
                         '⭐ Premium' : '🆓 Free Tier' }}</div>

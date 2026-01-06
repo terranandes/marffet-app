@@ -1398,6 +1398,19 @@ createApp({
             return gradient.join(', ');
         };
 
+        const syncStats = async () => {
+            try {
+                const res = await fetch('/api/portfolio/sync-stats', { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    alert(`Rank Synced! ROI: ${data.roi}%`);
+                    fetchLeaderboard(); // Refresh list if open
+                } else {
+                    alert('Sync failed.');
+                }
+            } catch (e) { console.error('Sync stats error:', e); }
+        };
+
         const updateProfile = async () => {
             if (!newNickname.value.trim()) return;
             try {
@@ -1503,7 +1516,7 @@ createApp({
             // Leaderboard
             // Leaderboard & Profile
             leaderboard, loadingLadder, newNickname, updateProfile, copyPublicLink,
-            showProfileModal, profileData, openProfile, getDonutGradient,
+            showProfileModal, profileData, openProfile, getDonutGradient, syncStats,
             showDivDetails, currentYear, raceConfig, // Dividend Modal State & Race Config
             // Settings System
             showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV, t,

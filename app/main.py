@@ -17,7 +17,13 @@ from project_tw.strategies.cb import CBStrategy
 from project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
 from app.auth import router as auth_router, get_current_user
-from app.portfolio_db import get_all_targets_by_type
+from app.portfolio_db import (
+    get_all_targets_by_type, 
+    update_user_stats, 
+    get_leaderboard, 
+    get_public_portfolio,
+    init_db
+)
 
 app = FastAPI(title="Martian Investment System")
 
@@ -561,57 +567,22 @@ async def get_public_profile_api(user_id: str):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/api/leaderboard")
-async def get_leaderboard():
-    """Calculates Live Leaderboard based on Portfolio ROI."""
-    from app.portfolio_db import get_leaderboard_candidates, get_all_targets_by_type, fetch_live_prices, get_target_summary
+@app.post("/api/portfolio/sync-stats")
+async def sync_stats(user: dict = Depends(get_current_user)):
+    """Trigger update of cached wealth/ROI stats for leaderboard"""
+    if not user: return JSONResponse(status_code=401, content={"error": "Unauthorized"})
     
-    candidates = get_leaderboard_candidates()
-    leaderboard = []
-    
-    # Pre-fetch live prices for global cache (optimization)
-    # in real world, we'd batch this. For now, per user is okay or simple global fetch?
-    # Let's do per user for simplicity.
-    
-    for cand in candidates:
-        if not cand.get('nickname'): continue 
-        
-        targets_map = get_all_targets_by_type(cand['id'])
-        all_targets = targets_map['stock'] + targets_map['etf'] + targets_map['cb']
-        
-        if not all_targets: continue
-        
-        # Calculate Total ROI
-        stock_ids = list(set(t['stock_id'] for t in all_targets))
-        if not stock_ids: continue
-        
-        prices = fetch_live_prices(stock_ids)
-        
-        total_market_value = 0
-        total_cost = 0
-        
-        for t in all_targets:
-            price = prices.get(t['stock_id'], {}).get('price', 0)
-            shares = t['total_shares']
-            if shares > 0:
-                total_market_value += shares * price
-                summary = get_target_summary(t['id'])
-                total_cost += summary['total_cost']
+    from app.portfolio_db import update_user_stats
+    result = update_user_stats(user['id'])
+    if not result:
+        return JSONResponse(status_code=500, content={"error": "Failed to sync stats"})
+    return result
 
-        if total_cost > 0:
-            roi_pct = ((total_market_value - total_cost) / total_cost) * 100
-        else:
-            roi_pct = 0
-            
-        leaderboard.append({
-            "nickname": cand['nickname'],
-            "roi": round(roi_pct, 2),
-            "picture": cand['picture'],
-            "top_stock": "㊙️"
-        })
-        
-    leaderboard.sort(key=lambda x: x['roi'], reverse=True)
-    return leaderboard[:10]
+@app.get("/api/leaderboard")
+async def fetch_leaderboard(limit: int = 50):
+    """Get public leaderboard from cached stats"""
+    from app.portfolio_db import get_leaderboard
+    return get_leaderboard(limit)
 
 class GroupCreate(BaseModel):
     name: str

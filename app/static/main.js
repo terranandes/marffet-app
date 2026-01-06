@@ -493,133 +493,130 @@ createApp({
         };
 
         // Logic: Calculate Wealth Path & Cost Path
+        // Logic: Calculate Wealth Path & Cost Path
         const calculateWealthPath = (stockId, startYear, principal, annualContrib) => {
-            const history = rawRaceData.value.filter(d => d.id === stockId).sort((a, b) => a.year - b.year);
-            let wealth = principal;
-            let cost = principal;
-            const calculateWealthPath = (stockId, startYear, principal, annualContrib) => {
-                // DEPRECATED: Logic moved to Backend (/api/race-data)
-                // This function is kept only if strictly needed by legacy calls, but returns empty.
-                return [];
-            };
-
-            // Deprecated simple recalculate, replaced above
-            // kept for matching replace if needed, but we replaced fetchMars logic to include recalculate calls
-            const old_recalculate = () => { };
-
-            // ========== EXPORT TO CSV ==========
-            const exportToCSV = () => {
-                const dataToExport = isPremium.value ? sortedMarsList.value : rawMarsData.value;
-                const headers = ['Stock ID', 'Name', 'CAGR %', 'Valid Years', 'Final Value ($)', 'Total ROI %'];
-                let csvContent = '# Martian Investment Export\n';
-                csvContent += '# Export Date: ' + new Date().toISOString() + '\n';
-                csvContent += '# Simulation: Start Year=' + sim.value.startYear + ', Principal=$' + sim.value.principal
-                    + ', Annual Contrib=$' + sim.value.contribution + '\n';
-                csvContent += '# Tier: ' + (isPremium.value ? 'Premium (Filtered)' : 'Free (Raw)') + '\n';
-                csvContent += '# ---\n';
-                csvContent += headers.join(',') + '\n';
-                dataToExport.forEach(stock => {
-                    const row = [
-                        stock.id,
-                        '"' + (stock.name || '') + '"',
-                        stock.cagr_pct || stock.cagr || 0,
-                        stock.valid_years || 0,
-                        stock.finalValue ? Math.round(stock.finalValue) : 0,
-                        stock.totalROI || 0
-                    ];
-                    csvContent += row.join(',') + '\n';
-                });
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'martian_export_' + (isPremium.value ? 'filtered' : 'raw') + '_' + Date.now() + '.csv';
-                link.click();
-                addNotification('📥 Exported ' + dataToExport.length + ' stocks to CSV');
-            };
-
-            const fetchMars = async (year) => {
-                try {
-                    // Default to 2006 if not provided
-                    const queryYear = year || sim.value.startYear || 2006;
-                    const [res1, res2] = await Promise.all([
-                        fetch('/api/results'),
-                        fetch(`/api/race-data?start_year=${queryYear}`)
-                    ]);
-                    if (res1.ok) rawMarsData.value = await res1.json();
-                    if (res2.ok) rawRaceData.value = await res2.json();
-
-                    // Trigger local recalculate logic (wealth path lines, sorting)
-                    // We pass 'false' to avoid infinite recursion if recalculate called fetchMars (it won't, but safety)
-                    processRecalculation();
-                } catch (e) { console.error(e); }
-            };
-
-            // Separate local processing from fetching
-            const processRecalculation = () => {
-                if (!rawRaceData.value.length) return;
-                isCalculating.value = true;
-                raceRendered.value = false;
-                setTimeout(() => {
-                    // 1. Group Flattened Backend Data by Stock ID
-                    const groupedData = {};
-                    rawRaceData.value.forEach(record => {
-                        const id = String(record.id);
-                        if (!groupedData[id]) groupedData[id] = [];
-
-                        // Transform backend record to frontend path format
-                        groupedData[id].push({
-                            year: record.year,
-                            value: record.wealth || record.value, // Backend now provides 'wealth'
-                            cost: 0,
-                            roi: record.roi,
-                            cagr: 0,
-                            dividend: 0,
-                            id: id,
-                            name: record.name
-                        });
-                    });
-
-                    const pathCache = new Map();
-                    const simulatedList = rawMarsData.value.map(stock => {
-                        const stockId = String(stock.id);
-
-                        // 2. Retrieve Path from Backend Data (Single Source of Truth)
-                        // Sort by year just in case
-                        const path = (groupedData[stockId] || []).sort((a, b) => a.year - b.year);
-
-                        pathCache.set(stockId, path);
-
-                        if (!path.length) return { ...stock, finalValue: 0, wealthPath: [], totalROI: 0 };
-
-                        const final = path[path.length - 1].value;
-                        // Calculate Total ROI based on Principal (Sim Params)
-                        // Local calc: 
-                        const years = path.length;
-                        const totalCost = sim.value.principal + (sim.value.contribution * years);
-                        const totalROI = totalCost > 0 ? ((final - totalCost) / totalCost * 100).toFixed(1) : 0;
-
-                        // CAGR
-                        let cagr = 0;
-                        if (sim.value.principal > 0 && final > 0) {
-                            cagr = ((Math.pow(final / sim.value.principal, 1 / years) - 1) * 100).toFixed(2);
-                        }
-
-                        return {
-                            ...stock,
-                            finalValue: final,
-                            wealthPath: path,
-                            totalROI: totalROI,
-                            cagr: cagr
-                        };
-                    });
-
-                    cachedPaths.value = pathCache;
-                    marsList.value = simulatedList;
-                    isCalculating.value = false;
-                    setTimeout(renderRaceChart, 50);
-                }, 10);
-            };
+            // DEPRECATED: Logic moved to Backend (/api/race-data)
+            // This function is kept only if strictly needed by legacy calls, but returns empty.
+            return [];
         };
+
+        // Deprecated simple recalculate, replaced above
+        // kept for matching replace if needed, but we replaced fetchMars logic to include recalculate calls
+        const old_recalculate = () => { };
+
+        // ========== EXPORT TO CSV ==========
+        const exportToCSV = () => {
+            const dataToExport = isPremium.value ? sortedMarsList.value : rawMarsData.value;
+            const headers = ['Stock ID', 'Name', 'CAGR %', 'Valid Years', 'Final Value ($)', 'Total ROI %'];
+            let csvContent = '# Martian Investment Export\n';
+            csvContent += '# Export Date: ' + new Date().toISOString() + '\n';
+            csvContent += '# Simulation: Start Year=' + sim.value.startYear + ', Principal=$' + sim.value.principal
+                + ', Annual Contrib=$' + sim.value.contribution + '\n';
+            csvContent += '# Tier: ' + (isPremium.value ? 'Premium (Filtered)' : 'Free (Raw)') + '\n';
+            csvContent += '# ---\n';
+            csvContent += headers.join(',') + '\n';
+            dataToExport.forEach(stock => {
+                const row = [
+                    stock.id,
+                    '"' + (stock.name || '') + '"',
+                    stock.cagr_pct || stock.cagr || 0,
+                    stock.valid_years || 0,
+                    stock.finalValue ? Math.round(stock.finalValue) : 0,
+                    stock.totalROI || 0
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'martian_export_' + (isPremium.value ? 'filtered' : 'raw') + '_' + Date.now() + '.csv';
+            link.click();
+            addNotification('📥 Exported ' + dataToExport.length + ' stocks to CSV');
+        };
+
+        const fetchMars = async (year) => {
+            try {
+                // Default to 2006 if not provided
+                const queryYear = year || sim.value.startYear || 2006;
+                const [res1, res2] = await Promise.all([
+                    fetch('/api/results'),
+                    fetch(`/api/race-data?start_year=${queryYear}`)
+                ]);
+                if (res1.ok) rawMarsData.value = await res1.json();
+                if (res2.ok) rawRaceData.value = await res2.json();
+
+                // Trigger local recalculate logic (wealth path lines, sorting)
+                // We pass 'false' to avoid infinite recursion if recalculate called fetchMars (it won't, but safety)
+                processRecalculation();
+            } catch (e) { console.error(e); }
+        };
+
+        // Separate local processing from fetching
+        const processRecalculation = () => {
+            if (!rawRaceData.value.length) return;
+            isCalculating.value = true;
+            raceRendered.value = false;
+            setTimeout(() => {
+                // 1. Group Flattened Backend Data by Stock ID
+                const groupedData = {};
+                rawRaceData.value.forEach(record => {
+                    const id = String(record.id);
+                    if (!groupedData[id]) groupedData[id] = [];
+
+                    // Transform backend record to frontend path format
+                    groupedData[id].push({
+                        year: record.year,
+                        value: record.wealth || record.value, // Backend now provides 'wealth'
+                        cost: 0,
+                        roi: record.roi,
+                        cagr: 0,
+                        dividend: 0,
+                        id: id,
+                        name: record.name
+                    });
+                });
+
+                const pathCache = new Map();
+                const simulatedList = rawMarsData.value.map(stock => {
+                    const stockId = String(stock.id);
+
+                    // 2. Retrieve Path from Backend Data (Single Source of Truth)
+                    // Sort by year just in case
+                    const path = (groupedData[stockId] || []).sort((a, b) => a.year - b.year);
+
+                    pathCache.set(stockId, path);
+
+                    if (!path.length) return { ...stock, finalValue: 0, wealthPath: [], totalROI: 0 };
+
+                    const final = path[path.length - 1].value;
+                    // Calculate Total ROI based on Principal (Sim Params)
+                    // Local calc: 
+                    const years = path.length;
+                    const totalCost = sim.value.principal + (sim.value.contribution * years);
+                    const totalROI = totalCost > 0 ? ((final - totalCost) / totalCost * 100).toFixed(1) : 0;
+
+                    // CAGR
+                    let cagr = 0;
+                    if (sim.value.principal > 0 && final > 0) {
+                        cagr = ((Math.pow(final / sim.value.principal, 1 / years) - 1) * 100).toFixed(2);
+                    }
+
+                    return {
+                        ...stock,
+                        finalValue: final,
+                        wealthPath: path,
+                        totalROI: totalROI,
+                        cagr: cagr
+                    };
+                });
+
+                cachedPaths.value = pathCache;
+                marsList.value = simulatedList;
+                isCalculating.value = false;
+                setTimeout(renderRaceChart, 50);
+            }, 10);
+        };
+
 
         const recalculate = () => {
             // Recalculate now implies Fetching Data from Backend to ensure Synchronization

@@ -43,7 +43,7 @@ Reference the "Total Solution" section below. You do *not* need separate hosting
 
 7.  Click **Create Web Service**.
 
-**Wait 2-3 minutes.** Render will install dependencies and start the app. Once live, it will provide a URL like `https://martian-app.onrender.com`.
+**Wait 2-3 minutes.** Render will install dependencies and start the app. Once live, it will provide a URL like `https://martian-investment.onrender.com`.
 
 ---
 
@@ -71,7 +71,7 @@ Since you are deploying to a new public URL, you must update your Google Cloud C
 3.  Edit your **OAuth 2.0 Client ID**.
 4.  Add the **Authorized Redirect URI**:
     - Format: `https://<YOUR-APP-URL>/auth/callback`
-    - Example: `https://martian-app.onrender.com/auth/callback`
+    - Example: `https://martian-investment.onrender.com/auth/callback`
 5.  Save.
 
 ---

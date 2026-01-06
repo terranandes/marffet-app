@@ -36,7 +36,8 @@ async def get_current_user(request: Request):
 @router.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for('auth_callback')
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    # Force account picker to allow switching accounts
+    return await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
 
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):

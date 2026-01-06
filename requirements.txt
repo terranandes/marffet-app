@@ -1,15 +1,16 @@
 fastapi
-uvicorn
+uvicorn[standard]
+python-multipart
 httpx
 pandas
 numpy
 yfinance
-plotly
-streamlit
-requests
 openpyxl
-lxml
-beautifulsoup4
+authlib
+itsdangerous
+python-dotenv
+requests
+# Dev/Test (Optional but kept for now)
 pytest
 pytest-asyncio
 mypy

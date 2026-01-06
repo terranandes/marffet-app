@@ -288,7 +288,8 @@
                 <div class="glass-panel rounded-xl overflow-hidden h-full flex flex-col">
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center white">
                         <div class="flex items-center gap-3">
-                            <h2 class="font-bold">Top 50 Survivors (Final Wealth)</h2>
+                            <h2 class="font-bold">Top {{ raceConfig.topN }} Survivors ({{ sim.startYear }} - {{
+                                currentYear }})</h2>
                             <!-- Loading Indicator -->
                             <div v-if="isCalculating" class="flex items-center gap-2 text-cyber-cyan animate-pulse">
                                 <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -606,6 +607,8 @@
                                     <th class="text-right p-2">{{ t('th_mkt') }}</th>
                                     <th class="text-right p-2">{{ t('th_realized') }}</th>
                                     <th class="text-right p-2">{{ t('th_unrealized') }}</th>
+                                    <th class="text-right p-2 border-l border-white/10 text-yellow-500">Div. Receipt 💰
+                                    </th>
                                     <th class="text-center p-2">{{ t('th_tx_count') }}</th>
                                     <th class="text-center p-2">{{ t('th_actions') }}</th>
                                 </tr>
@@ -661,6 +664,18 @@
                                             ({{ target.summary?.unrealized_pnl_pct?.toFixed(2) || 0 }}%)
                                         </div>
                                     </td>
+                                    <!-- Dividend Receipt (New) -->
+                                    <td class="text-right p-2 border-l border-white/10 relative group">
+                                        <div class="font-mono font-bold text-yellow-400">
+                                            {{ formatCurrency(target.summary?.total_dividend_cash || 0) }}
+                                        </div>
+                                        <!-- Details Button (Click to Open Modal) -->
+                                        <button v-if="target.summary?.dividend_history?.length"
+                                            @click="showDivDetails = target"
+                                            class="text-xs text-cyber-cyan hover:text-white underline decoration-dashed mt-1 block w-full text-right">
+                                            View Details 📄
+                                        </button>
+                                    </td>
                                     <!-- Tx Count -->
                                     <td class="text-center p-2 font-mono cursor-pointer hover:text-cyber-cyan transition underline decoration-dashed"
                                         @click="openHistory(target)">
@@ -676,12 +691,49 @@
                                     </td>
                                 </tr>
                                 <tr v-if="!groupTargets.length">
-                                    <td colspan="9" class="text-center text-gray-500 py-8">
+                                    <td colspan="10" class="text-center text-gray-500 py-8">
                                         No stocks in this group. Add one above.
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Dividend Details Modal -->
+                <div v-if="showDivDetails" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[70]"
+                    @click.self="showDivDetails = null">
+                    <div class="bg-cyber-panel p-6 rounded-xl border border-white/20 w-96 relative shadow-2xl">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-yellow-400">
+                            💰 Dividend Receipt History
+                        </h3>
+                        <div class="mb-4">
+                            <div class="text-sm text-gray-400">Target</div>
+                            <div class="text-xl font-bold">{{ showDivDetails.stock_name || showDivDetails.stock_id }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 max-h-64 overflow-y-auto mb-4 border-t border-b border-white/10 py-2">
+                            <div v-for="h in showDivDetails.summary?.dividend_history" :key="h.year"
+                                class="flex justify-between items-center p-2 hover:bg-white/5 rounded">
+                                <span class="font-mono text-cyber-cyan">{{ h.year }}</span>
+                                <div class="text-right">
+                                    <div class="font-bold text-white">+${{ h.total }}</div>
+                                    <div class="text-xs text-gray-500">{{ h.shares }} shares @ ${{ h.unit_cash }}/unit
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-gray-400 text-sm">Total Received</span>
+                            <span class="text-xl font-bold text-yellow-400">
+                                {{ formatCurrency(showDivDetails.summary?.total_dividend_cash || 0) }}
+                            </span>
+                        </div>
+
+                        <button @click="showDivDetails = null"
+                            class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
                     </div>
                 </div>
 
@@ -1176,7 +1228,18 @@
 
                     <!-- Chart -->
                     <div class="glass-panel p-4 rounded-xl">
-                        <h3 class="font-bold mb-2">Stock Market Value (Wealth Path)</h3>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold">{{ resultTab === 'wealth' ? 'Stock Market Value (Wealth Path)' :
+                                'Yearly Cash Div. Received' }}</h3>
+                            <div class="flex bg-gray-800 rounded p-1 gap-1">
+                                <button @click="resultTab = 'wealth'; renderDetailChart(detailStock)"
+                                    :class="resultTab === 'wealth' ? 'bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,242,234,0.4)]' : 'text-gray-400 hover:text-white'"
+                                    class="px-3 py-1 rounded text-xs font-bold transition">Wealth</button>
+                                <button @click="resultTab = 'dividend'; renderDetailChart(detailStock)"
+                                    :class="resultTab === 'dividend' ? 'bg-[#ff0055] text-white shadow-[0_0_10px_rgba(255,0,85,0.4)]' : 'text-gray-400 hover:text-white'"
+                                    class="px-3 py-1 rounded text-xs font-bold transition">Dividend</button>
+                            </div>
+                        </div>
                         <div id="detail-chart" class="h-[300px]"></div>
                     </div>
                 </div>

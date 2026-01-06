@@ -245,31 +245,240 @@ def get_results():
     except Exception as e:
         return {"error": str(e)}
 
+# Global Dividend Database (Cash per Share)
+# Initialize with Critical Hardcoded Data (Safety Baseline)
+DIVIDENDS_DB = {
+    "2330": {
+        2006: {'cash': 2.39}, 2007: {'cash': 2.95}, 2008: {'cash': 2.99}, 2009: {'cash': 2.98}, 2010: {'cash': 3.00},
+        2011: {'cash': 3.00}, 2012: {'cash': 3.00}, 2013: {'cash': 3.00}, 2014: {'cash': 3.00}, 2015: {'cash': 4.50},
+        2016: {'cash': 6.00}, 2017: {'cash': 7.00}, 2018: {'cash': 8.00}, 2019: {'cash': 12.5}, 2020: {'cash': 10.0},
+        2021: {'cash': 10.5}, 2022: {'cash': 11.0}, 2023: {'cash': 11.5}, 2024: {'cash': 15.0}, 2025: {'cash': 19.0}
+    },
+    "5904": {
+            2008: {'cash': 1.78}, 2009: {'cash': 1.80}, 2010: {'cash': 0.38}, 2011: {'cash': 2.54}, 2012: {'cash': 2.97},
+            2013: {'cash': 3.79}, 2014: {'cash': 4.43}, 2015: {'cash': 6.97}, 2016: {'cash': 8.29}, 2017: {'cash': 10.29},
+            2018: {'cash': 12.62}, 2019: {'cash': 15.29}, 2020: {'cash': 16.60}, 2021: {'cash': 18.16}, 2022: {'cash': 11.00},
+            2023: {'cash': 24.14}, 2024: {'cash': 21.00}, 2025: {'cash': 23.00} 
+    }
+}
+
+# Try to load full dataset and MERGE (Overwrite hardcoded if data exists)
+import json, os
+DIVIDENDS_FILE = "data/dividends_all.json"
+if os.path.exists(DIVIDENDS_FILE):
+    try:
+        with open(DIVIDENDS_FILE, "r") as f:
+            json_data = json.load(f)
+            # Merge: update() adds new keys and overwrites existing ones
+            DIVIDENDS_DB.update(json_data)
+            # print(f"Loaded {len(json_data)} stocks from DB (Merged)")
+    except Exception as e:
+        print(f"Error loading dividends: {e}")
+
+
+@app.get("/api/stock/{stock_id}/history")
+def get_stock_history(stock_id: str):
+    """Return detailed yearly history for simulation (Prices + Dividends)"""
+    import json, os
+    history = []
+    
+    try:
+        # Convert Stock ID to string key
+        sid = str(stock_id)
+        
+        for year in range(2006, 2026):
+            year_str = str(year) # Keys in JSON might be strings or ints depending on saving?
+            # Start/End price logic...
+            price_file = f"data/raw/Market_{year}_Prices.json"
+            start_price = 0
+            end_price = 0
+            
+            if os.path.exists(price_file):
+                with open(price_file, "r") as f:
+                    pdata = json.load(f)
+                    if sid in pdata:
+                        start_price = pdata[sid].get('start', 0)
+                        end_price = pdata[sid].get('end', 0)
+            
+            # Get Dividend using Generalized DB
+            # DB Structure might be: { "2330": { "2020": { "cash": 10.0, "stock_split": 1.0 } } }
+            div_info = DIVIDENDS_DB.get(sid, {}).get(year_str) or DIVIDENDS_DB.get(sid, {}).get(year, {})
+            
+            # Handle old structure vs new full structure
+            div_cash = 0
+            stock_split = 1.0
+            
+            if isinstance(div_info, dict):
+                div_cash = div_info.get('cash', 0)
+                stock_split = div_info.get('stock_split', 1.0)
+            elif isinstance(div_info, (int, float)):
+                div_cash = div_info # Backward compat with simple float map
+            
+            # Only append if we have valid price data
+            if start_price > 0:
+                history.append({
+                    "year": year,
+                    "price_start": start_price,
+                    "price_end": end_price,
+                    "div_cash": div_cash,
+                    "stock_div": stock_split # Renamed for clarity in frontend? Or just use same?
+                })
+        
+        return history
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/api/race-data")
-def get_race_data():
-    """Return year-by-year ranking data for Bar Chart Race"""
+def get_race_data(start_year: int = 2006):
+    """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
         df = pd.read_excel("project_tw/output/stock_list_s2006e2025_filtered.xlsx")
+        df = df.fillna(0) # Ensure no NaNs
         
+        # DIVIDENDS_DB is loaded globally
+        
+        # Pre-load ALL Price Data (Performance Optimization)
+        # Structure: PRICES_DB[year][stock_id] = {'start': x, 'end': y}
+        PRICES_DB = {}
+        import json, os
+        # Load up to current year if possible, or 2026
+        for year in range(2006, 2026):
+            p_file = f"data/raw/Market_{year}_Prices.json"
+            if os.path.exists(p_file):
+                try:
+                    with open(p_file, "r") as f:
+                        PRICES_DB[year] = json.load(f)
+                except:
+                    PRICES_DB[year] = {}
+            else:
+                PRICES_DB[year] = {}
+
         race_data = []
         year_cols = [c for c in df.columns if 'bao' in c]
         
+        # Filter Columns for Dynamic Start Year
+        # Assumes cols are like 'bao2006e', 'bao2007e'... (Check logic below)
+        # Actually logic extracts year in loop. We can just skip inside loop or pre-filter.
+        
+        # Simulation Parameters
+        SIM_PRINCIPAL = 1_000_000
+        SIM_CONTRIB = 60_000
+
         for _, row in df.iterrows():
+            stock_id = str(row['id'])
+            
+            # Simulation State for this Stock
+            shares = 0
+            cost = 0
+            wealth = 0
+            prev_wealth = 0
+            
+            # Initial Purchase at USER SELECTED Start Year
+            # Try to get start price of start_year
+            start_price_initial = PRICES_DB.get(start_year, {}).get(stock_id, {}).get('start', 0)
+            if start_price_initial > 0:
+                shares = SIM_PRINCIPAL / start_price_initial
+                cost = SIM_PRINCIPAL
+                prev_wealth = SIM_PRINCIPAL
+            
             for col in year_cols:
                 try:
-                    # Format: s2006e2007bao
                     year_str = col.split('e')[1][:4]
-                    val = row[col]
+                    year = int(year_str)
                     
-                    if pd.notnull(val) and val != 0:
-                        race_data.append({
-                            "year": int(year_str),
-                            "id": str(row['id']),
+                    # SKIP years before start_year
+                    if year < start_year:
+                        continue
+                        
+                    excel_roi = row[col] # Price ROI %
+                    
+                    # Fetch Price Data
+                    y_data = PRICES_DB.get(year, {}).get(stock_id, {})
+                    start_price = y_data.get('start', 0)
+                    end_price = y_data.get('end', 0)
+                    
+                    if start_price > 0:
+                        # If we have valid price data, use Share Accumulation Logic
+                        
+                        # 1. Initialize if not yet (e.g. IPO later than 2006)
+                        if shares == 0 and cost == 0:
+                            shares = SIM_PRINCIPAL / start_price
+                            cost = SIM_PRINCIPAL
+                            prev_wealth = SIM_PRINCIPAL
+
+                        # 2. Get Dividend (Cash + Stock)
+                        div_info = DIVIDENDS_DB.get(stock_id, {}).get(str(year)) or DIVIDENDS_DB.get(stock_id, {}).get(year, {})
+                        
+                        div_cash = 0
+                        stock_split = 1.0
+                        
+                        if isinstance(div_info, dict):
+                            div_cash = div_info.get('cash', 0)
+                            stock_split = div_info.get('stock_split', 1.0)
+                        elif isinstance(div_info, (int, float)):
+                            div_cash = div_info
+
+                        # 3. Process Year
+                        
+                        # A. Stock Dividend (Ex-Rights) - Happens usually mid-year, but we apply to held shares
+                        # Shares increase by factor
+                        # In TW, 1.05 means 5% stock dividend.
+                        if stock_split > 1.0:
+                             shares = shares * stock_split
+
+                        # B. Cash Dividend Reinvestment
+                        cash_received = shares * div_cash
+                        
+                        # Reinvest Dividend + Contribution at Avg Price
+                        if end_price == 0:
+                             end_price = start_price * (1 + excel_roi/100)
+                        
+                        avg_price = (start_price + end_price) / 2
+                        
+                        total_cash_in = cash_received + SIM_CONTRIB
+                        new_shares_bought = total_cash_in / avg_price
+                        
+                        shares += new_shares_bought
+                        cost += SIM_CONTRIB
+                        
+                        wealth = shares * end_price
+                        
+                        # 4. Calculate Effective ROI for Frontend
+                        # Formula: ROI = ((Wealth_End - Contrib) / Wealth_Start) - 1
+                        # Wealth_Start here is 'prev_wealth' (End of last year)
+                        
+                        if prev_wealth > 0:
+                            effective_roi = ((wealth - SIM_CONTRIB) / prev_wealth - 1) * 100
+                        else:
+                            effective_roi = excel_roi 
+
+                        final_roi = effective_roi
+                        
+                        # Yield for reference
+                        div_yield = (div_cash / start_price * 100)
+                        
+                        prev_wealth = wealth # Update for next loop
+
+                    else:
+                        # Fallback to Excel Data if no detailed price JSON
+                        final_roi = excel_roi
+                        div_yield = 0
+                        if prev_wealth > 0:
+                             prev_wealth = prev_wealth * (1 + final_roi/100) + SIM_CONTRIB
+
+                    if pd.notnull(final_roi) and final_roi != 0:
+                         race_data.append({
+                            "year": year,
+                            "id": stock_id,
                             "name": row['name'],
-                            "roi": round(val, 2), # ROI %
-                            "value": round(val, 2) # For chart
+                            "roi": round(final_roi, 2),
+                            "value": round(wealth, 0), # Return Wealth ($) for Race/Table
+                            "wealth": round(wealth, 0),
+                            "div_yield": round(div_yield, 2)
                         })
-                except: pass
+
+                except Exception as loop_e:
+                     pass
                 
         return race_data
     except Exception as e:

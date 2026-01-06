@@ -304,7 +304,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT type, shares, price FROM transactions WHERE target_id = ? ORDER BY date",
+            "SELECT type, shares, price, date FROM transactions WHERE target_id = ? ORDER BY date",
             (target_id,)
         )
         transactions = cursor.fetchall()
@@ -330,12 +330,94 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
     
     avg_cost = total_cost / total_shares if total_shares > 0 else 0
     
+    # --- Dividend Calculation (Portfolio Receipt) ---
+    dividend_history = []
+    total_div_cash = 0.0
+    
+    try:
+        # 1. Load Dividend DB (Lazy load or cached)
+        # TODO: Optimize to not load file every time? OS file cache handles it usually.
+        import json, os
+        div_db = {}
+        div_file = "data/dividends_all.json" # Adjust path relative to CWD
+        
+        # Determine stock ID for lookup
+        # Need to fetch stock_id from group_targets first?
+        # get_target_summary only takes target_id, so we need to query stock_id
+        with get_db() as conn:
+            row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
+            stock_id = row['stock_id'] if row else None
+            
+        if stock_id and os.path.exists(div_file):
+            with open(div_file, "r") as f:
+                full_db = json.load(f)
+                div_db = full_db.get(str(stock_id), {})
+            
+            # Additional Hardcoded Backup for critical stocks (Merge Logic duplicate)
+            # (Ideally this should be shared, but copying for safety in DB layer)
+            if str(stock_id) == "2330" and not div_db:
+                 print(f"[DEBUG] 2330 fallback triggered (DB empty)")
+                 div_db = {
+                    "2023": {"cash": 11.5}, "2024": {"cash": 15.0}, "2025": {"cash": 19.0}
+                 }
+            
+            print(f"[DEBUG] Dividend Calc for {stock_id}: Found {len(div_db)} years. Keys: {list(div_db.keys())[:5]}")
+
+            # 2. Replay Holdings to find Shares on Ex-Date
+            # Approximation: Ex-Date = July 1st of each year
+            # Sort tx by date
+            sorted_tx = sorted(transactions, key=lambda t: t['date'])
+            print(f"[DEBUG] Tx Count: {len(sorted_tx)}")
+            
+            # Range of years to check
+            start_year = 2006
+            current_year = date.today().year
+            
+            for y in range(start_year, current_year + 1):
+                year_str = str(y)
+                div_info = div_db.get(year_str) or div_db.get(y)
+                
+                if not div_info: continue
+                
+                # Get Cash Div amount
+                u_cash = 0
+                if isinstance(div_info, dict): u_cash = div_info.get('cash', 0)
+                elif isinstance(div_info, (int, float)): u_cash = div_info
+                
+                if u_cash <= 0: continue
+                
+                # Calculate shares held on July 1st of Year Y
+                ex_date = f"{y}-07-01"
+                shares_on_ex = 0
+                
+                for t in sorted_tx:
+                    if t['date'] <= ex_date:
+                        if t['type'] == 'buy': shares_on_ex += t['shares']
+                        elif t['type'] == 'sell': shares_on_ex -= t['shares']
+                    else:
+                        break # Sorted, so can stop
+                
+                if shares_on_ex > 0:
+                    received = shares_on_ex * u_cash
+                    total_div_cash += received
+                    dividend_history.append({
+                        "year": y,
+                        "shares": shares_on_ex,
+                        "unit_cash": u_cash,
+                        "total": round(received, 2)
+                    })
+
+    except Exception as e:
+        print(f"Dividend calc error: {e}")
+
     result = {
         "total_shares": total_shares,
         "avg_cost": round(avg_cost, 2),
         "total_cost": round(total_cost, 2),
         "realized_pnl": round(realized_pnl, 2),
-        "tx_count": tx_count
+        "tx_count": tx_count,
+        "total_dividend_cash": round(total_div_cash, 2),
+        "dividend_history": dividend_history
     }
     
     if current_price is not None and total_shares > 0:

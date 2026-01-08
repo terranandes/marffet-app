@@ -815,3 +815,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.get("/")
 async def read_index():
     return FileResponse("app/static/index.html")
+
+if __name__ == "__main__":
+    import uvicorn
+    # Use 0.0.0.0 to make it accessible if needed, or 127.0.0.1 for local
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

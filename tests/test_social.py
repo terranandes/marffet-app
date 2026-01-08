@@ -39,13 +39,63 @@ def setup_test_data():
         # 4. Create Transaction (Buy)
         cursor.execute("DELETE FROM transactions WHERE target_id = ?", ("target_test_001",))
         cursor.execute("""
-            INSERT INTO transactions (id, target_id, type, date, shares, price, fees, currency, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, ("tx_test_001", "target_test_001", "buy", "2020-01-01", 1000, 500.0, 0, "TWD", "Initial Buy"))
+            INSERT INTO transactions (id, target_id, type, date, shares, price)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, ("tx_test_001", "target_test_001", "buy", "2020-01-01", 1000, 500.0))
         
         conn.commit()
 
 # ...
+
+def verify_logic():
+    print("🧪 Verifying Logic...")
+    
+    # 1. Update Stats
+    print("   Running update_user_stats...")
+    stats = update_user_stats(TEST_USER_ID)
+    print(f"   Stats: {stats}")
+    
+    # Verify ROI calculation
+    # Cost = 1000 * 500 = 500,000
+    # Value = 1000 * 600 (Current Price) = 600,000
+    # ROI = (600k - 500k) / 500k = 0.20 (20%)
+    expected_roi = 20.0
+    if abs(stats['roi'] - expected_roi) > 0.1:
+        print(f"❌ ROI Mismatch! Expected {expected_roi}, Got {stats['roi']}")
+        exit(1)
+        
+    # 2. Check Leaderboard
+    print("   Checking Leaderboard...")
+    leaderboard = get_leaderboard()
+    found = False
+    for user in leaderboard:
+        if user['id'] == TEST_USER_ID:
+            found = True
+            if user['total_roi'] != stats['roi']:
+                print(f"❌ Leaderboard ROI mismatch")
+                exit(1)
+            print("   ✅ User found in leaderboard with correct ROI")
+            
+    if not found:
+        print("❌ User NOT found in leaderboard")
+        exit(1)
+
+    # 3. Check Public Portfolio
+    print("   Checking Public Portfolio...")
+    public_data = get_public_portfolio(TEST_USER_ID)
+    
+    # Verify Privacy (Should NOT have email or sensitive fields)
+    if 'email' in public_data:
+        print("❌ Privacy Fail: Email exposed in public profile")
+        exit(1)
+        
+    # Verify Holdings
+    holdings = public_data.get('top_holdings', [])
+    if not holdings or holdings[0]['ticker'] != TEST_STOCK_ID:
+        print(f"❌ Public Profile holdings mismatch. Got: {holdings}")
+        exit(1)
+        
+    print("✅ All Logic Verified!")
 
 def cleanup():
     print("🧹 Cleanup...")

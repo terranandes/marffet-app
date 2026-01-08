@@ -64,6 +64,7 @@ A: **Partially.** GitHub Pages only hosts static websites (HTML/JS). This app re
 
 **Q: Where should I deploy it?**
 A: We recommend using a service that supports Docker or Python/Node apps, such as:
+-   **Zeabur**
 -   **Render** (Free tier available)
 -   **Railway**
 -   **Heroku**

@@ -48,7 +48,8 @@ def verify_targets():
         last_year = None
         
         for year in range(2006, 2026):
-            if stock_id in prices_db.get(year, {}):
+            p_data = prices_db.get(year, {}).get(stock_id)            
+            if p_data:
                 years_with_data += 1
                 if first_year is None: first_year = year
                 last_year = year

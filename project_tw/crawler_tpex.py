@@ -170,7 +170,8 @@ class TPEXCrawler:
                         if code and code.strip():
                             # Filter: Keep only Stocks (4 digits) or ETFs (6 digits starting with 00)
                             c = code.strip()
-                            if (len(c) == 4 and c.isdigit()) or (len(c) == 6 and c.startswith('00') and c.isdigit()):
+                            is_bond_etf = len(c) == 6 and c.startswith('00') and c.endswith('B')
+                            if (len(c) == 4 and c.isdigit()) or (len(c) == 6 and c.startswith('00') and c.isdigit()) or is_bond_etf:
                                 codes.append(c)
         except Exception as e:
             print(f"Error getting universe: {e}")

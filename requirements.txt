@@ -10,13 +10,11 @@ authlib
 itsdangerous
 python-dotenv
 requests
-# Dev/Test (Optional but kept for now)
+google-generativeai
+# Dev/Test
 pytest
 pytest-asyncio
 mypy
 ruff
 pandera
 bandit
-itsdangerous
-python-dotenv
-authlibopenpyxl==3.1.5

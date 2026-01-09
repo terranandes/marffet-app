@@ -164,27 +164,34 @@ async def chat_with_mars(req: ChatRequest):
         return JSONResponse(status_code=400, content={"error": "Missing API Key"})
     
     try:
-        genai.configure(api_key=req.apiKey)
-        
-        # Construct parameters
-        base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
-        system_prompt = (
-            f"{base_prompt}\n"
-            "----------------\n"
-            "USER PORTFOLIO CONTEXT:\n"
-            f"{req.context}"
-        )
-        history = [
-            {"role": "user", "parts": system_prompt},
-            {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
-        ]
+        from starlette.concurrency import run_in_threadpool
 
-        # 1. Try Preferred Model (Quality/Pro)
-        try:
+        # Helper for blocking GenAI call
+        def generate_response():
+            genai.configure(api_key=req.apiKey)
+            
+            # Construct parameters
+            base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
+            system_prompt = (
+                f"{base_prompt}\n"
+                "----------------\n"
+                "USER PORTFOLIO CONTEXT:\n"
+                f"{req.context}"
+            )
+            history = [
+                {"role": "user", "parts": system_prompt},
+                {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
+            ]
+
             model = genai.GenerativeModel('gemini-1.5-pro')
             chat = model.start_chat(history=history)
             response = chat.send_message(req.message)
-            return {"response": response.text}
+            return response.text
+
+        # Run in threadpool to avoid blocking async loop
+        try:
+            response_text = await run_in_threadpool(generate_response)
+            return {"response": response_text}
         except Exception as first_error:
             # 2. If Error (404, 429, etc.), Attempt Robust Auto-Discovery
             print(f"Default model failed ({first_error}). Attempting auto-discovery...")
@@ -338,7 +345,7 @@ def get_stock_history(stock_id: str):
 def get_race_data(start_year: int = 2006):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
-        df = pd.read_excel("project_tw/output/stock_list_s2006e2025_filtered.xlsx")
+        df = pd.read_excel("references/stock_list_s2006e2025_filtered.xlsx")
         df = df.fillna(0) # Ensure no NaNs
         
         # DIVIDENDS_DB is loaded globally
@@ -358,6 +365,16 @@ def get_race_data(start_year: int = 2006):
                     PRICES_DB[year] = {}
             else:
                 PRICES_DB[year] = {}
+                
+            # Load TPEx Prices (OTC)
+            tpex_file = f"data/raw/TPEx_Market_{year}_Prices.json"
+            if os.path.exists(tpex_file):
+                try:
+                    with open(tpex_file, "r") as f:
+                        tpex_data = json.load(f)
+                        PRICES_DB[year].update(tpex_data)
+                except:
+                    pass
 
         race_data = []
         year_cols = [c for c in df.columns if 'bao' in c]

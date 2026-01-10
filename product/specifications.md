@@ -25,18 +25,28 @@ The `GET /api/public/profile/{user_id}` endpoint exposes only relative metrics:
 ## 3. Technology Stack
 
 ### 3.1 Backend
--   **Language**: Python 3.11+
--   **Framework**: FastAPI
--   **Database**: SQLite (with `app/portfolio_db.py` abstraction layer)
--   **AI Integration**: Google Generative AI (Gemini) SDK
+-   **Language**: Python 3.10+
+-   **Framework**: FastAPI (AsyncIO)
+-   **Database**: SQLite (managed via `app/portfolio_db.py`)
+-   **Authentication**: Google OAuth 2.0 (via `authlib`)
+-   **Data Source**:
+    -   **TWSE/TPEx**: Daily price crawling via `project_tw` crawlers.
+    -   **Cache**: JSON-based flat file cache (`data/raw/*.json`) for performance.
+    -   **Golden Source**: `references/stock_list_s2006e2025_filtered.xlsx`.
 
 ### 3.2 Frontend
--   **Core**: HTML5, Vanilla JavaScript (ES Module-based)
--   **Framework**: Vue.js 3 (CDN/ESM build)
+-   **Framework**: Vue.js 3 (ES Module Build / Composition API)
 -   **Styling**: Tailwind CSS (CDN)
--   **Visualization**: Plotly.js (Charts), D3.js (Bar Chart Race)
+-   **Visualization**: Plotly.js (Wealth Charts)
+-   **State Management**: Vue `ref`/`reactive` (Local State)
 
-## 4. MCP Integration (Tooling)
--   **Playwright**: For End-to-End UI testing.
--   **Chrome DevTools**: For deep browser inspection and console log analysis.
--   **Tavily**: For retrieving external financial news/data.
+## 4. System Capabilities & Limitations
+
+### 4.1 Data Integrity
+-   **Coverage**: Supports TWSE (Mainboard) and TPEx (OTC) markets, including Bond ETFs.
+-   **Verification**: Automated `verify_targets.py` script validates simulation data against the Golden Excel source.
+-   **Latency**: Blocking AI operations are offloaded to threadpools to ensure non-blocking UI.
+
+### 4.2 Known Constraints
+-   **Google Auth**: Requires strict URI matching (`http://127.0.0.1:8000` vs `localhost`).
+-   **Delisted Stocks**: Historical data for delisted stocks may be incomplete if not present in Yahoo Finance.

@@ -7,22 +7,25 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 
 ## 2. Key Features
 
-### 2.1 Mars Strategy (The Benchmark)
--   **Concept**: A mechanized Cash-Ladder strategy.
--   **Simulation**: Visualizes wealth accumulation from 2006 to Present (Dynamic Current Year).
--   **Dynamic Recalculation**: Users can adjust Start Year, Initial Capital, and Annual Contribution to see different "What If" scenarios.
+### 1. The "Mars" Strategy Simulation
+-   **Philosophy**: "Time in the market beats timing the market."
+-   **Mechanism**:
+    -   Filters stocks via Low Volatility & High Efficiency (Gaussian Filter).
+    -   Simulates annual contributions ($60k/year) + Dividend Reinvestment (DRIP) from **2006 to Present**.
+    -   **Dynamic Start Year**: Users can benchmark performance starting from any year (e.g., 2024).
+-   **Data Coverage**: Supports TWSE (Mainboard), TPEx (OTC), and **Bond ETFs** (e.g., 00679B).
 
-### 2.2 My Race (The Challenger)
--   **Concept**: User-driven portfolio generation.
--   **Visualization**: A "Bar Chart Race" comparing the user's selected stocks against the Mars Strategy year-over-year.
--   **Goal**: Beat the Mars Strategy's CAGR and Final Wealth.
+### 2. Social Leaderboard (Community)
+-   **Rankings**: See how your portfolio ROI stacks up against other "Martians".
+-   **Public Profiles**: Share read-only views of your Asset Allocation and Top Holdings (without exposing sensitive dollar values).
+-   **Privacy-First**: PII (Emails) and net worth are strictly hidden from public APIs.
 
-### 2.3 Social Leaderboard ("Competition without Exposure")
--   **Concept**: Anonymous competition based on performance metrics, not absolute wealth.
--   **Privacy**: Displays Nickname, ROI%, and Asset Allocation. Hides Net Worth ($) and specific transaction volumes.
--   **Engagement**: Users can view "Public Profiles" of top performers to learn from their allocation strategies.
+### 3. Investment Visualization
+-   **Wealth Path**: Interactive charts showing Net Worth growth vs. Benchmark.
+-   **Dividend Receipts**: Granular breakdown of annual cash flow from dividends.
+-   **Survivors Table**: identifying the "Thrivers" of the market over 20 years.
 
-### 2.4 AI Copilot (Powered by Gemini)
+### 4. AI Copilot (Powered by Gemini)
 -   **Role**: An intelligent investment assistant.
 -   **Features**:
     -   Explains financial concepts (e.g., "What is CAGR?").

@@ -41,22 +41,39 @@ If you prefer to run it on your own machine:
 -   Python 3.10+
 -   Node.js 18+
 
-### Setup
+### Setup (Fast Path with `uv`)
+
+We recommended `uv` for 10x faster setup.
+
 1.  **Clone the repo**:
     ```bash
     git clone https://github.com/your-username/martian.git
     cd martian
     ```
 
-2.  **Run the App (Auto-Setup)**:
+2.  **Initialize & Run**:
     ```bash
-    ./start_app.sh
+    # Install uv (if you haven't yet)
+    # curl -LsSf https://astral.sh/uv/install.sh | sh
+    # source $HOME/.local/bin/env
+    
+    # Run the app directly (uv handles the venv for you!)
+    uv run uvicorn app.main:app
     ```
-    *The script will automatically create the Python environment and install all dependencies.*
+    *Open `http://localhost:8000` in your browser.*
 
----
+### Alternative (Standard Pip)
+If you prefer legacy tools:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000
+```
 
-## 📦 Deployment FAQ
+4.  **Important**: Google Sign-In requires your `GOOGLE_CLIENT_ID` and `SECRET` in `.env`.
+    *   Ensure your Google Cloud Console has `http://localhost:8000/auth/callback` added to "Authorized Redirect URIs".
+    *   If you see `Error 400: redirect_uri_mismatch`, check if you are accessing via `127.0.0.1` vs `localhost`.
 
 **Q: Can I host this on GitHub Pages?**
 A: **Partially.** GitHub Pages only hosts static websites (HTML/JS). This app requires a Python backend to fetch stock data (TWSE) and calculate metrics.

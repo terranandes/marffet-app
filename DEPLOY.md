@@ -55,7 +55,8 @@ Reference the "Total Solution" section below. You do *not* need separate hosting
 2.  Create a **New Project**.
 3.  Click **Deploy New Service** -> **Git**.
 4.  Select your `martian` repository.
-5.  **Zeabur will automatically detect** it is a Python app.
+5.  **Zeabur will automatically detect** it is a Python app (via `requirements.txt`).
+    -   *Note*: We use `uv` locally, but we have exported a standard `requirements.txt` so Zeabur's build system works out-of-the-box (`pip install -r requirements.txt`).
 6.  Go to the **Variables** tab for the service:
     - Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`, etc.
 7.  Go to the **Networking** tab:

@@ -9,14 +9,18 @@
     -   Core Endpoints: `/`, `/api/leaderboard`, `/api/public/profile/{id}`.
 -   **When to Run**: Pre-commit, Post-deployment.
 
-### 1.2 Frontend UI Automation (Planned)
+### 1.3 Data Integrity Verification (Automated)
+-   **Tool**: `verify_targets.py`
+-   **Scope**:
+    -   Validates numeric correlation between Simulation Logic and Golden Excel (`stock_list_s2006e2025_filtered.xlsx`).
+    -   Checks data availability for all 1800+ targets (TWSE, TPEx, Bond ETFs).
+-   **When to Run**: Weekly or after major crawler updates.
+
+### 1.4 Frontend UI Automation (Planned)
 -   **Tool**: Playwright (via `mcp-playwright`).
 -   **Scope**:
-    -   User Login Flow.
+    -   User Login Flow (**Pre-requisite**: Must execute on host with valid Google Auth Redirect URI).
     -   "Mars Strategy" Tab: Verify simulation chart renders.
-    -   "My Race" Tab: Verify D3 chart renders.
-    -   Profile Modal: Verify visibility and data correctness.
--   **Current Status**: Environment limitation (missing `libnspr4.so`) prevents running in current workspace. Planned for CI/CD environment or local developer machine.
 
 ## 2. Manual Verification Checklist
 1.  **Load App**: Check for console errors in DevTools.

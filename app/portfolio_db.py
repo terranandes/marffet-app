@@ -364,7 +364,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
         # TODO: Optimize to not load file every time? OS file cache handles it usually.
         import json, os
         div_db = {}
-        div_file = "data/dividends_all.json" # Adjust path relative to CWD
+        div_file = Path(__file__).parent.parent / "data/dividends_all.json"
         
         # Determine stock ID for lookup
         # Need to fetch stock_id from group_targets first?

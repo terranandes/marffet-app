@@ -12,6 +12,14 @@ GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 SECRET_KEY = os.getenv('SECRET_KEY', secrets.token_hex(32))
 
+# GM Admin Whitelist (Comma-separated emails from .env)
+GM_EMAILS = set(
+    email.strip() 
+    for email in os.getenv('GM_EMAILS', '').split(',') 
+    if email.strip()
+)
+
+
 router = APIRouter()
 oauth = OAuth(Config(environ=os.environ))
 
@@ -33,6 +41,16 @@ async def get_current_user(request: Request):
         return user
     return None
 
+# Dependency to require admin access (GM only)
+async def get_admin_user(request: Request):
+    """Require admin access. Returns user if authorized, raises 403 otherwise."""
+    user = request.session.get('user')
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    if user.get('email') not in GM_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
 @router.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for('auth_callback')
@@ -52,14 +70,16 @@ async def auth_callback(request: Request):
                 'email': user['email'],
                 'picture': user['picture']
             }
-            # Sync user to DB
-            from .portfolio_db import get_db
+            # Sync user to DB and log activity
+            from .portfolio_db import get_db, log_activity
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT OR REPLACE INTO users (id, email, name, picture) VALUES (?, ?, ?, ?)",
                     (user['sub'], user['email'], user['name'], user['picture'])
                 )
+            # Log login activity
+            log_activity(user['sub'], 'web', 'login')
         return RedirectResponse(url='/')
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
@@ -76,5 +96,8 @@ async def get_me(user: dict = Depends(get_current_user)):
     from .portfolio_db import get_user_public_profile
     # Fetch fresh DB data (e.g. nickname)
     db_profile = get_user_public_profile(user['id'])
+    # Check if user is admin
+    is_admin = user.get('email') in GM_EMAILS
     # Merge DB data into session data for response
-    return {**user, **db_profile}
+    return {**user, **db_profile, "is_admin": is_admin}
+

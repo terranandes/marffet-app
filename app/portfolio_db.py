@@ -126,6 +126,24 @@ def init_db():
             )
         """)
         
+        # Activity Log (for tracking user activity by platform)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activity_log (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                platform TEXT CHECK(platform IN ('web', 'mobile')) NOT NULL,
+                action TEXT DEFAULT 'login',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
+        # Migration: Add subscription_tier to users
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN subscription_tier INTEGER DEFAULT 0")
+        except:
+            pass  # Column already exists
+        
         # Enable foreign keys
         cursor.execute("PRAGMA foreign_keys = ON")
         
@@ -1132,3 +1150,70 @@ def get_public_portfolio(user_id: str) -> dict:
         "allocation": allocation,
         "top_holdings": public_holdings[:5]
     }
+
+
+# ============== ADMIN / GM FUNCTIONS ==============
+
+def log_activity(user_id: str, platform: str, action: str = 'login') -> str:
+    """
+    Log user activity for analytics.
+    Platform: 'web' or 'mobile'
+    Action: 'login', 'api_call', etc.
+    """
+    if platform not in ('web', 'mobile'):
+        platform = 'web'  # Default to web
+    
+    with get_db() as conn:
+        cursor = conn.cursor()
+        log_id = str(uuid.uuid4())
+        cursor.execute(
+            "INSERT INTO activity_log (id, user_id, platform, action) VALUES (?, ?, ?, ?)",
+            (log_id, user_id, platform, action)
+        )
+        return log_id
+
+
+def get_admin_metrics() -> dict:
+    """
+    Get admin dashboard metrics (GM only).
+    Returns: {
+        total_users, 
+        active_users_web, active_users_mobile,
+        subscription_tiers: {0: n, 1: n, 2: n}
+    }
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        # Total registered users
+        cursor.execute("SELECT COUNT(*) FROM users")
+        total_users = cursor.fetchone()[0]
+        
+        # Active users in last 30 days by platform
+        cursor.execute("""
+            SELECT platform, COUNT(DISTINCT user_id) as count
+            FROM activity_log
+            WHERE created_at >= datetime('now', '-30 days')
+            GROUP BY platform
+        """)
+        active_by_platform = {row['platform']: row['count'] for row in cursor.fetchall()}
+        
+        # Subscription tier breakdown
+        cursor.execute("""
+            SELECT COALESCE(subscription_tier, 0) as tier, COUNT(*) as count
+            FROM users
+            GROUP BY tier
+        """)
+        tiers = {row['tier']: row['count'] for row in cursor.fetchall()}
+        
+        return {
+            "total_users": total_users,
+            "active_users_web": active_by_platform.get('web', 0),
+            "active_users_mobile": active_by_platform.get('mobile', 0),
+            "subscription_tiers": {
+                "free": tiers.get(0, 0),
+                "premium": tiers.get(1, 0),
+                "vip": tiers.get(2, 0)
+            }
+        }
+

@@ -823,6 +823,31 @@ async def get_notifications(user: dict = Depends(get_current_user)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+
+# ============== ADMIN API (GM ONLY) ==============
+
+@app.get("/api/admin/metrics")
+async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
+    """
+    Get admin dashboard metrics.
+    Protected: Only accessible by GM emails configured in .env
+    """
+    from app.auth import get_admin_user, GM_EMAILS
+    from app.portfolio_db import get_admin_metrics
+    
+    # Check admin access
+    if not user:
+        return JSONResponse(status_code=401, content={"error": "Authentication required"})
+    
+    if user.get('email') not in GM_EMAILS:
+        return JSONResponse(status_code=403, content={"error": "Admin access required"})
+    
+    try:
+        metrics = get_admin_metrics()
+        return metrics
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 # ---------------- Static Files ----------------
 # Must come LAST to avoid capturing API routes
 # Create dir if not exists

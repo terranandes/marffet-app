@@ -7,7 +7,7 @@
 
 ## 2. 📅 Project Leader (Timeline & Resources)
 - [ ] **Project Management**
-    - [ ] track overall project timeline.
+    - [x] track overall project timeline. (Sync-up 2026-01-12)
     - [ ] Coordinate handoffs between agents (e.g., Coder -> Verify).
 
 ## 3. 🧠 SPEC Manager (You)
@@ -23,7 +23,7 @@
 
 ## 4. 🎨 UI Manager (Experience)
 - [x] **Infrastructure**
-    - [x] Initialize Vite + React Project (`frontend/`). (BLOCKED: npm issues).
+    - [x] Initialize Vite + React Project (`frontend/`). (Verified: npm run dev works).
     - [x] **Pivot 1**: Adopt Streamlit for Python-native Dashboard. (Completed).
     - [x] **Pivot 2**: **Web Based UI** (No-Build).
 - [ ] **Implementation**

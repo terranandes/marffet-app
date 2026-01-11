@@ -345,7 +345,8 @@ def get_stock_history(stock_id: str):
 def get_race_data(start_year: int = 2006):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
-        df = pd.read_excel("references/stock_list_s2006e2025_filtered.xlsx")
+        SOURCE_FILE = "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0) # Ensure no NaNs
         
         # DIVIDENDS_DB is loaded globally

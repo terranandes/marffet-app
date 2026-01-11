@@ -7,22 +7,20 @@ fuser -k 3000/tcp || true
 echo "🚀 Starting Martian Investment System..."
 
 # --- 1. Backend Setup ---
-if [ ! -d ".venv" ]; then
-    echo "📦 Creating Python Virtual Environment..."
-    python3 -m venv .venv
+# --- 1. Backend Setup ---
+# Check if uv is installed
+if ! command -v uv &> /dev/null; then
+    echo "❌ 'uv' is not installed. Please install it: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
 fi
 
-source .venv/bin/activate
-
-# Check if packages are installed (check for plotly to ensure full set)
-if ! pip show plotly &> /dev/null; then
-    echo "📦 Installing Backend Dependencies..."
-    pip install fastapi uvicorn httpx pandas numpy openpyxl plotly
-fi
+echo "📦 Syncing Python Environment with uv..."
+uv sync
 
 echo "✅ Backend Ready"
 echo "Starting FastAPI Backend..."
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
+# Use uv run to execute uvicorn explicitly
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 
 # --- 2. Frontend Setup ---

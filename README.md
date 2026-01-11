@@ -41,9 +41,9 @@ If you prefer to run it on your own machine:
 -   Python 3.10+
 -   Node.js 18+
 
-### Setup (Fast Path with `uv`)
+### Setup (Required: uv)
 
-We recommended `uv` for 10x faster setup.
+We use `uv` for 10x faster setup and reliable dependency management.
 
 1.  **Clone the repo**:
     ```bash
@@ -55,21 +55,11 @@ We recommended `uv` for 10x faster setup.
     ```bash
     # Install uv (if you haven't yet)
     # curl -LsSf https://astral.sh/uv/install.sh | sh
-    # source $HOME/.local/bin/env
     
-    # Run the app directly (uv handles the venv for you!)
-    uv run uvicorn app.main:app
+    # Run the app directly
+    ./start_app.sh
     ```
     *Open `http://localhost:8000` in your browser.*
-
-### Alternative (Standard Pip)
-If you prefer legacy tools:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --port 8000
-```
 
 4.  **Important**: Google Sign-In requires your `GOOGLE_CLIENT_ID` and `SECRET` in `.env`.
     *   Ensure your Google Cloud Console has `http://localhost:8000/auth/callback` added to "Authorized Redirect URIs".

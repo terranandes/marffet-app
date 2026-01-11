@@ -5,13 +5,13 @@ import os
 import sys
 
 # Paths
-GOLDEN_EXCEL = "references/stock_list_s2006e2025_filtered.xlsx"
+GOLDEN_EXCEL_PATH = '/home/terwu01/github/martian/project_tw/references/stock_list_s2006e2026_filtered.xlsx'
 DATA_DIR = "data/raw"
 
 def verify_targets():
-    print(f"🔍 Loading Golden Excel: {GOLDEN_EXCEL}...")
+    print(f"🔍 Loading Golden Excel: {GOLDEN_EXCEL_PATH}...")
     try:
-        df = pd.read_excel(GOLDEN_EXCEL)
+        df = pd.read_excel(GOLDEN_EXCEL_PATH)
     except Exception as e:
         print(f"❌ Failed to load Excel: {e}")
         return

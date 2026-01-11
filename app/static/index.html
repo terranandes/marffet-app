@@ -1367,19 +1367,30 @@
                     class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">✕</button>
                 <h2 class="text-xl font-bold text-cyber-cyan mb-2 flex items-center gap-2">⚙️ Global Settings</h2>
                 <div class="p-6 space-y-5">
-                    <!-- GM Mode (Only visible to GM users) -->
-                    <div v-if="currentUser && currentUser.is_admin" class="flex items-center justify-between">
-                        <div><label class="font-bold text-cyber-gold">🎮 {{ t('s_gm') }}</label>
-                            <p class="text-xs text-gray-400">Unlock all Premium features</p>
+                    <!-- Premium Toggle -->
+                    <!-- GM users: Can toggle for testing -->
+                    <!-- Paid subscribers (subscription_tier > 0): Locked ON -->
+                    <!-- Free users: Cannot see this (or disabled) -->
+                    <div v-if="currentUser" class="flex items-center justify-between">
+                        <div>
+                            <label class="font-bold text-cyber-gold">⭐ Premium</label>
+                            <p class="text-xs text-gray-400">
+                                <span v-if="currentUser.is_admin">Toggle for testing (GM auto-enabled)</span>
+                                <span v-else-if="currentUser.subscription_tier > 0">Active subscription</span>
+                                <span v-else>Unlock premium features</span>
+                            </p>
                         </div>
-                        <!-- Elegant Toggle Button -->
-                        <button @click="toggleGMMode" :class="appSettings.gmMode ? 'bg-cyber-gold' : 'bg-gray-700'"
-                            class="w-12 h-6 rounded-full relative transition-colors duration-300 shadow-inner border border-white/10">
-                            <span :class="appSettings.gmMode ? 'translate-x-6 bg-white' : 'translate-x-0.5 bg-gray-400'"
+                        <!-- Toggle Button -->
+                        <button @click="currentUser.is_admin ? toggleGMMode() : null"
+                            :class="isPremium ? 'bg-cyber-gold' : 'bg-gray-700'"
+                            :disabled="currentUser.subscription_tier > 0 && !currentUser.is_admin"
+                            class="w-12 h-6 rounded-full relative transition-colors duration-300 shadow-inner border border-white/10"
+                            :title="currentUser.subscription_tier > 0 && !currentUser.is_admin ? 'Subscription active' : ''">
+                            <span :class="isPremium ? 'translate-x-6 bg-white' : 'translate-x-0.5 bg-gray-400'"
                                 class="absolute top-0.5 w-5 h-5 rounded-full shadow-md transition-all duration-300"></span>
                         </button>
                     </div>
-                    <hr v-if="currentUser && currentUser.is_admin" class="border-white/10">
+                    <hr v-if="currentUser" class="border-white/10">
                     <!-- Region Selector -->
                     <div>
                         <label class="font-bold text-sm mb-2 block">🌍 {{ t('s_region') }}</label>

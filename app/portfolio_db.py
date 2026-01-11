@@ -873,7 +873,7 @@ def get_user_public_profile(user_id: str) -> dict:
     """Get public profile for a user."""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT nickname, name, picture, created_at FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT nickname, name, picture, created_at, COALESCE(subscription_tier, 0) as subscription_tier FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         return dict(row) if row else {}
 

@@ -420,8 +420,12 @@ createApp({
             catch (e) { console.error('Save settings error:', e); }
         };
         const toggleGMMode = () => { appSettings.value.gmMode = !appSettings.value.gmMode; saveSettings(); };
-        // Premium = GM Mode enabled OR user is admin (GM users are always premium)
-        const isPremium = computed(() => appSettings.value.gmMode || currentUser.value?.is_admin);
+        // Premium = gmMode toggled ON || user is admin (GM) || user has paid subscription
+        const isPremium = computed(() =>
+            appSettings.value.gmMode ||
+            currentUser.value?.is_admin ||
+            (currentUser.value?.subscription_tier > 0)
+        );
 
         // ========== ADMIN DASHBOARD (GM ONLY) ==========
         const adminMetrics = ref({});

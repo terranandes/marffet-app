@@ -8,9 +8,11 @@ import pandas as pd
 import asyncio
 import os
 import sys
+from pathlib import Path
 
-# Ensure project root is in path
-sys.path.append(os.getcwd())
+# Get absolute path to project root (parent of app/)
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
 load_dotenv()
 
 from project_tw.strategies.cb import CBStrategy
@@ -251,7 +253,7 @@ async def chat_with_mars(req: ChatRequest):
 def get_results():
     """Return filtered results from Excel"""
     try:
-        df = pd.read_excel("project_tw/output/stock_list_s2006e2025_filtered.xlsx")
+        df = pd.read_excel(BASE_DIR / "project_tw/output/stock_list_s2006e2025_filtered.xlsx")
         # Replace NaN
         df = df.fillna(0)
         return df.to_dict(orient="records")
@@ -277,8 +279,8 @@ DIVIDENDS_DB = {
 
 # Try to load full dataset and MERGE (Overwrite hardcoded if data exists)
 import json, os
-DIVIDENDS_FILE = "data/dividends_all.json"
-if os.path.exists(DIVIDENDS_FILE):
+DIVIDENDS_FILE = BASE_DIR / "data/dividends_all.json"
+if DIVIDENDS_FILE.exists():
     try:
         with open(DIVIDENDS_FILE, "r") as f:
             json_data = json.load(f)
@@ -302,11 +304,11 @@ def get_stock_history(stock_id: str):
         for year in range(2006, 2026):
             year_str = str(year) # Keys in JSON might be strings or ints depending on saving?
             # Start/End price logic...
-            price_file = f"data/raw/Market_{year}_Prices.json"
+            price_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
             start_price = 0
             end_price = 0
             
-            if os.path.exists(price_file):
+            if price_file.exists():
                 with open(price_file, "r") as f:
                     pdata = json.load(f)
                     if sid in pdata:
@@ -345,7 +347,7 @@ def get_stock_history(stock_id: str):
 def get_race_data(start_year: int = 2006):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
-        SOURCE_FILE = "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0) # Ensure no NaNs
         
@@ -357,8 +359,8 @@ def get_race_data(start_year: int = 2006):
         import json, os
         # Load up to current year if possible, or 2026
         for year in range(2006, 2026):
-            p_file = f"data/raw/Market_{year}_Prices.json"
-            if os.path.exists(p_file):
+            p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+            if p_file.exists():
                 try:
                     with open(p_file, "r") as f:
                         PRICES_DB[year] = json.load(f)
@@ -368,8 +370,8 @@ def get_race_data(start_year: int = 2006):
                 PRICES_DB[year] = {}
                 
             # Load TPEx Prices (OTC)
-            tpex_file = f"data/raw/TPEx_Market_{year}_Prices.json"
-            if os.path.exists(tpex_file):
+            tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+            if tpex_file.exists():
                 try:
                     with open(tpex_file, "r") as f:
                         tpex_data = json.load(f)

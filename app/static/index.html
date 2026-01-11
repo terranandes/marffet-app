@@ -1380,14 +1380,21 @@
                                 <span v-else>Unlock premium features</span>
                             </p>
                         </div>
-                        <!-- Toggle Button -->
+                        <!-- Elegant Toggle Switch -->
                         <button @click="currentUser.is_admin ? toggleGMMode() : null"
-                            :class="isPremium ? 'bg-cyber-gold' : 'bg-gray-700'"
                             :disabled="currentUser.subscription_tier > 0 && !currentUser.is_admin"
-                            class="w-12 h-6 rounded-full relative transition-colors duration-300 shadow-inner border border-white/10"
-                            :title="currentUser.subscription_tier > 0 && !currentUser.is_admin ? 'Subscription active' : ''">
-                            <span :class="isPremium ? 'translate-x-6 bg-white' : 'translate-x-0.5 bg-gray-400'"
-                                class="absolute top-0.5 w-5 h-5 rounded-full shadow-md transition-all duration-300"></span>
+                            :title="currentUser.subscription_tier > 0 && !currentUser.is_admin ? 'Subscription active' : ''"
+                            class="relative w-14 h-7 rounded-full transition-all duration-300 ease-in-out focus:outline-none"
+                            :class="isPremium 
+                                ? 'bg-gradient-to-r from-amber-400 to-yellow-500 shadow-[0_0_12px_rgba(255,215,0,0.4)]' 
+                                : 'bg-gray-600 shadow-inner'">
+                            <!-- Toggle Ball -->
+                            <span
+                                class="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 ease-in-out shadow-lg"
+                                :class="isPremium 
+                                    ? 'left-8 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.3)]' 
+                                    : 'left-1 bg-gray-400'">
+                            </span>
                         </button>
                     </div>
                     <hr v-if="currentUser" class="border-white/10">

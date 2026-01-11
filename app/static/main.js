@@ -1319,12 +1319,15 @@ createApp({
         // Fetch trend data
         const fetchTrendData = async () => {
             try {
-                // Fetch trend history
-                const trendRes = await fetch('/api/portfolio/trend?months=12');
+                // Fetch ALL trend history (months=0 means get all data from first transaction)
+                const trendRes = await fetch('/api/portfolio/trend?months=0');
                 trendData.value = await trendRes.json();
                 if (trendData.value.length) {
                     selectedMonth.value = trendData.value[trendData.value.length - 1]?.month;
                 }
+
+                // Render Plotly chart with zoom
+                renderTrendChart();
 
                 // Fetch asset groups
                 const groupRes = await fetch('/api/portfolio/by-type');
@@ -1345,6 +1348,65 @@ createApp({
                 portfolioRaceData.value = await raceRes.json();
             } catch (e) { console.error('Fetch trend error:', e); }
         };
+
+        // Render trend chart with Plotly (supports zoom/pan)
+        const renderTrendChart = () => {
+            const container = document.getElementById('trend-chart-container');
+            if (!container || !trendData.value.length) return;
+
+            const months = trendData.value.map(t => t.month);
+            const costs = trendData.value.map(t => t.cost);
+
+            const trace = {
+                x: months,
+                y: costs,
+                type: 'bar',
+                marker: {
+                    color: costs.map((_, i) =>
+                        months[i] === selectedMonth.value ? '#ffd700' : '#00f2ea'
+                    ),
+                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                },
+                hovertemplate: '%{x}<br>Cost: $%{y:,.0f}<extra></extra>'
+            };
+
+            const layout = {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                margin: { l: 60, r: 20, t: 20, b: 60 },
+                xaxis: {
+                    type: 'category',
+                    tickangle: -45,
+                    tickfont: { color: '#888', size: 10 },
+                    gridcolor: 'rgba(255,255,255,0.05)'
+                },
+                yaxis: {
+                    tickformat: '$,.0f',
+                    tickfont: { color: '#888', size: 10 },
+                    gridcolor: 'rgba(255,255,255,0.1)'
+                },
+                dragmode: 'zoom',
+                hovermode: 'closest'
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToInclude: ['zoom2d', 'pan2d', 'resetScale2d', 'toImage'],
+                displaylogo: false
+            };
+
+            Plotly.newPlot(container, [trace], layout, config);
+
+            // Handle bar click to select month
+            container.on('plotly_click', (data) => {
+                if (data.points && data.points[0]) {
+                    selectedMonth.value = data.points[0].x;
+                    renderTrendChart(); // Re-render to update selected color
+                }
+            });
+        };
+
 
         // Get group total (Calculated with live prices)
         const getGroupTotal = (type) => {

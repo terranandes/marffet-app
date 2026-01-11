@@ -559,15 +559,34 @@ def get_all_targets_by_type(user_id: str = "default") -> dict:
 def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     """
     Get monthly portfolio value history.
+    months=0 means return ALL data from earliest transaction to now.
     Returns: [{"month": "2024-01", "cost": 1000000, "tx_count": 5}, ...]
     """
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
     
-    # Calculate start date (months ago)
-    # Calculate start date (months ago) for display
     end_date = datetime.now()
-    start_date = end_date - relativedelta(months=months)
+    
+    # If months=0, get from earliest transaction; otherwise use specified window
+    if months == 0:
+        # Find earliest transaction date
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT MIN(t.date) as earliest
+                FROM transactions t
+                JOIN group_targets gt ON t.target_id = gt.id
+                JOIN user_groups ug ON gt.group_id = ug.id
+                WHERE ug.user_id = ?
+            """, (user_id,))
+            row = cursor.fetchone()
+            if row and row['earliest']:
+                start_date = datetime.strptime(row['earliest'][:7] + "-01", "%Y-%m-%d")
+            else:
+                start_date = end_date - relativedelta(months=12)  # Default to 12 months if no data
+    else:
+        start_date = end_date - relativedelta(months=months)
+    
     start_month_str = start_date.strftime("%Y-%m")
     
     with get_db() as conn:

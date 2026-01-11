@@ -422,6 +422,31 @@ createApp({
         const toggleGMMode = () => { appSettings.value.gmMode = !appSettings.value.gmMode; saveSettings(); };
         const isPremium = computed(() => appSettings.value.gmMode);
 
+        // ========== ADMIN DASHBOARD (GM ONLY) ==========
+        const adminMetrics = ref({});
+        const adminLoading = ref(false);
+        const adminError = ref(null);
+
+        const fetchAdminMetrics = async () => {
+            adminLoading.value = true;
+            adminError.value = null;
+            try {
+                const res = await fetch('/api/admin/metrics');
+                if (res.status === 403) {
+                    adminError.value = 'Access Denied: Admin privileges required';
+                } else if (res.status === 401) {
+                    adminError.value = 'Please login first';
+                } else if (res.ok) {
+                    adminMetrics.value = await res.json();
+                } else {
+                    adminError.value = 'Failed to fetch metrics';
+                }
+            } catch (e) {
+                adminError.value = 'Network error';
+            } finally {
+                adminLoading.value = false;
+            }
+        };
 
 
         // Sorting State
@@ -1472,6 +1497,8 @@ createApp({
                         fetchPortfolioCBs();
                     } else if (newTab === 'ladder') {
                         fetchLeaderboard();
+                    } else if (newTab === 'admin') {
+                        fetchAdminMetrics();
                     }
                 });
             };
@@ -1527,7 +1554,9 @@ createApp({
             // AI Copilot
             showChat, chatInput, isChatLoading, chatHistory, sendMessage,
             // Auth
-            currentUser
+            currentUser,
+            // Admin Dashboard (GM Only)
+            adminMetrics, adminLoading, adminError, fetchAdminMetrics
         };
     }
 }).mount('#app')

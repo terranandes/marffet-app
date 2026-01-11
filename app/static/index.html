@@ -206,6 +206,10 @@
                 <button @click="currentTab = 'myrace'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'myrace'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">🏎️ {{ t('nav_myrace') }}</button>
+                <!-- GM ONLY: Admin Tab -->
+                <button v-if="currentUser && currentUser.is_admin" @click="currentTab = 'admin'"
+                    :class="{'text-cyber-gold border-b-2 border-cyber-gold': currentTab === 'admin'}"
+                    class="px-3 py-2 text-sm font-medium hover:text-cyber-gold transition">⚡ GM Dashboard</button>
             </nav>
 
             <!-- Settings & Premium Indicator -->
@@ -1160,6 +1164,76 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB (GM ONLY) -->
+            <div v-show="currentTab === 'admin'" class="flex-1 space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-xl">
+                    <h2 class="text-2xl font-bold text-cyber-gold mb-6">⚡ GM Dashboard</h2>
+
+                    <!-- Loading State -->
+                    <div v-if="adminLoading" class="text-center py-10 text-cyber-cyan animate-pulse">
+                        Loading metrics...
+                    </div>
+
+                    <!-- Error State -->
+                    <div v-else-if="adminError" class="text-center py-10 text-red-400">
+                        {{ adminError }}
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div v-else class="space-y-6">
+                        <!-- User Metrics -->
+                        <div>
+                            <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-3">User Metrics</h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">Total Registered Users</div>
+                                    <div class="text-3xl font-bold text-purple-400">{{ adminMetrics.total_users || 0 }}
+                                    </div>
+                                </div>
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">Active Users (Web)</div>
+                                    <div class="text-3xl font-bold text-cyan-400">{{ adminMetrics.active_users_web || 0
+                                        }}</div>
+                                    <div class="text-xs text-gray-600 mt-1">Last 30 days</div>
+                                </div>
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">Active Users (Mobile)</div>
+                                    <div class="text-3xl font-bold text-emerald-400">{{ adminMetrics.active_users_mobile
+                                        || 0 }}</div>
+                                    <div class="text-xs text-gray-600 mt-1">Last 30 days</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subscription Breakdown -->
+                        <div>
+                            <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-3">Subscription Breakdown</h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">Free Tier</div>
+                                    <div class="text-3xl font-bold text-gray-400">{{
+                                        adminMetrics.subscription_tiers?.free || 0 }}</div>
+                                </div>
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">Premium Tier</div>
+                                    <div class="text-3xl font-bold text-amber-400">{{
+                                        adminMetrics.subscription_tiers?.premium || 0 }}</div>
+                                </div>
+                                <div class="bg-black/40 p-5 rounded-xl border border-white/10">
+                                    <div class="text-xs text-gray-500 mb-1">VIP Tier</div>
+                                    <div class="text-3xl font-bold text-pink-400">{{
+                                        adminMetrics.subscription_tiers?.vip || 0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-gray-600 text-center mt-6">
+                            Data refreshes on tab switch • Admin access only
+                        </div>
                     </div>
                 </div>
             </div>

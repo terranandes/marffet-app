@@ -1365,12 +1365,15 @@ createApp({
             const trace = {
                 x: months,
                 y: costs,
-                type: 'bar',
-                marker: {
-                    color: costs.map((_, i) =>
-                        months[i] === selectedMonth.value ? '#ffd700' : '#00f2ea'
-                    ),
-                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                type: 'scatter',
+                mode: 'lines',
+                fill: 'tozeroy',
+                fillcolor: 'rgba(0, 242, 234, 0.3)',
+                line: {
+                    color: '#00f2ea',
+                    width: 3,
+                    shape: 'spline',
+                    smoothing: 1.3
                 },
                 hovertemplate: '%{x}<br>Cost: $%{y:,.0f}<extra></extra>'
             };
@@ -1403,11 +1406,10 @@ createApp({
 
             Plotly.newPlot(container, [trace], layout, config);
 
-            // Handle bar click to select month
+            // Handle click on data point to select month
             container.on('plotly_click', (data) => {
                 if (data.points && data.points[0]) {
                     selectedMonth.value = data.points[0].x;
-                    renderTrendChart(); // Re-render to update selected color
                 }
             });
         };

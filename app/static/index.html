@@ -1380,11 +1380,10 @@
                                 <span v-else>Unlock premium features</span>
                             </p>
                         </div>
-                        <!-- Elegant Toggle Switch -->
-                        <button @click="toggleGMMode"
-                            :disabled="!currentUser.is_admin && currentUser.subscription_tier > 0"
-                            :title="!currentUser.is_admin && currentUser.subscription_tier > 0 ? 'Subscription active' : 'Click to toggle'"
-                            class="relative w-14 h-7 rounded-full transition-all duration-300 ease-in-out focus:outline-none cursor-pointer disabled:cursor-not-allowed"
+                        <!-- Elegant Toggle Switch (Only GM can toggle) -->
+                        <button @click="toggleGMMode" :disabled="!currentUser.is_admin"
+                            :title="currentUser.is_admin ? 'Click to toggle (GM testing)' : (currentUser.subscription_tier > 0 ? 'Premium active' : 'Subscribe to unlock')"
+                            class="relative w-14 h-7 rounded-full transition-all duration-300 ease-in-out focus:outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-80"
                             :class="isPremium 
                                 ? 'bg-gradient-to-r from-amber-400 to-yellow-500 shadow-[0_0_12px_rgba(255,215,0,0.4)]' 
                                 : 'bg-gray-600 shadow-inner'">

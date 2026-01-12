@@ -999,8 +999,12 @@ if __name__ == "__main__":
     fix_asset_types()
     print("Database initialized successfully!")
 else:
-    # Run fix on module load to ensure existing data is corrected
-    fix_asset_types()
+    # Ensure tables exist first, then fix data
+    init_db()
+    try:
+        fix_asset_types()
+    except Exception as e:
+        print(f"[portfolio_db] fix_asset_types skipped (no data yet): {e}")
 
 
 # ============== SOCIAL FEATURES ==============

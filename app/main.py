@@ -168,23 +168,22 @@ async def chat_with_mars(req: ChatRequest):
     try:
         from starlette.concurrency import run_in_threadpool
 
+        # Construct parameters
+        base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
+        system_prompt = (
+            f"{base_prompt}\n"
+            "----------------\n"
+            "USER PORTFOLIO CONTEXT:\n"
+            f"{req.context}"
+        )
+        history = [
+            {"role": "user", "parts": system_prompt},
+            {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
+        ]
+
         # Helper for blocking GenAI call
         def generate_response():
             genai.configure(api_key=req.apiKey)
-            
-            # Construct parameters
-            base_prompt = PROMPT_PREMIUM if req.isPremium else PROMPT_FREE
-            system_prompt = (
-                f"{base_prompt}\n"
-                "----------------\n"
-                "USER PORTFOLIO CONTEXT:\n"
-                f"{req.context}"
-            )
-            history = [
-                {"role": "user", "parts": system_prompt},
-                {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
-            ]
-
             model = genai.GenerativeModel('gemini-1.5-pro')
             chat = model.start_chat(history=history)
             response = chat.send_message(req.message)

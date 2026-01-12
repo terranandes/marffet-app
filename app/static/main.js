@@ -843,15 +843,21 @@ Please analyze this feedback and determine if it's a true bug.`;
                 path.forEach(p => {
                     if (!raceMap.has(p.year)) raceMap.set(p.year, []);
                     if (p.year >= sim.value.startYear - 1) {
-                        // For CAGR mode: use pre-calculated API value (same as Mars table)
-                        // For Wealth mode: use per-year wealth value
-                        const stockCagr = stockCagrMap.get(p.id) || 0;
+                        // Calculate DYNAMIC per-year CAGR for racing effect
+                        // At each year, CAGR = ((wealth / principal) ^ (1 / yearsElapsed) - 1) * 100
+                        const yearsElapsed = p.year - sim.value.startYear + 1;
+                        let perYearCagr = 0;
+                        if (yearsElapsed > 0 && sim.value.principal > 0 && p.value > 0) {
+                            // Total invested = Principal + (Contribution * Years)
+                            // For CAGR, we use principal as base for comparable measurement
+                            perYearCagr = (Math.pow(p.value / sim.value.principal, 1 / yearsElapsed) - 1) * 100;
+                        }
 
                         raceMap.get(p.year).push({
                             id: p.id,
                             name: stockNameMap.get(p.id) || p.id,
-                            // Use API's pre-calculated CAGR for consistency with Mars table
-                            value: raceMetric.value === 'wealth' ? p.value : stockCagr
+                            // Wealth mode: per-year wealth. CAGR mode: per-year calculated CAGR (creates racing effect!)
+                            value: raceMetric.value === 'wealth' ? p.value : perYearCagr
                         });
                     }
                 });

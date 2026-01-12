@@ -40,6 +40,7 @@ Reference the "Total Solution" section below. You do *not* need separate hosting
     | `GOOGLE_CLIENT_ID` | (Your Google OAuth ID) |
     | `GOOGLE_CLIENT_SECRET` | (Your Google OAuth Secret) |
     | `GEMINI_API_KEY` | (Your Google Gemini AI Key) |
+    | `GM_EMAILS` | (comma-separated admin emails) |
 
 7.  Click **Create Web Service**.
 
@@ -62,6 +63,7 @@ Reference the "Total Solution" section below. You do *not* need separate hosting
     - Add `GOOGLE_CLIENT_SECRET` (from Google Cloud Console)
     - Add `GEMINI_API_KEY` (from Google AI Studio)
     - Add `GM_EMAILS` (comma-separated admin emails)
+    - Add `SECRET_KEY` (random string)
 7.  Go to the **Networking** tab:
     - Click "Generate Domain" or bind your own.
 

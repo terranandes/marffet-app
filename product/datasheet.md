@@ -50,6 +50,18 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 | **Advice** | Suggests selling overheated stocks (+20% vs SMA) |
 | **Motto** | *"Execute the strategy. Don't fall in love with a stock."*
 
+#### Free vs Premium Feature Comparison
+
+| Feature | Free | Premium |
+|---------|------|---------|
+| **AI Bot Personality** | Educator (encouragement) | Ruthless Wealth Manager (rebalancing advice) |
+| **Portfolio Groups** | 11 max | 30 max |
+| **Targets per Group** | 50 max | 200 max |
+| **Transactions per Target** | 100 max | 1000 max |
+| **CB Notifications** | ❌ | ✅ Email alerts |
+| **Bar Chart Race** | Basic | Advanced (custom metrics) |
+| **Data Export** | ❌ | ✅ CSV/Excel |
+
 ## 3. Target Audience
 -   **Retail Investors**: Looking to backtest strategies.
 -   **Financial Educators**: Demonstrating the power of compounding.

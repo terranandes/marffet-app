@@ -131,7 +131,7 @@ async def client_log(log: LogMessage):
     return {"status": "ok"}
 
 # ---------------- AI Copilot ----------------
-import google.generativeai as genai
+from google import genai
 
 class ChatRequest(BaseModel):
     message: str
@@ -183,10 +183,15 @@ async def chat_with_mars(req: ChatRequest):
 
         # Helper for blocking GenAI call
         def generate_response():
-            genai.configure(api_key=req.apiKey)
-            model = genai.GenerativeModel('gemini-1.5-pro')
-            chat = model.start_chat(history=history)
-            response = chat.send_message(req.message)
+            client = genai.Client(api_key=req.apiKey)
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=[
+                    {"role": "user", "parts": [{"text": system_prompt}]},
+                    {"role": "model", "parts": [{"text": "Understood. I am ready to serve per my tier instructions."}]},
+                    {"role": "user", "parts": [{"text": req.message}]}
+                ]
+            )
             return response.text
 
         # Run in threadpool to avoid blocking async loop
@@ -199,13 +204,14 @@ async def chat_with_mars(req: ChatRequest):
             
             available_models = []
             try:
-                for m in genai.list_models():
-                    if 'generateContent' in m.supported_generation_methods:
+                client = genai.Client(api_key=req.apiKey)
+                for m in client.models.list():
+                    if hasattr(m, 'supported_generation_methods') and 'generateContent' in m.supported_generation_methods:
                         available_models.append(m.name)
             except Exception as e:
                 print(f"List models failed: {e}")
                 # If listing fails, try a hardcoded fallback list
-                available_models = ['models/gemini-1.5-pro', 'models/gemini-1.5-flash', 'models/gemini-pro']
+                available_models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']
 
             print(f"Available models for key: {available_models}")
             
@@ -232,9 +238,15 @@ async def chat_with_mars(req: ChatRequest):
             for model_name in candidates:
                 print(f"  >> Trying candidate: {model_name}...")
                 try:
-                    model = genai.GenerativeModel(model_name)
-                    chat = model.start_chat(history=history)
-                    response = chat.send_message(req.message)
+                    client = genai.Client(api_key=req.apiKey)
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[
+                            {"role": "user", "parts": [{"text": system_prompt}]},
+                            {"role": "model", "parts": [{"text": "Understood."}]},
+                            {"role": "user", "parts": [{"text": req.message}]}
+                        ]
+                    )
                     print(f"  >> Success with {model_name}!")
                     return {"response": response.text}
                 except Exception as inner_e:

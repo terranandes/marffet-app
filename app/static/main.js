@@ -344,15 +344,25 @@ createApp({
             chatInput.value = '';
             isChatLoading.value = true;
 
-            // Build Context
+            // Build Context with individual stock details
+            const holdingsDetail = groupTargets.value.map(t => {
+                const s = t.summary || {};
+                return `    - ${t.name || t.stock_id}: ${s.total_shares || 0} shares @ avg $${(s.avg_cost || 0).toFixed(2)}, ` +
+                    `Market: ${formatCurrency(s.market_value || 0)}, P/L: ${formatCurrency(s.unrealized_pnl || 0)}`;
+            }).join('\n');
+
             const context = `
         Portfolio Summary:
         - Total Groups: ${portfolioGroups.value.length}
+        - Total Stocks: ${groupTargets.value.length}
         - Market Value: ${formatCurrency(groupStats.value?.marketValue || 0)}
         - Total Cost: ${formatCurrency(groupStats.value?.totalCost || 0)}
-        - Unrealized P/L: ${formatCurrency(groupStats.value?.unrealized || 0)}
+        - Unrealized P/L: ${formatCurrency(groupStats.value?.unrealized || 0)} (${groupStats.value?.unrealizedPct?.toFixed(1) || 0}%)
         - Realized P/L: ${formatCurrency(groupStats.value?.realized || 0)}
         - Premium User: ${isPremium.value}
+
+        Individual Holdings:
+${holdingsDetail || '        (No holdings yet)'}
         `;
 
             try {

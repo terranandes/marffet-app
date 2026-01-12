@@ -38,6 +38,8 @@ else:
 async def get_current_user(request: Request):
     user = request.session.get('user')
     if user:
+        # Add is_admin flag for API endpoint checks
+        user['is_admin'] = user.get('email') in GM_EMAILS
         return user
     return None
 

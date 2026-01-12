@@ -1366,7 +1366,97 @@
                 <button @click="showSettings = false"
                     class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">✕</button>
                 <h2 class="text-xl font-bold text-cyber-cyan mb-2 flex items-center gap-2">⚙️ Global Settings</h2>
-                <div class="p-6 space-y-5">
+                <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                    <!-- Help & Feedback Section (Always on top) -->
+                    <div class="bg-gray-800/50 rounded-lg p-4 border border-cyan-500/30">
+                        <h3 class="font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                            📚 Help & Feedback
+                        </h3>
+
+                        <!-- Feature Guide Accordion -->
+                        <details class="mb-3">
+                            <summary class="cursor-pointer text-sm text-gray-300 hover:text-white">
+                                📖 Feature Guide (click to expand)
+                            </summary>
+                            <div class="mt-2 pl-4 text-xs space-y-2 text-gray-400">
+                                <div><strong class="text-cyan-300">Mars Strategy:</strong> Search & filter stocks using
+                                    Top 50 strategy</div>
+                                <div><strong class="text-cyan-300">Bar Chart Race:</strong> Animated wealth growth
+                                    visualization</div>
+                                <div><strong class="text-cyan-300">Portfolio:</strong> Track real investments with
+                                    groups & transactions</div>
+                                <div><strong class="text-cyan-300">Trend:</strong> Monthly cost trends and live prices
+                                </div>
+                                <div><strong class="text-cyan-300">My Race:</strong> Watch your portfolio stocks compete
+                                </div>
+                                <div><strong class="text-cyan-300">AI Copilot:</strong> Get investment advice from Mars
+                                    AI</div>
+                                <div><strong class="text-cyan-300">Leaderboard:</strong> Community rankings & public
+                                    profiles</div>
+                            </div>
+                        </details>
+
+                        <!-- Feedback Form -->
+                        <details class="mb-3">
+                            <summary class="cursor-pointer text-sm text-gray-300 hover:text-white">
+                                🐛 Report Issue / Feedback
+                            </summary>
+                            <div class="mt-2 space-y-2">
+                                <select v-model="feedbackForm.category"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                                    <option value="">Select Feature...</option>
+                                    <option value="mars_strategy">Mars Strategy</option>
+                                    <option value="bar_chart_race">Bar Chart Race</option>
+                                    <option value="portfolio">Portfolio</option>
+                                    <option value="trend">Trend Dashboard</option>
+                                    <option value="my_race">My Portfolio Race</option>
+                                    <option value="ai_copilot">AI Copilot</option>
+                                    <option value="leaderboard">Leaderboard</option>
+                                    <option value="settings">Settings</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <select v-model="feedbackForm.type"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm">
+                                    <option value="bug">🐛 Bug Report</option>
+                                    <option value="suggestion">💡 Suggestion</option>
+                                    <option value="question">❓ Question</option>
+                                </select>
+                                <textarea v-model="feedbackForm.message" rows="3"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                                    placeholder="Describe the issue or suggestion..."></textarea>
+                                <button @click="submitFeedback"
+                                    :disabled="!feedbackForm.category || !feedbackForm.message"
+                                    class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-2 rounded text-sm font-bold transition">
+                                    {{ feedbackSubmitting ? 'Submitting...' : 'Submit Feedback' }}
+                                </button>
+                                <p v-if="feedbackSuccess" class="text-green-400 text-xs text-center">✓ Feedback
+                                    submitted! Thank you.</p>
+                            </div>
+                        </details>
+
+                        <!-- Premium Info -->
+                        <details class="mb-2">
+                            <summary class="cursor-pointer text-sm text-gray-300 hover:text-white">
+                                ⭐ Premium Features
+                            </summary>
+                            <div class="mt-2 pl-4 text-xs text-gray-400 space-y-1">
+                                <div>• <strong>AI Personality:</strong> Ruthless Wealth Manager mode</div>
+                                <div>• <strong>Portfolio Groups:</strong> Up to 30 (vs 11 free)</div>
+                                <div>• <strong>Targets/Group:</strong> Up to 200 (vs 50 free)</div>
+                                <div>• <strong>Transactions:</strong> Up to 1000 (vs 100 free)</div>
+                                <div>• <strong>CB Notifications:</strong> Email alerts</div>
+                                <div>• <strong>Data Export:</strong> CSV/Excel</div>
+                            </div>
+                        </details>
+
+                        <!-- Subscribe Placeholder -->
+                        <div class="text-xs text-gray-500 italic">
+                            💳 How to Subscribe: Coming Soon
+                        </div>
+                    </div>
+
+                    <hr class="border-white/10">
+
                     <!-- Premium Toggle -->
                     <!-- GM users: Can toggle for testing -->
                     <!-- Paid subscribers (subscription_tier > 0): Locked ON -->

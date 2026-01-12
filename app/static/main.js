@@ -318,6 +318,40 @@ createApp({
         };
         const appSettings = ref({ ...defaultSettings });
 
+        // ========== FEEDBACK SYSTEM ==========
+        const feedbackForm = ref({ category: '', type: 'bug', message: '' });
+        const feedbackSubmitting = ref(false);
+        const feedbackSuccess = ref(false);
+
+        const submitFeedback = async () => {
+            if (!feedbackForm.value.category || !feedbackForm.value.message) return;
+
+            feedbackSubmitting.value = true;
+            feedbackSuccess.value = false;
+
+            try {
+                const res = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        feature_category: feedbackForm.value.category,
+                        feedback_type: feedbackForm.value.type,
+                        message: feedbackForm.value.message
+                    })
+                });
+
+                if (res.ok) {
+                    feedbackSuccess.value = true;
+                    feedbackForm.value = { category: '', type: 'bug', message: '' };
+                    setTimeout(() => { feedbackSuccess.value = false; }, 3000);
+                }
+            } catch (e) {
+                console.error('Feedback submit error:', e);
+            } finally {
+                feedbackSubmitting.value = false;
+            }
+        };
+
         const t = (key) => {
             const lang = appSettings.value.language || 'en';
             return translations[lang]?.[key] || translations['en'][key] || key;
@@ -1770,6 +1804,8 @@ ${holdingsDetail || '        (No holdings yet)'}
             showDivDetails, currentYear, raceConfig, // Dividend Modal State & Race Config
             // Settings System
             showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV, t,
+            // Feedback System
+            feedbackForm, feedbackSubmitting, feedbackSuccess, submitFeedback,
             availableLanguages,
             // Notifications System
             showNotifications, notifications, unreadCount, markAllRead, clearNotifications, deleteNotification,

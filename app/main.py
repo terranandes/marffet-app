@@ -849,6 +849,66 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# ---------------- User Feedback System ----------------
+from app.feedback_db import (
+    submit_feedback, get_all_feedback, update_feedback, 
+    get_feedback_stats, get_feature_categories
+)
+
+class FeedbackSubmit(BaseModel):
+    feature_category: str
+    feature_name: Optional[str] = None
+    feedback_type: str  # bug, suggestion, question
+    message: str
+
+@app.post("/api/feedback")
+async def api_submit_feedback(data: FeedbackSubmit, user: dict = Depends(get_current_user)):
+    """Submit user feedback or bug report"""
+    try:
+        user_id = user['id'] if user else "anonymous"
+        user_email = user.get('email', '') if user else ''
+        result = submit_feedback(
+            user_id=user_id,
+            user_email=user_email,
+            category=data.feature_category,
+            feature_name=data.feature_name,
+            feedback_type=data.feedback_type,
+            message=data.message
+        )
+        return result
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/feedback")
+async def api_get_feedback(status: str = None, user: dict = Depends(get_current_user)):
+    """Get all feedback (GM only)"""
+    if not user or not user.get('is_admin'):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return get_all_feedback(status)
+
+@app.get("/api/feedback/stats")
+async def api_feedback_stats(user: dict = Depends(get_current_user)):
+    """Get feedback statistics (GM only)"""
+    if not user or not user.get('is_admin'):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return get_feedback_stats()
+
+@app.get("/api/feedback/categories")
+async def api_feedback_categories():
+    """Get feature categories for feedback form"""
+    return get_feature_categories()
+
+class FeedbackUpdate(BaseModel):
+    status: Optional[str] = None
+    agent_notes: Optional[str] = None
+
+@app.patch("/api/feedback/{feedback_id}")
+async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict = Depends(get_current_user)):
+    """Update feedback status (GM only)"""
+    if not user or not user.get('is_admin'):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return update_feedback(feedback_id, data.status, data.agent_notes)
+
 # ---------------- Static Files ----------------
 # Must come LAST to avoid capturing API routes
 # Create dir if not exists

@@ -390,17 +390,17 @@
                     <div id="race-chart-container" class="flex-1 relative min-h-[1400px] overflow-visible">
                         <!-- D3.js Race Chart -->
                     </div>
-                    <!-- Timeline Scrubber (Flourish-style rollback) -->
+                    <!-- Timeline Scrubber (compact, aligned with chart) -->
                     <div
-                        class="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm py-4 px-6 border-t border-cyber-cyan/30 mt-6 z-10">
-                        <div class="flex items-center gap-6">
-                            <span class="text-sm text-cyber-cyan font-mono font-bold w-20">{{ animationFrames.length ?
+                        class="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm py-2 px-4 border-t border-gray-700 z-10">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-cyber-cyan font-mono font-bold w-12">{{ animationFrames.length ?
                                 animationFrames[currentFrameIndex]?.year : '-' }}</span>
                             <input type="range" :min="0" :max="animationFrames.length - 1" :value="currentFrameIndex"
                                 @input="seekToFrame($event.target.value)"
-                                class="flex-1 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer accent-red-500"
+                                class="flex-1 h-2 bg-gray-700 rounded-full appearance-none cursor-pointer"
                                 style="accent-color: #ef4444;">
-                            <span class="text-sm text-gray-400 font-mono w-20 text-right">{{ animationFrames.length
+                            <span class="text-xs text-gray-500 font-mono w-12 text-right">{{ animationFrames.length
                                 ?
                                 animationFrames[animationFrames.length - 1]?.year : '-' }}</span>
                         </div>

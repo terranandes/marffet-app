@@ -819,7 +819,12 @@ Please analyze this feedback and determine if it's a true bug.`;
                 // Use cached path if available
                 const path = pathsToUse ? pathsToUse.get(stockId) : calculateWealthPath(stockId, sim.value.startYear,
                     sim.value.principal, sim.value.contribution);
-                if (!path) return;
+                if (!path || path.length === 0) {
+                    if (stockId === '6669') {
+                        console.log('[DEBUG 6669 MISSING] No path found!', { stockId, pathsToUse: pathsToUse?.size, hasPath: !!path, pathLen: path?.length });
+                    }
+                    return;
+                }
 
                 // For CAGR mode, use pre-calculated value from API (same as Mars table)
                 const stockCagr = stockCagrMap.get(stockId) || 0;
@@ -838,18 +843,15 @@ Please analyze this feedback and determine if it's a true bug.`;
                 path.forEach(p => {
                     if (!raceMap.has(p.year)) raceMap.set(p.year, []);
                     if (p.year >= sim.value.startYear - 1) {
-                        // Calculate CAGR from wealth for this year
-                        const yearsElapsed = p.year - sim.value.startYear + 1;
-                        let perYearCagr = 0;
-                        if (yearsElapsed > 0 && sim.value.principal > 0 && p.value > 0) {
-                            perYearCagr = (Math.pow(p.value / sim.value.principal, 1 / yearsElapsed) - 1) * 100;
-                        }
+                        // For CAGR mode: use pre-calculated API value (same as Mars table)
+                        // For Wealth mode: use per-year wealth value
+                        const stockCagr = stockCagrMap.get(p.id) || 0;
 
                         raceMap.get(p.year).push({
                             id: p.id,
                             name: stockNameMap.get(p.id) || p.id,
-                            // Use per-year calculated CAGR for racing animation
-                            value: raceMetric.value === 'wealth' ? p.value : perYearCagr
+                            // Use API's pre-calculated CAGR for consistency with Mars table
+                            value: raceMetric.value === 'wealth' ? p.value : stockCagr
                         });
                     }
                 });

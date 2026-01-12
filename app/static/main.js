@@ -1462,6 +1462,146 @@ ${holdingsDetail || '        (No holdings yet)'}
             } catch (e) { console.error('Fetch race data error:', e); }
         };
 
+        // Portfolio Race Animation Variables
+        let portfolioRaceInterval = null;
+        let portfolioRaceFrameIndex = 0;
+
+        // Render Portfolio Race using D3 (simplified bar chart race)
+        const renderPortfolioRace = () => {
+            const container = document.getElementById('my-portfolio-race-chart');
+            if (!container || portfolioRaceData.value.length === 0) return;
+
+            // Clear existing content
+            container.innerHTML = '';
+
+            // Group data by month
+            const monthMap = new Map();
+            portfolioRaceData.value.forEach(d => {
+                if (!monthMap.has(d.month)) monthMap.set(d.month, []);
+                monthMap.get(d.month).push(d);
+            });
+            const months = Array.from(monthMap.keys()).sort();
+            if (months.length === 0) return;
+
+            // Setup D3
+            const width = container.clientWidth || 600;
+            const height = container.clientHeight || 400;
+            const margin = { top: 40, right: 100, bottom: 30, left: 120 };
+            const n = 10; // Max bars to show
+
+            const svg = d3.select(container)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .style('background', 'transparent');
+
+            const x = d3.scaleLinear().range([margin.left, width - margin.right]);
+            const y = d3.scaleBand().range([margin.top, height - margin.bottom]).padding(0.1);
+
+            const gBars = svg.append('g');
+            const gLabels = svg.append('g');
+            const gValues = svg.append('g');
+            const gMonth = svg.append('text')
+                .attr('x', width - margin.right - 10)
+                .attr('y', height - 10)
+                .attr('text-anchor', 'end')
+                .attr('font-size', '24px')
+                .attr('fill', '#00f2ea')
+                .attr('font-weight', 'bold');
+
+            const colors = ['#00f2ea', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff922b'];
+
+            const updateFrame = (monthData, monthLabel) => {
+                const topN = monthData.sort((a, b) => b.value - a.value).slice(0, n);
+
+                x.domain([0, d3.max(topN, d => d.value) || 100]);
+                y.domain(topN.map(d => d.id));
+
+                // Bars
+                const bars = gBars.selectAll('rect').data(topN, d => d.id);
+                bars.join(
+                    enter => enter.append('rect')
+                        .attr('x', margin.left)
+                        .attr('y', d => y(d.id))
+                        .attr('height', y.bandwidth())
+                        .attr('width', 0)
+                        .attr('fill', (d, i) => colors[i % colors.length])
+                        .attr('rx', 4)
+                        .call(e => e.transition().duration(300).attr('width', d => x(d.value) - margin.left)),
+                    update => update.call(u => u.transition().duration(300)
+                        .attr('y', d => y(d.id))
+                        .attr('width', d => x(d.value) - margin.left)),
+                    exit => exit.remove()
+                );
+
+                // Labels (stock names)
+                const labels = gLabels.selectAll('text').data(topN, d => d.id);
+                labels.join(
+                    enter => enter.append('text')
+                        .attr('x', margin.left - 5)
+                        .attr('y', d => y(d.id) + y.bandwidth() / 2)
+                        .attr('dy', '0.35em')
+                        .attr('text-anchor', 'end')
+                        .attr('fill', '#fff')
+                        .attr('font-size', '12px')
+                        .text(d => d.name?.substring(0, 8) || d.id),
+                    update => update.call(u => u.transition().duration(300)
+                        .attr('y', d => y(d.id) + y.bandwidth() / 2)
+                        .text(d => d.name?.substring(0, 8) || d.id)),
+                    exit => exit.remove()
+                );
+
+                // Values
+                const values = gValues.selectAll('text').data(topN, d => d.id);
+                values.join(
+                    enter => enter.append('text')
+                        .attr('x', d => x(d.value) + 5)
+                        .attr('y', d => y(d.id) + y.bandwidth() / 2)
+                        .attr('dy', '0.35em')
+                        .attr('fill', '#fff')
+                        .attr('font-size', '11px')
+                        .text(d => '$' + d.value.toLocaleString()),
+                    update => update.call(u => u.transition().duration(300)
+                        .attr('x', d => x(d.value) + 5)
+                        .attr('y', d => y(d.id) + y.bandwidth() / 2)
+                        .text(d => '$' + d.value.toLocaleString())),
+                    exit => exit.remove()
+                );
+
+                // Month label
+                gMonth.text(monthLabel);
+            };
+
+            // Animation loop
+            portfolioRaceFrameIndex = 0;
+            const animate = () => {
+                if (!portfolioRacePlaying.value) return;
+                if (portfolioRaceFrameIndex >= months.length) {
+                    portfolioRacePlaying.value = false;
+                    return;
+                }
+                const month = months[portfolioRaceFrameIndex];
+                updateFrame(monthMap.get(month), month);
+                portfolioRaceFrameIndex++;
+            };
+
+            // Initial frame
+            updateFrame(monthMap.get(months[0]), months[0]);
+
+            // Start animation
+            if (portfolioRaceInterval) clearInterval(portfolioRaceInterval);
+            portfolioRaceInterval = setInterval(animate, 600);
+        };
+
+        // Watch for play state and trigger render
+        watch(portfolioRacePlaying, (playing) => {
+            if (playing) {
+                renderPortfolioRace();
+            } else if (portfolioRaceInterval) {
+                clearInterval(portfolioRaceInterval);
+            }
+        });
+
         // ============== LEADERBOARD & PROFILE ==============
         const leaderboard = ref([]);
         const loadingLadder = ref(false);

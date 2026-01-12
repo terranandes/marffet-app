@@ -994,27 +994,27 @@ Please analyze this feedback and determine if it's a true bug.`;
                     .style('opacity', 1)
                     .text(d => `${d.name} (${d.id})`);
 
-                // VALUES (inside bars on right)
+                // VALUES (outside bars on right)
                 const values = valuesGroup.selectAll('text').data(data, d => d.id);
 
                 values.exit().transition().duration(dur).style('opacity', 0).remove();
 
                 values.enter()
                     .append('text')
-                    .attr('x', d => xScale(d.value) - 5)
+                    .attr('x', d => xScale(d.value) + 8)  // Position OUTSIDE bar (right side)
                     .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
-                    .attr('text-anchor', 'end')
-                    .attr('fill', '#000')
-                    .attr('font-size', '11px')
-                    .attr('font-weight', 'bold')
+                    .attr('text-anchor', 'start')  // Align from left edge of text
+                    .attr('fill', '#fff')  // White text for visibility
+                    .attr('font-size', '10px')
+                    .attr('font-weight', '600')
                     .attr('dominant-baseline', 'middle')
                     .style('opacity', 0)
                     .merge(values)
                     .transition()
                     .duration(dur)
                     .ease(d3.easeCubicInOut)
-                    .attr('x', d => xScale(d.value) - 5)
-                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2) // SMOOTH Y transition
+                    .attr('x', d => xScale(d.value) + 8)  // Position OUTSIDE bar
+                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
                     .style('opacity', 1)
                     .text(d => raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`);
             };

@@ -25,12 +25,30 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 -   **Dividend Receipts**: Granular breakdown of annual cash flow from dividends.
 -   **Survivors Table**: identifying the "Thrivers" of the market over 20 years.
 
-### 4. AI Copilot (Powered by Gemini)
--   **Role**: An intelligent investment assistant.
--   **Features**:
-    -   Explains financial concepts (e.g., "What is CAGR?").
-    -   Analyzes portfolio diversification.
-    -   Provides historical context on stock movements.
+### 4. AI Copilot (Mars AI, Powered by Gemini)
+-   **Role**: An intelligent investment assistant with tier-based personalities.
+-   **User Context**: AI sees full portfolio summary + individual holdings (name, shares, avg cost, P/L).
+
+#### Free Tier Personality
+> *"You are Mars AI (Free Tier), an investment educator designed to build CONFIDENCE."*
+
+| Trait | Description |
+|-------|-------------|
+| **Goal** | Explain WHY the Mars Strategy (Buy Top 50 & Hold) works |
+| **Tone** | Encouraging, Patient, Educational |
+| **Evidence** | Cites Bar Chart Race and CAGR data |
+| **Limitation** | Does NOT give rebalancing advice |
+
+#### Premium Tier Personality
+> *"You are Mars AI (Premium Tier), a ruthless wealth manager designed to enforce DISCIPLINE."*
+
+| Trait | Description |
+|-------|-------------|
+| **Goal** | Optimize returns through active REBALANCING |
+| **Tone** | Precise, Data-Driven, Action-Oriented |
+| **Focus** | SMA Divergence, Market Cap Ratios |
+| **Advice** | Suggests selling overheated stocks (+20% vs SMA) |
+| **Motto** | *"Execute the strategy. Don't fall in love with a stock."*
 
 ## 3. Target Audience
 -   **Retail Investors**: Looking to backtest strategies.

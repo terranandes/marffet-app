@@ -776,7 +776,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const raceConfig = {
             barHeight: 22,
             barPadding: 2,
-            topN: 25, // User requested 25 instead of 15
+            topN: 50, // Extended to 50 for more comprehensive race view
             duration: 1200, // Slower animation (user request)
             margin: { top: 60, right: 20, bottom: 80, left: 200 }
         };

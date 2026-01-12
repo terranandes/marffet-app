@@ -185,7 +185,7 @@ async def chat_with_mars(req: ChatRequest):
         def generate_response():
             client = genai.Client(api_key=req.apiKey)
             response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model='gemini-3-flash-preview',  # Latest Gemini 3 Flash
                 contents=[
                     {"role": "user", "parts": [{"text": system_prompt}]},
                     {"role": "model", "parts": [{"text": "Understood. I am ready to serve per my tier instructions."}]},
@@ -211,7 +211,7 @@ async def chat_with_mars(req: ChatRequest):
             except Exception as e:
                 print(f"List models failed: {e}")
                 # If listing fails, try a hardcoded fallback list
-                available_models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']
+                available_models = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash']
 
             print(f"Available models for key: {available_models}")
             

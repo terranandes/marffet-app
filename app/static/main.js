@@ -1004,11 +1004,12 @@ Please analyze this feedback and determine if it's a true bug.`;
                     .attr('x', d => xScale(d.value) + 8)  // Position OUTSIDE bar (right side)
                     .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
                     .attr('text-anchor', 'start')  // Align from left edge of text
-                    .attr('fill', '#fff')  // White text for visibility
+                    .attr('fill', '#00ffff')  // Cyber cyan for visibility
                     .attr('font-size', '10px')
-                    .attr('font-weight', '600')
+                    .attr('font-weight', '700')
                     .attr('dominant-baseline', 'middle')
                     .style('opacity', 0)
+                    .style('text-shadow', '0 0 3px #000, 0 0 5px #000, 1px 1px 2px #000')  // Dark shadow for contrast
                     .merge(values)
                     .transition()
                     .duration(dur)

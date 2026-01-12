@@ -710,10 +710,10 @@ Please analyze this feedback and determine if it's a true bug.`;
                     // Transform backend record to frontend path format
                     groupedData[id].push({
                         year: record.year,
-                        value: record.wealth || record.value, // Backend now provides 'wealth'
+                        value: record.wealth || record.value, // Backend provides 'wealth'
                         cost: 0,
                         roi: record.roi,
-                        cagr: 0,
+                        cagr: record.cagr || 0,  // Backend provides per-year CAGR
                         dividend: 0,
                         id: id,
                         name: record.name
@@ -843,21 +843,13 @@ Please analyze this feedback and determine if it's a true bug.`;
                 path.forEach(p => {
                     if (!raceMap.has(p.year)) raceMap.set(p.year, []);
                     if (p.year >= sim.value.startYear - 1) {
-                        // Calculate DYNAMIC per-year CAGR for racing effect
-                        // At each year, CAGR = ((wealth / principal) ^ (1 / yearsElapsed) - 1) * 100
-                        const yearsElapsed = p.year - sim.value.startYear + 1;
-                        let perYearCagr = 0;
-                        if (yearsElapsed > 0 && sim.value.principal > 0 && p.value > 0) {
-                            // Total invested = Principal + (Contribution * Years)
-                            // For CAGR, we use principal as base for comparable measurement
-                            perYearCagr = (Math.pow(p.value / sim.value.principal, 1 / yearsElapsed) - 1) * 100;
-                        }
-
+                        // Backend provides pre-calculated per-year CAGR - Single Source of Truth
+                        // No frontend calculation needed - same data for Mars Strategy, CSV Export, and Race
                         raceMap.get(p.year).push({
                             id: p.id,
                             name: stockNameMap.get(p.id) || p.id,
-                            // Wealth mode: per-year wealth. CAGR mode: per-year calculated CAGR (creates racing effect!)
-                            value: raceMetric.value === 'wealth' ? p.value : perYearCagr
+                            // Wealth mode: p.value, CAGR mode: p.cagr (both from backend)
+                            value: raceMetric.value === 'wealth' ? p.value : p.cagr
                         });
                     }
                 });

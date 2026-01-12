@@ -1085,7 +1085,9 @@ def update_user_stats(user_id: str) -> dict:
                 SET total_wealth = ?, total_cost = ?, total_roi = ?, last_synced = CURRENT_TIMESTAMP
                 WHERE id = ?
             """, (total_value, total_cost, total_roi, user_id))
+            rows_updated = cursor.rowcount
             conn.commit()  # CRITICAL: Persist changes!
+            print(f"[Leaderboard Sync] user_id={user_id}, rows_updated={rows_updated}, wealth={total_value}, cost={total_cost}, roi={total_roi}")
             
         return {
             "wealth": round(total_value, 2),

@@ -15,10 +15,11 @@ from typing import Optional
 from contextlib import contextmanager
 
 # Database file location
-# Use /data for persistent storage on Zeabur, fallback to local for dev
+# Use persistent storage on Zeabur, fallback to local for dev
 import os
-PERSISTENT_DIR = Path("/data")
-if PERSISTENT_DIR.exists():
+# Zeabur mounts volume at /app/app (as configured in Volumes tab)
+PERSISTENT_DIR = Path("/app/app")
+if PERSISTENT_DIR.exists() and PERSISTENT_DIR.is_dir():
     DB_PATH = PERSISTENT_DIR / "portfolio.db"
     print(f"[DB] Using persistent storage: {DB_PATH}")
 else:

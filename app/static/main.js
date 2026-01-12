@@ -949,65 +949,47 @@ Please analyze this feedback and determine if it's a true bug.`;
                 // BARS with key-based join for object constancy
                 const bars = barsGroup.selectAll('rect').data(data, d => d.id);
 
-                // EXIT: Bars sliding out to left with fade
+                // EXIT: Simple fade out
                 bars.exit()
                     .transition()
-                    .duration(dur / 2)
-                    .ease(d3.easeQuadIn)
+                    .duration(dur)
                     .attr('width', 0)
-                    .attr('x', 0)
-                    .style('opacity', 0)
                     .remove();
 
-                // ENTER: Bars sliding in from left
+                // ENTER + UPDATE: Smooth transitions
                 bars.enter()
                     .append('rect')
-                    .attr('x', 0)  // Start from left edge
-                    .attr('y', height)  // Start from bottom (slide up)
+                    .attr('x', raceConfig.margin.left)
+                    .attr('y', d => yScale(d.rank))
                     .attr('height', raceConfig.barHeight)
                     .attr('fill', d => colorScale(d.id))
-                    .attr('rx', 6)  // More rounded corners
-                    .attr('ry', 6)
+                    .attr('rx', 4)
                     .attr('width', 0)
-                    .style('opacity', 0)
-                    .style('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))')  // Shadow effect
                     .merge(bars)
                     .transition()
                     .duration(dur)
-                    .ease(d3.easeElasticOut.amplitude(1).period(0.4))  // Bouncy entrance
-                    .attr('x', raceConfig.margin.left)
-                    .attr('y', d => yScale(d.rank)) // Smooth Y transition
-                    .attr('width', d => Math.max(0, xScale(d.value) - raceConfig.margin.left))
-                    .style('opacity', 1);
+                    .ease(d3.easeCubicInOut)  // Smooth cubic easing
+                    .attr('y', d => yScale(d.rank))
+                    .attr('width', d => Math.max(0, xScale(d.value) - raceConfig.margin.left));
 
                 // LABELS (stock names on left)
                 const labels = labelsGroup.selectAll('text').data(data, d => d.id);
 
-                // EXIT: Labels fade out quickly
-                labels.exit()
-                    .transition()
-                    .duration(dur / 2)
-                    .style('opacity', 0)
-                    .attr('x', 0)
-                    .remove();
+                labels.exit().transition().duration(dur).style('opacity', 0).remove();
 
-                // ENTER: Labels slide in with bars
                 labels.enter()
                     .append('text')
-                    .attr('x', 0)  // Start from left
-                    .attr('y', height)  // Start from bottom
+                    .attr('x', raceConfig.margin.left - 5)
+                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
                     .attr('text-anchor', 'end')
                     .attr('fill', '#fff')
                     .attr('font-size', '11px')
-                    .attr('font-weight', '500')
                     .attr('dominant-baseline', 'middle')
                     .style('opacity', 0)
-                    .style('text-shadow', '0 1px 2px rgba(0,0,0,0.5)')  // Text shadow for readability
                     .merge(labels)
                     .transition()
                     .duration(dur)
-                    .ease(d3.easeElasticOut.amplitude(1).period(0.4))
-                    .attr('x', raceConfig.margin.left - 8)
+                    .ease(d3.easeCubicInOut)
                     .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
                     .style('opacity', 1)
                     .text(d => `${d.name} (${d.id})`);

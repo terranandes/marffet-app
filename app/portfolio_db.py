@@ -1076,6 +1076,7 @@ def update_user_stats(user_id: str) -> dict:
                 SET total_wealth = ?, total_cost = ?, total_roi = ?, last_synced = CURRENT_TIMESTAMP
                 WHERE id = ?
             """, (total_value, total_cost, total_roi, user_id))
+            conn.commit()  # CRITICAL: Persist changes!
             
         return {
             "wealth": round(total_value, 2),

@@ -555,6 +555,18 @@ Please analyze this feedback and determine if it's a true bug.`;
             });
         };
 
+        const updateFeedbackNotes = async (id, notes) => {
+            try {
+                await fetch(`/api/feedback/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent_notes: notes })
+                });
+            } catch (e) {
+                console.error('Update notes error:', e);
+            }
+        };
+
 
         // Sorting State
         const sortKey = ref('finalValue');
@@ -1871,7 +1883,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             currentUser,
             // Admin Dashboard (GM Only)
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
-            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback
+            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes
         };
     }
 }).mount('#app')

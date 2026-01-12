@@ -1301,6 +1301,17 @@
                                             <option value="wontfix">⚫ Won't Fix</option>
                                         </select>
                                     </div>
+                                    <!-- Agent Notes (AI Review) -->
+                                    <div v-if="fb.agent_notes || fb.showNotes" class="mt-2">
+                                        <textarea v-model="fb.agent_notes" rows="2"
+                                            class="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-300"
+                                            placeholder="AI agent notes..."
+                                            @blur="updateFeedbackNotes(fb.id, fb.agent_notes)"></textarea>
+                                    </div>
+                                    <button v-else @click="fb.showNotes = true"
+                                        class="mt-1 text-xs text-gray-500 hover:text-cyan-400 transition">
+                                        + Add AI notes
+                                    </button>
                                 </div>
                             </div>
                         </div>

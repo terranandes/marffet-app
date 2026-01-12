@@ -1225,6 +1225,81 @@
                             </div>
                         </div>
 
+                        <!-- Feedback Review Panel -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm text-gray-400 uppercase tracking-wider">User Feedback & Bug Reports
+                                </h3>
+                                <button @click="fetchFeedbackList"
+                                    class="text-xs text-cyber-cyan hover:text-white transition">
+                                    🔄 Refresh
+                                </button>
+                            </div>
+
+                            <!-- Feedback Stats -->
+                            <div class="grid grid-cols-5 gap-2 mb-4">
+                                <div class="bg-red-500/20 p-2 rounded text-center">
+                                    <div class="text-lg font-bold text-red-400">{{ feedbackStats.new || 0 }}</div>
+                                    <div class="text-xs text-gray-500">New</div>
+                                </div>
+                                <div class="bg-yellow-500/20 p-2 rounded text-center">
+                                    <div class="text-lg font-bold text-yellow-400">{{ feedbackStats.reviewing || 0 }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">Reviewing</div>
+                                </div>
+                                <div class="bg-blue-500/20 p-2 rounded text-center">
+                                    <div class="text-lg font-bold text-blue-400">{{ feedbackStats.confirmed || 0 }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">Confirmed</div>
+                                </div>
+                                <div class="bg-green-500/20 p-2 rounded text-center">
+                                    <div class="text-lg font-bold text-green-400">{{ feedbackStats.fixed || 0 }}</div>
+                                    <div class="text-xs text-gray-500">Fixed</div>
+                                </div>
+                                <div class="bg-gray-500/20 p-2 rounded text-center">
+                                    <div class="text-lg font-bold text-gray-400">{{ feedbackStats.wontfix || 0 }}</div>
+                                    <div class="text-xs text-gray-500">Won't Fix</div>
+                                </div>
+                            </div>
+
+                            <!-- Feedback List -->
+                            <div class="bg-black/40 rounded-xl border border-white/10 max-h-80 overflow-y-auto">
+                                <div v-if="feedbackList.length === 0" class="p-4 text-center text-gray-500">
+                                    No feedback reports yet
+                                </div>
+                                <div v-for="fb in feedbackList" :key="fb.id"
+                                    class="p-4 border-b border-white/5 hover:bg-white/5">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span class="text-xs px-2 py-1 rounded mr-2" :class="{
+                                                    'bg-red-500/30 text-red-300': fb.feedback_type === 'bug',
+                                                    'bg-blue-500/30 text-blue-300': fb.feedback_type === 'suggestion',
+                                                    'bg-purple-500/30 text-purple-300': fb.feedback_type === 'question'
+                                                }">
+                                                {{ fb.feedback_type === 'bug' ? '🐛' : fb.feedback_type === 'suggestion'
+                                                ? '💡' : '❓' }}
+                                                {{ fb.feedback_type }}
+                                            </span>
+                                            <span class="text-xs text-gray-500">{{ fb.feature_category }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-600">{{ fb.created_at?.substring(0, 10) }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-300 mb-2">{{ fb.message }}</p>
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span class="text-gray-600">From: {{ fb.user_email || 'Anonymous' }}</span>
+                                        <select v-model="fb.status" @change="updateFeedbackStatus(fb.id, fb.status)"
+                                            class="ml-auto bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs">
+                                            <option value="new">🔴 New</option>
+                                            <option value="reviewing">🟡 Reviewing</option>
+                                            <option value="confirmed">🔵 Confirmed</option>
+                                            <option value="fixed">🟢 Fixed</option>
+                                            <option value="wontfix">⚫ Won't Fix</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="text-xs text-gray-600 text-center mt-6">
                             Data refreshes on tab switch • Admin access only
                         </div>

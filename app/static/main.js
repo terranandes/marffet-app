@@ -501,6 +501,38 @@ ${holdingsDetail || '        (No holdings yet)'}
             }
         };
 
+        // ========== FEEDBACK ADMIN PANEL (GM ONLY) ==========
+        const feedbackList = ref([]);
+        const feedbackStats = ref({});
+
+        const fetchFeedbackList = async () => {
+            try {
+                const [listRes, statsRes] = await Promise.all([
+                    fetch('/api/feedback'),
+                    fetch('/api/feedback/stats')
+                ]);
+                if (listRes.ok) feedbackList.value = await listRes.json();
+                if (statsRes.ok) feedbackStats.value = await statsRes.json();
+            } catch (e) {
+                console.error('Fetch feedback error:', e);
+            }
+        };
+
+        const updateFeedbackStatus = async (id, status) => {
+            try {
+                await fetch(`/api/feedback/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                // Refresh stats after update
+                const statsRes = await fetch('/api/feedback/stats');
+                if (statsRes.ok) feedbackStats.value = await statsRes.json();
+            } catch (e) {
+                console.error('Update feedback error:', e);
+            }
+        };
+
 
         // Sorting State
         const sortKey = ref('finalValue');
@@ -1756,6 +1788,7 @@ ${holdingsDetail || '        (No holdings yet)'}
                         fetchLeaderboard();
                     } else if (newTab === 'admin') {
                         fetchAdminMetrics();
+                        fetchFeedbackList();
                     }
                 });
             };
@@ -1815,7 +1848,8 @@ ${holdingsDetail || '        (No holdings yet)'}
             // Auth
             currentUser,
             // Admin Dashboard (GM Only)
-            adminMetrics, adminLoading, adminError, fetchAdminMetrics
+            adminMetrics, adminLoading, adminError, fetchAdminMetrics,
+            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus
         };
     }
 }).mount('#app')

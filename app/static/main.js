@@ -431,12 +431,15 @@ ${holdingsDetail || '        (No holdings yet)'}
             catch (e) { console.error('Save settings error:', e); }
         };
         const toggleGMMode = () => { appSettings.value.gmMode = !appSettings.value.gmMode; saveSettings(); };
-        // Premium = gmMode toggled ON || user is admin (GM) || user has paid subscription
-        const isPremium = computed(() =>
-            appSettings.value.gmMode ||
-            currentUser.value?.is_admin ||
-            (currentUser.value?.subscription_tier > 0)
-        );
+        // Premium logic:
+        // - GM users: ONLY controlled by gmMode toggle (for testing both tiers)
+        // - Regular users: auto-premium if subscribed
+        const isPremium = computed(() => {
+            if (currentUser.value?.is_admin) {
+                return appSettings.value.gmMode; // GM can toggle for testing
+            }
+            return currentUser.value?.subscription_tier > 0; // Regular users: subscription-based
+        });
 
         // ========== ADMIN DASHBOARD (GM ONLY) ==========
         const adminMetrics = ref({});

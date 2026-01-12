@@ -742,7 +742,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     // CAGR
                     let cagr = 0;
                     if (sim.value.principal > 0 && final > 0) {
-                        cagr = ((Math.pow(final / sim.value.principal, 1 / years) - 1) * 100).toFixed(2);
+                        cagr = (Math.pow(final / sim.value.principal, 1 / years) - 1) * 100;
                     }
 
                     return {

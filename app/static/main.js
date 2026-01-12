@@ -348,9 +348,10 @@ createApp({
             const context = `
         Portfolio Summary:
         - Total Groups: ${portfolioGroups.value.length}
-        - Total Value: ${formatCurrency(stats.value?.totalValue || 0)}
-        - Total Cost: ${formatCurrency(stats.value?.totalCost || 0)}
-        - Total P/L: ${formatCurrency(stats.value?.totalPL || 0)}
+        - Market Value: ${formatCurrency(groupStats.value?.marketValue || 0)}
+        - Total Cost: ${formatCurrency(groupStats.value?.totalCost || 0)}
+        - Unrealized P/L: ${formatCurrency(groupStats.value?.unrealized || 0)}
+        - Realized P/L: ${formatCurrency(groupStats.value?.realized || 0)}
         - Premium User: ${isPremium.value}
         `;
 

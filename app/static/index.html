@@ -1287,6 +1287,11 @@
                                     <p class="text-sm text-gray-300 mb-2">{{ fb.message }}</p>
                                     <div class="flex items-center gap-2 text-xs">
                                         <span class="text-gray-600">From: {{ fb.user_email || 'Anonymous' }}</span>
+                                        <button @click="copyFeedback(fb)"
+                                            class="text-cyan-400 hover:text-cyan-300 transition"
+                                            title="Copy to clipboard for AI review">
+                                            📋 Copy
+                                        </button>
                                         <select v-model="fb.status" @change="updateFeedbackStatus(fb.id, fb.status)"
                                             class="ml-auto bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs">
                                             <option value="new">🔴 New</option>

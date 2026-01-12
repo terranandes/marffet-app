@@ -533,6 +533,28 @@ ${holdingsDetail || '        (No holdings yet)'}
             }
         };
 
+        const copyFeedback = (fb) => {
+            const text = `## User Feedback Report
+**ID:** ${fb.id}
+**Type:** ${fb.feedback_type}
+**Feature:** ${fb.feature_category}
+**Status:** ${fb.status}
+**From:** ${fb.user_email || 'Anonymous'}
+**Date:** ${fb.created_at?.substring(0, 10)}
+
+**Message:**
+${fb.message}
+
+---
+Please analyze this feedback and determine if it's a true bug.`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Feedback copied! Paste to AI agent for review.');
+            }).catch(e => {
+                console.error('Copy failed:', e);
+            });
+        };
+
 
         // Sorting State
         const sortKey = ref('finalValue');
@@ -1849,7 +1871,7 @@ ${holdingsDetail || '        (No holdings yet)'}
             currentUser,
             // Admin Dashboard (GM Only)
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
-            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus
+            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback
         };
     }
 }).mount('#app')

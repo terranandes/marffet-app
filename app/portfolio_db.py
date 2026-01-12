@@ -1077,17 +1077,29 @@ def update_user_stats(user_id: str) -> dict:
         if total_cost > 0:
             total_roi = (total_value - total_cost) / total_cost * 100
             
-        # 4. Update Users Table
+        # 4. Update Users Table (UPSERT pattern)
         with get_db() as conn:
             cursor = conn.cursor()
+            # Try UPDATE first
             cursor.execute("""
                 UPDATE users 
                 SET total_wealth = ?, total_cost = ?, total_roi = ?, last_synced = CURRENT_TIMESTAMP
                 WHERE id = ?
             """, (total_value, total_cost, total_roi, user_id))
             rows_updated = cursor.rowcount
-            conn.commit()  # CRITICAL: Persist changes!
-            print(f"[Leaderboard Sync] user_id={user_id}, rows_updated={rows_updated}, wealth={total_value}, cost={total_cost}, roi={total_roi}")
+            
+            # If no row updated, INSERT the user record
+            if rows_updated == 0:
+                cursor.execute("""
+                    INSERT INTO users (id, total_wealth, total_cost, total_roi, last_synced)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (user_id, total_value, total_cost, total_roi))
+                print(f"[Leaderboard Sync] INSERTED new user: {user_id}")
+            else:
+                print(f"[Leaderboard Sync] UPDATED user: {user_id}")
+                
+            conn.commit()
+            print(f"[Leaderboard Sync] wealth={total_value}, cost={total_cost}, roi={total_roi}")
             
         return {
             "wealth": round(total_value, 2),

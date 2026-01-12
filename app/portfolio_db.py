@@ -15,7 +15,15 @@ from typing import Optional
 from contextlib import contextmanager
 
 # Database file location
-DB_PATH = Path(__file__).parent / "portfolio.db"
+# Use /data for persistent storage on Zeabur, fallback to local for dev
+import os
+PERSISTENT_DIR = Path("/data")
+if PERSISTENT_DIR.exists():
+    DB_PATH = PERSISTENT_DIR / "portfolio.db"
+    print(f"[DB] Using persistent storage: {DB_PATH}")
+else:
+    DB_PATH = Path(__file__).parent / "portfolio.db"
+    print(f"[DB] Using local storage: {DB_PATH}")
 
 # Tier limits
 FREE_MAX_GROUPS = 11

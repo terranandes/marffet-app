@@ -208,3 +208,7 @@ __marimo__/
 
 # Data
 ~$*
+
+# Database files
+*.db
+app/portfolio.db

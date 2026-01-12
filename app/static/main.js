@@ -917,6 +917,19 @@ Please analyze this feedback and determine if it's a true bug.`;
                 xScale.domain([0, maxValue * 1.1]);
                 yScale.domain([0, raceConfig.topN - 1]);
 
+                // DEBUG: Log bar width calculation
+                if (data.length > 0) {
+                    const sample = data[0];
+                    console.log('[Bar Width Debug]', {
+                        year: frameData.year,
+                        sampleValue: sample.value,
+                        maxValue,
+                        marginLeft: raceConfig.margin.left,
+                        xScaleRange: xScale.range(),
+                        calculatedWidth: xScale(sample.value) - raceConfig.margin.left
+                    });
+                }
+
                 // X-Axis transition
                 xAxis.transition().duration(dur).call(d3.axisTop(xScale).ticks(5).tickFormat(d => raceMetric.value ===
                     'wealth' ? formatCurrency(d) : `${d.toFixed(0)}%`));

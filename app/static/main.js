@@ -838,11 +838,18 @@ Please analyze this feedback and determine if it's a true bug.`;
                 path.forEach(p => {
                     if (!raceMap.has(p.year)) raceMap.set(p.year, []);
                     if (p.year >= sim.value.startYear - 1) {
+                        // Calculate CAGR from wealth for this year
+                        const yearsElapsed = p.year - sim.value.startYear + 1;
+                        let perYearCagr = 0;
+                        if (yearsElapsed > 0 && sim.value.principal > 0 && p.value > 0) {
+                            perYearCagr = (Math.pow(p.value / sim.value.principal, 1 / yearsElapsed) - 1) * 100;
+                        }
+
                         raceMap.get(p.year).push({
                             id: p.id,
                             name: stockNameMap.get(p.id) || p.id,
                             // Use per-year calculated CAGR for racing animation
-                            value: raceMetric.value === 'wealth' ? p.value : p.cagr
+                            value: raceMetric.value === 'wealth' ? p.value : perYearCagr
                         });
                     }
                 });

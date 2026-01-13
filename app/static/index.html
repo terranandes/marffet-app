@@ -379,10 +379,15 @@
                                     class="px-3 py-1 text-xs font-bold rounded transition">
                                     {{ t('race_wealth') }}
                                 </button>
-                                <button @click="raceMetric = 'cagr'; resetRace()"
-                                    :class="{'bg-cyber-cyan text-black': raceMetric === 'cagr', 'text-gray-400 hover:text-white': raceMetric !== 'cagr'}"
-                                    class="px-3 py-1 text-xs font-bold rounded transition">
+                                <button @click="if(isPremium) { raceMetric = 'cagr'; resetRace(); }"
+                                    :class="{'bg-cyber-cyan text-black': raceMetric === 'cagr', 'text-gray-400 hover:text-white': raceMetric !== 'cagr' && isPremium, 'opacity-30 cursor-not-allowed': !isPremium}"
+                                    class="px-3 py-1 text-xs font-bold rounded transition relative group">
                                     {{ t('race_cagr') }}
+                                    <span v-if="!isPremium" class="ml-1">🔒</span>
+                                    <div v-if="!isPremium"
+                                        class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none z-10 border border-white/20">
+                                        Premium only
+                                    </div>
                                 </button>
                             </div>
                         </div>

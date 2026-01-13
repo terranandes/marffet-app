@@ -2047,6 +2047,14 @@ Please analyze this feedback and determine if it's a true bug.`;
                 console.error('Auth Error', e);
                 if (loader) loader.style.display = 'none';
             }
+
+            // Watch for Guest login (from "Continue as Guest" button)
+            watch(currentUser, (newUser, oldUser) => {
+                if (newUser && newUser.is_guest && !oldUser) {
+                    console.log('[Guest] Guest mode activated, loading dashboard...');
+                    loadDashboard();
+                }
+            });
         });
 
         return {

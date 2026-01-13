@@ -1324,9 +1324,13 @@ Please analyze this feedback and determine if it's a true bug.`;
         const createGroup = async () => {
             if (!newGroupName.value.trim()) return;
 
+            console.log('[createGroup] isGuest:', isGuest.value, 'groups count:', guestData.value.groups.length);
+
             // GUEST MODE: Save to localStorage
             if (isGuest.value) {
+                console.log('[createGroup] Guest mode detected, checking limits...');
                 if (guestData.value.groups.length >= GUEST_LIMITS.maxGroups) {
+                    console.log('[createGroup] LIMIT REACHED! Showing alert...');
                     alert(`⚠️ Guest limit reached!\n\nMax ${GUEST_LIMITS.maxGroups} groups allowed.\nLogin to create more groups.`);
                     return;
                 }

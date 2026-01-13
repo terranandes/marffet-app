@@ -914,7 +914,7 @@
                         <span class="text-gray-400">Selected: </span>
                         <span class="text-cyber-cyan font-bold">{{ selectedMonth }}</span>
                         <span class="text-gray-400"> | Cost: </span>
-                        <span class="text-white font-mono">${{ formatCurrency(trendData.find(t => t.month ===
+                        <span class="text-white font-mono">{{ formatCurrency(trendData.find(t => t.month ===
                             selectedMonth)?.cost || 0) }}</span>
                     </div>
                 </div>
@@ -982,7 +982,7 @@
                                 <span class="text-gray-400 text-sm">({{ assetGroups.cb?.length || 0 }}
                                     targets)</span>
                             </div>
-                            <span class="text-green-400 font-mono font-bold">${{ formatCurrency(getGroupTotal('cb'))
+                            <span class="text-green-400 font-mono font-bold">{{ formatCurrency(getGroupTotal('cb'))
                                 }}</span>
                         </div>
                         <div v-if="expandedGroup === 'cb'" class="pl-8 mt-2 space-y-1">

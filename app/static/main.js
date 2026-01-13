@@ -1327,7 +1327,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             // GUEST MODE: Save to localStorage
             if (isGuest.value) {
                 if (guestData.value.groups.length >= GUEST_LIMITS.maxGroups) {
-                    addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxGroups} groups. Login for more!`);
+                    alert(`⚠️ Guest limit reached!\n\nMax ${GUEST_LIMITS.maxGroups} groups allowed.\nLogin to create more groups.`);
                     return;
                 }
                 const newGroup = {
@@ -1451,7 +1451,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 if (!group) return;
 
                 if ((group.targets || []).length >= GUEST_LIMITS.maxTargetsPerGroup) {
-                    addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxTargetsPerGroup} targets per group. Login for more!`);
+                    alert(`⚠️ Guest limit reached!\n\nMax ${GUEST_LIMITS.maxTargetsPerGroup} targets per group.\nLogin to add more targets.`);
                     return;
                 }
 
@@ -1542,7 +1542,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 } else {
                     // Add new
                     if (target.transactions.length >= GUEST_LIMITS.maxTransactionsPerTarget) {
-                        addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxTransactionsPerTarget} transactions per target. Login for more!`);
+                        alert(`⚠️ Guest limit reached!\n\nMax ${GUEST_LIMITS.maxTransactionsPerTarget} transactions per target.\nLogin to add more transactions.`);
                         return;
                     }
                     target.transactions.push({

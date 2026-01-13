@@ -778,7 +778,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             barPadding: 2,
             topN: 50, // Extended to 50 for more comprehensive race view
             duration: 1200, // Slower animation (user request)
-            margin: { top: 60, right: 100, bottom: 20, left: 200 }  // Right margin for value labels
+            margin: { top: 60, right: 150, bottom: 20, left: 200 }  // Larger right margin for value labels
         };
 
         // Dynamic Race Chart (D3.js with smooth transitions)

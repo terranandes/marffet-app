@@ -504,9 +504,11 @@ def get_race_data(start_year: int = 2006):
                              prev_wealth = prev_wealth * (1 + final_roi/100) + SIM_CONTRIB
 
                     if pd.notnull(final_roi) and final_roi != 0:
-                        # Use Excel's pre-calculated cagr_pct for consistency with Mars Strategy
-                        # This ensures Bar Chart Race shows SAME values as Mars Strategy table
-                        excel_cagr_pct = row.get('cagr_pct', 0) or 0
+                        # Calculate cumulative CAGR from start_year to this year
+                        years_elapsed = year - start_year + 1
+                        cagr = 0
+                        if years_elapsed > 0 and SIM_PRINCIPAL > 0 and wealth > 0:
+                            cagr = (pow(wealth / SIM_PRINCIPAL, 1 / years_elapsed) - 1) * 100
                         
                         race_data.append({
                             "year": year,
@@ -515,7 +517,7 @@ def get_race_data(start_year: int = 2006):
                             "roi": round(final_roi, 2),
                             "value": round(wealth, 0), # Return Wealth ($) for Race/Table
                             "wealth": round(wealth, 0),
-                            "cagr": round(excel_cagr_pct, 2),  # Use Excel's pre-calculated CAGR (same as Mars Strategy)
+                            "cagr": round(cagr, 2),  # Per-year calculated CAGR
                             "div_yield": round(div_yield, 2)
                         })
 

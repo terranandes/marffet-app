@@ -351,8 +351,8 @@
             </div>
 
             <!-- RACE TAB -->
-            <div v-show="currentTab === 'race'" class="flex-1 flex flex-col h-full">
-                <div class="glass-panel rounded-xl p-4 h-full flex flex-col">
+            <div v-show="currentTab === 'race'" class="flex-1 flex flex-col overflow-y-auto">
+                <div class="glass-panel rounded-xl p-4 flex flex-col flex-grow">
                     <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
                         <div class="flex items-center gap-4">
                             <h3 class="font-bold text-cyber-cyan text-lg">{{ t('race_title') }}</h3>

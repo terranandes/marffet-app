@@ -151,6 +151,21 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+
+        # Notifications (Premium Rebalancing Alerts)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS notifications (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                type TEXT CHECK(type IN ('GRAVITY', 'SIZE', 'YIELD')) NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT 0,
+                target_id TEXT, -- Optional link to stock
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
         
         # Migration: Add subscription_tier to users
         try:
@@ -1303,4 +1318,64 @@ def get_admin_metrics() -> dict:
                 "vip": tiers.get(2, 0)
             }
         }
+
+
+# ============== NOTIFICATION OPERATIONS ==============
+
+def create_notification(user_id: str, type: str, title: str, message: str, target_id: str = None) -> bool:
+    """
+    Create a new notification with deduplication (Global Safeguard).
+    Returns True if created, False if deduplicated (cooldown).
+    """
+    if type not in ('GRAVITY', 'SIZE', 'YIELD'):
+        raise ValueError(f"Invalid notification type: {type}")
+        
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        # Global Safeguard: 24h Cooldown
+        # Check if same user, type, target exists in last 24h
+        cursor.execute("""
+            SELECT COUNT(*) FROM notifications
+            WHERE user_id = ? AND type = ? AND target_id = ?
+            AND created_at > datetime('now', '-1 day')
+        """, (user_id, type, target_id))
+        
+        if cursor.fetchone()[0] > 0:
+            print(f"[Notifications] Deduplicated (Cooldown): {type} for {target_id}")
+            return False
+
+        notif_id = str(uuid.uuid4())
+        cursor.execute("""
+            INSERT INTO notifications (id, user_id, type, title, message, target_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (notif_id, user_id, type, title, message, target_id))
+        
+        return True
+
+
+def get_unread_notifications(user_id: str) -> list:
+    """Get all unread notifications for a user."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, type, title, message, created_at, target_id
+            FROM notifications
+            WHERE user_id = ? AND is_read = 0
+            ORDER BY created_at DESC
+        """, (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def mark_notification_read(notification_id: str, user_id: str) -> bool:
+    """Mark a notification as read."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE notifications
+            SET is_read = 1
+            WHERE id = ? AND user_id = ?
+        """, (notification_id, user_id))
+        return cursor.rowcount > 0
+
 

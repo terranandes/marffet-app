@@ -147,9 +147,17 @@
         </div>
 
         <!-- Header -->
-        <header class="h-16 border-b border-white/10 flex items-center px-6 justify-between bg-cyber-panel z-[1000]">
+        <header
+            class="h-16 border-b border-white/10 flex items-center px-4 xl:px-6 justify-between bg-cyber-panel z-[1000] relative">
             <div class="flex items-center gap-4">
-                <h1 class="text-2xl font-bold text-cyber-cyan neon-text">🚀 Martian Investment</h1>
+                <!-- Hamburger Button (Mobile Only) -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="xl:hidden text-cyber-cyan text-2xl">
+                    ☰
+                </button>
+                <h1
+                    class="text-xl xl:text-2xl font-bold text-cyber-cyan neon-text truncate max-w-[200px] xl:max-w-none">
+                    🚀 Martian</h1>
+
                 <!-- Notification Bell -->
                 <div class="relative">
                     <button @click="showNotifications = !showNotifications"
@@ -160,37 +168,40 @@
                     </button>
                     <!-- Notification Dropdown -->
                     <div v-if="showNotifications"
-                        class="absolute top-10 left-0 w-80 bg-cyber-panel border border-white/20 rounded-xl shadow-2xl z-[2001] overflow-hidden">
+                        class="absolute top-10 -left-12 xl:left-0 w-72 xl:w-80 bg-cyber-panel border border-white/20 rounded-xl shadow-2xl z-[2001] overflow-hidden">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
                             <span class="font-bold text-sm">🔔 {{ t('n_title') }}</span>
                             <div class="flex gap-2">
                                 <button @click="markAllRead" class="text-xs text-cyber-cyan hover:underline">{{
                                     t('n_read_all') }}</button>
-                                <button @click="clearNotifications" class="text-xs text-red-400 hover:underline">{{
-                                    t('n_clear') }}</button>
                             </div>
                         </div>
                         <div class="max-h-64 overflow-auto">
                             <div v-if="notifications.length === 0" class="text-center text-gray-500 py-6 text-sm">{{
                                 t('n_empty') }}</div>
-                            <div v-for="(n, idx) in notifications" :key="idx"
-                                :class="n.read ? 'bg-transparent' : 'bg-cyber-cyan/10'"
-                                class="px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer flex justify-between"
-                                @click="n.read = true">
-                                <div class="flex-1">
-                                    <p class="text-sm whitespace-pre-wrap leading-relaxed"
-                                        :class="n.read ? 'text-gray-400' : 'text-white'">{{ n.message }}
-                                    </p><span class="text-xs text-gray-500">{{ n.time }}</span>
+                            <div v-for="n in notifications" :key="n.id"
+                                :class="n.is_read ? 'bg-transparent opacity-50' : 'bg-cyber-cyan/10'"
+                                class="px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer"
+                                @click="markAsRead(n)">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs" :class="{
+                                        'text-red-400': n.type === 'GRAVITY',
+                                        'text-yellow-400': n.type === 'SIZE',
+                                        'text-green-400': n.type === 'YIELD'
+                                    }">{{ n.title }}</span>
+                                    <span class="text-[10px] text-gray-500">{{ n.time }}</span>
                                 </div>
-                                <button @click.stop="deleteNotification(idx)"
-                                    class="text-red-400 hover:text-red-300 text-xs ml-2">✕</button>
+                                <p class="text-sm whitespace-pre-wrap leading-relaxed text-gray-300">
+                                    {{ n.message }}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <nav class="flex gap-4">
+            <!-- DESKTOP NAV (Hidden on Mobile) -->
+            <nav class="hidden xl:flex gap-4">
                 <button @click="currentTab = 'mars'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'mars'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">{{ t('nav_mars') }}</button>
@@ -213,48 +224,101 @@
                 <button @click="currentTab = 'myrace'"
                     :class="{'text-cyber-cyan border-b-2 border-cyber-cyan': currentTab === 'myrace'}"
                     class="px-3 py-2 text-sm font-medium hover:text-white transition">🏎️ {{ t('nav_myrace') }}</button>
-                <!-- GM ONLY: Admin Tab -->
                 <button v-if="currentUser && currentUser.is_admin" @click="currentTab = 'admin'"
                     :class="{'text-cyber-gold border-b-2 border-cyber-gold': currentTab === 'admin'}"
                     class="px-3 py-2 text-sm font-medium hover:text-cyber-gold transition">⚡ GM Dashboard</button>
             </nav>
 
-            <!-- Settings & Premium Indicator -->
+            <!-- Settings & Profile -->
             <div class="flex items-center gap-3">
-                <!-- User Profile (logged in) -->
                 <div v-if="currentUser" class="flex items-center gap-2 mr-2 border-r border-white/10 pr-4">
                     <img v-if="currentUser.picture" :src="currentUser.picture"
                         class="w-8 h-8 rounded-full border border-white/20" referrerpolicy="no-referrer">
-                    <div class="text-xs text-right hidden md:block leading-tight">
+                    <div class="text-xs text-right hidden xl:block leading-tight">
                         <div class="font-bold text-white">{{ currentUser.name }}</div>
                         <a href="/auth/logout"
                             class="text-gray-400 hover:text-red-400 text-[10px] uppercase tracking-wide">Sign Out</a>
                     </div>
                 </div>
 
-                <!-- Guest Mode Badge -->
                 <div v-else class="flex items-center gap-2 mr-2 border-r border-white/10 pr-4">
-                    <span class="text-xs bg-gray-600 text-white px-2 py-1 rounded font-bold">👤 GUEST</span>
-                    <a href="/auth/login" class="text-xs text-cyber-cyan hover:underline">Login</a>
+                    <span class="text-xs bg-gray-600 text-white px-2 py-1 rounded font-bold hidden xl:inline">👤
+                        GUEST</span>
+                    <a href="/auth/login" class="text-xs text-cyber-cyan hover:underline hidden xl:inline">Login</a>
                 </div>
 
-                <span v-if="isPremium" class="text-xs bg-cyber-gold text-black px-2 py-1 rounded font-bold">⭐
+                <span v-if="isPremium"
+                    class="text-xs bg-cyber-gold text-black px-2 py-1 rounded font-bold hidden xl:inline">⭐
                     PREMIUM</span>
                 <span v-else-if="isGuest"
-                    class="text-xs bg-orange-600/80 text-white px-2 py-1 rounded font-bold hidden md:inline">📱 Local
-                    Data</span>
-                <button @click.stop="console.log('Settings clicked'); showSettings = true"
-                    class="text-gray-400 hover:text-cyber-cyan transition text-xl relative z-[1100] cursor-pointer pointer-events-auto"
+                    class="text-xs bg-orange-600/80 text-white px-2 py-1 rounded font-bold hidden xl:inline">📱
+                    Local</span>
+                <button @click.stop="showSettings = true"
+                    class="text-gray-400 hover:text-cyber-cyan transition text-xl relative z-[1100]"
                     title="Settings">⚙️</button>
             </div>
         </header>
 
+        <!-- MOBILE NAV DRAWER (Horizontal Scroll or Vertical List?) -->
+        <!-- Let's use a Dropdown/Drawer style for Mobile Menu -->
+        <div v-if="mobileMenuOpen"
+            class="xl:hidden bg-cyber-panel border-b border-white/10 p-4 space-y-2 absolute top-16 left-0 w-full z-[999] shadow-2xl">
+            <button @click="currentTab = 'mars'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'mars'}">{{ t('nav_mars') }}</button>
+            <button @click="currentTab = 'race'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'race'}">{{ t('nav_race') }}</button>
+            <button @click="currentTab = 'cb'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'cb'}">{{ t('nav_cb') }}</button>
+            <button @click="currentTab = 'portfolio'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'portfolio'}">📊 {{ t('nav_portfolio') }}</button>
+            <button @click="currentTab = 'trend'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'trend'}">📈 {{ t('nav_trend') }}</button>
+            <button @click="currentTab = 'ladder'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'ladder'}">🏆 {{ t('nav_ladder') }}</button>
+            <button @click="currentTab = 'myrace'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5"
+                :class="{'text-cyber-cyan bg-white/5': currentTab === 'myrace'}">🏎️ {{ t('nav_myrace') }}</button>
+
+            <!-- GM Dashboard (Admin Only) -->
+            <button v-if="currentUser && currentUser.is_admin" @click="currentTab = 'admin'; mobileMenuOpen = false"
+                class="block w-full text-left px-4 py-3 rounded hover:bg-white/5 text-cyber-gold"
+                :class="{'bg-cyber-gold/20': currentTab === 'admin'}">⚡ GM Dashboard</button>
+
+            <!-- User Section -->
+            <div class="border-t border-white/10 pt-3 mt-3">
+                <div v-if="currentUser" class="flex items-center justify-between px-4 py-2 mb-2 bg-white/5 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <img v-if="currentUser.picture" :src="currentUser.picture"
+                            class="w-10 h-10 rounded-full border border-white/20" referrerpolicy="no-referrer">
+                        <div>
+                            <div class="font-bold text-white text-sm">{{ currentUser.name }}</div>
+                            <div class="text-xs text-gray-400">{{ currentUser.email }}</div>
+                        </div>
+                    </div>
+                </div>
+                <a v-if="!currentUser" href="/auth/login"
+                    class="block w-full text-left px-4 py-3 text-cyber-cyan font-bold rounded hover:bg-cyber-cyan/10">
+                    🔑 Login / Signup
+                </a>
+                <a v-else href="/auth/logout"
+                    class="block w-full text-center px-4 py-3 text-red-400 font-bold rounded border border-red-500/30 hover:bg-red-500/20 transition">
+                    🚪 Sign Out
+                </a>
+            </div>
+        </div>
+
         <!-- Settings Modal (Moved conceptually higher in Z-Stack) -->
         <!-- Main Content -->
-        <main class="flex-1 overflow-auto p-6 relative flex gap-6">
+        <main class="flex-1 overflow-auto p-4 xl:p-6 relative flex flex-col xl:flex-row gap-6">
 
             <!-- SIDEBAR: SIMULATION SETTINGS -->
-            <aside v-if="['mars', 'race'].includes(currentTab)" class="w-80 flex-shrink-0 space-y-4">
+            <aside v-if="currentTab === 'mars'" class="w-full xl:w-80 flex-shrink-0 space-y-4">
                 <div class="glass-panel p-5 rounded-xl">
                     <h3
                         class="text-cyber-gold font-bold mb-4 uppercase text-xs tracking-wider border-b border-white/10 pb-2">
@@ -283,9 +347,9 @@
                             class="w-full bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-bold py-2 rounded transition">
                             Apply (Recalculate)
                         </button>
-                        <button @click="exportToCSV"
+                        <button @click="exportToExcel"
                             class="w-full bg-cyber-gold/10 border border-cyber-gold text-cyber-gold hover:bg-cyber-gold hover:text-black font-bold py-2 rounded transition">
-                            📥 Export {{ isPremium ? 'Filtered' : 'Raw' }} CSV
+                            📥 Export {{ isPremium ? 'Filtered' : 'Raw' }} Excel
                         </button>
                     </div>
                 </div>
@@ -521,23 +585,24 @@
             <div v-show="currentTab === 'portfolio'" class="flex-1 space-y-4">
                 <!-- Portfolio Header -->
                 <div class="glass-panel p-5 rounded-xl">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
                         <div>
                             <h2 class="text-2xl font-bold text-cyber-cyan">📊 My Portfolio</h2>
-                            <div class="text-sm text-gray-400 mt-1">
+                            <div class="text-xs lg:text-sm text-gray-400 mt-1">
                                 💰 {{ t('p_div_cash') }}: <span class="text-green-400 font-mono font-bold">${{
                                     formatCurrency(dividendCash.total_cash || 0) }}</span>
                                 <span class="text-gray-500 ml-2">({{ dividendCash.dividend_count || 0 }}
                                     {{ t('p_payments') }})</span>
                             </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 w-full lg:w-auto">
                             <button @click="syncDividends" :disabled="syncingDividends"
-                                class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition text-sm font-bold">
-                                {{ syncingDividends ? '⏳ Syncing...' : '🔄 ' + t('p_sync_div') }}
+                                class="flex-1 lg:flex-none justify-center bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition text-sm font-bold flex items-center gap-2">
+                                <span>{{ syncingDividends ? '⏳' : '🔄' }}</span>
+                                <span>{{ syncingDividends ? 'Syncing...' : t('p_sync_div') }}</span>
                             </button>
                             <button @click="showAddGroup = !showAddGroup"
-                                class="bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
+                                class="flex-1 lg:flex-none justify-center bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan px-4 py-2 rounded hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
                                 + {{ t('p_new_group') }}
                             </button>
                         </div>
@@ -569,42 +634,47 @@
 
                 <!-- Targets & Transactions -->
                 <div v-if="selectedGroupId" class="glass-panel p-5 rounded-xl">
-                    <!-- Group Dashboard Summary -->
-                    <div
-                        class="flex items-center justify-between bg-black/40 p-4 rounded-xl border border-white/10 mb-6">
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="text-4xl font-bold font-mono tracking-tight text-white flex items-baseline gap-2">
-                                <span class="text-xs text-gray-500 font-sans uppercase tracking-widest">{{
-                                    t('d_mkt_val') }}</span>
-                                {{ formatCurrency(groupStats.marketValue || 0) }}
-                                <span class="text-sm font-sans text-gray-400">TWD</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-8 text-right">
-                            <div>
-                                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{ t('d_realized')
-                                    }}
+                    <!-- Portfolio Summary Stats -->
+                    <!-- Portfolio Summary Stats -->
+                    <div class="mb-6 bg-black/40 rounded-xl p-4 lg:p-6 border border-white/5">
+                        <div
+                            class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-0">
+                            <!-- Market Value -->
+                            <div class="w-full lg:w-auto">
+                                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{ t('d_mkt') }}
                                 </div>
-                                <div class="font-mono font-bold text-lg"
-                                    :class="(groupStats.realized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                    {{ (groupStats.realized || 0) >= 0 ? '+' : '' }}{{
-                                    formatCurrency(groupStats.realized || 0) }}
+                                <div class="font-mono font-bold text-3xl lg:text-4xl text-white">
+                                    ${{ formatCurrency(groupStats.marketValue || 0) }}
+                                    <span class="text-base text-gray-400 ml-2 font-sans">TWD</span>
                                 </div>
                             </div>
-                            <div>
-                                <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{
-                                    t('d_unrealized') }}
+
+                            <!-- P/L Stats Group -->
+                            <div class="flex w-full lg:w-auto gap-4 lg:gap-12">
+                                <div class="flex-1 lg:flex-initial">
+                                    <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{
+                                        t('d_realized') }}
+                                    </div>
+                                    <div class="font-mono font-bold text-lg lg:text-xl"
+                                        :class="(groupStats.realized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        {{ (groupStats.realized || 0) >= 0 ? '+' : '' }}{{
+                                        formatCurrency(groupStats.realized || 0) }}
+                                    </div>
                                 </div>
-                                <div class="font-mono font-bold text-lg"
-                                    :class="(groupStats.unrealized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                    {{ (groupStats.unrealized || 0) >= 0 ? '+' : '' }}{{
-                                    formatCurrency(groupStats.unrealized || 0) }}
-                                    <span class="text-sm ml-1"
-                                        :class="(groupStats.unrealizedPct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
-                                        ({{ (groupStats.unrealizedPct || 0) >= 0 ? '▲' : '▼' }}{{
-                                        Math.abs(groupStats.unrealizedPct || 0).toFixed(2) }}%)
-                                    </span>
+                                <div class="text-right lg:text-left flex-1 lg:flex-initial">
+                                    <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">{{
+                                        t('d_unrealized') }}
+                                    </div>
+                                    <div class="font-mono font-bold text-lg"
+                                        :class="(groupStats.unrealized || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        {{ (groupStats.unrealized || 0) >= 0 ? '+' : '' }}{{
+                                        formatCurrency(groupStats.unrealized || 0) }}
+                                        <span class="text-sm ml-1"
+                                            :class="(groupStats.unrealizedPct || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            ({{ (groupStats.unrealizedPct || 0) >= 0 ? '▲' : '▼' }}{{
+                                            Math.abs(groupStats.unrealizedPct || 0).toFixed(2) }}%)
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -622,8 +692,101 @@
                             }}</button>
                     </div>
 
-                    <!-- Targets Table (Yahoo-style) -->
-                    <div class="overflow-x-auto">
+                    <!-- MOBILE CARD VIEW (Phone/Tablet) - Collapsible -->
+                    <div class="lg:hidden space-y-3">
+                        <div v-if="groupTargets.length === 0" class="text-center text-gray-500 py-8 italic">
+                            No stocks yet. Add one above!
+                        </div>
+                        <div v-for="target in groupTargets" :key="target.id"
+                            class="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition">
+
+                            <!-- Collapsed Header (Always Visible) - Click to Expand -->
+                            <div @click="target.expanded = !target.expanded"
+                                class="p-4 cursor-pointer active:bg-white/10 transition">
+                                <!-- Row 1: Name + Market Value -->
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-base text-white">{{ target.stock_name ||
+                                            target.stock_id }}</span>
+                                        <span class="text-xs text-gray-400 bg-black/30 px-1.5 py-0.5 rounded">{{
+                                            target.stock_id }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-mono font-bold text-white">${{
+                                            formatCurrency(target.summary?.market_value || 0) }}</div>
+                                    </div>
+                                </div>
+                                <!-- Row 2: Price + Unrealized P/L (Compact) -->
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono">{{ target.livePrice?.price || '-' }}</span>
+                                        <span class="text-xs"
+                                            :class="target.livePrice?.change >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ target.livePrice?.change >= 0 ? '▲' : '▼' }}{{
+                                            Math.abs(target.livePrice?.change_pct || 0).toFixed(2) }}%
+                                        </span>
+                                    </div>
+                                    <div class="font-mono font-bold"
+                                        :class="(target.summary?.unrealized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                        {{ (target.summary?.unrealized_pnl || 0) >= 0 ? '+' : '' }}{{
+                                        formatCurrency(target.summary?.unrealized_pnl || 0) }}
+                                    </div>
+                                </div>
+                                <!-- Expand Indicator -->
+                                <div class="text-center text-gray-500 text-xs mt-2">
+                                    {{ target.expanded ? '▲ Collapse' : '▼ Tap for Details' }}
+                                </div>
+                            </div>
+
+                            <!-- Expanded Details (Conditionally Visible) -->
+                            <div v-show="target.expanded" class="border-t border-white/10 bg-black/20 p-4 space-y-3">
+                                <!-- Detail Grid -->
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <div class="text-xs text-gray-500">Shares</div>
+                                        <div class="font-mono">{{ target.summary?.total_shares || 0 }}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-500">Avg Cost</div>
+                                        <div class="font-mono">${{ target.summary?.avg_cost?.toFixed(2) || '0.00' }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">Realized P/L</div>
+                                        <div class="font-mono"
+                                            :class="(target.summary?.realized_pnl || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                            {{ (target.summary?.realized_pnl || 0) >= 0 ? '+' : '' }}{{
+                                            formatCurrency(target.summary?.realized_pnl || 0) }}
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-yellow-500">💰 Div. Receipt</div>
+                                        <div class="font-mono text-yellow-400 font-bold">${{
+                                            formatCurrency(target.summary?.total_dividend_cash || 0) }}</div>
+                                    </div>
+                                </div>
+                                <!-- Action Buttons -->
+                                <div class="flex gap-2 pt-2 border-t border-white/5">
+                                    <button
+                                        @click.stop="showTxForm = target.id; newTx = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] }"
+                                        class="flex-1 bg-cyber-cyan/20 text-cyber-cyan py-2 rounded-lg hover:bg-cyber-cyan hover:text-black transition text-sm font-bold">
+                                        ➕ Add Tx
+                                    </button>
+                                    <button @click.stop="openHistory(target)"
+                                        class="flex-1 bg-white/10 text-white py-2 rounded-lg hover:bg-white/20 transition text-sm font-bold">
+                                        📜 History
+                                    </button>
+                                    <button @click.stop="deleteTarget(target.id)"
+                                        class="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition text-sm font-bold">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DESKTOP TABLE VIEW (Laptop/PC) -->
+                    <div class="hidden lg:block overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-white/10 text-gray-400 text-xs">
@@ -634,7 +797,8 @@
                                     <th class="text-right p-2">{{ t('th_mkt') }}</th>
                                     <th class="text-right p-2">{{ t('th_realized') }}</th>
                                     <th class="text-right p-2">{{ t('th_unrealized') }}</th>
-                                    <th class="text-right p-2 border-l border-white/10 text-yellow-500">Div. Receipt 💰
+                                    <th class="text-right p-2 border-l border-white/10 text-yellow-500">Div. Receipt
+                                        💰
                                     </th>
                                     <th class="text-center p-2">{{ t('th_tx_count') }}</th>
                                     <th class="text-center p-2">{{ t('th_actions') }}</th>
@@ -736,7 +900,8 @@
                         </h3>
                         <div class="mb-4">
                             <div class="text-sm text-gray-400">Target</div>
-                            <div class="text-xl font-bold">{{ showDivDetails.stock_name || showDivDetails.stock_id }}
+                            <div class="text-xl font-bold">{{ showDivDetails.stock_name || showDivDetails.stock_id
+                                }}
                             </div>
                         </div>
 
@@ -746,7 +911,8 @@
                                 <span class="font-mono text-cyber-cyan">{{ h.year }}</span>
                                 <div class="text-right">
                                     <div class="font-bold text-white">+${{ h.total }}</div>
-                                    <div class="text-xs text-gray-500">{{ h.shares }} shares @ ${{ h.unit_cash }}/unit
+                                    <div class="text-xs text-gray-500">{{ h.shares }} shares @ ${{ h.unit_cash
+                                        }}/unit
                                     </div>
                                 </div>
                             </div>
@@ -1208,18 +1374,21 @@
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="bg-black/40 p-5 rounded-xl border border-white/10">
                                     <div class="text-xs text-gray-500 mb-1">Total Registered Users</div>
-                                    <div class="text-3xl font-bold text-purple-400">{{ adminMetrics.total_users || 0 }}
+                                    <div class="text-3xl font-bold text-purple-400">{{ adminMetrics.total_users || 0
+                                        }}
                                     </div>
                                 </div>
                                 <div class="bg-black/40 p-5 rounded-xl border border-white/10">
                                     <div class="text-xs text-gray-500 mb-1">Active Users (Web)</div>
-                                    <div class="text-3xl font-bold text-cyan-400">{{ adminMetrics.active_users_web || 0
+                                    <div class="text-3xl font-bold text-cyan-400">{{ adminMetrics.active_users_web
+                                        || 0
                                         }}</div>
                                     <div class="text-xs text-gray-600 mt-1">Last 30 days</div>
                                 </div>
                                 <div class="bg-black/40 p-5 rounded-xl border border-white/10">
                                     <div class="text-xs text-gray-500 mb-1">Active Users (Mobile)</div>
-                                    <div class="text-3xl font-bold text-emerald-400">{{ adminMetrics.active_users_mobile
+                                    <div class="text-3xl font-bold text-emerald-400">{{
+                                        adminMetrics.active_users_mobile
                                         || 0 }}</div>
                                     <div class="text-xs text-gray-600 mt-1">Last 30 days</div>
                                 </div>
@@ -1228,7 +1397,8 @@
 
                         <!-- Subscription Breakdown -->
                         <div>
-                            <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-3">Subscription Breakdown</h3>
+                            <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-3">Subscription Breakdown
+                            </h3>
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="bg-black/40 p-5 rounded-xl border border-white/10">
                                     <div class="text-xs text-gray-500 mb-1">Free Tier</div>
@@ -1251,7 +1421,8 @@
                         <!-- Feedback Review Panel -->
                         <div class="mt-6">
                             <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-sm text-gray-400 uppercase tracking-wider">User Feedback & Bug Reports
+                                <h3 class="text-sm text-gray-400 uppercase tracking-wider">User Feedback & Bug
+                                    Reports
                                 </h3>
                                 <button @click="fetchFeedbackList"
                                     class="text-xs text-cyber-cyan hover:text-white transition">
@@ -1266,7 +1437,8 @@
                                     <div class="text-xs text-gray-500">New</div>
                                 </div>
                                 <div class="bg-yellow-500/20 p-2 rounded text-center">
-                                    <div class="text-lg font-bold text-yellow-400">{{ feedbackStats.reviewing || 0 }}
+                                    <div class="text-lg font-bold text-yellow-400">{{ feedbackStats.reviewing || 0
+                                        }}
                                     </div>
                                     <div class="text-xs text-gray-500">Reviewing</div>
                                 </div>
@@ -1276,11 +1448,13 @@
                                     <div class="text-xs text-gray-500">Confirmed</div>
                                 </div>
                                 <div class="bg-green-500/20 p-2 rounded text-center">
-                                    <div class="text-lg font-bold text-green-400">{{ feedbackStats.fixed || 0 }}</div>
+                                    <div class="text-lg font-bold text-green-400">{{ feedbackStats.fixed || 0 }}
+                                    </div>
                                     <div class="text-xs text-gray-500">Fixed</div>
                                 </div>
                                 <div class="bg-gray-500/20 p-2 rounded text-center">
-                                    <div class="text-lg font-bold text-gray-400">{{ feedbackStats.wontfix || 0 }}</div>
+                                    <div class="text-lg font-bold text-gray-400">{{ feedbackStats.wontfix || 0 }}
+                                    </div>
                                     <div class="text-xs text-gray-500">Won't Fix</div>
                                 </div>
                             </div>
@@ -1299,13 +1473,15 @@
                                                     'bg-blue-500/30 text-blue-300': fb.feedback_type === 'suggestion',
                                                     'bg-purple-500/30 text-purple-300': fb.feedback_type === 'question'
                                                 }">
-                                                {{ fb.feedback_type === 'bug' ? '🐛' : fb.feedback_type === 'suggestion'
+                                                {{ fb.feedback_type === 'bug' ? '🐛' : fb.feedback_type ===
+                                                'suggestion'
                                                 ? '💡' : '❓' }}
                                                 {{ fb.feedback_type }}
                                             </span>
                                             <span class="text-xs text-gray-500">{{ fb.feature_category }}</span>
                                         </div>
-                                        <span class="text-xs text-gray-600">{{ fb.created_at?.substring(0, 10) }}</span>
+                                        <span class="text-xs text-gray-600">{{ fb.created_at?.substring(0, 10)
+                                            }}</span>
                                     </div>
                                     <p class="text-sm text-gray-300 mb-2">{{ fb.message }}</p>
                                     <div class="flex items-center gap-2 text-xs">

@@ -22,11 +22,22 @@
     -   User Login Flow (**Pre-requisite**: Must execute on host with valid Google Auth Redirect URI).
     -   "Mars Strategy" Tab: Verify simulation chart renders.
 
+### 1.5 Notification & Export Verification
+-   **Notification Logic**: Verify `RuthlessManager` triggers (Gravity, Size, Yield).
+-   **Excel Export**:
+    -   Verify `GET /api/export/excel` returns `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
+    -   Check filename format: `stock_list_s{year}e{year}_{mode}.xlsx`.
+    -   Verify data columns (ROI, CAGR) match UI simulation values.
+
 ## 2. Manual Verification Checklist
 1.  **Load App**: Check for console errors in DevTools.
 2.  **Simulation**: Change "Start Year" -> Verify chart updates.
 3.  **Profile**: Click user on Leaderboard -> Verify Modal appears with correct info.
-4.  **AI Bot**: Open Chat -> Ask "What is CAGR?" -> Verify intelligent response.
+4.  **Mobile Layout**:
+    -   Resize browser < 1280px -> Verify Hamburger Menu appears.
+    -   Open Menu -> Click Tab -> Verify navigation works.
+    -   Check Race Tab -> Verify Sidebar is hidden to maximize chart space.
+5.  **AI Bot**: Open Chat -> Ask "What is CAGR?" -> Verify intelligent response.
 
 ## 3. Bug Triage Process
 -   **Severity 1 (Critical)**: App crash, Data leak. -> Immediate Fix.

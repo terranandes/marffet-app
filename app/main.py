@@ -50,62 +50,46 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-# ---------------- Notification Engine ----------------
-notification_engine = NotificationEngine()
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-@app.get("/api/notifications/check")
-async def check_notifications(user: dict = Depends(get_current_user)):
-    """Trigger generic strategy alerts"""
-    # If no user or user.id is None, return empty (no notifications for unauth users)
-    if not user or not user.get('id'):
+# ---------------- Notification Engine (Premium) ----------------
+from app.engines import RuthlessManager
+from app.portfolio_db import get_unread_notifications, mark_notification_read
+
+@app.get("/api/notifications")
+async def api_get_notifications(user: dict = Depends(get_current_user)):
+    """
+    Get unread notifications.
+    Lazy Trigger: Runs RuthlessManager checks on every poll.
+    """
+    if not user:
         return []
-    user_id = user['id']
-    print(f"Checking notifications for user: {user_id}")
     
+    user_id = user['id']
+    
+    # 1. Lazy Trigger: Run Checks (Background logic)
+    # Note: determining if we should run every time or cache?
+    # RuthlessManager handles deduplication (24h cooldown), 
+    # so running it often is safe but might be slightly slow if YFinance is slow.
+    # Ideally should be async or stochastic (run 10% of time).
+    # For now, run IT! (User wants results)
     try:
-        # Get targets for specific user
-        # Implementation Detail: create a specific getter in portfolio_db or update existing
-        # Hack: update get_all_targets_by_type to accept user_id? 
-        # Or just fetch raw here.
-        # Let's assume get_all_targets_by_type has been updated (I need to update it next!)
-        portfolio_data = get_all_targets_by_type(user_id=user_id) 
-
-        targets = []
-        for cat in portfolio_data.values():
-            targets.extend(cat)
-            
-        # Get Txns to calculate shares
-        # Hack: We need a way to get shares.
-        # Let's assume we can fetch shares from 'portfolio_db' directly or re-use logic.
-        # For this prototype: Fetch all transactions and sum them up.
-        from app.portfolio_db import list_transactions
-        
-        enriched_targets = []
-        for t in targets:
-            txns = list_transactions(t['id'])
-            shares = sum(tx['shares'] for tx in txns) # Simple sum (buy + sell is -shares?)
-            # Wait, get_transactions returns dictionary list?
-            # Standard logic: Buy is +, Sell is -
-            # Let's just pass the raw targets and let Engine handle if needed,
-            # BUT Engine needs live price to know value.
-            # Simplified: Use a 'shares' field if available, or just mocking for now?
-            # User wants "How many stocks".
-            # I will implement a quick share calculator here.
-            
-            total_shares = 0
-            for tx in txns:
-                if tx['type'] == 'buy': total_shares += tx['shares']
-                elif tx['type'] == 'sell': total_shares -= tx['shares']
-            
-            if total_shares > 0:
-                t['shares'] = total_shares
-                enriched_targets.append(t)
-            
-        alerts = await notification_engine.generate_alerts({'targets': enriched_targets})
-        return alerts
+        RuthlessManager.run_checks(user_id)
     except Exception as e:
-        print(f"Notification Error: {e}")
-        return []
+        print(f"[RuthlessManager] Error running checks: {e}")
+
+    # 2. Return DB Notifications
+    return get_unread_notifications(user_id)
+
+@app.post("/api/notifications/{id}/read")
+async def api_mark_read(id: str, user: dict = Depends(get_current_user)):
+    """Mark notification as read"""
+    if not user:
+        return {"error": "Unauthorized"}
+    user_id = user['id']
+    success = mark_notification_read(id, user_id)
+    return {"success": success}
+
 
 # ---------------- AI Copilot ----------------
 app.add_middleware(
@@ -271,6 +255,146 @@ def get_results():
     except Exception as e:
         return {"error": str(e)}
 
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+
+@app.get("/api/export/excel")
+async def api_export_excel(mode: str = "filtered", start_year: int = 2006, principal: float = 1000000, contribution: float = 60000):
+    """
+    Export Raw or Filtered Data as Excel (Dynamic Simulation).
+    mode: 'raw' (Unfiltered) or 'filtered' (Default)
+    """
+    try:
+        from io import BytesIO
+        import pandas as pd
+        import re
+        
+        # 1. Determine Source File (Now using 2026)
+        filename_source = "stock_list_s2006e2026_unfiltered.xlsx" if mode == "raw" else "stock_list_s2006e2026_filtered.xlsx"
+        source_path = BASE_DIR / "project_tw/references" / filename_source
+        
+        if not source_path.exists():
+             raise HTTPException(status_code=404, detail=f"Source file not found: {filename_source}")
+
+        df = pd.read_excel(source_path)
+        df = df.fillna(0)
+        
+        current_max_year = 2026
+
+        # 2. Run Simulation (to get Final Wealth / Stats aligned with UI)
+        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
+        PRICES_DB = {}
+        import json
+        for year in range(start_year, current_max_year + 1):
+             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+             if p_file.exists():
+                 try:
+                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
+                 except: PRICES_DB[year] = {}
+             # TPEx
+             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+             if tpex_file.exists():
+                 try:
+                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
+                 except: pass
+
+        race_results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        
+        # 3. Construct Export DataFrame
+        # User wants "Aligned" data, implying the rows should show the simulation result
+        # AND "Column head same with...". This implies preserving the ROI columns.
+        
+        # Map simulation results to a dict for easy merge
+        sim_map = {}
+        for r in race_results:
+             # run_mars_simulation returns a list of yearly records. We want the LATEST (Final) one.
+             sid = r['id']
+             if sid not in sim_map or r['year'] > sim_map[sid]['year']:
+                 sim_map[sid] = r
+        
+        # Create list for DataFrame construction
+        export_rows = []
+        
+        # Identify relevant ROI columns for the requested range [start_year, 2026]
+        # Regex to match `s2006e2007bao` style or just filter by year in name?
+        # The column format matches: s<BASE>e<TARGET>bao
+        # e.g. s2006e2007bao.
+        # IF start_year is 2015, we might still want to show the 'bao' columns corresponding to 2015+?
+        # The column name `s2006e2007bao` implies the year 2007 (or 2006-2007). 
+        # Let's extract year from column name.
+        
+        relevant_cols = []
+        for c in df.columns:
+            if 'bao' in c:
+                # Try extract year
+                # e.g. s2006e2007bao -> 2007?
+                # or just keep ALL columns if user wants "same head"?
+                # "Dynamic" implies cutting off irrelevant past years.
+                # Let's keep columns where year >= start_year
+                try:
+                    # simplistic extraction: split by 'e'
+                    # s2006e2007bao -> ['s2006', '2007bao']
+                    y_part = c.split('e')[1][:4] 
+                    if int(y_part) >= start_year:
+                        relevant_cols.append(c)
+                except:
+                    pass
+        
+        # Build rows
+        for _, row in df.iterrows():
+            sid = str(row['id'])
+            if sid in sim_map:
+                data = sim_map[sid]
+                
+                # Base Info
+                new_row = {
+                    "id": sid,
+                    "name": data['name'],
+                    # summary stats
+                    "Final Wealth": data['value'],
+                    "Total Cost": data.get('cost', 0),
+                    "Total ROI %": round(((data['value'] - (data.get('cost') or 1)) / (data.get('cost') or 1)) * 100, 1),
+                    "CAGR %": data['cagr'],
+                    "Yield %": data['div_yield']
+                }
+                
+                # Add original ROI columns (filtered by year)
+                for c in relevant_cols:
+                    new_row[c] = row[c]
+                
+                export_rows.append(new_row)
+        
+        df_export = pd.DataFrame(export_rows)
+        
+        # 4. Write to Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_export.to_excel(writer, index=False, sheet_name='Mars Strategy Source')
+            
+            # Params
+            pd.DataFrame([{
+                "Start Year": start_year,
+                "End Year": current_max_year,
+                "Principal": principal, 
+                "Contribution": contribution,
+                "Mode": mode
+            }]).to_excel(writer, index=False, sheet_name='Parameters')
+            
+        output.seek(0)
+        
+        # Correct Filename Format: stock_list_s{start}e{end}_{mode}.xlsx
+        filename = f"stock_list_s{start_year}e{current_max_year}_{mode}.xlsx"
+        
+        return StreamingResponse(
+            output, 
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        print(f"Export Error: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 # Global Dividend Database (Cash per Share)
 # Initialize with Critical Hardcoded Data (Safety Baseline)
 DIVIDENDS_DB = {
@@ -354,8 +478,152 @@ def get_stock_history(stock_id: str):
     except Exception as e:
         return {"error": str(e)}
 
+
+def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal: float, contribution: float):
+    """
+    Reusable Mars Strategy Simulation Logic.
+    Returns a list of result dictionaries for each stock.
+    """
+    results = []
+    # Identify year_cols - assuming standard format 'bao{year}e'
+    # Or rely on dynamic extraction like before
+    year_cols = [c for c in df.columns if 'bao' in c]
+    
+    for _, row in df.iterrows():
+        stock_id = str(row['id'])
+        
+        # Simulation State for this Stock
+        shares = 0
+        cost = 0
+        wealth = 0
+        prev_wealth = 0
+        
+        # Initial Purchase at USER SELECTED Start Year
+        # Try to get start price of start_year
+        start_price_initial = prices_db.get(start_year, {}).get(stock_id, {}).get('start', 0)
+        if start_price_initial > 0:
+            shares = principal / start_price_initial
+            cost = principal
+            prev_wealth = principal
+        
+        # To calculate CAGR/ROI properly for the final export row
+        final_valid_stats = {} 
+
+        for col in year_cols:
+            try:
+                year_str = col.split('e')[1][:4]
+                year = int(year_str)
+                
+                # SKIP years before start_year
+                if year < start_year:
+                    continue
+                    
+                excel_roi = row[col] # Price ROI %
+                
+                # Fetch Price Data
+                y_data = prices_db.get(year, {}).get(stock_id, {})
+                start_price = y_data.get('start', 0)
+                end_price = y_data.get('end', 0)
+                
+                if start_price > 0:
+                    # If we have valid price data, use Share Accumulation Logic
+                    
+                    # 1. Initialize if not yet (e.g. IPO later than 2006)
+                    if shares == 0 and cost == 0:
+                        shares = principal / start_price
+                        cost = principal
+                        prev_wealth = principal
+
+                    # 2. Get Dividend (Cash + Stock)
+                    div_info = dividends_db.get(stock_id, {}).get(str(year)) or dividends_db.get(stock_id, {}).get(year, {})
+                    
+                    div_cash = 0
+                    stock_split = 1.0
+                    
+                    if isinstance(div_info, dict):
+                        div_cash = div_info.get('cash', 0)
+                        stock_split = div_info.get('stock_split', 1.0)
+                    elif isinstance(div_info, (int, float)):
+                        div_cash = div_info
+
+                    # 3. Process Year
+                    
+                    # A. Stock Dividend (Ex-Rights) - Happens usually mid-year, but we apply to held shares
+                    # Shares increase by factor
+                    # In TW, 1.05 means 5% stock dividend.
+                    if stock_split > 1.0:
+                            shares = shares * stock_split
+
+                    # B. Cash Dividend Reinvestment
+                    cash_received = shares * div_cash
+                    
+                    # Reinvest Dividend + Contribution at Avg Price
+                    if end_price == 0:
+                            end_price = start_price * (1 + excel_roi/100)
+                    
+                    avg_price = (start_price + end_price) / 2
+                    
+                    total_cash_in = cash_received + contribution
+                    new_shares_bought = total_cash_in / avg_price
+                    
+                    shares += new_shares_bought
+                    cost += contribution
+                    
+                    wealth = shares * end_price
+                    
+                    # 4. Calculate Effective ROI for Frontend
+                    # Formula: ROI = ((Wealth_End - Contrib) / Wealth_Start) - 1
+                    # Wealth_Start here is 'prev_wealth' (End of last year)
+                    
+                    if prev_wealth > 0:
+                        effective_roi = ((wealth - contribution) / prev_wealth - 1) * 100
+                    else:
+                        effective_roi = excel_roi 
+
+                    final_roi = effective_roi
+                    
+                    # Yield for reference
+                    div_yield = (div_cash / start_price * 100)
+                    
+                    prev_wealth = wealth # Update for next loop
+
+                else:
+                    # Fallback to Excel Data if no detailed price JSON
+                    final_roi = excel_roi
+                    div_yield = 0
+                    if prev_wealth > 0:
+                            prev_wealth = prev_wealth * (1 + final_roi/100) + contribution
+
+                if pd.notnull(final_roi) and final_roi != 0:
+                    # Calculate cumulative CAGR from start_year to this year
+                    years_elapsed = year - start_year + 1
+                    cagr = 0
+                    if years_elapsed > 0 and principal > 0 and wealth > 0:
+                        cagr = (pow(wealth / principal, 1 / years_elapsed) - 1) * 100
+                    
+                    # Store stats for this year
+                    stats_node = {
+                        "year": year,
+                        "id": stock_id,
+                        "name": row['name'],
+                        "roi": round(final_roi, 2),
+                        "value": round(wealth, 0), # Return Wealth ($) for Race/Table
+                        "wealth": round(wealth, 0),
+                        "cagr": round(cagr, 2),  # Per-year calculated CAGR
+                        "div_yield": round(div_yield, 2),
+                        # For export use:
+                        "shares": round(shares, 0),
+                        "cost": round(cost, 0)
+                    }
+                    results.append(stats_node)
+                    final_valid_stats = stats_node
+
+            except Exception as loop_e:
+                    pass
+    return results
+
 @app.get("/api/race-data")
-def get_race_data(start_year: int = 2006):
+def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
         SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
@@ -390,140 +658,8 @@ def get_race_data(start_year: int = 2006):
                 except:
                     pass
 
-        race_data = []
-        year_cols = [c for c in df.columns if 'bao' in c]
-        
-        # Filter Columns for Dynamic Start Year
-        # Assumes cols are like 'bao2006e', 'bao2007e'... (Check logic below)
-        # Actually logic extracts year in loop. We can just skip inside loop or pre-filter.
-        
-        # Simulation Parameters
-        SIM_PRINCIPAL = 1_000_000
-        SIM_CONTRIB = 60_000
-
-        for _, row in df.iterrows():
-            stock_id = str(row['id'])
-            
-            # Simulation State for this Stock
-            shares = 0
-            cost = 0
-            wealth = 0
-            prev_wealth = 0
-            
-            # Initial Purchase at USER SELECTED Start Year
-            # Try to get start price of start_year
-            start_price_initial = PRICES_DB.get(start_year, {}).get(stock_id, {}).get('start', 0)
-            if start_price_initial > 0:
-                shares = SIM_PRINCIPAL / start_price_initial
-                cost = SIM_PRINCIPAL
-                prev_wealth = SIM_PRINCIPAL
-            
-            for col in year_cols:
-                try:
-                    year_str = col.split('e')[1][:4]
-                    year = int(year_str)
-                    
-                    # SKIP years before start_year
-                    if year < start_year:
-                        continue
-                        
-                    excel_roi = row[col] # Price ROI %
-                    
-                    # Fetch Price Data
-                    y_data = PRICES_DB.get(year, {}).get(stock_id, {})
-                    start_price = y_data.get('start', 0)
-                    end_price = y_data.get('end', 0)
-                    
-                    if start_price > 0:
-                        # If we have valid price data, use Share Accumulation Logic
-                        
-                        # 1. Initialize if not yet (e.g. IPO later than 2006)
-                        if shares == 0 and cost == 0:
-                            shares = SIM_PRINCIPAL / start_price
-                            cost = SIM_PRINCIPAL
-                            prev_wealth = SIM_PRINCIPAL
-
-                        # 2. Get Dividend (Cash + Stock)
-                        div_info = DIVIDENDS_DB.get(stock_id, {}).get(str(year)) or DIVIDENDS_DB.get(stock_id, {}).get(year, {})
-                        
-                        div_cash = 0
-                        stock_split = 1.0
-                        
-                        if isinstance(div_info, dict):
-                            div_cash = div_info.get('cash', 0)
-                            stock_split = div_info.get('stock_split', 1.0)
-                        elif isinstance(div_info, (int, float)):
-                            div_cash = div_info
-
-                        # 3. Process Year
-                        
-                        # A. Stock Dividend (Ex-Rights) - Happens usually mid-year, but we apply to held shares
-                        # Shares increase by factor
-                        # In TW, 1.05 means 5% stock dividend.
-                        if stock_split > 1.0:
-                             shares = shares * stock_split
-
-                        # B. Cash Dividend Reinvestment
-                        cash_received = shares * div_cash
-                        
-                        # Reinvest Dividend + Contribution at Avg Price
-                        if end_price == 0:
-                             end_price = start_price * (1 + excel_roi/100)
-                        
-                        avg_price = (start_price + end_price) / 2
-                        
-                        total_cash_in = cash_received + SIM_CONTRIB
-                        new_shares_bought = total_cash_in / avg_price
-                        
-                        shares += new_shares_bought
-                        cost += SIM_CONTRIB
-                        
-                        wealth = shares * end_price
-                        
-                        # 4. Calculate Effective ROI for Frontend
-                        # Formula: ROI = ((Wealth_End - Contrib) / Wealth_Start) - 1
-                        # Wealth_Start here is 'prev_wealth' (End of last year)
-                        
-                        if prev_wealth > 0:
-                            effective_roi = ((wealth - SIM_CONTRIB) / prev_wealth - 1) * 100
-                        else:
-                            effective_roi = excel_roi 
-
-                        final_roi = effective_roi
-                        
-                        # Yield for reference
-                        div_yield = (div_cash / start_price * 100)
-                        
-                        prev_wealth = wealth # Update for next loop
-
-                    else:
-                        # Fallback to Excel Data if no detailed price JSON
-                        final_roi = excel_roi
-                        div_yield = 0
-                        if prev_wealth > 0:
-                             prev_wealth = prev_wealth * (1 + final_roi/100) + SIM_CONTRIB
-
-                    if pd.notnull(final_roi) and final_roi != 0:
-                        # Calculate cumulative CAGR from start_year to this year
-                        years_elapsed = year - start_year + 1
-                        cagr = 0
-                        if years_elapsed > 0 and SIM_PRINCIPAL > 0 and wealth > 0:
-                            cagr = (pow(wealth / SIM_PRINCIPAL, 1 / years_elapsed) - 1) * 100
-                        
-                        race_data.append({
-                            "year": year,
-                            "id": stock_id,
-                            "name": row['name'],
-                            "roi": round(final_roi, 2),
-                            "value": round(wealth, 0), # Return Wealth ($) for Race/Table
-                            "wealth": round(wealth, 0),
-                            "cagr": round(cagr, 2),  # Per-year calculated CAGR
-                            "div_yield": round(div_yield, 2)
-                        })
-
-                except Exception as loop_e:
-                     pass
-                
+        # Run simulation
+        race_data = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         return race_data
     except Exception as e:
         return {"error": str(e)}

@@ -29,12 +29,21 @@ The application uses a **monolithic architecture** where the Backend serves both
 
 ### 2.1 Backend (FastAPI)
 -   **Session Management**: Uses `Starlette` SessionMiddleware for secure, encrypted cookie-based sessions.
+-   **Excel Export**: `pandas` + `openpyxl` for generating `.xlsx` reports (Backend).
 -   **Async I/O**: Leveraging `async def` for non-blocking database and API calls.
 -   **Static Mounting**: `app.mount("/static", ...)` serves the UI directly.
 ### 2.2 Frontend (Vue 3 ESM)
 -   **No-Build Setup**: Uses native ES Modules (`<script type="module">`). No Webpack/Vite build step required for development, making it extremely lightweight.
 -   **Reactivity**: Vue 3 Composition API (`ref`, `computed`) manages state.
 -   **Routing**: Simple hash-based visibility toggles (`v-if="currentTab === 'mars'"`) simulate routing in this SPA.
+-   **Responsive Design**: Mobile-First approach using Tailwind CSS breakpoints (`lg:`).
+    -   **Mobile**: Hamburger Menu, Stacked Layout.
+    -   **Desktop**: Full Top Navigation, horizontal Layout.
+-   **Notification System**: Integrated with Backend API. Includes Polling (60s), Badge UI, and Dropdown with "Mark as Read" actions.
+
+### 2.3 Premium Engines
+-   **Rebalancing Engine**: Background job running the "Ruthless Manager" logic (Gravity, Size, Yield checks).
+-   **Notification System**: Internal messaging system to queue and deliver In-App alerts to Premium users.
 
 ## 2. Backend Stack (The "Engine")
 -   **Framework**: FastAPI (Python 3.10+) 🐍

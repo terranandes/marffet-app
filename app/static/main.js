@@ -42,33 +42,84 @@ createApp({
         const guestData = ref(loadGuestData());
 
         // ========== NOTIFICATIONS SYSTEM ==========
+        // ========== NOTIFICATIONS SYSTEM ==========
         const showNotifications = ref(false);
-        const notifications = ref([{ message: 'Welcome to Martian Investment! 🚀', time: 'Now', read: false }]);
-        const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-        const markAllRead = () => { notifications.value.forEach(n => n.read = true); };
-        const clearNotifications = () => { notifications.value = []; showNotifications.value = false; };
-        const deleteNotification = (idx) => { notifications.value.splice(idx, 1); };
-        const addNotification = (msg) => {
-            notifications.value.unshift({
-                message: msg, time: new
-                    Date().toLocaleTimeString(), read: false
-            });
+        const notifications = ref([]);
+        const unreadCount = computed(() => notifications.value.filter(n => !n.is_read).length);
+
+        const fetchNotifications = async () => {
+            if (!currentUser.value) return;
+            try {
+                // Calling /api/notifications triggers the Lazy RuthlessManager check
+                const res = await fetch('/api/notifications');
+                if (res.ok) {
+                    const data = await res.json();
+                    // Merge/Update logic:
+                    // We simply replace for Prototype, or we could diff.
+                    // The backend returns only UNREAD by default? 
+                    // Wait, spec said `get_unread_notifications`.
+                    // So we should maybe append or just set?
+                    // Let's set it, but we might lose "read" history if we only fetch unread.
+                    // UI Requirement: Show unread. If I read it, it goes away? 
+                    // Or stays as "read"?
+                    // Backend `get_unread_notifications` only returns unread.
+                    // So if I mark read, it disappears on next poll.
+                    // This is acceptable for "Contractive" UI.
+                    notifications.value = data.map(n => ({
+                        ...n,
+                        time: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    }));
+
+                    if (data.length > 0 && !showNotifications.value) {
+                        // Auto-badge is handled by unreadCount. 
+                        // Auto-open might be annoying if frequent?
+                        // Let's NOT auto-open, just badge.
+                    }
+                }
+            } catch (e) {
+                console.error('Fetch notifications error:', e);
+            }
         };
 
-        const checkSystemAlerts = async () => {
+        const markAsRead = async (n) => {
+            if (n.is_read) return;
             try {
-                const res = await fetch('/api/notifications/check');
-                if (!res.ok) return;
-                const alerts = await res.json();
-                alerts.forEach(alert => {
-                    // Check if duplicate? Simplified: just add.
-                    addNotification(alert.message);
-                });
-                if (alerts.length > 0) {
-                    showNotifications.value = true; // Auto-open if alerts found
-                }
-            } catch (e) { console.error('Alert check failed', e); }
+                // Optimistic UI update
+                n.is_read = 1;
+                // Call Backend
+                await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' });
+                // Re-fetch to sync (it will disappear from list if backend only returns unread)
+                // Let's wait a bit or just let the next poll handle removal?
+                // Better UX: Fade out or keep as read until close?
+                // Current logic: simple list.
+            } catch (e) {
+                console.error('Mark read error:', e);
+                n.is_read = 0; // Revert
+            }
         };
+
+        const markAllRead = async () => {
+            notifications.value.forEach(n => markAsRead(n));
+        };
+
+        const clearNotifications = () => {
+            markAllRead(); // Effectively clears them since backend only stores unread status
+            showNotifications.value = false;
+        };
+
+        // Polling
+        let notifInterval = null;
+        const startNotifPolling = () => {
+            if (notifInterval) clearInterval(notifInterval);
+            fetchNotifications(); // Initial fetch
+            notifInterval = setInterval(fetchNotifications, 60000); // Poll every 60s
+        };
+
+        // Legacy/Unused helpers replaced: deleteNotification, addNotification, checkSystemAlerts
+        // We keep addNotification purely for local system messages if needed, but likely unused now.
+        const addNotification = (msg) => { console.log('Local notif:', msg); };
+
+
 
         // ========== CB PORTFOLIO ==========
         const portfolioCBs = ref([]);
@@ -678,42 +729,34 @@ Please analyze this feedback and determine if it's a true bug.`;
         const old_recalculate = () => { };
 
         // ========== EXPORT TO CSV ==========
-        const exportToCSV = () => {
-            const dataToExport = isPremium.value ? sortedMarsList.value : rawMarsData.value;
-            const headers = ['Stock ID', 'Name', 'CAGR %', 'Valid Years', 'Final Value ($)', 'Total ROI %'];
-            let csvContent = '# Martian Investment Export\n';
-            csvContent += '# Export Date: ' + new Date().toISOString() + '\n';
-            csvContent += '# Simulation: Start Year=' + sim.value.startYear + ', Principal=$' + sim.value.principal
-                + ', Annual Contrib=$' + sim.value.contribution + '\n';
-            csvContent += '# Tier: ' + (isPremium.value ? 'Premium (Filtered)' : 'Free (Raw)') + '\n';
-            csvContent += '# ---\n';
-            csvContent += headers.join(',') + '\n';
-            dataToExport.forEach(stock => {
-                const row = [
-                    stock.id,
-                    '"' + (stock.name || '') + '"',
-                    stock.cagr_pct || stock.cagr || 0,
-                    stock.valid_years || 0,
-                    stock.finalValue ? Math.round(stock.finalValue) : 0,
-                    stock.totalROI || 0
-                ];
-                csvContent += row.join(',') + '\n';
+        // ========== EXPORT TO EXCEL ==========
+        const exportToExcel = () => {
+            const mode = isPremium.value ? 'filtered' : 'raw';
+            // Trigger Backend Download with Dynamic Params
+            const params = new URLSearchParams({
+                mode: mode,
+                start_year: sim.value.startYear,
+                principal: sim.value.principal,
+                contribution: sim.value.contribution
             });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'martian_export_' + (isPremium.value ? 'filtered' : 'raw') + '_' + Date.now() + '.csv';
-            link.click();
-            addNotification('📥 Exported ' + dataToExport.length + ' stocks to CSV');
+            const url = `/api/export/excel?${params.toString()}`;
+            window.location.href = url;
+            addNotification('📥 Generating Dynamic Excel (' + mode + ')...');
         };
 
         const fetchMars = async (year) => {
             try {
                 // Default to 2006 if not provided
                 const queryYear = year || sim.value.startYear || 2006;
+                // Pass full simulation params (Principal, Contribution) to Backend
+                const params = new URLSearchParams({
+                    start_year: queryYear,
+                    principal: sim.value.principal,
+                    contribution: sim.value.contribution
+                });
                 const [res1, res2] = await Promise.all([
                     fetch('/api/results'),
-                    fetch(`/api/race-data?start_year=${queryYear}`)
+                    fetch(`/api/race-data?${params.toString()}`)
                 ]);
                 if (res1.ok) rawMarsData.value = await res1.json();
                 if (res2.ok) rawRaceData.value = await res2.json();
@@ -1913,10 +1956,12 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         // ============== LEADERBOARD & PROFILE ==============
         const leaderboard = ref([]);
+        // currentUser, showSettings, etc are global refs declared at top
         const loadingLadder = ref(false);
         const newNickname = ref('');
         const showProfileModal = ref(false);
         const profileData = ref(null);
+        const mobileMenuOpen = ref(false); // Mobile Nav State
 
         // Dividend Modal State
         const showDivDetails = ref(null);
@@ -2010,7 +2055,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 fetchMars();
                 fetchGroups(); // Load portfolio on startup
                 fetchDividendCash(); // Load dividend cash
-                checkSystemAlerts(); // Check for Premium Alerts
+                startNotifPolling(); // Start Premium Alert Polling
 
                 watch(currentTab, (newTab) => {
                     if (newTab === 'race') {
@@ -2087,13 +2132,12 @@ Please analyze this feedback and determine if it's a true bug.`;
             showProfileModal, profileData, openProfile, getDonutGradient, syncStats,
             showDivDetails, currentYear, raceConfig, // Dividend Modal State & Race Config
             // Settings System
-            showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToCSV, t,
+            showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToExcel, t,
             // Feedback System
             feedbackForm, feedbackSubmitting, feedbackSuccess, submitFeedback,
             availableLanguages,
             // Notifications System
-            showNotifications, notifications, unreadCount, markAllRead, clearNotifications, deleteNotification,
-            addNotification,
+            showNotifications, notifications, unreadCount, markAllRead, clearNotifications, markAsRead, mobileMenuOpen,
             // AI Copilot
             showChat, chatInput, isChatLoading, chatHistory, sendMessage,
             // Auth & Guest Mode

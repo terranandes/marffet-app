@@ -135,7 +135,14 @@
                     {{ t('l_google') }}
                 </a>
 
-                <p class="mt-6 text-xs text-gray-600">{{ t('l_subtitle') }}</p>
+                <!-- Continue as Guest -->
+                <button @click="currentUser = { id: 'guest', name: 'Guest', email: 'guest@local', is_guest: true }"
+                    class="block w-full mt-3 bg-gray-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2">
+                    👤 Continue as Guest
+                </button>
+                <p class="mt-2 text-xs text-gray-500">Data stored locally only</p>
+
+                <p class="mt-4 text-xs text-gray-600">{{ t('l_subtitle') }}</p>
             </div>
         </div>
 

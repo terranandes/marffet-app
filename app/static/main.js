@@ -13,7 +13,7 @@ createApp({
         const loadingCB = ref(false);
 
         // ========== GUEST MODE ==========
-        const isGuest = computed(() => currentUser.value === null);
+        const isGuest = computed(() => currentUser.value === null || currentUser.value?.is_guest === true);
         const GUEST_LIMITS = {
             maxGroups: 3,
             maxTargetsPerGroup: 10,

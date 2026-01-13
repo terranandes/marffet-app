@@ -52,16 +52,16 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 
 #### Free vs Premium Feature Comparison
 
-| Feature | Free | Premium |
-|---------|------|---------|
-| **AI Bot Personality** | Educator (encouragement) | Ruthless Wealth Manager (rebalancing advice) |
-| **Portfolio Groups** | 11 max | 30 max |
-| **Targets per Group** | 50 max | 200 max |
-| **Transactions per Target** | 100 max | 1000 max |
-| **CB Notifications** | ❌ | ✅ In-App notification plus Email alerts |
-| **Rebalancing Notifications** | ❌ | ✅ In-App notification plus Email alerts when portfolio needs rebalancing |
-| **Bar Chart Race** | Basic | Advanced (custom metrics) |
-| **Data Export** | ❌ | ✅ CSV/Excel |
+| Feature | Guest | Free | Premium |
+|---------|-------|------|---------|
+| **AI Bot Personality** | None | Educator (encouragement) | Ruthless Wealth Manager (rebalancing advice) |
+| **Portfolio Groups** | 3 max | 11 max | 30 max |
+| **Targets per Group** | 10 max | 50 max | 200 max |
+| **Transactions per Target** | 10 max | 100 max | 1000 max |
+| **CB Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts |
+| **Rebalancing Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts when portfolio needs rebalancing |
+| **Bar Chart Race** | Basic | Basic | Advanced (custom metrics) |
+| **Data Export** | ❌ | ❌ | ✅ CSV/Excel |
 
 ## 3. Target Audience
 -   **Retail Investors**: Looking to backtest strategies.

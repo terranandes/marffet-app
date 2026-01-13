@@ -12,6 +12,35 @@ createApp({
         const cbResult = ref(null);
         const loadingCB = ref(false);
 
+        // ========== GUEST MODE ==========
+        const isGuest = computed(() => currentUser.value === null);
+        const GUEST_LIMITS = {
+            maxGroups: 3,
+            maxTargetsPerGroup: 10,
+            maxTransactionsPerTarget: 10
+        };
+        const GUEST_STORAGE_KEY = 'martian_guest_portfolio';
+
+        // Guest localStorage helpers
+        const loadGuestData = () => {
+            try {
+                const data = localStorage.getItem(GUEST_STORAGE_KEY);
+                return data ? JSON.parse(data) : { groups: [], nextGroupId: 1, nextTargetId: 1, nextTxId: 1 };
+            } catch (e) {
+                console.error('Failed to load guest data:', e);
+                return { groups: [], nextGroupId: 1, nextTargetId: 1, nextTxId: 1 };
+            }
+        };
+        const saveGuestData = (data) => {
+            try {
+                localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.error('Failed to save guest data:', e);
+                addNotification('⚠️ Failed to save data locally');
+            }
+        };
+        const guestData = ref(loadGuestData());
+
         // ========== NOTIFICATIONS SYSTEM ==========
         const showNotifications = ref(false);
         const notifications = ref([{ message: 'Welcome to Martian Investment! 🚀', time: 'Now', read: false }]);
@@ -1269,10 +1298,22 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         // Fetch all groups
         const fetchGroups = async () => {
+            // GUEST MODE: Load from localStorage
+            if (isGuest.value) {
+                portfolioGroups.value = guestData.value.groups.map(g => ({
+                    id: g.id,
+                    name: g.name,
+                    targets: g.targets || []
+                }));
+                if (portfolioGroups.value.length && !selectedGroupId.value) {
+                    selectGroup(portfolioGroups.value[0].id);
+                }
+                return;
+            }
+            // LOGGED IN: Use API
             try {
                 const res = await fetch('/api/portfolio/groups');
                 portfolioGroups.value = await res.json();
-                // Auto-select first group
                 if (portfolioGroups.value.length && !selectedGroupId.value) {
                     selectGroup(portfolioGroups.value[0].id);
                 }
@@ -1282,6 +1323,28 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Create group
         const createGroup = async () => {
             if (!newGroupName.value.trim()) return;
+
+            // GUEST MODE: Save to localStorage
+            if (isGuest.value) {
+                if (guestData.value.groups.length >= GUEST_LIMITS.maxGroups) {
+                    addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxGroups} groups. Login for more!`);
+                    return;
+                }
+                const newGroup = {
+                    id: guestData.value.nextGroupId++,
+                    name: newGroupName.value.trim(),
+                    targets: []
+                };
+                guestData.value.groups.push(newGroup);
+                saveGuestData(guestData.value);
+                newGroupName.value = '';
+                showAddGroup.value = false;
+                await fetchGroups();
+                addNotification(`✅ Group "${newGroup.name}" created (local)`);
+                return;
+            }
+
+            // LOGGED IN: Use API
             try {
                 const res = await fetch('/api/portfolio/groups', {
                     method: 'POST',
@@ -1302,6 +1365,21 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Delete group
         const deleteGroup = async (groupId) => {
             if (!confirm('Delete this group and all targets?')) return;
+
+            // GUEST MODE: Delete from localStorage
+            if (isGuest.value) {
+                guestData.value.groups = guestData.value.groups.filter(g => g.id !== groupId);
+                saveGuestData(guestData.value);
+                if (selectedGroupId.value === groupId) {
+                    selectedGroupId.value = null;
+                    groupTargets.value = [];
+                }
+                await fetchGroups();
+                addNotification('🗑️ Group deleted (local)');
+                return;
+            }
+
+            // LOGGED IN: Use API
             try {
                 await fetch(`/api/portfolio/groups/${groupId}`, { method: 'DELETE' });
                 if (selectedGroupId.value === groupId) {
@@ -1316,14 +1394,31 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Select group and load targets with live prices
         const selectGroup = async (groupId) => {
             selectedGroupId.value = groupId;
+
+            // GUEST MODE: Load from localStorage
+            if (isGuest.value) {
+                const group = guestData.value.groups.find(g => g.id === groupId);
+                if (group) {
+                    groupTargets.value = (group.targets || []).map(t => ({
+                        ...t,
+                        livePrice: { price: 0, change: 0, change_pct: 0 },
+                        summary: {
+                            total_shares: t.transactions?.reduce((sum, tx) => sum + (tx.type === 'buy' ? tx.shares : -tx.shares), 0) || 0,
+                            avg_cost: t.transactions?.length > 0 ? t.transactions.reduce((sum, tx) => sum + tx.price * tx.shares, 0) / t.transactions.reduce((sum, tx) => sum + tx.shares, 0) : 0,
+                            realized_pl: 0,
+                            unrealized_pl: 0
+                        }
+                    }));
+                }
+                return;
+            }
+
+            // LOGGED IN: Use API
             try {
                 const res = await fetch(`/api/portfolio/groups/${groupId}/targets`);
                 const targets = await res.json();
 
-                // Collect all stock IDs for batch price fetch
                 const stockIds = targets.map(t => t.stock_id).join(',');
-
-                // Fetch live prices (parallel)
                 let livePrices = {};
                 if (stockIds) {
                     try {
@@ -1332,12 +1427,10 @@ Please analyze this feedback and determine if it's a true bug.`;
                     } catch (e) { console.warn('Live price fetch failed:', e); }
                 }
 
-                // Fetch summary for each target with live price
                 for (const t of targets) {
                     const livePrice = livePrices[t.stock_id]?.price || null;
                     t.livePrice = livePrices[t.stock_id] || { price: 0, change: 0, change_pct: 0 };
 
-                    // Fetch summary with current price for P/L calculation
                     const sumUrl = livePrice
                         ? `/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
                         : `/api/portfolio/targets/${t.id}/summary`;
@@ -1351,8 +1444,41 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Add target
         const addTarget = async () => {
             if (!newTargetId.value.trim() || !selectedGroupId.value) return;
+
+            // GUEST MODE: Save to localStorage
+            if (isGuest.value) {
+                const group = guestData.value.groups.find(g => g.id === selectedGroupId.value);
+                if (!group) return;
+
+                if ((group.targets || []).length >= GUEST_LIMITS.maxTargetsPerGroup) {
+                    addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxTargetsPerGroup} targets per group. Login for more!`);
+                    return;
+                }
+
+                let finalName = newTargetName.value.trim();
+                if (!finalName && marsList.value.length) {
+                    const found = marsList.value.find(s => s.id === newTargetId.value.trim());
+                    if (found) finalName = found.name;
+                }
+
+                const newTarget = {
+                    id: guestData.value.nextTargetId++,
+                    stock_id: newTargetId.value.trim(),
+                    stock_name: finalName || newTargetId.value.trim(),
+                    transactions: []
+                };
+                if (!group.targets) group.targets = [];
+                group.targets.push(newTarget);
+                saveGuestData(guestData.value);
+                newTargetId.value = '';
+                newTargetName.value = '';
+                await selectGroup(selectedGroupId.value);
+                addNotification(`✅ ${newTarget.stock_name} added (local)`);
+                return;
+            }
+
+            // LOGGED IN: Use API
             try {
-                // Optimization: Lookup name from Mars Strategy list if available
                 let finalName = newTargetName.value.trim();
                 if (!finalName && marsList.value.length) {
                     const found = marsList.value.find(s => s.id === newTargetId.value.trim());
@@ -1375,6 +1501,20 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Delete target
         const deleteTarget = async (targetId) => {
             if (!confirm('Delete this stock and all transactions?')) return;
+
+            // GUEST MODE: Delete from localStorage
+            if (isGuest.value) {
+                const group = guestData.value.groups.find(g => g.id === selectedGroupId.value);
+                if (group) {
+                    group.targets = (group.targets || []).filter(t => t.id !== targetId);
+                    saveGuestData(guestData.value);
+                    await selectGroup(selectedGroupId.value);
+                    addNotification('🗑️ Target deleted (local)');
+                }
+                return;
+            }
+
+            // LOGGED IN: Use API
             try {
                 await fetch(`/api/portfolio/targets/${targetId}`, { method: 'DELETE' });
                 await selectGroup(selectedGroupId.value);
@@ -1385,6 +1525,40 @@ Please analyze this feedback and determine if it's a true bug.`;
         const addTransaction = async () => {
             if (!showTxForm.value || !newTx.value.shares || !newTx.value.price) return;
 
+            // GUEST MODE: Save to localStorage
+            if (isGuest.value) {
+                const group = guestData.value.groups.find(g => g.id === selectedGroupId.value);
+                if (!group) return;
+                const target = (group.targets || []).find(t => t.id === showTxForm.value);
+                if (!target) return;
+
+                if (!target.transactions) target.transactions = [];
+
+                const isEdit = !!newTx.value.id;
+                if (isEdit) {
+                    // Update existing
+                    const idx = target.transactions.findIndex(tx => tx.id === newTx.value.id);
+                    if (idx >= 0) target.transactions[idx] = { ...newTx.value };
+                } else {
+                    // Add new
+                    if (target.transactions.length >= GUEST_LIMITS.maxTransactionsPerTarget) {
+                        addNotification(`⚠️ Guest limit: Max ${GUEST_LIMITS.maxTransactionsPerTarget} transactions per target. Login for more!`);
+                        return;
+                    }
+                    target.transactions.push({
+                        id: guestData.value.nextTxId++,
+                        ...newTx.value
+                    });
+                }
+                saveGuestData(guestData.value);
+                showTxForm.value = null;
+                newTx.value = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] };
+                await selectGroup(selectedGroupId.value);
+                addNotification('✅ Transaction saved (local)');
+                return;
+            }
+
+            // LOGGED IN: Use API
             const isEdit = !!newTx.value.id;
             const url = isEdit
                 ? `/api/portfolio/transactions/${newTx.value.id}`
@@ -1907,8 +2081,8 @@ Please analyze this feedback and determine if it's a true bug.`;
             addNotification,
             // AI Copilot
             showChat, chatInput, isChatLoading, chatHistory, sendMessage,
-            // Auth
-            currentUser,
+            // Auth & Guest Mode
+            currentUser, isGuest, GUEST_LIMITS,
             // Admin Dashboard (GM Only)
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
             feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes

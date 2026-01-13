@@ -884,7 +884,8 @@ Please analyze this feedback and determine if it's a true bug.`;
                 .attr('width', width)
                 .attr('height', height)
                 .attr('viewBox', `0 0 ${width} ${height}`)
-                .style('background', 'transparent');
+                .style('background', 'transparent')
+                .style('overflow', 'hidden');  // Prevent bars from overflowing
 
             console.log('[D3 Race] SVG created:', svg.node());
 

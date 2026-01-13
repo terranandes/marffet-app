@@ -1324,13 +1324,9 @@ Please analyze this feedback and determine if it's a true bug.`;
         const createGroup = async () => {
             if (!newGroupName.value.trim()) return;
 
-            console.log('[createGroup] isGuest:', isGuest.value, 'groups count:', guestData.value.groups.length);
-
             // GUEST MODE: Save to localStorage
             if (isGuest.value) {
-                console.log('[createGroup] Guest mode detected, checking limits...');
                 if (guestData.value.groups.length >= GUEST_LIMITS.maxGroups) {
-                    console.log('[createGroup] LIMIT REACHED! Showing alert...');
                     alert(`⚠️ Guest limit reached!\n\nMax ${GUEST_LIMITS.maxGroups} groups allowed.\nLogin to create more groups.`);
                     return;
                 }
@@ -1498,6 +1494,9 @@ Please analyze this feedback and determine if it's a true bug.`;
                     newTargetId.value = '';
                     newTargetName.value = '';
                     await selectGroup(selectedGroupId.value);
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Add target failed');
                 }
             } catch (e) { console.error('Add target error:', e); }
         };
@@ -1579,6 +1578,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     showTxForm.value = null;
                     newTx.value = { type: 'buy', shares: 0, price: 0, date: new Date().toISOString().split('T')[0] };
                     await selectGroup(selectedGroupId.value);
+
                     // If history is open, refresh it
                     if (showTxHistory.value) await fetchTxHistory(showTxHistory.value);
 
@@ -1586,6 +1586,9 @@ Please analyze this feedback and determine if it's a true bug.`;
                     fetchTrendData();
                     fetchPortfolioRaceData();
                     fetchLeaderboard();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Transaction failed');
                 }
             } catch (e) { console.error('Transaction error:', e); }
         };

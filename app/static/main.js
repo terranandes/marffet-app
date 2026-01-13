@@ -844,14 +844,22 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const raceMetric = ref('wealth'); // Default: Wealth
 
-        // D3.js Bar Chart Race Configuration
-        const raceConfig = {
-            barHeight: 22,
-            barPadding: 2,
-            topN: 50, // Extended to 50 for more comprehensive race view
-            duration: 1200, // Slower animation (user request)
-            margin: { top: 60, right: 150, bottom: 20, left: 200 }  // Larger right margin for value labels
+        // D3.js Bar Chart Race Configuration - RESPONSIVE
+        const isMobileRace = () => window.innerWidth < 768;
+        const getRaceConfig = () => {
+            const mobile = isMobileRace();
+            return {
+                barHeight: mobile ? 18 : 22,
+                barPadding: mobile ? 1 : 2,
+                topN: mobile ? 20 : 50, // Show fewer on mobile to fit screen
+                duration: 1200, // Slower animation (user request)
+                margin: mobile
+                    ? { top: 40, right: 80, bottom: 20, left: 100 }  // Compact for mobile
+                    : { top: 60, right: 150, bottom: 20, left: 200 } // Spacious for desktop
+            };
         };
+        // Keep raceConfig as a getter for backward compatibility
+        const raceConfig = getRaceConfig();
 
         // Dynamic Race Chart (D3.js with smooth transitions)
         const renderRaceChart = () => {
@@ -861,6 +869,10 @@ Please analyze this feedback and determine if it's a true bug.`;
                 return;
             }
             raceRendered.value = false;
+
+            // Get fresh config based on current screen size
+            const config = getRaceConfig();
+            console.log('[D3 Race] Config:', config, 'isMobile:', isMobileRace());
 
             const container = document.getElementById('race-chart-container');
             console.log('[D3 Race] Container:', container);
@@ -931,7 +943,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // Build keyframes: each frame = { year, data: [ { id, name, value, rank } ] }
             const keyframes = years.map(year => {
-                const sorted = raceMap.get(year).sort((a, b) => b.value - a.value).slice(0, raceConfig.topN);
+                const sorted = raceMap.get(year).sort((a, b) => b.value - a.value).slice(0, config.topN);
                 sorted.forEach((d, i) => d.rank = i);
                 return { year, data: sorted };
             });
@@ -946,8 +958,8 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // SVG Setup
             const width = container.clientWidth || 800; // Fallback if hidden
-            const height = raceConfig.topN * (raceConfig.barHeight + raceConfig.barPadding) + raceConfig.margin.top
-                + raceConfig.margin.bottom;
+            const height = config.topN * (config.barHeight + config.barPadding) + config.margin.top
+                + config.margin.bottom;
 
             console.log('[D3 Race] Container dimensions:', width, 'x', height, 'd3 defined:', typeof d3);
 
@@ -962,15 +974,15 @@ Please analyze this feedback and determine if it's a true bug.`;
             console.log('[D3 Race] SVG created:', svg.node());
 
             // Scales
-            const xScale = d3.scaleLinear().range([raceConfig.margin.left, width - raceConfig.margin.right]);
-            const yScale = d3.scaleLinear().range([raceConfig.margin.top, height - raceConfig.margin.bottom -
-                raceConfig.barHeight]);
+            const xScale = d3.scaleLinear().range([config.margin.left, width - config.margin.right]);
+            const yScale = d3.scaleLinear().range([config.margin.top, height - config.margin.bottom -
+                config.barHeight]);
             const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
             // X-Axis
             const xAxis = svg.append('g')
                 .attr('class', 'x-axis')
-                .attr('transform', `translate(0, ${raceConfig.margin.top - 10})`);
+                .attr('transform', `translate(0, ${config.margin.top - 10})`);
 
             // Year Label (big watermark)
             const yearLabel = svg.append('text')
@@ -979,7 +991,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 .attr('y', height - 30)
                 .attr('text-anchor', 'end')
                 .attr('fill', 'rgba(255,255,255,0.15)')
-                .attr('font-size', '100px')
+                .attr('font-size', isMobileRace() ? '60px' : '100px')
                 .attr('font-weight', '900')
                 .attr('font-family', 'Inter, sans-serif');
 
@@ -990,12 +1002,12 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // Update function for each frame
             window.updateRaceFrame = (frameData, instant = false) => {
-                const dur = instant ? 0 : raceConfig.duration;
+                const dur = instant ? 0 : config.duration;
                 const data = frameData.data;
                 const maxValue = d3.max(data, d => d.value) || 1;
 
                 xScale.domain([0, maxValue * 1.1]);
-                yScale.domain([0, raceConfig.topN - 1]);
+                yScale.domain([0, config.topN - 1]);
 
                 // DEBUG: Log bar width calculation
                 if (data.length > 0) {
@@ -1032,9 +1044,9 @@ Please analyze this feedback and determine if it's a true bug.`;
                 // ENTER + UPDATE: Smooth transitions
                 bars.enter()
                     .append('rect')
-                    .attr('x', raceConfig.margin.left)
+                    .attr('x', config.margin.left)
                     .attr('y', d => yScale(d.rank))
-                    .attr('height', raceConfig.barHeight)
+                    .attr('height', config.barHeight)
                     .attr('fill', d => colorScale(d.id))
                     .attr('rx', 4)
                     .attr('width', 0)
@@ -1043,7 +1055,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     .duration(dur)
                     .ease(d3.easeCubicInOut)  // Smooth cubic easing
                     .attr('y', d => yScale(d.rank))
-                    .attr('width', d => Math.max(0, xScale(d.value) - raceConfig.margin.left));
+                    .attr('width', d => Math.max(0, xScale(d.value) - config.margin.left));
 
                 // LABELS (stock names on left)
                 const labels = labelsGroup.selectAll('text').data(data, d => d.id);
@@ -1052,18 +1064,18 @@ Please analyze this feedback and determine if it's a true bug.`;
 
                 labels.enter()
                     .append('text')
-                    .attr('x', raceConfig.margin.left - 5)
-                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                    .attr('x', config.margin.left - 5)
+                    .attr('y', d => yScale(d.rank) + config.barHeight / 2)
                     .attr('text-anchor', 'end')
                     .attr('fill', '#fff')
-                    .attr('font-size', '11px')
+                    .attr('font-size', isMobileRace() ? '9px' : '11px')
                     .attr('dominant-baseline', 'middle')
                     .style('opacity', 0)
                     .merge(labels)
                     .transition()
                     .duration(dur)
                     .ease(d3.easeCubicInOut)
-                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                    .attr('y', d => yScale(d.rank) + config.barHeight / 2)
                     .style('opacity', 1)
                     .text(d => `${d.name} (${d.id})`);
 
@@ -1075,10 +1087,10 @@ Please analyze this feedback and determine if it's a true bug.`;
                 values.enter()
                     .append('text')
                     .attr('x', d => xScale(d.value) + 8)  // Position OUTSIDE bar (right side)
-                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                    .attr('y', d => yScale(d.rank) + config.barHeight / 2)
                     .attr('text-anchor', 'start')  // Align from left edge of text
                     .attr('fill', '#00ffff')  // Cyber cyan for visibility
-                    .attr('font-size', '10px')
+                    .attr('font-size', isMobileRace() ? '8px' : '10px')
                     .attr('font-weight', '700')
                     .attr('dominant-baseline', 'middle')
                     .style('opacity', 0)
@@ -1088,7 +1100,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     .duration(dur)
                     .ease(d3.easeCubicInOut)
                     .attr('x', d => xScale(d.value) + 8)  // Position OUTSIDE bar
-                    .attr('y', d => yScale(d.rank) + raceConfig.barHeight / 2)
+                    .attr('y', d => yScale(d.rank) + config.barHeight / 2)
                     .style('opacity', 1)
                     .text(d => raceMetric.value === 'wealth' ? formatCurrency(d.value) : `${d.value.toFixed(1)}%`);
             };

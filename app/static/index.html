@@ -432,47 +432,48 @@
 
             <!-- RACE TAB -->
             <div v-show="currentTab === 'race'" class="flex-1 flex flex-col overflow-y-auto">
-                <div class="glass-panel rounded-xl p-4 flex flex-col flex-grow">
-                    <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
-                        <div class="flex items-center gap-4">
-                            <h3 class="font-bold text-cyber-cyan text-lg">{{ t('race_title') }}</h3>
+                <div class="glass-panel rounded-xl p-3 lg:p-4 flex flex-col flex-grow">
+                    <!-- Header: Stacked on Mobile, Horizontal on Desktop -->
+                    <div
+                        class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 mb-3 border-b border-white/10 pb-3">
+                        <!-- Title + Metric Selector -->
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <h3 class="font-bold text-cyber-cyan text-base lg:text-lg">{{ t('race_title') }}</h3>
                             <!-- Metric Selector -->
-                            <div class="flex bg-black/50 rounded-lg p-1 border border-white/10">
+                            <div class="flex bg-black/50 rounded-lg p-1 border border-white/10 w-fit">
                                 <button @click="raceMetric = 'wealth'; resetRace()"
                                     :class="{'bg-cyber-cyan text-black': raceMetric === 'wealth', 'text-gray-400 hover:text-white': raceMetric !== 'wealth'}"
-                                    class="px-3 py-1 text-xs font-bold rounded transition">
+                                    class="px-2 lg:px-3 py-1 text-xs font-bold rounded transition">
                                     {{ t('race_wealth') }}
                                 </button>
                                 <button @click="if(isPremium) { raceMetric = 'cagr'; resetRace(); }"
                                     :class="{'bg-cyber-cyan text-black': raceMetric === 'cagr', 'text-gray-400 hover:text-white': raceMetric !== 'cagr' && isPremium, 'opacity-30 cursor-not-allowed': !isPremium}"
-                                    class="px-3 py-1 text-xs font-bold rounded transition relative group">
+                                    class="px-2 lg:px-3 py-1 text-xs font-bold rounded transition relative group">
                                     {{ t('race_cagr') }}
                                     <span v-if="!isPremium" class="ml-1">🔒</span>
-                                    <div v-if="!isPremium"
-                                        class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none z-10 border border-white/20">
-                                        Premium only
-                                    </div>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Controls -->
+                        <!-- Controls: Compact on Mobile -->
                         <div class="flex gap-2">
                             <button @click="playRace"
-                                class="flex items-center gap-1 bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded hover:bg-green-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
-                                ▶ {{ t('race_play') }}
+                                class="flex-1 lg:flex-none flex items-center justify-center gap-1 bg-green-500/20 border border-green-500 text-green-400 px-3 py-2 rounded hover:bg-green-500 hover:text-black transition font-bold text-xs">
+                                ▶ <span class="hidden sm:inline">{{ t('race_play') }}</span>
                             </button>
                             <button @click="pauseRace"
-                                class="flex items-center gap-1 bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-4 py-2 rounded hover:bg-yellow-500 hover:text-black transition font-bold uppercase text-xs tracking-wider">
-                                ⏸ {{ t('race_pause') }}
+                                class="flex-1 lg:flex-none flex items-center justify-center gap-1 bg-yellow-500/20 border border-yellow-500 text-yellow-400 px-3 py-2 rounded hover:bg-yellow-500 hover:text-black transition font-bold text-xs">
+                                ⏸ <span class="hidden sm:inline">{{ t('race_pause') }}</span>
                             </button>
                             <button @click="resetRace"
-                                class="flex items-center gap-1 bg-white/10 border border-white/20 text-gray-300 px-4 py-2 rounded hover:bg-white/20 transition font-bold uppercase text-xs tracking-wider">
-                                ↺ {{ t('race_reset') }}
+                                class="flex-1 lg:flex-none flex items-center justify-center gap-1 bg-white/10 border border-white/20 text-gray-300 px-3 py-2 rounded hover:bg-white/20 transition font-bold text-xs">
+                                ↺ <span class="hidden sm:inline">{{ t('race_reset') }}</span>
                             </button>
                         </div>
                     </div>
-                    <div id="race-chart-container" class="flex-1 relative min-h-[1400px] overflow-hidden">
+                    <!-- Chart Container: Responsive Height -->
+                    <div id="race-chart-container"
+                        class="flex-1 relative min-h-[600px] lg:min-h-[1400px] overflow-hidden">
                         <!-- D3.js Race Chart -->
                     </div>
                     <!-- Timeline Scrubber (compact, aligned with chart) -->

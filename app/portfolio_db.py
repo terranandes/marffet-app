@@ -27,9 +27,14 @@ else:
     print(f"[DB] Using local storage: {DB_PATH}")
 
 # Tier limits
+# Tier limits
 FREE_MAX_GROUPS = 11
 FREE_MAX_TARGETS_PER_GROUP = 50
-FREE_MAX_TX_PER_TARGET = 50
+FREE_MAX_TX_PER_TARGET = 100
+
+PREMIUM_MAX_GROUPS = 30
+PREMIUM_MAX_TARGETS_PER_GROUP = 200
+PREMIUM_MAX_TX_PER_TARGET = 1000
 
 
 @contextmanager
@@ -166,11 +171,19 @@ def create_group(name: str, user_id: str = "default") -> dict:
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Check limit
+        # Check limit based on tier
+        cursor.execute("SELECT COALESCE(subscription_tier, 0) FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        tier = row[0] if row else 0
+        
+        limit = PREMIUM_MAX_GROUPS if tier > 0 else FREE_MAX_GROUPS
+        
         cursor.execute("SELECT COUNT(*) FROM user_groups WHERE user_id = ?", (user_id,))
         count = cursor.fetchone()[0]
-        if count >= FREE_MAX_GROUPS:
-            raise ValueError(f"Maximum {FREE_MAX_GROUPS} groups allowed for free tier")
+        
+        if count >= limit:
+            tier_name = "Premium" if tier > 0 else "Free"
+            raise ValueError(f"Maximum {limit} groups allowed for {tier_name} tier")
         
         group_id = str(uuid.uuid4())
         cursor.execute(
@@ -216,11 +229,24 @@ def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, a
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Check limit
+        # Check limit based on tier
+        cursor.execute("""
+            SELECT COALESCE(u.subscription_tier, 0)
+            FROM user_groups ug
+            JOIN users u ON ug.user_id = u.id
+            WHERE ug.id = ?
+        """, (group_id,))
+        row = cursor.fetchone()
+        tier = row[0] if row else 0
+        
+        limit = PREMIUM_MAX_TARGETS_PER_GROUP if tier > 0 else FREE_MAX_TARGETS_PER_GROUP
+
         cursor.execute("SELECT COUNT(*) FROM group_targets WHERE group_id = ?", (group_id,))
         count = cursor.fetchone()[0]
-        if count >= FREE_MAX_TARGETS_PER_GROUP:
-            raise ValueError(f"Maximum {FREE_MAX_TARGETS_PER_GROUP} targets per group for free tier")
+        
+        if count >= limit:
+            tier_name = "Premium" if tier > 0 else "Free"
+            raise ValueError(f"Maximum {limit} targets per group for {tier_name} tier")
         
         if not stock_name:
             try:
@@ -267,11 +293,25 @@ def add_transaction(target_id: str, tx_type: str, shares: int, price: float, tx_
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Check transaction limit
+        # Check transaction limit based on tier
+        cursor.execute("""
+            SELECT COALESCE(u.subscription_tier, 0)
+            FROM group_targets gt
+            JOIN user_groups ug ON gt.group_id = ug.id
+            JOIN users u ON ug.user_id = u.id
+            WHERE gt.id = ?
+        """, (target_id,))
+        row = cursor.fetchone()
+        tier = row[0] if row else 0
+        
+        limit = PREMIUM_MAX_TX_PER_TARGET if tier > 0 else FREE_MAX_TX_PER_TARGET
+
         cursor.execute("SELECT COUNT(*) FROM transactions WHERE target_id = ?", (target_id,))
         count = cursor.fetchone()[0]
-        if count >= FREE_MAX_TX_PER_TARGET:
-            raise ValueError(f"Maximum {FREE_MAX_TX_PER_TARGET} transactions per target for free tier")
+        
+        if count >= limit:
+            tier_name = "Premium" if tier > 0 else "Free"
+            raise ValueError(f"Maximum {limit} transactions per target for {tier_name} tier")
         
         tx_id = str(uuid.uuid4())
         cursor.execute(

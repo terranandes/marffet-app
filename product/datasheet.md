@@ -58,8 +58,8 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 | **Portfolio Groups** | 11 max | 30 max |
 | **Targets per Group** | 50 max | 200 max |
 | **Transactions per Target** | 100 max | 1000 max |
-| **CB Notifications** | ❌ | ✅ Email alerts |
-| **Rebalancing Notifications** | ❌ | ✅ Email alerts when portfolio needs rebalancing |
+| **CB Notifications** | ❌ | ✅ In-App notification plus Email alerts |
+| **Rebalancing Notifications** | ❌ | ✅ In-App notification plus Email alerts when portfolio needs rebalancing |
 | **Bar Chart Race** | Basic | Advanced (custom metrics) |
 | **Data Export** | ❌ | ✅ CSV/Excel |
 

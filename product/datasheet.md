@@ -25,7 +25,14 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 -   **Dividend Receipts**: Granular breakdown of annual cash flow from dividends.
 -   **Survivors Table**: identifying the "Thrivers" of the market over 20 years.
 
-### 4. AI Copilot (Mars AI, Powered by Gemini)
+### 4. Guest Mode (No Login Required)
+-   **No Account Needed**: Users can explore the app without signing up.
+-   **Local Data Only**: All portfolio data stored in browser's localStorage.
+-   **No Remote Storage**: Guest data is never uploaded to the server.
+-   **Privacy First**: Perfect for users who want to try before committing.
+-   **Limitations**: Reduced limits (3 groups, 10 targets, 10 transactions) and no AI Bot.
+
+### 5. AI Copilot (Mars AI, Powered by Gemini)
 -   **Role**: An intelligent investment assistant with tier-based personalities.
 -   **User Context**: AI sees full portfolio summary + individual holdings (name, shares, avg cost, P/L).
 

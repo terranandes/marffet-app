@@ -103,6 +103,12 @@ def run_tests():
         if page.query_selector('button svg path[d*="M15 17h5"]'):
              print("✅ Notification Bell present")
 
+        # Check Settings Button
+        if page.query_selector('text=Settings'):
+            print("✅ Settings Button verified")
+        else:
+            print("❌ Settings Button NOT FOUND")
+
         print("🎉 All Tests Passed Successfully!")
         browser.close()
 

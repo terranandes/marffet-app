@@ -34,19 +34,28 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
+# Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    same_site='lax',      # Required for OAuth redirects
-    https_only=False,     # Allow HTTP for localhost
+    same_site='none',      # Required for Cross-Domain (app -> api)
+    https_only=True,       # Required if same_site='none'
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 
-# ... (CORS logic remains) ...
+# CORS Middleware
+# In production, we MUST specify the exact frontend origin to support allow_credentials=True
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    FRONTEND_URL.rstrip('/') # e.g. https://martian-app.zeabur.app
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production with Auth, this should be specific domain
+    allow_origins=ALLOWED_ORIGINS, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

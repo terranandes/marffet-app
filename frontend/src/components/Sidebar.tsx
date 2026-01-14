@@ -66,13 +66,21 @@ export default function Sidebar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const userRes = await fetch("/auth/me", { credentials: "include" });
+                // Use Absolute URL for Cross-Domain Auth check
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+                const userRes = await fetch(`${API_URL}/auth/me`, {
+                    credentials: "include"
+                });
+
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     setUser(userData);
 
                     // Fetch notifications if logged in
-                    const notifRes = await fetch("/api/notifications", { credentials: "include" });
+                    const notifRes = await fetch(`${API_URL}/api/notifications`, {
+                        credentials: "include"
+                    });
                     if (notifRes.ok) {
                         setNotifications(await notifRes.json());
                     }
@@ -89,7 +97,8 @@ export default function Sidebar() {
         // Poll notifications every 30s
         const interval = setInterval(async () => {
             try {
-                const res = await fetch("/api/notifications", { credentials: "include" });
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const res = await fetch(`${API_URL}/api/notifications`, { credentials: "include" });
                 if (res.ok) setNotifications(await res.json());
             } catch (e) { console.error("Poll error:", e); }
         }, 30000);
@@ -99,7 +108,8 @@ export default function Sidebar() {
 
     const markAsRead = async (id: number) => {
         try {
-            await fetch(`/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            await fetch(`${API_URL}/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
         } catch (e) { console.error("Mark read error:", e); }
     };
@@ -334,7 +344,7 @@ export default function Sidebar() {
                             </div>
                         </div>
                         <a
-                            href="/auth/logout"
+                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`}
                             className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition"
                         >
                             Sign Out
@@ -343,7 +353,7 @@ export default function Sidebar() {
                 ) : (
                     <div className="mt-auto mb-4 p-4">
                         <a
-                            href="/auth/login"
+                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
                             className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

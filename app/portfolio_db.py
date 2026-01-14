@@ -216,7 +216,104 @@ def list_groups(user_id: str = "default") -> list:
             "SELECT id, name, created_at FROM user_groups WHERE user_id = ? ORDER BY created_at",
             (user_id,)
         )
-        return [dict(row) for row in cursor.fetchall()]
+        groups = [dict(row) for row in cursor.fetchall()]
+        
+        # Auto-initialize default portfolio for new users
+        if not groups and user_id != "guest":
+            initialize_default_portfolio(user_id)
+            # Re-fetch after initialization
+            cursor.execute(
+                "SELECT id, name, created_at FROM user_groups WHERE user_id = ? ORDER BY created_at",
+                (user_id,)
+            )
+            groups = [dict(row) for row in cursor.fetchall()]
+        
+        return groups
+
+
+def initialize_default_portfolio(user_id: str) -> None:
+    """Initialize default portfolio groups for a new user.
+    
+    Creates 3 starter groups with sample stocks:
+    1. 火星股 (Mars Stocks): Top performers
+    2. 高股息債券ETF (Bond ETFs): High-yield bond ETFs
+    3. 美台尖牙ETF (US-TW FANG ETFs): Tech-focused ETFs
+    
+    Stock names are looked up from cached Mars Strategy data.
+    """
+    DEFAULT_GROUPS = [
+        {
+            "name": "火星股",
+            "targets": ["2330", "1215", "2383", "1231"]
+        },
+        {
+            "name": "高股息債券ETF",
+            "targets": ["00937B", "00953B", "00933B", "00950B", "00945B", "00980D"]
+        },
+        {
+            "name": "美台尖牙ETF",
+            "targets": ["0050", "00894", "00981A", "00983A", "00830", "009811"]
+        },
+    ]
+    
+    # Load stock name lookup from Mars Strategy data
+    stock_name_cache = {}
+    try:
+        import pandas as pd
+        from pathlib import Path
+        mars_file = Path(__file__).parent.parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        if mars_file.exists():
+            df = pd.read_excel(mars_file)
+            # Build lookup: stock_id -> name
+            if 'Unnamed: 0' in df.columns and 'name' in df.columns:
+                stock_name_cache = dict(zip(df['Unnamed: 0'].astype(str), df['name']))
+            elif 'id' in df.columns and 'name' in df.columns:
+                stock_name_cache = dict(zip(df['id'].astype(str), df['name']))
+            print(f"[Portfolio] Loaded {len(stock_name_cache)} stock names from Mars data")
+    except Exception as e:
+        print(f"[Portfolio] Could not load Mars data for name lookup: {e}")
+    
+    print(f"[Portfolio] Initializing default groups for user: {user_id}")
+    
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        for group_def in DEFAULT_GROUPS:
+            # Create group
+            group_id = str(uuid.uuid4())
+            cursor.execute(
+                "INSERT INTO user_groups (id, user_id, name) VALUES (?, ?, ?)",
+                (group_id, user_id, group_def["name"])
+            )
+            
+            # Add targets to group
+            for stock_id in group_def["targets"]:
+                # Lookup name from cache, fallback to yfinance fetch
+                stock_name = stock_name_cache.get(stock_id) or stock_name_cache.get(stock_id.upper())
+                
+                # If not in Mars data, try fetching from yfinance
+                if not stock_name:
+                    try:
+                        stock_name = fetch_stock_name(stock_id)
+                        print(f"    [Fetch] {stock_id} -> {stock_name}")
+                    except:
+                        stock_name = None
+                
+                # Determine asset type
+                if stock_id.startswith('00'):
+                    asset_type = 'etf'
+                else:
+                    asset_type = 'stock'
+                
+                target_id = str(uuid.uuid4())
+                cursor.execute(
+                    "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
+                    (target_id, group_id, stock_id, stock_name, asset_type)
+                )
+            
+            print(f"  [+] Created group '{group_def['name']}' with {len(group_def['targets'])} targets")
+    
+    print(f"[Portfolio] Default portfolio initialized for {user_id}")
 
 
 def delete_group(group_id: str) -> bool:

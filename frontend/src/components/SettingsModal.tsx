@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 interface User {
     id: string | null;
     email?: string;
+    name?: string;
     nickname?: string;
     picture?: string;
     is_admin?: boolean;
@@ -114,8 +115,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id); setMsg(null); }}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                        ? "bg-[var(--color-cta)] text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]"
-                                        : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                    ? "bg-[var(--color-cta)] text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]"
+                                    : "text-zinc-400 hover:text-white hover:bg-white/5"
                                     }`}
                             >
                                 <span>{tab.icon}</span> {tab.label}
@@ -129,8 +130,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                         {/* Messages */}
                         {msg && (
                             <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 ${msg.type === 'success'
-                                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                : 'bg-red-500/10 border-red-500/30 text-red-400'
                                 }`}>
                                 {msg.type === 'success' ? '✅' : '❌'} {msg.text}
                             </div>
@@ -202,8 +203,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                         <button
                                             onClick={() => setLanguage('en')}
                                             className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition ${language === 'en'
-                                                    ? 'bg-[var(--color-cta)]/10 border-[var(--color-cta)] text-white'
-                                                    : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                                                ? 'bg-[var(--color-cta)]/10 border-[var(--color-cta)] text-white'
+                                                : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
                                                 }`}
                                         >
                                             <span className="text-2xl">🇺🇸</span>
@@ -212,8 +213,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                         <button
                                             onClick={() => setLanguage('zh')}
                                             className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition ${language === 'zh'
-                                                    ? 'bg-[var(--color-cta)]/10 border-[var(--color-cta)] text-white'
-                                                    : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                                                ? 'bg-[var(--color-cta)]/10 border-[var(--color-cta)] text-white'
+                                                : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
                                                 }`}
                                         >
                                             <span className="text-2xl">🇹🇼</span>

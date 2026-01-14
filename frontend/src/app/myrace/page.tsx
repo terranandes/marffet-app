@@ -26,7 +26,7 @@ export default function MyRacePage() {
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const frameIndexRef = useRef(0);
 
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = "";
     const TOP_N = 10;
 
     // Fetch race data

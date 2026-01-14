@@ -33,7 +33,7 @@ export default function TrendPage() {
     const [loading, setLoading] = useState(true);
     const chartRef = useRef<HTMLDivElement>(null);
 
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = "";
 
     // Fetch user's portfolio trend data
     const fetchTrendData = useCallback(async () => {
@@ -157,8 +157,8 @@ export default function TrendPage() {
                                     key={point.month}
                                     onClick={() => setSelectedMonth(point.month)}
                                     className={`flex items-center gap-3 py-1 cursor-pointer transition rounded ${selectedMonth === point.month
-                                            ? "bg-[var(--color-cta)]/20"
-                                            : "hover:bg-white/5"
+                                        ? "bg-[var(--color-cta)]/20"
+                                        : "hover:bg-white/5"
                                         }`}
                                 >
                                     <span className="w-20 text-xs font-mono text-[var(--color-text-muted)]">

@@ -15,7 +15,7 @@ export default function VisualizationPage() {
         // We'll try relative if rewrites are set, or absolute.
         const fetchData = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/race-data');
+                const res = await fetch('/api/race-data');
                 if (!res.ok) throw new Error("Failed to fetch");
                 const json = await res.json();
                 setData(json);

@@ -34,7 +34,7 @@ export default function RacePage() {
     const chartRef = useRef<HTMLDivElement>(null);
 
     const TOP_N = 20;
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = "";
 
     // Fetch race data
     const fetchRaceData = useCallback(async () => {
@@ -181,8 +181,8 @@ export default function RacePage() {
                 <button
                     onClick={() => { setMetric("wealth"); resetRace(); }}
                     className={`px-4 py-2 text-sm font-bold rounded transition cursor-pointer ${metric === "wealth"
-                            ? "bg-[var(--color-cta)] text-black"
-                            : "text-[var(--color-text-muted)] hover:text-white"
+                        ? "bg-[var(--color-cta)] text-black"
+                        : "text-[var(--color-text-muted)] hover:text-white"
                         }`}
                 >
                     💰 Wealth
@@ -190,8 +190,8 @@ export default function RacePage() {
                 <button
                     onClick={() => { setMetric("cagr"); resetRace(); }}
                     className={`px-4 py-2 text-sm font-bold rounded transition cursor-pointer ${metric === "cagr"
-                            ? "bg-[var(--color-cta)] text-black"
-                            : "text-[var(--color-text-muted)] hover:text-white"
+                        ? "bg-[var(--color-cta)] text-black"
+                        : "text-[var(--color-text-muted)] hover:text-white"
                         }`}
                 >
                     📈 CAGR

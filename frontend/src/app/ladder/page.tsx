@@ -22,7 +22,7 @@ export default function LadderPage() {
         allocation?: { name: string; pct: number }[];
     } | null>(null);
 
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = "";
 
     // Fetch all users leaderboard
     const fetchLeaderboard = useCallback(async () => {
@@ -238,9 +238,9 @@ export default function LadderPage() {
                                             key={i}
                                             style={{ width: `${a.pct}%` }}
                                             className={`h-full ${i === 0 ? "bg-[var(--color-cta)]" :
-                                                    i === 1 ? "bg-[var(--color-primary)]" :
-                                                        i === 2 ? "bg-[var(--color-success)]" :
-                                                            "bg-[var(--color-warning)]"
+                                                i === 1 ? "bg-[var(--color-primary)]" :
+                                                    i === 2 ? "bg-[var(--color-success)]" :
+                                                        "bg-[var(--color-warning)]"
                                                 }`}
                                             title={`${a.name}: ${a.pct}%`}
                                         />

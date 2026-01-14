@@ -45,7 +45,7 @@ export default function MarsPage() {
         setIsCalculating(true);
         try {
             const res = await fetch(
-                `http://localhost:8000/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
+                `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
             );
             const data = await res.json();
             if (Array.isArray(data)) {
@@ -280,8 +280,8 @@ export default function MarsPage() {
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <span className={`font-bold ${stock.cagr_pct > 20 ? "text-[var(--color-success)]" :
-                                                    stock.cagr_pct > 10 ? "text-[var(--color-warning)]" :
-                                                        "text-[var(--color-text-muted)]"
+                                                stock.cagr_pct > 10 ? "text-[var(--color-warning)]" :
+                                                    "text-[var(--color-text-muted)]"
                                                 }`}>
                                                 {stock.cagr_pct?.toFixed(2)}%
                                             </span>

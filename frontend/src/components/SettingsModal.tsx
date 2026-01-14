@@ -27,6 +27,11 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     const [language, setLanguage] = useState("en");
     const [region, setRegion] = useState("US");
 
+    // Feedback State
+    const [feedbackCategory, setFeedbackCategory] = useState("settings");
+    const [feedbackType, setFeedbackType] = useState("suggestion");
+    const [feedbackMessage, setFeedbackMessage] = useState("");
+
     // Status
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -77,6 +82,36 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         setMsg({ type: "success", text: "API Key saved securely" });
     };
 
+    const handleSendFeedback = async () => {
+        if (!feedbackMessage.trim()) {
+            setMsg({ type: "error", text: "Please enter a message" });
+            return;
+        }
+        setLoading(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const res = await fetch(`${API_URL}/api/feedback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    feature_category: feedbackCategory,
+                    feedback_type: feedbackType,
+                    message: feedbackMessage
+                }),
+                credentials: "include"
+            });
+            if (res.ok) {
+                setMsg({ type: "success", text: "Feedback sent! We appreciate it." });
+                setFeedbackMessage("");
+            } else {
+                setMsg({ type: "error", text: "Failed to send feedback" });
+            }
+        } catch (e) {
+            setMsg({ type: "error", text: "Network error" });
+        }
+        setLoading(false);
+    };
+
     if (!isOpen || !user) return null;
 
     return (
@@ -110,6 +145,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             { id: 'profile', label: 'Profile', icon: '👤' },
                             { id: 'preferences', label: 'Preferences', icon: '🌍' },
                             { id: 'api', label: 'Ai Keys', icon: '🔑' },
+                            { id: 'feedback', label: 'Feedback', icon: '💬' },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -259,6 +295,61 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                     className="px-6 py-3 bg-zinc-800 text-white font-bold rounded-xl hover:bg-zinc-700 transition"
                                 >
                                     Save Key
+                                </button>
+                            </div>
+                        )}
+
+                        {/* FEEDBACK TAB */}
+                        {activeTab === 'feedback' && (
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-bold text-white mb-4">Send Feedback</h3>
+                                <p className="text-sm text-zinc-400">Help us improve the Martian System! Report bugs or suggest features.</p>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Type</label>
+                                        <select
+                                            value={feedbackType}
+                                            onChange={(e) => setFeedbackType(e.target.value)}
+                                            className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-[var(--color-cta)] outline-none"
+                                        >
+                                            <option value="suggestion">💡 Suggestion</option>
+                                            <option value="bug">🐛 Bug Report</option>
+                                            <option value="question">❓ Question</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</label>
+                                        <select
+                                            value={feedbackCategory}
+                                            onChange={(e) => setFeedbackCategory(e.target.value)}
+                                            className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-[var(--color-cta)] outline-none"
+                                        >
+                                            <option value="settings">Settings / General</option>
+                                            <option value="mars_strategy">Mars Strategy</option>
+                                            <option value="portfolio">Portfolio</option>
+                                            <option value="bar_chart_race">Visualizations</option>
+                                            <option value="ai_copilot">AI Copilot</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Message</label>
+                                    <textarea
+                                        value={feedbackMessage}
+                                        onChange={(e) => setFeedbackMessage(e.target.value)}
+                                        className="w-full h-32 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-[var(--color-cta)] outline-none resize-none"
+                                        placeholder="Describe your feedback here..."
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={handleSendFeedback}
+                                    disabled={loading}
+                                    className="px-6 py-3 bg-[var(--color-cta)] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
+                                >
+                                    {loading ? "Sending..." : "Submit Feedback"}
                                 </button>
                             </div>
                         )}

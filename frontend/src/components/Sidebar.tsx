@@ -351,27 +351,31 @@ export default function Sidebar() {
                                 </div>
                             </div>
                         </div>
-                        Sign Out
-                    </a>
+                        <a
+                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`}
+                            className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition"
+                        >
+                            Sign Out
+                        </a>
                     </div>
-            ) : (
-            <div className="mt-auto mb-4 p-4">
-                <a
-                    href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
-                >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
-                    </svg>
-                    Login
-                </a>
-            </div>
+                ) : (
+                    <div className="mt-auto mb-4 p-4">
+                        <a
+                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
+                        >
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
+                            </svg>
+                            Login
+                        </a>
+                    </div>
                 )}
 
-            <div className="p-2 text-xs text-zinc-600 text-center">
-                v0.2.0 • Martian System
-            </div>
-        </aside >
+                <div className="p-2 text-xs text-zinc-600 text-center">
+                    v0.2.0 • Martian System
+                </div>
+            </aside >
         </>
     );
 }

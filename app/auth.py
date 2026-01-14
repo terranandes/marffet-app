@@ -55,6 +55,19 @@ async def get_admin_user(request: Request):
 
 @router.get("/login")
 async def login(request: Request):
+    # SMART REDIRECT: Determine where to send user after login
+    # 1. 'next' query param
+    # 2. 'Referer' header
+    # 3. Default: FRONTEND_URL
+    target = request.query_params.get("next") or request.headers.get("referer") or FRONTEND_URL
+
+    # Sanitize: If referer is google auth, fallback to front
+    if "accounts.google.com" in str(target) or "googleapis.com" in str(target):
+         target = FRONTEND_URL
+         
+    # Store in session for callback
+    request.session['auth_redirect_uri'] = str(target)
+
     redirect_uri = request.url_for('auth_callback')
     # Force account picker to allow switching accounts
     return await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
@@ -85,7 +98,11 @@ async def auth_callback(request: Request):
                 )
             # Log login activity
             log_activity(user['sub'], 'web', 'login')
-        return RedirectResponse(url=FRONTEND_URL)
+        
+        # RESTORE REDIRECT
+        target = request.session.pop('auth_redirect_uri', FRONTEND_URL)
+        return RedirectResponse(url=target)
+
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
 
@@ -93,6 +110,18 @@ async def auth_callback(request: Request):
 @router.get("/logout")
 async def logout(request: Request):
     request.session.pop('user', None)
+    
+    # Smart Logout Redirect
+    # If user logout from Backend (direct API usage), go to Backend Root
+    # If user logout from Frontend (app), go to Frontend Root
+    referer = request.headers.get("referer", "")
+    current_host = str(request.base_url)
+    
+    # If Referer contains Backend Host -> Stay on Backend Root
+    if current_host.replace("https://", "").replace("http://", "").rstrip("/") in referer:
+         return RedirectResponse(url='/')
+    
+    # Default: Go to Frontend
     return RedirectResponse(url=FRONTEND_URL)
 
 @router.get("/me")

@@ -42,7 +42,7 @@ export default function AdminPage() {
     const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({ new: 0, reviewing: 0, confirmed: 0, fixed: 0, wontfix: 0 });
     const [loadingFeedback, setLoadingFeedback] = useState(true);
 
-    const API_BASE = "";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {

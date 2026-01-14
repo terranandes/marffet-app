@@ -349,6 +349,12 @@ export default function Sidebar() {
                         >
                             Sign Out
                         </a>
+                        <button
+                            onClick={() => alert("Settings coming soon! Use the Profile API for now.")}
+                            className="mt-2 block w-full py-2 text-center text-xs font-bold text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 rounded-lg transition"
+                        >
+                            ⚙️ Settings
+                        </button>
                     </div>
                 ) : (
                     <div className="mt-auto mb-4 p-4">

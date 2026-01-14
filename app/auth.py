@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', secrets.token_hex(32))
 
 # GM Admin Whitelist (Comma-separated emails from .env)
 GM_EMAILS = set(
-    email.strip() 
+    email.strip().lower() 
     for email in os.getenv('GM_EMAILS', '').split(',') 
     if email.strip()
 )
@@ -39,7 +39,7 @@ async def get_current_user(request: Request):
     user = request.session.get('user')
     if user:
         # Add is_admin flag for API endpoint checks
-        user['is_admin'] = user.get('email') in GM_EMAILS
+        user['is_admin'] = user.get('email', '').strip().lower() in GM_EMAILS
         return user
     return None
 
@@ -49,7 +49,7 @@ async def get_admin_user(request: Request):
     user = request.session.get('user')
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
-    if user.get('email') not in GM_EMAILS:
+    if user.get('email', '').strip().lower() not in GM_EMAILS:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 

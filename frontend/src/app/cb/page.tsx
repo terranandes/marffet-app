@@ -1,131 +1,204 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-interface CBSignal {
-    stock_id: string;
-    cb_id: string;
-    premium_rate: number;
-    signal: string;
-    action_detail: string;
+interface CBData {
+    code: string;
+    name: string;
+    stock_price: number;
+    cb_price: number;
+    conv_price: number;
+    premium: number;
+    action: string;
+    description: string;
 }
 
 export default function CBPage() {
-    const [signals, setSignals] = useState<CBSignal[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [portfolioCBs, setPortfolioCBs] = useState<CBData[]>([]);
+    const [loadingPortfolio, setLoadingPortfolio] = useState(true);
 
-    useEffect(() => {
-        // Mock Data for now, waiting for backend implementation
-        // Format matches the JSON schema defined in implementation_plan.md
-        const mockData: CBSignal[] = [
-            {
-                stock_id: "2330",
-                cb_id: "23301",
-                premium_rate: -1.5,
-                signal: "Arbitrage",
-                action_detail: "Buy CB, Sell Stock"
-            },
-            {
-                stock_id: "2609",
-                cb_id: "26091",
-                premium_rate: 2.1,
-                signal: "Buy",
-                action_detail: "Consider Buy CB"
-            },
-            {
-                stock_id: "2603",
-                cb_id: "26034",
-                premium_rate: 8.5,
-                signal: "Hold",
-                action_detail: "Hold Position"
-            },
-            {
-                stock_id: "2317",
-                cb_id: "23171",
-                premium_rate: 35.0,
-                signal: "Sell",
-                action_detail: "Immediately Sell CB"
+    // Analyzer State
+    const [cbInput, setCbInput] = useState("");
+    const [cbResult, setCbResult] = useState<CBData | null>(null);
+    const [loadingAnalyze, setLoadingAnalyze] = useState(false);
+
+    const API_BASE = "http://localhost:8000";
+
+    // Fetch user's portfolio CBs
+    const fetchPortfolioCBs = useCallback(async () => {
+        setLoadingPortfolio(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/cb/portfolio`, { credentials: "include" });
+            if (res.ok) {
+                setPortfolioCBs(await res.json());
             }
-        ];
-
-        setTimeout(() => {
-            setSignals(mockData);
-            setLoading(false);
-        }, 800);
+        } catch (err) {
+            console.error("CB Portfolio fetch error:", err);
+        }
+        setLoadingPortfolio(false);
     }, []);
 
-    const getSignalColor = (signal: string) => {
-        switch (signal) {
-            case "Arbitrage": return "text-purple-400 bg-purple-400/10 border-purple-400/20";
-            case "Buy": return "text-green-400 bg-green-400/10 border-green-400/20";
-            case "Hold": return "text-zinc-400 bg-zinc-800 border-zinc-700";
-            case "Sell": return "text-red-400 bg-red-400/10 border-red-400/20";
-            default: return "text-zinc-500";
+    useEffect(() => {
+        fetchPortfolioCBs();
+    }, [fetchPortfolioCBs]);
+
+    // Analyze CB
+    const analyzeCB = async () => {
+        if (!cbInput.trim()) return;
+        setLoadingAnalyze(true);
+        setCbResult(null);
+        try {
+            const res = await fetch(`${API_BASE}/api/cb/analyze?code=${cbInput}`, { credentials: "include" });
+            if (res.ok) {
+                setCbResult(await res.json());
+            } else {
+                alert("CB not found or error analyzing");
+            }
+        } catch (err) {
+            console.error("Analyze error:", err);
         }
+        setLoadingAnalyze(false);
+    };
+
+    const getActionColor = (action: string) => {
+        if (!action) return "text-[var(--color-text-muted)]";
+        if (action.includes("BUY")) return "text-[var(--color-success)]";
+        if (action.includes("SELL")) return "text-[var(--color-danger)]";
+        return "text-[var(--color-warning)]";
+    };
+
+    const getBorderColor = (action: string) => {
+        if (!action) return "border-[var(--color-border)]";
+        if (action.includes("BUY")) return "border-[var(--color-success)] bg-gradient-to-r from-[var(--color-success)]/10 to-transparent";
+        if (action.includes("SELL")) return "border-[var(--color-danger)] bg-gradient-to-r from-[var(--color-danger)]/10 to-transparent";
+        return "border-[var(--color-warning)] bg-gradient-to-r from-[var(--color-warning)]/10 to-transparent";
     };
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <header className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
-                    CB Strategy
+        <div className="max-w-4xl mx-auto space-y-8 pb-10">
+            {/* Header */}
+            <div className="text-center">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                    💵 CB Strategy
                 </h1>
-                <p className="text-zinc-400">
-                    Convertible Bond Arbitrage & Hedging Signals (Premium Rate Analysis)
+                <p className="text-[var(--color-text-muted)]">
+                    Convertible Bond Arbitrage & Analysis
                 </p>
-            </header>
+            </div>
 
-            {loading ? (
-                <div className="text-center py-20 animate-pulse text-zinc-500">
-                    Loading Strategy Signals...
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {/* Summary Metrics or Cards could go here */}
+            {/* My Portfolio CBs */}
+            <div className="glass-card rounded-xl p-6 border border-[var(--color-border)]">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span className="text-[var(--color-cta)]">💼</span> My CB Portfolio
+                </h2>
 
-                    <div className="overflow-x-auto rounded-xl border border-zinc-800 shadow-2xl bg-zinc-900/50 backdrop-blur-sm">
-                        <table className="w-full text-left text-sm text-zinc-300">
-                            <thead className="bg-zinc-900 uppercase text-xs text-zinc-500 tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-4">Stock</th>
-                                    <th className="px-6 py-4">CB Code</th>
-                                    <th className="px-6 py-4 text-right">Premium (%)</th>
-                                    <th className="px-6 py-4 text-center">Signal</th>
-                                    <th className="px-6 py-4">Action Detail</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-zinc-800">
-                                {signals.map((item) => (
-                                    <tr
-                                        key={item.cb_id}
-                                        className="hover:bg-zinc-800/50 transition-colors duration-150"
-                                    >
-                                        <td className="px-6 py-4 font-bold text-white">
-                                            {item.stock_id}
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-zinc-400">
-                                            {item.cb_id}
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-mono">
-                                            <span className={item.premium_rate < 0 ? "text-purple-400" : "text-zinc-300"}>
-                                                {item.premium_rate.toFixed(2)}%
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-3 py-1 rounded-full text-xs border ${getSignalColor(item.signal)}`}>
-                                                {item.signal}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-zinc-400">
-                                            {item.action_detail}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                {loadingPortfolio ? (
+                    <div className="text-center py-10 animate-pulse text-[var(--color-text-muted)]">
+                        Loading portfolio CBs...
                     </div>
+                ) : portfolioCBs.length === 0 ? (
+                    <div className="text-center py-10 text-[var(--color-text-muted)]">
+                        No CBs in your portfolio. Add them in the Portfolio tab.
+                        <div className="mt-4">
+                            <a href="/portfolio" className="text-[var(--color-cta)] hover:underline">Go to Portfolio →</a>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {portfolioCBs.map((cb) => (
+                            <div
+                                key={cb.code}
+                                className={`rounded-xl p-4 border-l-4 transition hover:bg-white/5 ${getBorderColor(cb.action)}`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div className="font-bold text-lg text-white">
+                                            {cb.code} {cb.name}
+                                        </div>
+                                        <div className="text-xs text-[var(--color-text-muted)] mt-1">
+                                            Stock: <span className="text-white">{cb.stock_price}</span> |
+                                            CB: <span className="text-white">{cb.cb_price}</span> |
+                                            Conv: <span className="text-white">{cb.conv_price}</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={`text-2xl font-bold ${getActionColor(cb.action)}`}>
+                                            {cb.premium}%
+                                        </div>
+                                        <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+                                            Premium
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
+                                    <div className={`inline-block px-2 py-1 rounded text-xs font-bold bg-black/30 ${getActionColor(cb.action)}`}>
+                                        {cb.action}
+                                    </div>
+                                    <div className="text-xs text-[var(--color-text-muted)] italic truncate ml-2 max-w-[200px] lg:max-w-md">
+                                        {cb.description}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* CB Analyzer */}
+            <div className="glass-card rounded-xl p-8 border border-[var(--color-cta)]/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <span className="text-[var(--color-cta)]">💰</span> CB Analyzer
+                </h2>
+
+                <div className="flex gap-4 mb-8">
+                    <input
+                        value={cbInput}
+                        onChange={(e) => setCbInput(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && analyzeCB()}
+                        type="text"
+                        placeholder="Enter CB Code (e.g. 66691)"
+                        className="flex-1 bg-black/50 border border-[var(--color-border)] rounded-lg px-4 py-3 focus:border-[var(--color-cta)] outline-none text-white transition"
+                    />
+                    <button
+                        onClick={analyzeCB}
+                        disabled={loadingAnalyze}
+                        className="bg-[var(--color-cta)] text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition cursor-pointer"
+                    >
+                        {loadingAnalyze ? "Scanning..." : "Analyze"}
+                    </button>
                 </div>
-            )}
+
+                {cbResult && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex justify-between items-baseline mb-4">
+                            <h3 className="text-3xl font-bold text-white">
+                                {cbResult.code} {cbResult.name}
+                            </h3>
+                            <span className={`text-xl font-mono font-bold ${getActionColor(cbResult.action)}`}>
+                                {cbResult.action}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 mb-6 text-sm text-[var(--color-text-muted)] bg-black/30 p-4 rounded-lg">
+                            <div>Stock: <span className="text-white font-mono">{cbResult.stock_price}</span></div>
+                            <div>CB: <span className="text-white font-mono">{cbResult.cb_price}</span></div>
+                            <div>Conv: <span className="text-white font-mono">{cbResult.conv_price}</span></div>
+                        </div>
+
+                        <div className={`p-4 rounded-lg border-l-4 ${getBorderColor(cbResult.action)}`}>
+                            <div className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
+                                Premium Rate
+                            </div>
+                            <div className={`text-4xl font-bold mb-2 ${getActionColor(cbResult.action)}`}>
+                                {cbResult.premium}%
+                            </div>
+                            <p className="text-sm italic text-[var(--color-text-muted)]">
+                                {cbResult.description}
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

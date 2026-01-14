@@ -1,19 +1,21 @@
-FROM node:22-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ .
-RUN npm run build
-
+# Backend Dockerfile (FastAPI)
 FROM python:3.12-slim
 LABEL "language"="python"
 LABEL "framework"="fastapi"
+
 WORKDIR /app
+
+# Install system dependencies if needed
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy Backend Code
 COPY . .
-COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
-COPY --from=frontend-builder /app/frontend/public ./frontend/public
+
+# NOTE: Static files are no longer served from Python in the split architecture.
+# But we keep the directory structure compatible.
 
 # Create /data directory for persistent storage
 RUN mkdir -p /data

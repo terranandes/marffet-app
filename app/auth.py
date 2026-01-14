@@ -59,6 +59,9 @@ async def login(request: Request):
     # Force account picker to allow switching accounts
     return await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
 
+# Frontend Redirect URL
+FRONTEND_URL = os.getenv('FRONTEND_URL', '/')
+
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):
     try:
@@ -82,7 +85,7 @@ async def auth_callback(request: Request):
                 )
             # Log login activity
             log_activity(user['sub'], 'web', 'login')
-        return RedirectResponse(url='/')
+        return RedirectResponse(url=FRONTEND_URL)
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
 
@@ -90,7 +93,7 @@ async def auth_callback(request: Request):
 @router.get("/logout")
 async def logout(request: Request):
     request.session.pop('user', None)
-    return RedirectResponse(url='/')
+    return RedirectResponse(url=FRONTEND_URL)
 
 @router.get("/me")
 async def get_me(user: dict = Depends(get_current_user)):

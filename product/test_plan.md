@@ -1,45 +1,38 @@
-# Test Plan & Automation Strategy
+# Martian Investment System - Test Plan
+**Version**: 2.0
+**Date**: 2026-01-15
+**Owner**: [CV] Agent
 
-## 1. Testing Levels
+## 1. Automated Testing Strategy
+We utilize **Playwright** for complete End-to-End (E2E) verification. The test suite simulates a real user journey through the application.
 
-### 1.1 Backend API Verification (Headless)
--   **Tool**: `verify_api_headless.py` (Python `requests` script).
--   **Scope**:
-    -   Server Availability (Port 8000).
-    -   Core Endpoints: `/`, `/api/leaderboard`, `/api/public/profile/{id}`.
--   **When to Run**: Pre-commit, Post-deployment.
+### 1.1 Test Suite Location
+*   `tests/full_verification.py`
 
-### 1.3 Data Integrity Verification (Automated)
--   **Tool**: `verify_targets.py`
--   **Scope**:
-    -   Validates numeric correlation between Simulation Logic and Golden Excel (`stock_list_s2006e2025_filtered.xlsx`).
-    -   Checks data availability for all 1800+ targets (TWSE, TPEx, Bond ETFs).
--   **When to Run**: Weekly or after major crawler updates.
+### 1.2 Key Test Cases
+| ID | Feature | Description | Verify Criteria |
+| :--- | :--- | :--- | :--- |
+| **TC-01** | Landing | Load Home Page | Title contains "Martian", Login button visible. |
+| **TC-02** | Simulation | Mars Strategy Page | "Calculating..." -> Data table appears. Stock rows > 0. |
+| **TC-03** | Visualization | Bar Chart Race | Canvas element exists. "Start" button clickable. |
+| **TC-04** | Private Routes | Portfolio Page | Redirects to Login if unauthenticated (or Guest mode). |
+| **TC-05** | Guest Mode | Guest Access | Can view public pages without error. |
+| **TC-06** | UI Experience | Dark Mode | Background color is Zinc-950/Black. |
 
-### 1.4 Frontend UI Automation (Planned)
--   **Tool**: Playwright (via `mcp-playwright`).
--   **Scope**:
-    -   User Login Flow (**Pre-requisite**: Must execute on host with valid Google Auth Redirect URI).
-    -   "Mars Strategy" Tab: Verify simulation chart renders.
+### 1.3 Execution Flow
+```bash
+# 1. Start Backend
+uvicorn app.main:app --port 8000 &
 
-### 1.5 Notification & Export Verification
--   **Notification Logic**: Verify `RuthlessManager` triggers (Gravity, Size, Yield).
--   **Excel Export**:
-    -   Verify `GET /api/export/excel` returns `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
-    -   Check filename format: `stock_list_s{year}e{year}_{mode}.xlsx`.
-    -   Verify data columns (ROI, CAGR) match UI simulation values.
+# 2. Start Frontend
+cd frontend && npm start &
+
+# 3. Run Verification
+python tests/full_verification.py
+```
 
 ## 2. Manual Verification Checklist
-1.  **Load App**: Check for console errors in DevTools.
-2.  **Simulation**: Change "Start Year" -> Verify chart updates.
-3.  **Profile**: Click user on Leaderboard -> Verify Modal appears with correct info.
-4.  **Mobile Layout**:
-    -   Resize browser < 1280px -> Verify Hamburger Menu appears.
-    -   Open Menu -> Click Tab -> Verify navigation works.
-    -   Check Race Tab -> Verify Sidebar is hidden to maximize chart space.
-5.  **AI Bot**: Open Chat -> Ask "What is CAGR?" -> Verify intelligent response.
-
-## 3. Bug Triage Process
--   **Severity 1 (Critical)**: App crash, Data leak. -> Immediate Fix.
--   **Severity 2 (Major)**: Feature broken (e.g., Chart not loading). -> Fix in current sprint.
--   **Severity 3 (Minor)**: UI glitch, typo. -> Backlog.
+- [x] **Login Flow**: Click Login -> Google Account Picker -> Redirect to Dashboard.
+- [x] **Logout Flow**: Click User Profile -> Sign Out -> Redirect to Login/Home.
+- [x] **Cross-Domain**: Verify `https://martian-app` can fetch from `https://martian-api` without CORS errors.
+- [x] **Mobile Responsive**: Sidebar creates Hamburger menu on small screens.

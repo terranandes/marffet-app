@@ -1,80 +1,67 @@
-# Product Specifications
+# Martian Investment System - Technical Specifications
+**Version**: 2.0 (Next.js Migration)
+**Date**: 2026-01-15
+**Owner**: [SPEC] Agent
 
-## 1. Data Privacy Model ("Competition without Exposure")
+## 1. System Architecture
+The system adopts a **Decoupled Client-Server Architecture** tailored for containerized deployment (Zeabur).
 
-### 1.1 Private Data (Server-Side Only)
-These fields are **NEVER** exposed via public APIs:
--   `transactions.shares` (Specific quantity of shares held)
--   `targets.initial_capital` (Total account size)
--   `users.email` (PII)
+### 1.1 Components
+1.  **Backend Service (Data Core)**:
+    *   **Technique**: Python FastAPI
+    *   **Role**: REST API, Authentication Authority, Data Persistence (SQLite/JSON), Simulation Engine.
+    *   **Origin**: `https://martian-api.zeabur.app`
+2.  **Frontend Service (UI Layer)**:
+    *   **Technique**: Next.js 14+ (App Router)
+    *   **Role**: Interactive UI, Data Visualization (ECharts), SSR/CSR.
+    *   **Origin**: `https://martian-app.zeabur.app`
 
-### 1.2 Public Data (Sanitized API)
-The `GET /api/public/profile/{user_id}` endpoint exposes only relative metrics:
--   **ROI %**: `((Current Value - Cost Basis) / Cost Basis) * 100`
--   **Asset Allocation**: Percentage breakdown by Asset Class (e.g., 60% Stock, 40% Bond).
--   **Top Holdings**: List of Symbols (e.g., ["NVDA", "TSLA"]) sorted by weight, **without** share counts or values.
+### 1.2 Authentication & Security
+*   **Protocol**: OAuth 2.0 (Google).
+*   **Flow**:
+    1.  Frontend triggers Login -> Redirects to `Backend/auth/login`.
+    2.  Backend handles Google flow -> Sets `httpOnly` Session Cookie (`SameSite=None`, `Secure`).
+    3.  Backend redirects back to Frontend Dashboard.
+*   **Cross-Domain Strategy**:
+    *   Backend CORS allows specific Frontend Origin.
+    *   Frontend fetches directly from Backend absolute URL.
 
-## 2. Database Schema (SQLite)
+## 2. API Specification
+### 2.1 Base URL
+*   **Production**: Defined by `FRONTEND_URL` and Zeabur Service Name.
+*   **Local**: `http://localhost:8000`
 
-### 2.1 Tables
--   **Users**: `id`, `nickname`, `email`, `hashed_password`
--   **Groups**: `id`, `user_id`, `name` (Portfolio Groups)
--   **Targets**: `id`, `group_id`, `symbol`, `name`
--   **Transactions**: `id`, `target_id`, `type` (BUY/SELL), `shares`, `price`, `date`
+### 2.2 Key Endpoints
+*   `GET /auth/me`: user session status.
+*   `GET /api/notifications`: user alerts.
+*   `GET /api/race-data`: historical simulation data.
+*   `GET /api/results`: filtered stock list.
+*   `GET /api/public/profile/{uid}`: guest view.
 
-## 3. Technology Stack
+## 3. Data Structures
+### 3.1 User
+```json
+{
+  "id": "google_sub_id",
+  "email": "user@example.com",
+  "name": "User Name",
+  "nickname": "MarsExplorer",
+  "is_admin": false
+}
+```
 
-### 3.1 Backend
--   **Language**: Python 3.10+
--   **Framework**: FastAPI (AsyncIO)
--   **Database**: SQLite (managed via `app/portfolio_db.py`)
--   **Authentication**: Google OAuth 2.0 (via `authlib`)
--   **Data Source**:
-    -   **TWSE/TPEx**: Daily price crawling via `project_tw` crawlers.
-    -   **Cache**: JSON-based flat file cache (`data/raw/*.json`) for performance.
-    -   **Golden Source**: `references/stock_list_s2006e2025_filtered.xlsx`.
+## 4. Deployment Strategy
+*   **Platform**: Zeabur (or Docker-compatible PaaS).
+*   **Service 1 (Backend)**:
+    *   Build: `Dockerfile` (Root).
+    *   Env Vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SECRET_KEY`, `FRONTEND_URL`, `GM_EMAILS`.
+*   **Service 2 (Frontend)**:
+    *   Build: `frontend/Dockerfile`.
+    *   Env Vars: `NEXT_PUBLIC_API_URL`.
 
-### 2.2 New Tables (Premium Features)
--   **Notifications**:
-    -   `id`: Primary Key
-    -   `user_id`: Foreign Key (Users)
-    -   `type`: Enum (GRAVITY, SIZE, YIELD)
-    -   `title`: String (e.g., "Gravity Alert: NVDA")
-    -   `message`: String (e.g., "Price deviates > 20%...")
-    -   `is_read`: Boolean (Default: False)
-    -   `created_at`: Timestamp
-
-### 3.3 Premium Backend Engines (The "Ruthless Manager")
-**Logic**: A background background job (cron or loop) runs periodically (e.g., every hour) to scan all Premium Portfolios.
-**Global Safeguard**: To prevent "Nagging", the engine checks the `Notifications` table before sending.
-   - **Rule**: Do NOT create a new notification if one exists for the same `user_id`, `type`, and `target_id` within the last **24 hours**.
-
-1.  **Gravity Alert**:
-    -   Trigger: $Price > 1.2 \times SMA_{250}$ (Sell Signal) OR $Price < 0.8 \times SMA_{250}$ (Buy Signal).
-2.  **Size Authority**:
-    -   Trigger: $MarketCap > 1.2 \times AvgPortfolioCap$ (Overweight) OR $MarketCap < 0.8 \times AvgPortfolioCap$ (Underweight).
-3.  **Yield Hunter**:
-    -   Trigger: $Premium < -1.0$ (Buy) OR $Premium \ge 30.0$ (Sell).
-
-### 3.4 API Interface (Notifications) & Export
--   `GET /api/notifications`: Fetch active alerts (lazy trigger).
--   `POST /api/notifications/{id}/read`: Mark alert as read.
--   `GET /api/export/excel`: Dynamic Excel generation with simulation params (`start_year`, `principal`, `contribution`).
-    -   **Polling Strategy**: Frontend polls this endpoint every 60 seconds.
-
-### 3.2 Frontend
--   **Framework**: Vue.js 3 (ES Module Build / Composition API)
--   **Styling**: Tailwind CSS (CDN)
--   **Visualization**: Plotly.js (Wealth Charts)
--   **State Management**: Vue `ref`/`reactive` (Local State)
-
-## 4. System Capabilities & Limitations
-
-### 4.1 Data Integrity
--   **Coverage**: Supports TWSE (Mainboard) and TPEx (OTC) markets, including Bond ETFs.
--   **Verification**: Automated `verify_targets.py` script validates simulation data against the Golden Excel source.
--   **Latency**: Blocking AI operations are offloaded to threadpools to ensure non-blocking UI.
-
-### 4.2 Known Constraints
--   **Google Auth**: Requires strict URI matching (`http://127.0.0.1:8000` vs `localhost`).
--   **Delisted Stocks**: Historical data for delisted stocks may be incomplete if not present in Yahoo Finance.
+## 5. Environment Variables Map
+| Variable | Service | Purpose | Value Example |
+| :--- | :--- | :--- | :--- |
+| `FRONTEND_URL` | Backend | Redirect Target | `https://martian-app.zeabur.app` |
+| `NEXT_PUBLIC_API_URL` | Frontend | API Target | `https://martian-api.zeabur.app` |
+| `SECRET_KEY` | Backend | Session Encryption | `long_random_string` |

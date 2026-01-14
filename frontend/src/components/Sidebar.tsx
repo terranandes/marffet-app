@@ -136,7 +136,7 @@ export default function Sidebar() {
             {/* Mobile Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden fixed top-4 right-4 z-[60] p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-white shadow-lg"
+                className="lg:hidden fixed top-4 right-4 z-[60] p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-white shadow-lg"
             >
                 {isOpen ? (
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,11 +153,11 @@ export default function Sidebar() {
             {isOpen && (
                 <div
                     onClick={() => setIsOpen(false)}
-                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                    className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
                 />
             )}
 
-            <aside className={`fixed left-0 top-0 h-screen w-64 bg-[var(--color-bg)]/90 backdrop-blur-xl border-r border-[var(--color-border)] flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+            <aside className={`fixed left-0 top-0 h-screen w-64 bg-[var(--color-bg)]/90 backdrop-blur-xl border-r border-[var(--color-border)] flex flex-col z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
                 }`}>
                 <div className="p-6">
 

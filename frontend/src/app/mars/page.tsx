@@ -34,6 +34,9 @@ export default function MarsPage() {
         contribution: 60000,
     });
 
+    // Mobile Settings Toggle
+    const [showSettings, setShowSettings] = useState(false);
+
     // Load settings from local storage on mount
     useEffect(() => {
         const saved = localStorage.getItem("mars_sim_settings");
@@ -148,11 +151,24 @@ export default function MarsPage() {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar - Simulation Settings */}
-            <aside className="w-full md:w-72 flex-shrink-0 space-y-4">
-                <div className="glass-card p-5 rounded-xl">
-                    <h3 className="text-[var(--color-primary)] font-bold mb-4 uppercase text-xs tracking-wider border-b border-[var(--color-border)] pb-2">
+            <aside className="w-full lg:w-72 flex-shrink-0 space-y-4">
+                {/* Mobile Toggle Header */}
+                <div
+                    className="md:hidden flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer active:scale-95 transition-transform"
+                    onClick={() => setShowSettings(!showSettings)}
+                >
+                    <span className="font-bold text-[var(--color-primary)] uppercase text-xs tracking-wider">
+                        ⚙️ Simulation Settings
+                    </span>
+                    <span className={`transform transition-transform ${showSettings ? 'rotate-180' : ''}`}>
+                        ▼
+                    </span>
+                </div>
+
+                <div className={`${showSettings ? 'block' : 'hidden'} md:block glass-card p-5 rounded-xl`}>
+                    <h3 className="hidden md:block text-[var(--color-primary)] font-bold mb-4 uppercase text-xs tracking-wider border-b border-[var(--color-border)] pb-2">
                         Simulation Settings
                     </h3>
 

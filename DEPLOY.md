@@ -10,6 +10,11 @@ The system is now split into two services:
 
 **You need to deploy TWO services.**
 
+> [!CAUTION]
+> **CRITICAL DATA WARNING**: The Backend Service contains the persistent database in `/data`.
+> **DO NOT DELETE** the Backend Service to redeploy. Use the **"Redeploy"** button instead.
+> Deleting the service will **DELETE THE DATABASE** permanently!
+
 ---
 
 ## ⚡ Recommended: Zeabur (Best Performance)

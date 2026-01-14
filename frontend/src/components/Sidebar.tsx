@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import SettingsModal from "./SettingsModal";
 
 interface User {
     id: string | null;
@@ -62,36 +63,40 @@ export default function Sidebar() {
     const [showNotifications, setShowNotifications] = useState(false);
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
-    // Fetch user info & notifications on mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Use Absolute URL for Cross-Domain Auth check
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    // State for Settings Modal
+    const [showSettings, setShowSettings] = useState(false);
 
-                const userRes = await fetch(`${API_URL}/auth/me`, {
+    const fetchData = async () => {
+        try {
+            // Use Absolute URL for Cross-Domain Auth check
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+            const userRes = await fetch(`${API_URL}/auth/me`, {
+                credentials: "include"
+            });
+
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                setUser(userData);
+
+                // Fetch notifications if logged in
+                const notifRes = await fetch(`${API_URL}/api/notifications`, {
                     credentials: "include"
                 });
-
-                if (userRes.ok) {
-                    const userData = await userRes.json();
-                    setUser(userData);
-
-                    // Fetch notifications if logged in
-                    const notifRes = await fetch(`${API_URL}/api/notifications`, {
-                        credentials: "include"
-                    });
-                    if (notifRes.ok) {
-                        setNotifications(await notifRes.json());
-                    }
-                } else {
-                    setUser(null);
+                if (notifRes.ok) {
+                    setNotifications(await notifRes.json());
                 }
-            } catch (e) {
-                console.error("Fetch error:", e);
+            } else {
                 setUser(null);
             }
-        };
+        } catch (e) {
+            console.error("Fetch error:", e);
+            setUser(null);
+        }
+    };
+
+    // Fetch user info & notifications on mount
+    useEffect(() => {
         fetchData();
 
         // Poll notifications every 30s
@@ -326,7 +331,7 @@ export default function Sidebar() {
 
                 {/* Global Settings Trigger */}
                 <button
-                    onClick={() => alert("Settings coming soon! Use the Profile API for now.")}
+                    onClick={() => setShowSettings(true)}
                     className="mx-6 mb-2 py-2 flex items-center justify-center gap-2 text-xs font-bold text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 rounded-lg transition"
                 >
                     ⚙️ Settings
@@ -373,9 +378,16 @@ export default function Sidebar() {
                 )}
 
                 <div className="p-2 text-xs text-zinc-600 text-center">
-                    v0.2.0 • Martian System
+                    v0.2.1 • Martian System
                 </div>
             </aside >
+
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                user={user}
+                onUpdateUser={fetchData}
+            />
         </>
     );
 }

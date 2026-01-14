@@ -29,10 +29,25 @@ export default function MarsPage() {
 
     // Simulation settings
     const [sim, setSim] = useState<SimSettings>({
-        startYear: 2015,
+        startYear: 2006,
         principal: 1000000,
         contribution: 60000,
     });
+
+    // Load settings from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem("mars_sim_settings");
+        if (saved) {
+            try {
+                setSim(JSON.parse(saved));
+            } catch (e) { console.error("Failed to parse settings", e); }
+        }
+    }, []);
+
+    // Save settings to local storage on change
+    useEffect(() => {
+        localStorage.setItem("mars_sim_settings", JSON.stringify(sim));
+    }, [sim]);
 
     // Sorting
     const [sortKey, setSortKey] = useState<SortKey>("finalValue");
@@ -125,16 +140,17 @@ export default function MarsPage() {
     };
 
     const handleExport = () => {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         window.open(
-            `http://localhost:8000/api/export-excel?mode=filtered&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+            `${API_URL}/api/export-excel?mode=filtered&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
             "_blank"
         );
     };
 
     return (
-        <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-6">
             {/* Sidebar - Simulation Settings */}
-            <aside className="w-72 flex-shrink-0 space-y-4">
+            <aside className="w-full md:w-72 flex-shrink-0 space-y-4">
                 <div className="glass-card p-5 rounded-xl">
                     <h3 className="text-[var(--color-primary)] font-bold mb-4 uppercase text-xs tracking-wider border-b border-[var(--color-border)] pb-2">
                         Simulation Settings

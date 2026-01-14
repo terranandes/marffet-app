@@ -9,19 +9,25 @@ export default function VisualizationPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch Race Data from Backend
-        // URL: http://localhost:8000/api/race-data (Assuming proxy or CORS)
-        // Next.js Dev Setups usually need explicit absolute URL or proxy.
-        // We'll try relative if rewrites are set, or absolute.
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/race-data');
+                // Settings from Mars Page
+                let params = "";
+                const saved = localStorage.getItem("mars_sim_settings");
+                if (saved) {
+                    const sim = JSON.parse(saved);
+                    params = `?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`;
+                } else {
+                    // Default fallback if no settings found
+                    params = "?start_year=2006&principal=1000000&contribution=60000";
+                }
+
+                const res = await fetch(`/api/race-data${params}`);
                 if (!res.ok) throw new Error("Failed to fetch");
                 const json = await res.json();
                 setData(json);
             } catch (err) {
                 console.error(err);
-                // Fallback / Initial State?
             } finally {
                 setLoading(false);
             }

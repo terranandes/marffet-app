@@ -1228,32 +1228,30 @@ Please analyze this feedback and determine if it's a true bug.`;
             return path;
         };
 
+
         const openDetail = async (stock) => {
-            detailStock.value = stock; // Show immediately with basic data
+            // Use pre-computed data from backend (same as table)
+            // stock already has wealthPath and finalValue from processRecalculation
+            detailStock.value = stock;
             resultTab.value = 'wealth';
 
-            try {
-                // Fetch Detailed History
-                const res = await fetch(`/api/stock/${stock.id}/history`);
-                const history = await res.json();
-
-                if (Array.isArray(history) && history.length > 0) {
-                    // Recalculate Wealth Path using Share Logic
-                    const newPath = simulateShareAccumulation(stock.id, history);
-
-                    // Update detailStock with more accurate data
+            // If wealthPath is missing, try to build from cachedPaths
+            if (!stock.wealthPath || stock.wealthPath.length === 0) {
+                const cached = cachedPaths.value.get(String(stock.id));
+                if (cached && cached.length > 0) {
                     detailStock.value = {
                         ...stock,
-                        wealthPath: newPath,
-                        finalValue: newPath[newPath.length - 1].value,
-                        totalROI: newPath[newPath.length - 1].roi.toFixed(2),
-                        cagr: newPath[newPath.length - 1].cagr
+                        wealthPath: cached,
+                        finalValue: cached[cached.length - 1].value,
+                        totalROI: stock.totalROI || 0,
+                        cagr: stock.cagr_pct || stock.cagr || 0
                     };
                 }
-            } catch (e) { console.error('Sim error', e); }
+            }
 
             nextTick(() => renderDetailChart(detailStock.value));
         };
+
 
         // Reactive Chart Update
         watch(resultTab, () => {

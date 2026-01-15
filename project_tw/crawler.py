@@ -302,15 +302,19 @@ class TWSECrawler:
                     
         return 0.0
 
+
+
     async def fetch_market_prices_batch(self, years: list):
         """
         Fetch Market-Wide Prices (Start/End) using MI_INDEX (Daily Quotes).
         Returns: {year: {code: {'start': float, 'end': float}}}
         """
         results = {}
-        async with httpx.AsyncClient() as client:
-            for year in years:
-                # Cache File
+        sem = asyncio.Semaphore(4) # Limit concurrency to avoid global ban
+
+        async def fetch_one_year(year):
+             async with sem:
+                 # Cache File
                 cache_file = os.path.join(self.data_dir, f"Market_{year}_Prices.json")
                 if os.path.exists(cache_file):
                     # Cache Expiry for Current Year
@@ -327,71 +331,65 @@ class TWSECrawler:
                     if use_cache:
                         print(f"CACHE HIT: {cache_file}")
                         with open(cache_file, 'r') as f:
-                            results[year] = json.load(f)
-                        continue
+                            return year, json.load(f)
                      
                 print(f"CACHE MISS: Fetching {year} Market Prices...")
-                y_data = {}
                 
-                # Fetch Start (Jan)
-                # Try Jan 2..10
-                start_dates = [f"{year}01{d:02d}" for d in range(2, 8)]
-                s_prices = await self._fetch_market_day(client, start_dates, "Start")
-                
-                # Fetch End (Dec or Today)
-                import datetime
-                today = datetime.date.today()
-                
-                if year == today.year:
-                    # If current year, scan backwards from TODAY
-                    # Try last 7 days from today
-                    print(f"DEBUG: Current Year {year} detected. Scanning backward from {today}...")
-                    end_dates = [
-                        (today - datetime.timedelta(days=i)).strftime("%Y%m%d")
-                        for i in range(7)
-                    ]
-                else:
-                    # Historic year: standard Dec 31 logic
-                    # Try Dec 31..24
-                    end_dates = [f"{year}12{d:02d}" for d in range(31, 24, -1)]
-                
-                e_prices = await self._fetch_market_day(client, end_dates, "End")
-                
-                # Combine
-                # Only keep codes present in both or at least one?
-                # For Correlation, need both.
-                all_codes = set(s_prices.keys()) | set(e_prices.keys())
-                for c in all_codes:
-                    # If missing, fill 0
-                    y_data[c] = {
-                        'start': s_prices.get(c, 0.0),
-                        'end': e_prices.get(c, 0.0)
-                    }
-                
-                results[year] = y_data
-                
-                # IPO REPAIR: Check for stocks with Start=0 but End>0
-                # This happens if listed mid-year.
-                print(f"  Verifying IPO prices for {year}...")
-                repair_count = 0
-                for code, prices in results[year].items():
-                    if prices['start'] == 0.0 and prices['end'] > 0.0:
-                        # Scan for first valid price
-                        # Use detect_daily_split logic but look for First Price
-                        found_price = await self.find_first_price(code, year)
-                        if found_price > 0:
-                            prices['start'] = found_price
-                            repair_count += 1
-                            if repair_count % 10 == 0:
-                                print(f"    Repaired {repair_count} IPOs (e.g. {code}: {found_price})")
-                
-                if repair_count > 0:
-                    print(f"  Repaired total {repair_count} IPO start prices for {year}.")
+                async with httpx.AsyncClient() as client:
+                    # Fetch Start (Jan)
+                    # Try Jan 2..10
+                    start_dates = [f"{year}01{d:02d}" for d in range(2, 8)]
+                    s_prices = await self._fetch_market_day(client, start_dates, "Start")
                     
-                # Save Cache
-                with open(cache_file, 'w') as f:
-                    json.dump(results[year], f)
+                    # Fetch End (Dec or Today)
+                    today = datetime.date.today()
                     
+                    if year == today.year:
+                        # If current year, scan backwards from TODAY
+                        print(f"DEBUG: Current Year {year} detected. Scanning backward from {today}...")
+                        end_dates = [
+                            (today - datetime.timedelta(days=i)).strftime("%Y%m%d")
+                            for i in range(7)
+                        ]
+                    else:
+                        # Historic year: standard Dec 31 logic
+                        end_dates = [f"{year}12{d:02d}" for d in range(31, 24, -1)]
+                    
+                    e_prices = await self._fetch_market_day(client, end_dates, "End")
+                    
+                    # Combine
+                    result_data = {}
+                    all_codes = set(s_prices.keys()) | set(e_prices.keys())
+                    
+                    for code in all_codes:
+                        s_p = s_prices.get(code, 0.0)
+                        e_p = e_prices.get(code, 0.0)
+                        
+                        if s_p == 0 and e_p > 0:
+                            # Try to find first price
+                            try:
+                                s_p = await self.find_first_price(code, year)
+                            except: pass
+
+                        if s_p > 0 or e_p > 0:
+                            result_data[code] = {
+                                'start': s_p,
+                                'end': e_p
+                            }
+                    
+                    # Save Cache
+                    with open(cache_file, 'w') as f:
+                        json.dump(result_data, f)
+                        
+                    return year, result_data
+
+        # Execute Parallel
+        tasks = [fetch_one_year(y) for y in years]
+        results_list = await asyncio.gather(*tasks)
+        
+        for y, r in results_list:
+            if r: results[y] = r
+
         return results
 
     async def find_first_price(self, code, year):

@@ -23,16 +23,23 @@ class MarsStrategy:
         dividend_data = {} # {year: {code: {'cash': x, 'stock': y}}}
         years = list(range(start_year, end_year + 1))
         
-        # Use simple loops for pre-fetching to ensure stability
-        for y in years:
-             data = await self.crawler.fetch_ex_rights_history(y)
-             # TPEx Dividends (Future)
-             tpex_div = await self.crawler_tpex.fetch_ex_rights_history(y) # Start/End same year
-             if tpex_div:
-                 data.update(tpex_div)
-                 
-             dividend_data[y] = data
-        print("Dividend Data Fetched.")
+        # Use Concurrent Fetching with Semaphore to respect rate limits
+        sem_div = asyncio.Semaphore(4) 
+
+        async def fetch_year_div(y):
+            async with sem_div:
+                d_twse = await self.crawler.fetch_ex_rights_history(y)
+                d_tpex = await self.crawler_tpex.fetch_ex_rights_history(y)
+                if d_tpex:
+                    d_twse.update(d_tpex)
+                return y, d_twse
+
+        div_results = await asyncio.gather(*[fetch_year_div(y) for y in years])
+        
+        for y, data in div_results:
+            dividend_data[y] = data
+            
+        print("Dividend Data Fetched (Parallel).")
 
         # 2. Pre-fetch Market Prices (Start Jan / End Dec) - Efficient (~40 calls total)
         print("Fetching Market Prices (TWSE + TPEx) in Parallel...")

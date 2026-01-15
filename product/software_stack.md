@@ -22,7 +22,8 @@
 | Framework | FastAPI (Python 3.12) | Async, Auto-Swagger |
 | Data Processing | Pandas | Simulation, Excel I/O |
 | Authentication | Authlib + Starlette | OAuth 2.0 (Google) |
-| Database | SQLite + JSON | Zero-maintenance |
+| Database | SQLite + JSON | Zero-maintenance, **Auto-Backup to GitHub** |
+| Persistence | Git Backup Loop | [Read Architecture Spec](./backup_restore.md) |
 
 ## 3. Legacy UI Layer
 **"The Original Interface"**

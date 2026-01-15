@@ -601,6 +601,14 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
         if start_price_initial > 0:
             shares = principal / start_price_initial
         
+        # Add start_year (2006) as initial investment point in wealth_trend
+        # This ensures X-axis shows 2006-2026 (21 years)
+        wealth_trend.append({
+            "year": start_year,
+            "value": round(principal, 0),  # Initial investment value
+            "dividend": 0
+        })
+        
         # To calculate CAGR/ROI properly for the final export row
         final_valid_stats = {} 
 

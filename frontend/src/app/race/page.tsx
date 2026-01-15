@@ -143,16 +143,48 @@ export default function RacePage() {
     };
 
     // Bar colors based on rank
-    const getBarColor = (index: number) => {
+    // Generate consistent color from string
+    const getColor = (id: string) => {
         const colors = [
-            "bg-gradient-to-r from-yellow-400 to-amber-500", // Gold
-            "bg-gradient-to-r from-gray-300 to-gray-400",    // Silver
-            "bg-gradient-to-r from-amber-600 to-orange-600", // Bronze
-            "bg-gradient-to-r from-purple-500 to-violet-600",
-            "bg-gradient-to-r from-cyan-400 to-blue-500",
-            "bg-gradient-to-r from-green-400 to-emerald-500",
+            "bg-gradient-to-r from-red-500 to-orange-500",
+            "bg-gradient-to-r from-orange-500 to-amber-500",
+            "bg-gradient-to-r from-amber-400 to-yellow-500",
+            "bg-gradient-to-r from-yellow-400 to-lime-500",
+            "bg-gradient-to-r from-lime-500 to-green-500",
+            "bg-gradient-to-r from-green-500 to-emerald-500",
+            "bg-gradient-to-r from-emerald-500 to-teal-500",
+            "bg-gradient-to-r from-teal-500 to-cyan-500",
+            "bg-gradient-to-r from-cyan-500 to-sky-500",
+            "bg-gradient-to-r from-sky-500 to-blue-500",
+            "bg-gradient-to-r from-blue-500 to-indigo-500",
+            "bg-gradient-to-r from-indigo-500 to-violet-500",
+            "bg-gradient-to-r from-violet-500 to-purple-500",
+            "bg-gradient-to-r from-purple-500 to-fuchsia-500",
+            "bg-gradient-to-r from-fuchsia-500 to-pink-500",
+            "bg-gradient-to-r from-pink-500 to-rose-500",
+            "bg-gradient-to-r from-rose-500 to-red-500",
+            "bg-gradient-to-r from-slate-400 to-slate-500",
+            "bg-gradient-to-r from-zinc-400 to-zinc-500",
+            "bg-gradient-to-r from-neutral-400 to-neutral-500",
+            "bg-gradient-to-r from-stone-400 to-stone-500",
+            "bg-gradient-to-r from-red-400 to-orange-400",
+            "bg-gradient-to-r from-orange-400 to-amber-400",
+            "bg-gradient-to-r from-amber-300 to-yellow-400",
+            "bg-gradient-to-r from-lime-400 to-green-400",
+            "bg-gradient-to-r from-emerald-400 to-teal-400",
+            "bg-gradient-to-r from-cyan-400 to-sky-400",
+            "bg-gradient-to-r from-blue-400 to-indigo-400",
+            "bg-gradient-to-r from-violet-400 to-purple-400",
+            "bg-gradient-to-r from-fuchsia-400 to-pink-400",
         ];
-        return colors[index] || "bg-gradient-to-r from-zinc-500 to-zinc-600";
+
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const index = Math.abs(hash) % colors.length;
+        return colors[index];
     };
 
     return (
@@ -268,7 +300,7 @@ export default function RacePage() {
                                     {/* Bar */}
                                     <div className="flex-1 relative h-8">
                                         <div
-                                            className={`h-full rounded-r ${getBarColor(index)} transition-all duration-500 ease-out flex items-center`}
+                                            className={`h-full rounded-r ${getColor(stock.id)} transition-all duration-500 ease-out flex items-center`}
                                             style={{ width: `${Math.max(barWidth, 5)}%` }}
                                         >
                                             <span className="px-2 text-sm font-bold text-black truncate">

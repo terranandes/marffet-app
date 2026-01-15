@@ -43,7 +43,7 @@ The system is now split into two services:
     - **Framework**: Next.js (Auto-detected)
 3.  **Networking**:
     - **Port**: 3000
-    - **Domain**: Generate one (e.g., `martian-ui.zeabur.app`). **This is your App URL.**
+    - **Domain**: Generate one (e.g., `martian-app.zeabur.app`). **This is your App URL.**
 4.  **Enviroment Variables** (In Frontend Service):
     - `NEXT_PUBLIC_API_URL`: `https://martian-api.zeabur.app` (Your Backend URL)
 
@@ -59,13 +59,13 @@ The system is now split into two services:
 | `GEMINI_API_KEY` | (From Google AI Studio) |
 | `GM_EMAILS` | (comma-separated admin emails) |
 | `SECRET_KEY` | (Random string) |
-| `FRONTEND_URL` | `https://martian-ui.zeabur.app` (Your Frontend URL - for CORS) |
+| `FRONTEND_URL` | `https://martian-app.zeabur.app` (Your Frontend URL - for CORS) |
 
 ---
 
 ## 🔄 Google OAuth Update
 Go to Google Cloud Console > APIs & Services > Credentials:
-1.  **Authorized Javascript Origins**: `https://martian-ui.zeabur.app`
+1.  **Authorized Javascript Origins**: `https://martian-app.zeabur.app`
 2.  **Authorized Redirect URI**: `https://martian-api.zeabur.app/auth/callback` (Note: Callback goes to Backend!)
 
 ---

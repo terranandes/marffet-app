@@ -1,7 +1,7 @@
 # 👽 Martian Investment System
 **Project Martian** is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.
 
-![Martian Banner](https://martian-app.zeabur.app/opengraph-image.png)
+![Martian Banner](../frontend/public/martian_banner.png)
 
 ## 🌟 Key Features
 

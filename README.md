@@ -4,7 +4,7 @@ A full-stack quantitative stock analysis platform verifying that **"Time in the 
 
 Gamify your long-term investing by racing against the mechanized **Mars Strategy** and see if you can beat the market!
 
-![Dashboard](https://via.placeholder.com/800x400?text=Martian+Dashboard+Preview)
+![Dashboard](frontend/public/martian_banner.png)
 
 ## ✨ Features
 

@@ -307,9 +307,9 @@ export default function RacePage() {
                         No data available for this period.
                     </div>
                 ) : (
-                    <div className="space-y-2">
-                        {/* Year Display */}
-                        <div className="text-right text-6xl font-bold text-[var(--color-cta)] font-mono mb-4 opacity-80">
+                    <div className="relative" style={{ height: `${currentFrameData.length * 52}px` }}>
+                        {/* Year Display - Floating Background */}
+                        <div className="absolute right-0 bottom-0 text-9xl font-bold text-[var(--color-cta)] font-mono opacity-10 pointer-events-none transition-all duration-700">
                             {currentYear}
                         </div>
 
@@ -317,28 +317,36 @@ export default function RacePage() {
                         {currentFrameData.map((stock, index) => {
                             const value = metric === "wealth" ? stock.wealth : stock.cagr || 0;
                             const barWidth = (value / maxValue) * 100;
+                            const ROW_HEIGHT = 52; // 40px bar + 12px gap
 
                             return (
-                                <div key={stock.id} className="flex items-center gap-3 h-10">
+                                <div
+                                    key={stock.id}
+                                    className="absolute w-full flex items-center gap-3 h-10 transition-transform duration-700 ease-in-out"
+                                    style={{
+                                        transform: `translateY(${index * ROW_HEIGHT}px)`,
+                                        zIndex: currentFrameData.length - index // Higher rank on top if overlap occurs (unlikely with this layout but good practice)
+                                    }}
+                                >
                                     {/* Rank */}
-                                    <div className="w-8 text-right font-mono text-[var(--color-text-muted)]">
+                                    <div className="w-8 text-right font-mono text-[var(--color-text-muted)] transition-colors duration-700">
                                         {index + 1}
                                     </div>
 
                                     {/* Bar */}
                                     <div className="flex-1 relative h-8">
                                         <div
-                                            className={`h-full rounded-r ${getColor(stock.id)} transition-all duration-500 ease-out flex items-center`}
-                                            style={{ width: `${Math.max(barWidth, 5)}%` }}
+                                            className={`h-full rounded-r ${getColor(stock.id)} shadow-lg flex items-center transition-all duration-700 ease-linear`}
+                                            style={{ width: `${Math.max(barWidth, 1)}%` }}
                                         >
-                                            <span className="px-2 text-sm font-bold text-black truncate">
+                                            <span className="px-2 text-sm font-bold text-black truncate drop-shadow-md">
                                                 {stock.name}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Value */}
-                                    <div className="w-24 text-right font-mono font-bold text-[var(--color-primary)]">
+                                    <div className="w-24 text-right font-mono font-bold text-[var(--color-primary)] transition-all duration-700">
                                         {formatValue(value)}
                                     </div>
                                 </div>

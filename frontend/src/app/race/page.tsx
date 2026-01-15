@@ -25,10 +25,27 @@ export default function RacePage() {
     const [metric, setMetric] = useState<"wealth" | "cagr">("wealth");
 
     const [sim, setSim] = useState<SimSettings>({
-        startYear: 2015,
+        startYear: 2006,
         principal: 1000000,
         contribution: 60000,
     });
+
+    // Load settings from Mars page (localStorage)
+    useEffect(() => {
+        const saved = localStorage.getItem("mars_sim_settings");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                setSim({
+                    startYear: parsed.startYear || 2006,
+                    principal: parsed.principal || 1000000,
+                    contribution: parsed.contribution || 60000
+                });
+            } catch (e) {
+                console.error("Failed to parse mars settings", e);
+            }
+        }
+    }, []);
 
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const chartRef = useRef<HTMLDivElement>(null);
@@ -271,48 +288,7 @@ export default function RacePage() {
                 </div>
             </div>
 
-            {/* Settings */}
-            <div className="glass-card rounded-xl p-4">
-                <div className="flex flex-wrap gap-4 items-end">
-                    <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] mb-1">Start Year</label>
-                        <input
-                            type="number"
-                            min={2006}
-                            max={new Date().getFullYear()}
-                            value={sim.startYear}
-                            onChange={(e) => setSim({ ...sim, startYear: Number(e.target.value) })}
-                            className="bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm w-24"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] mb-1">Principal</label>
-                        <input
-                            type="number"
-                            step={100000}
-                            value={sim.principal}
-                            onChange={(e) => setSim({ ...sim, principal: Number(e.target.value) })}
-                            className="bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm w-32"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] mb-1">Annual Contribution</label>
-                        <input
-                            type="number"
-                            step={10000}
-                            value={sim.contribution}
-                            onChange={(e) => setSim({ ...sim, contribution: Number(e.target.value) })}
-                            className="bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm w-32"
-                        />
-                    </div>
-                    <button
-                        onClick={fetchRaceData}
-                        className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
-                    >
-                        Apply
-                    </button>
-                </div>
-            </div>
+            {/* Configuration removed - Reusing Mars Strategy Settings */}
         </div>
     );
 }

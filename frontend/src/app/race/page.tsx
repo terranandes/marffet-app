@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface RaceFrame {
     year: number;
@@ -307,51 +308,61 @@ export default function RacePage() {
                         No data available for this period.
                     </div>
                 ) : (
-                    <div className="relative" style={{ height: `${currentFrameData.length * 52}px` }}>
+                    <div className="relative min-h-[600px]">
                         {/* Year Display - Floating Background */}
-                        <div className="absolute right-0 bottom-0 text-9xl font-bold text-[var(--color-cta)] font-mono opacity-10 pointer-events-none transition-all duration-700">
+                        <div className="absolute right-0 bottom-0 text-9xl font-bold text-[var(--color-cta)] font-mono opacity-10 pointer-events-none select-none transition-all duration-700">
                             {currentYear}
                         </div>
 
-                        {/* Bars */}
-                        {currentFrameData.map((stock, index) => {
-                            const value = metric === "wealth" ? stock.wealth : stock.cagr || 0;
-                            const barWidth = (value / maxValue) * 100;
-                            const ROW_HEIGHT = 52; // 40px bar + 12px gap
+                        {/* Bars Container */}
+                        <div className="flex flex-col gap-3">
+                            <AnimatePresence mode="popLayout">
+                                {currentFrameData.map((stock, index) => {
+                                    const value = metric === "wealth" ? stock.wealth : stock.cagr || 0;
+                                    const barWidth = (value / maxValue) * 100;
+                                    const rank = index + 1;
 
-                            return (
-                                <div
-                                    key={stock.id}
-                                    className="absolute w-full flex items-center gap-3 h-10 transition-transform duration-700 ease-in-out"
-                                    style={{
-                                        transform: `translateY(${index * ROW_HEIGHT}px)`,
-                                        zIndex: currentFrameData.length - index // Higher rank on top if overlap occurs (unlikely with this layout but good practice)
-                                    }}
-                                >
-                                    {/* Rank */}
-                                    <div className="w-8 text-right font-mono text-[var(--color-text-muted)] transition-colors duration-700">
-                                        {index + 1}
-                                    </div>
-
-                                    {/* Bar */}
-                                    <div className="flex-1 relative h-8">
-                                        <div
-                                            className={`h-full rounded-r ${getColor(stock.id)} shadow-lg flex items-center transition-all duration-700 ease-linear`}
-                                            style={{ width: `${Math.max(barWidth, 1)}%` }}
+                                    return (
+                                        <motion.div
+                                            key={stock.id}
+                                            layout
+                                            initial={{ opacity: 0, x: -50 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            transition={{
+                                                layout: { type: "spring", stiffness: 45, damping: 15 }, // Smooth overtaking
+                                                opacity: { duration: 0.3 }
+                                            }}
+                                            className="flex items-center gap-3 h-10 w-full"
                                         >
-                                            <span className="px-2 text-sm font-bold text-black truncate drop-shadow-md">
-                                                {stock.name}
-                                            </span>
-                                        </div>
-                                    </div>
+                                            {/* Rank */}
+                                            <div className="w-8 text-right font-mono text-[var(--color-text-muted)]">
+                                                {rank}
+                                            </div>
 
-                                    {/* Value */}
-                                    <div className="w-24 text-right font-mono font-bold text-[var(--color-primary)] transition-all duration-700">
-                                        {formatValue(value)}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                            {/* Bar */}
+                                            <div className="flex-1 relative h-8">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.max(barWidth, 1)}%` }}
+                                                    transition={{ duration: 0.7, ease: "linear" }}
+                                                    className={`h-full rounded-r ${getColor(stock.id)} shadow-lg flex items-center`}
+                                                >
+                                                    <span className="px-2 text-sm font-bold text-black truncate drop-shadow-md">
+                                                        {stock.name}
+                                                    </span>
+                                                </motion.div>
+                                            </div>
+
+                                            {/* Value */}
+                                            <div className="w-24 text-right font-mono font-bold text-[var(--color-primary)]">
+                                                {formatValue(value)}
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 )}
             </div>

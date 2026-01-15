@@ -52,7 +52,7 @@ export default function RacePage() {
     const chartRef = useRef<HTMLDivElement>(null);
 
     const TOP_N = 50;
-    const API_BASE = "";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch race data
     const fetchRaceData = useCallback(async () => {

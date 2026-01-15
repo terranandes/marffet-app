@@ -33,7 +33,7 @@ export default function TrendPage() {
     const [loading, setLoading] = useState(true);
     const chartRef = useRef<HTMLDivElement>(null);
 
-    const API_BASE = "";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch user's portfolio trend data
     const fetchTrendData = useCallback(async () => {

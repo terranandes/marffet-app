@@ -69,7 +69,7 @@ export default function PortfolioPage() {
 
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
 
-    const API_BASE = "";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch groups
     const fetchGroups = useCallback(async () => {

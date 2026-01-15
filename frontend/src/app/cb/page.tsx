@@ -22,7 +22,7 @@ export default function CBPage() {
     const [cbResult, setCbResult] = useState<CBData | null>(null);
     const [loadingAnalyze, setLoadingAnalyze] = useState(false);
 
-    const API_BASE = "";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch user's portfolio CBs
     const fetchPortfolioCBs = useCallback(async () => {

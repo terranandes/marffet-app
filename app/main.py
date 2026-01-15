@@ -399,10 +399,7 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
         # Map simulation results to a dict for easy merge
         sim_map = {}
         for r in race_results:
-             # run_mars_simulation returns a list of yearly records. We want the LATEST (Final) one.
-             sid = r['id']
-             if sid not in sim_map or r['year'] > sim_map[sid]['year']:
-                 sim_map[sid] = r
+             sim_map[r['id']] = r
         
         # Create list for DataFrame construction
         export_rows = []
@@ -438,16 +435,22 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
             if sid in sim_map:
                 data = sim_map[sid]
                 
+                final_val = data.get('finalValue', 0)
+                cost = data.get('totalCost', 0)
+                roi = 0
+                if cost > 0:
+                    roi = ((final_val - cost) / cost) * 100
+
                 # Base Info
                 new_row = {
                     "id": sid,
                     "name": data['name'],
                     # summary stats
-                    "Final Wealth": data['value'],
-                    "Total Cost": data.get('cost', 0),
-                    "Total ROI %": round(((data['value'] - (data.get('cost') or 1)) / (data.get('cost') or 1)) * 100, 1),
-                    "CAGR %": data['cagr'],
-                    "Yield %": data['div_yield']
+                    "Final Wealth": final_val,
+                    "Total Cost": cost,
+                    "Total ROI %": round(roi, 2),
+                    "CAGR %": data.get('cagr_pct', 0),
+                    "Yield %": 0 # Placeholder as yield is not currently tracked in top-level output
                 }
                 
                 # Add original ROI columns (filtered by year)
@@ -750,6 +753,7 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 "cagr_pct": round(row[f's2006e2026bao'], 2) if f's2006e2026bao' in row else 0,
                 "volatility_pct": round(row['volatility'], 2) if 'volatility' in row else 0,
                 "valid_years": years_held,
+                "totalCost": cost,
                 "history": wealth_trend
              })
     return results

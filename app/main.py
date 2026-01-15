@@ -321,33 +321,25 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
         # Run Simulation
         results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         
-        # Transform for Race
-        yearly_data = {}
+        # Transform for Race - Flattened format for Legacy UI
+        # Legacy UI expects: [{id, year, wealth, name, ...}, ...]
+        flat_race_data = []
         for stock in results:
+            stock_id = stock['id']
+            stock_name = stock['name']
             for rec in stock['history']:
-                y = rec['year']
-                if y not in yearly_data:
-                    yearly_data[y] = []
-                yearly_data[y].append({
-                    "id": stock['id'],
-                    "name": stock['name'],
-                    "value": rec['value'],
-                    "cagr": 0, # Not strictly needed for race visualization bars
+                flat_race_data.append({
+                    "id": stock_id,
+                    "name": stock_name,
+                    "year": rec['year'],
+                    "wealth": rec['value'],  # Renamed for clarity
+                    "value": rec['value'],   # Also include 'value' for backward compat
+                    "cagr": 0,
+                    "roi": 0,
                     "div_yield": 0
                 })
 
-        # Sort years and then sort stocks within each year by value
-        sorted_years = sorted(yearly_data.keys())
-        final_race_data = []
-        for year in sorted_years:
-            # Sort stocks by value in descending order for ranking
-            sorted_stocks = sorted(yearly_data[year], key=lambda x: x['value'], reverse=True)
-            final_race_data.append({
-                "year": year,
-                "stocks": sorted_stocks
-            })
-
-        return final_race_data
+        return flat_race_data
 
     except Exception as e:
         print(f"Error in get_race_data: {e}")

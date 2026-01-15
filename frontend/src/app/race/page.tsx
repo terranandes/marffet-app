@@ -50,7 +50,7 @@ export default function RacePage() {
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const chartRef = useRef<HTMLDivElement>(null);
 
-    const TOP_N = 20;
+    const TOP_N = 50;
     const API_BASE = "";
 
     // Fetch race data
@@ -215,6 +215,27 @@ export default function RacePage() {
                 </button>
             </div>
 
+            {/* Timeline Scrubber */}
+            <div className="glass-card rounded-xl p-4">
+                <div className="flex items-center gap-4">
+                    <span className="text-[var(--color-cta)] font-mono font-bold w-12">
+                        {currentYear}
+                    </span>
+                    <input
+                        type="range"
+                        min={0}
+                        max={years.length - 1}
+                        value={years.indexOf(currentYear)}
+                        onChange={(e) => seekToYear(years[Number(e.target.value)])}
+                        className="flex-1 h-2 bg-[var(--color-border)] rounded-full appearance-none cursor-pointer"
+                        style={{ accentColor: "var(--color-cta)" }}
+                    />
+                    <span className="text-[var(--color-text-muted)] font-mono w-12 text-right">
+                        {maxYear}
+                    </span>
+                </div>
+            </div>
+
             {/* Chart */}
             <div className="glass-card rounded-xl p-6" ref={chartRef}>
                 {loading ? (
@@ -265,27 +286,6 @@ export default function RacePage() {
                         })}
                     </div>
                 )}
-            </div>
-
-            {/* Timeline Scrubber */}
-            <div className="glass-card rounded-xl p-4">
-                <div className="flex items-center gap-4">
-                    <span className="text-[var(--color-cta)] font-mono font-bold w-12">
-                        {currentYear}
-                    </span>
-                    <input
-                        type="range"
-                        min={0}
-                        max={years.length - 1}
-                        value={years.indexOf(currentYear)}
-                        onChange={(e) => seekToYear(years[Number(e.target.value)])}
-                        className="flex-1 h-2 bg-[var(--color-border)] rounded-full appearance-none cursor-pointer"
-                        style={{ accentColor: "var(--color-cta)" }}
-                    />
-                    <span className="text-[var(--color-text-muted)] font-mono w-12 text-right">
-                        {maxYear}
-                    </span>
-                </div>
             </div>
 
             {/* Configuration removed - Reusing Mars Strategy Settings */}

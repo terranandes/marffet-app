@@ -227,14 +227,13 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Region Format</label>
                                     <select
+                                        className="w-full bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#00f2ea] opacity-50 cursor-not-allowed"
                                         value={region}
-                                        onChange={(e) => setRegion(e.target.value)}
-                                        className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-[var(--color-cta)] outline-none cursor-pointer"
+                                        disabled
                                     >
-                                        <option value="US">🇺🇸 United States (USD)</option>
                                         <option value="TW">🇹🇼 Taiwan (TWD)</option>
-                                        <option value="CN">🇨🇳 China (CNY)</option>
                                     </select>
+                                    <p className="text-xs text-gray-500 mt-1">Other regions coming in Q4 2026</p>
                                 </div>
 
                                 {user?.is_admin && (

@@ -1,6 +1,7 @@
-"use client";
+import dynamic from 'next/dynamic';
 
-import { useEffect, useState, useMemo } from "react";
+// Dynamic import for ECharts to avoid SSR issues
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
 interface Stock {
     id: string;
@@ -11,6 +12,7 @@ interface Stock {
     valid_years: number;
     volatility_pct?: number;
     finalValue?: number;
+    history?: { year: number; value: number; dividend: number }[];
 }
 
 interface SimSettings {
@@ -26,6 +28,9 @@ export default function MarsPage() {
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCalculating, setIsCalculating] = useState(false);
+
+    // Selected Stock for Modal
+    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
     // Simulation settings
     const [sim, setSim] = useState<SimSettings>({
@@ -67,13 +72,11 @@ export default function MarsPage() {
             );
             const data = await res.json();
             if (Array.isArray(data)) {
-                // Calculate simulated final value for each stock
-                const processed = data.map((stock: Stock) => ({
-                    ...stock,
-                    finalValue: calculateFinalValue(stock, sim),
-                    volatility_pct: stock.cagr_std ? stock.cagr_std * 100 / (stock.cagr_pct || 1) : 0,
-                }));
-                setStocks(processed);
+                // Backend now calculates finalValue, so we just use it directly
+                // But if backend doesn't, we can fallback or just adopt backend's exact value.
+                // The verification showed backend calculates it.
+                // However, we need to map history if available.
+                setStocks(data);
             }
         } catch (err) {
             console.error("Failed to fetch stocks:", err);
@@ -81,20 +84,6 @@ export default function MarsPage() {
         }
         setLoading(false);
         setIsCalculating(false);
-    };
-
-    // Simple final value calculation based on CAGR
-    const calculateFinalValue = (stock: Stock, settings: SimSettings): number => {
-        const years = currentYear - settings.startYear;
-        if (years <= 0 || !stock.cagr_pct) return settings.principal;
-
-        const rate = stock.cagr_pct / 100;
-        let value = settings.principal;
-
-        for (let i = 0; i < years; i++) {
-            value = value * (1 + rate) + settings.contribution;
-        }
-        return Math.round(value);
     };
 
     useEffect(() => {
@@ -148,6 +137,14 @@ export default function MarsPage() {
             `${API_URL}/api/export-excel?mode=filtered&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
             "_blank"
         );
+    };
+
+    // Calculate Total ROI for Modal
+    const calculateTotalROI = (finalValue: number) => {
+        const years = currentYear - sim.startYear;
+        const totalInvested = sim.principal + (sim.contribution * years);
+        if (totalInvested <= 0) return 0;
+        return ((finalValue - totalInvested) / totalInvested) * 100;
     };
 
     return (
@@ -302,6 +299,7 @@ export default function MarsPage() {
                                 {sortedStocks.map((stock, idx) => (
                                     <tr
                                         key={stock.id}
+                                        onClick={() => setSelectedStock(stock)}
                                         className="hover:bg-white/5 transition-colors duration-150 cursor-pointer"
                                     >
                                         <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono">{idx + 1}</td>
@@ -331,6 +329,143 @@ export default function MarsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Stock Detail Modal */}
+            {selectedStock && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl border border-[var(--color-border)] shadow-2xl relative">
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setSelectedStock(null)}
+                            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition text-[var(--color-text-muted)] hover:text-white"
+                        >
+                            ✕
+                        </button>
+
+                        <div className="p-6 md:p-8">
+                            <h2 className="text-2xl font-bold mb-10 flex items-center gap-3">
+                                <span>Result:</span>
+                                <span className="text-[var(--color-cta)]">{selectedStock.name}</span>
+                                <span className="text-[var(--color-cta)] opacity-75">({selectedStock.id})</span>
+                            </h2>
+
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Amount Inv.</div>
+                                    <div className="text-xl font-bold text-white">
+                                        ${sim.principal.toLocaleString()} + ${sim.contribution.toLocaleString()}/yr
+                                    </div>
+                                </div>
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Total Years</div>
+                                    <div className="text-xl font-bold text-white">
+                                        {selectedStock.valid_years} Years
+                                    </div>
+                                </div>
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Yearly ROI (CAGR)</div>
+                                    <div className="text-xl font-bold text-[var(--color-success)]">
+                                        {selectedStock.cagr_pct.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Strategy Table */}
+                            <div className="mb-8 rounded-lg overflow-hidden border border-[var(--color-border)]">
+                                <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-sm py-3 px-4">
+                                    <div>Strategy</div>
+                                    <div className="text-center">Buy At Yearly Opening</div>
+                                    <div className="text-center opacity-50">Buy At Yearly Highest (N/A)</div>
+                                    <div className="text-center opacity-50">Buy At Yearly Lowest (N/A)</div>
+                                </div>
+                                <div className="divide-y divide-[var(--color-border)]">
+                                    <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
+                                        <div className="font-bold text-white">Final Value</div>
+                                        <div className="text-center font-bold text-[var(--color-cta)] text-xl">
+                                            {formatCurrency(selectedStock.finalValue || 0)}
+                                        </div>
+                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+                                    </div>
+                                    <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
+                                        <div className="font-bold text-white">Total ROI</div>
+                                        <div className="text-center font-bold text-[var(--color-success)] text-lg">
+                                            {calculateTotalROI(selectedStock.finalValue || 0).toFixed(2)}%
+                                        </div>
+                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Chart Section */}
+                            <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-white">Stock Market Value (Wealth Path)</h3>
+                                    <div className="flex gap-2">
+                                        <button className="px-3 py-1 bg-[var(--color-cta)] text-black font-bold text-xs rounded">Wealth</button>
+                                        <button className="px-3 py-1 bg-white/10 text-[var(--color-text-muted)] hover:text-white text-xs rounded transition">Dividend</button>
+                                    </div>
+                                </div>
+
+                                {selectedStock.history && selectedStock.history.length > 0 ? (
+                                    <ReactECharts
+                                        option={{
+                                            backgroundColor: 'transparent',
+                                            tooltip: {
+                                                trigger: 'axis',
+                                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                                borderColor: '#333',
+                                                textStyle: { color: '#fff' },
+                                                formatter: (params: any) => {
+                                                    const p = params[0];
+                                                    return `${p.name}<br/>Value: $${Number(p.value).toLocaleString()}`;
+                                                }
+                                            },
+                                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                                            xAxis: {
+                                                type: 'category',
+                                                boundaryGap: false,
+                                                data: selectedStock.history.map(d => d.year),
+                                                axisLine: { lineStyle: { color: '#666' } },
+                                                axisLabel: { color: '#888' }
+                                            },
+                                            yAxis: {
+                                                type: 'value',
+                                                splitLine: { lineStyle: { color: '#333' } },
+                                                axisLabel: { color: '#888', formatter: (val: number) => `$${(val / 1000000).toFixed(0)}M` }
+                                            },
+                                            series: [{
+                                                data: selectedStock.history.map(d => d.value),
+                                                type: 'line',
+                                                smooth: true,
+                                                lineStyle: { color: '#00eeee', width: 3 },
+                                                areaStyle: {
+                                                    color: {
+                                                        type: 'linear',
+                                                        x: 0, y: 0, x2: 0, y2: 1,
+                                                        colorStops: [{ offset: 0, color: 'rgba(0, 238, 238, 0.5)' }, { offset: 1, color: 'rgba(0, 238, 238, 0)' }]
+                                                    }
+                                                },
+                                                symbol: 'circle',
+                                                symbolSize: 6,
+                                                itemStyle: { color: '#00eeee', borderColor: '#fff', borderWidth: 2 }
+                                            }]
+                                        }}
+                                        style={{ height: '400px', width: '100%' }}
+                                    />
+                                ) : (
+                                    <div className="h-[400px] flex items-center justify-center text-[var(--color-text-muted)]">
+                                        No historical data available
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

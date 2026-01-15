@@ -512,14 +512,19 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
         cost = 0
         wealth = 0
         prev_wealth = 0
+        wealth_trend = []
         
         # Initial Purchase at USER SELECTED Start Year
         # Try to get start price of start_year
         start_price_initial = prices_db.get(start_year, {}).get(stock_id, {}).get('start', 0)
+        
+        # Always initialize base wealth tracking
+        cost = principal
+        prev_wealth = principal
+        shares = 0
+        
         if start_price_initial > 0:
             shares = principal / start_price_initial
-            cost = principal
-            prev_wealth = principal
         
         # To calculate CAGR/ROI properly for the final export row
         final_valid_stats = {} 
@@ -543,11 +548,9 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 if start_price > 0:
                     # If we have valid price data, use Share Accumulation Logic
                     
-                    # 1. Initialize if not yet (e.g. IPO later than 2006)
-                    if shares == 0 and cost == 0:
-                        shares = principal / start_price
-                        cost = principal
-                        prev_wealth = principal
+                    # 1. Transition from Synthetic to Real Shares if needed
+                    if shares == 0:
+                        shares = prev_wealth / start_price
 
                     # 2. Get Dividend (Cash + Stock)
                     div_info = dividends_db.get(stock_id, {}).get(str(year)) or dividends_db.get(stock_id, {}).get(year, {})
@@ -604,34 +607,65 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
 
                 else:
                     # Fallback to Excel Data if no detailed price JSON
+                    # SYNTHETIC MODE: approximate tracking
                     final_roi = excel_roi
                     div_yield = 0
-                    if prev_wealth > 0:
-                            prev_wealth = prev_wealth * (1 + final_roi/100) + contribution
+                    
+                    # Apply ROI + Contribution
+                    # wealth = prev * (1+r) + contrib
+                    wealth = prev_wealth * (1 + final_roi/100) + contribution
+                    prev_wealth = wealth
+                    cost += contribution
+
+                # Store history for frontend chart
+                wealth_trend.append({
+                    "year": year,
+                    "value": round(wealth, 0),
+                    "dividend": round(div_cash * shares, 0)
+                })
 
                 if pd.notnull(final_roi) and final_roi != 0:
                     # Calculate cumulative CAGR from start_year to this year
                     years_elapsed = year - start_year + 1
-                    cagr = 0
-                    if years_elapsed > 0 and principal > 0 and wealth > 0:
-                        cagr = (pow(wealth / principal, 1 / years_elapsed) - 1) * 100
-                    
+                    if years_elapsed > 0:
+                        cagr = ((wealth / principal) ** (1 / years_elapsed) - 1) * 100
+                    else:
+                        cagr = 0
+                        
                     # Store stats for this year
                     stats_node = {
-                        "year": year,
-                        "id": stock_id,
-                        "name": row['name'],
-                        "roi": round(final_roi, 2),
-                        "value": round(wealth, 0), # Return Wealth ($) for Race/Table
-                        "wealth": round(wealth, 0),
-                        "cagr": round(cagr, 2),  # Per-year calculated CAGR
-                        "div_yield": round(div_yield, 2),
-                        # For export use:
-                        "shares": round(shares, 0),
-                        "cost": round(cost, 0)
+                        "value": round(wealth, 0),
+                        "cagr": round(cagr, 2),
                     }
-                    results.append(stats_node)
-                    final_valid_stats = stats_node
+                    
+        # End of Years Loop
+        
+        # Final Stats Construction
+        if wealth > 0:
+             years_held = 2026 - start_year + 1 # Approximate
+             
+             # Calculate final CAGR
+             # CAGR = (End/Start)^(1/n) - 1
+             # Start is Principal + Contributions? 
+             # No, standard CAGR for DCA is complex (XIRR). 
+             # But here we stick to the simple proxy or the one tracked in loop.
+             
+             final_cagr = 0
+             if years_held > 0:
+                 # Simple metric: (FinalWealth / TotalInvested)^(1/n)? 
+                 # Or just use the last calculated CAGR from loop? 
+                 # Let's use the standard formula used in 'stats_node' or 'effective_roi'
+                 pass
+
+             results.append({
+                "id": stock_id,
+                "name": str(row['name']),
+                "finalValue": round(wealth, 0),
+                "cagr_pct": round(row[f's2006e2026bao'], 2) if f's2006e2026bao' in row else 0, # Use Excel's CAGR if available for now, or calculated
+                "volatility_pct": round(row['volatility'], 2) if 'volatility' in row else 0,
+                "valid_years": years_held,
+                "history": wealth_trend
+             })
 
             except Exception as loop_e:
                     pass

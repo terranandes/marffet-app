@@ -31,12 +31,27 @@ class TWSECrawler:
         file_path = os.path.join(self.data_dir, f"{stock_code}_{date_str}.json")
         
         # Check Cache (No semaphore needed)
+        # Check Cache (No semaphore needed)
         if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                try:
-                    return json.load(f)
-                except:
-                    pass # corrupted file, refetch
+            try:
+                # Cache Expiry for Current Month
+                target_date = datetime.strptime(date_str, "%Y%m%d")
+                now = datetime.now()
+                # If requesting current month, check if cache is old (> 24h)
+                if target_date.year == now.year and target_date.month == now.month:
+                    mtime = os.path.getmtime(file_path)
+                    if (time.time() - mtime) > 86400: # 24 hours
+                        # print(f"Cache expired for {stock_code} {date_str}, refetching...")
+                        pass # Fall through to fetch
+                    else:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                             return json.load(f)
+                else:
+                    # Historical months are immutable
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+            except:
+                pass # corrupted file, refetch
 
         params = {
             "response": "json",
@@ -298,11 +313,23 @@ class TWSECrawler:
                 # Cache File
                 cache_file = os.path.join(self.data_dir, f"Market_{year}_Prices.json")
                 if os.path.exists(cache_file):
-                    print(f"CACHE HIT: {cache_file}")
-                    with open(cache_file, 'r') as f:
-                        results[year] = json.load(f)
-                    continue
+                    # Cache Expiry for Current Year
+                    now = datetime.now()
+                    is_current_year = (year == now.year)
+                    use_cache = True
                     
+                    if is_current_year:
+                        mtime = os.path.getmtime(cache_file)
+                        if (time.time() - mtime) > 86400: # 24 hours
+                             print(f"CACHE EXPIRED for Current Year {year} (Older than 24h). Refetching...")
+                             use_cache = False
+                    
+                    if use_cache:
+                        print(f"CACHE HIT: {cache_file}")
+                        with open(cache_file, 'r') as f:
+                            results[year] = json.load(f)
+                        continue
+                     
                 print(f"CACHE MISS: Fetching {year} Market Prices...")
                 y_data = {}
                 

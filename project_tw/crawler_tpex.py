@@ -29,8 +29,38 @@ class TPEXCrawler:
         # Initialize results structure
         results = {y: {} for y in years}
         
+        # 0. Check Cache First
+        years_to_fetch = []
+        for year in years:
+            cache_file = os.path.join(self.data_dir, f"TPEx_Market_{year}_Prices.json")
+            use_cache = False
+            if os.path.exists(cache_file):
+                now = datetime.datetime.now()
+                is_current_year = (year == now.year)
+                
+                if is_current_year:
+                    mtime = os.path.getmtime(cache_file)
+                    if (time.time() - mtime) < 86400: # Valid (<24h)
+                        use_cache = True
+                else:
+                    use_cache = True # Historic always valid
+            
+            if use_cache:
+                try:
+                    with open(cache_file, 'r') as f:
+                        results[year] = json.load(f)
+                    print(f"Loaded TPEx Market Prices {year} from Cache.")
+                except:
+                    years_to_fetch.append(year)
+            else:
+                years_to_fetch.append(year)
+        
+        if not years_to_fetch:
+            return results
+
         async with httpx.AsyncClient(verify=False) as client:
             # 1. Discover Universe (Today/Latest)
+
             print("Discovering TPEx Universe...")
             universe = await self._get_tpex_universe(client)
             print(f"TPEx Universe Size: {len(universe)}")
@@ -38,9 +68,11 @@ class TPEXCrawler:
             if not universe:
                 return {}
 
-            # 2. Determine Date Range
-            min_year = min(years)
-            max_year = max(years)
+            # 2. Determine Date Range for Fetching
+            if not years_to_fetch: return results
+            
+            min_year = min(years_to_fetch)
+            max_year = max(years_to_fetch)
             start_date = f"{min_year}-01-01"
             
             # End Date should be Today or End of Max Year
@@ -78,7 +110,7 @@ class TPEXCrawler:
                         code = ticker.replace('.TWO', '')
                         
                         # Process for EACH requested year
-                        for year in years:
+                        for year in years_to_fetch:
                             # Define Windows
                             y_start = f"{year}-01-01"
                             y_s_end = f"{year}-01-15"
@@ -197,15 +229,26 @@ class TPEXCrawler:
         # 0. Check Cache
         cache_file = os.path.join(self.data_dir, f"TPEx_Dividends_{year}.json")
         if os.path.exists(cache_file):
-            try:
-                with open(cache_file, 'r') as f:
-                    results = json.load(f)
-                print(f"Loaded TPEx Dividends for Year {year} from Cache ({len(results)} items).")
-                return results
-            except Exception as e:
-                print(f"Error loading cache for {year}: {e}")
+            use_cache = False
+            now = datetime.datetime.now()
+            if year == now.year:
+                 mtime = os.path.getmtime(cache_file)
+                 if (time.time() - mtime) < 86400: 
+                     use_cache = True
+            else:
+                 use_cache = True
+                 
+            if use_cache:
+                try:
+                    with open(cache_file, 'r') as f:
+                        results = json.load(f)
+                    print(f"Loaded TPEx Dividends for Year {year} from Cache ({len(results)} items).")
+                    return results
+                except Exception as e:
+                    print(f"Error loading cache for {year}: {e}")
 
         # 1. Get Universe
+
         async with httpx.AsyncClient(verify=False) as client:
             universe = await self._get_tpex_universe(client)
             
@@ -227,6 +270,12 @@ class TPEXCrawler:
             try:
                 if i > 0: await asyncio.sleep(0.5)
                 
+                if i > 0: await asyncio.sleep(0.5)
+                
+                # Define scope vars for interior function
+                s_date = f"{year}-01-01"
+                e_date = f"{year}-12-31" 
+                
                 # Run blocking yfinance IO in a separate thread
                 def fetch_batch_history():
                     batch_results = {}
@@ -235,7 +284,7 @@ class TPEXCrawler:
                     for ticker_id, ticker_obj in tickers_obj.tickers.items():
                          try:
                              # Sync call
-                             hist = ticker_obj.history(start=start_date, end=end_date, actions=True)
+                             hist = ticker_obj.history(start=s_date, end=e_date, actions=True)
                              if hist.empty: continue
                              
                              code = ticker_id.replace('.TWO', '')

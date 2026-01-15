@@ -334,6 +334,7 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
                     "year": rec['year'],
                     "wealth": rec['value'],  # Renamed for clarity
                     "value": rec['value'],   # Also include 'value' for backward compat
+                    "dividend": rec['dividend'],  # Include dividend for chart
                     "cagr": 0,
                     "roi": 0,
                     "div_yield": 0

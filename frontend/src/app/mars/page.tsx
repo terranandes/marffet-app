@@ -1,4 +1,7 @@
+"use client";
+
 import dynamic from 'next/dynamic';
+import { useEffect, useState, useMemo } from "react";
 
 // Dynamic import for ECharts to avoid SSR issues
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });

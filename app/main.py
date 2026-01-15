@@ -260,15 +260,98 @@ async def chat_with_mars(req: ChatRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")
-def get_results():
-    """Return filtered results from Excel"""
+def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+    """Return filtered results with Mars Simulation"""
     try:
-        df = pd.read_excel(BASE_DIR / "project_tw/output/stock_list_s2006e2025_filtered.xlsx")
-        # Replace NaN
+        # Load filtered list
+        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0)
-        return df.to_dict(orient="records")
+        
+        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
+        PRICES_DB = {}
+        import json
+        current_max_year = 2026
+        for year in range(start_year, current_max_year + 1):
+             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+             if p_file.exists():
+                 try:
+                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
+                 except: PRICES_DB[year] = {}
+             # TPEx
+             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+             if tpex_file.exists():
+                 try:
+                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
+                 except: pass
+
+        # Run Simulation
+        results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        
+        return results
     except Exception as e:
-        return {"error": str(e)}
+        print(f"Error in get_results: {e}")
+        return []
+
+@app.get("/api/race-data")
+def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+    """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
+    try:
+        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        df = pd.read_excel(SOURCE_FILE)
+        df = df.fillna(0) # Ensure no NaNs
+        
+        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
+        PRICES_DB = {}
+        import json
+        current_max_year = 2026
+        for year in range(start_year, current_max_year + 1):
+             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+             if p_file.exists():
+                 try:
+                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
+                 except: PRICES_DB[year] = {}
+             # TPEx
+             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+             if tpex_file.exists():
+                 try:
+                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
+                 except: pass
+
+        # Run Simulation
+        results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        
+        # Transform for Race
+        yearly_data = {}
+        for stock in results:
+            for rec in stock['history']:
+                y = rec['year']
+                if y not in yearly_data:
+                    yearly_data[y] = []
+                yearly_data[y].append({
+                    "id": stock['id'],
+                    "name": stock['name'],
+                    "value": rec['value'],
+                    "cagr": 0, # Not strictly needed for race visualization bars
+                    "div_yield": 0
+                })
+
+        # Sort years and then sort stocks within each year by value
+        sorted_years = sorted(yearly_data.keys())
+        final_race_data = []
+        for year in sorted_years:
+            # Sort stocks by value in descending order for ranking
+            sorted_stocks = sorted(yearly_data[year], key=lambda x: x['value'], reverse=True)
+            final_race_data.append({
+                "year": year,
+                "stocks": sorted_stocks
+            })
+
+        return final_race_data
+
+    except Exception as e:
+        print(f"Error in get_race_data: {e}")
+        return []
 
 from io import BytesIO
 from fastapi.responses import StreamingResponse
@@ -535,6 +618,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 year = int(year_str)
                 
                 # SKIP years before start_year
+                
+                # SKIP years before start_year
                 if year < start_year:
                     continue
                     
@@ -664,6 +749,7 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
         SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        print(f"[DEBUG] Loading Excel from: {SOURCE_FILE}")
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0) # Ensure no NaNs
         

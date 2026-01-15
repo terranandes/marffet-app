@@ -150,10 +150,14 @@ export default function MarsPage() {
         return ((finalValue - totalInvested) / totalInvested) * 100;
     };
 
+    // Chart Visualization Mode
+    const [vizMode, setVizMode] = useState<"wealth" | "dividend">("wealth");
+
     return (
         <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar - Simulation Settings */}
             <aside className="w-full lg:w-72 flex-shrink-0 space-y-4">
+                {/* ... existing sidebar code ... */}
                 {/* Mobile Toggle Header */}
                 <div
                     className="md:hidden flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer active:scale-95 transition-transform"
@@ -405,10 +409,22 @@ export default function MarsPage() {
                             {/* Chart Section */}
                             <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-bold text-white">Stock Market Value (Wealth Path)</h3>
+                                    <h3 className="font-bold text-white">
+                                        {vizMode === 'wealth' ? 'Stock Market Value (Wealth Path)' : 'Dividend History'}
+                                    </h3>
                                     <div className="flex gap-2">
-                                        <button className="px-3 py-1 bg-[var(--color-cta)] text-black font-bold text-xs rounded">Wealth</button>
-                                        <button className="px-3 py-1 bg-white/10 text-[var(--color-text-muted)] hover:text-white text-xs rounded transition">Dividend</button>
+                                        <button
+                                            onClick={() => setVizMode('wealth')}
+                                            className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'wealth' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
+                                        >
+                                            Wealth
+                                        </button>
+                                        <button
+                                            onClick={() => setVizMode('dividend')}
+                                            className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'dividend' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
+                                        >
+                                            Dividend
+                                        </button>
                                     </div>
                                 </div>
 
@@ -423,7 +439,7 @@ export default function MarsPage() {
                                                 textStyle: { color: '#fff' },
                                                 formatter: (params: any) => {
                                                     const p = params[0];
-                                                    return `${p.name}<br/>Value: $${Number(p.value).toLocaleString()}`;
+                                                    return `${p.name}<br/>${vizMode === 'wealth' ? 'Value' : 'Dividend'}: $${Number(p.value).toLocaleString()}`;
                                                 }
                                             },
                                             grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
@@ -437,30 +453,33 @@ export default function MarsPage() {
                                             yAxis: {
                                                 type: 'value',
                                                 splitLine: { lineStyle: { color: '#333' } },
-                                                axisLabel: { color: '#888', formatter: (val: number) => `$${(val / 1000000).toFixed(0)}M` }
+                                                axisLabel: { color: '#888', formatter: (val: number) => `$${(val / 1000000).toFixed(1)}M` }
                                             },
                                             series: [{
-                                                data: selectedStock.history.map(d => d.value),
+                                                data: selectedStock.history.map(d => vizMode === 'wealth' ? d.value : d.dividend),
                                                 type: 'line',
                                                 smooth: true,
-                                                lineStyle: { color: '#00eeee', width: 3 },
+                                                lineStyle: { color: vizMode === 'wealth' ? '#00eeee' : '#ffaa00', width: 3 },
                                                 areaStyle: {
                                                     color: {
                                                         type: 'linear',
                                                         x: 0, y: 0, x2: 0, y2: 1,
-                                                        colorStops: [{ offset: 0, color: 'rgba(0, 238, 238, 0.5)' }, { offset: 1, color: 'rgba(0, 238, 238, 0)' }]
+                                                        colorStops: [
+                                                            { offset: 0, color: vizMode === 'wealth' ? 'rgba(0, 238, 238, 0.5)' : 'rgba(255, 170, 0, 0.5)' },
+                                                            { offset: 1, color: vizMode === 'wealth' ? 'rgba(0, 238, 238, 0)' : 'rgba(255, 170, 0, 0)' }
+                                                        ]
                                                     }
                                                 },
                                                 symbol: 'circle',
                                                 symbolSize: 6,
-                                                itemStyle: { color: '#00eeee', borderColor: '#fff', borderWidth: 2 }
+                                                itemStyle: { color: vizMode === 'wealth' ? '#00eeee' : '#ffaa00', borderColor: '#fff', borderWidth: 2 }
                                             }]
                                         }}
                                         style={{ height: '400px', width: '100%' }}
                                     />
                                 ) : (
                                     <div className="h-[400px] flex items-center justify-center text-[var(--color-text-muted)]">
-                                        No historical data available
+                                        No historical data available {selectedStock.history ? `(length: ${selectedStock.history.length})` : '(null)'}
                                     </div>
                                 )}
                             </div>

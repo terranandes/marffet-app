@@ -2120,7 +2120,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         });
 
         return {
-            currentTab, marsList: sortedMarsList, stats, groupStats, cbInput, cbResult, loadingCB, analyzeCB,
+            currentTab, marsList: sortedMarsList, sortedMarsList, stats, groupStats, cbInput, cbResult, loadingCB, analyzeCB,
             portfolioCBs, loadingPortfolioCBs, fetchPortfolioCBs, resultTab,
             getActionColor, getBorderColor, sim, recalculate, formatCurrency, detailStock, openDetail,
             renderRaceChart, playRace, pauseRace, resetRace, sortBy, getSortIcon, raceMetric,

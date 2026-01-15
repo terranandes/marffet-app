@@ -1228,6 +1228,34 @@ Please analyze this feedback and determine if it's a true bug.`;
             return path;
         };
 
+        // Detail Chart Renderer - must be defined before openDetail/watch that use it
+        const renderDetailChart = (stock) => {
+            if (!stock || !stock.wealthPath) return;
+            const isWealth = resultTab.value === 'wealth';
+            const trace = {
+                x: stock.wealthPath.map(d => d.year),
+                y: isWealth ? stock.wealthPath.map(d => d.value) : stock.wealthPath.map(d => d.dividend || 0),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: isWealth ? 'Buy At Opening' : 'Yearly Cash Div.',
+                line: { color: isWealth ? '#00f2ea' : '#ff0055', width: 3 },
+                fill: 'tozeroy',
+                fillcolor: isWealth ? 'rgba(0, 242, 234, 0.1)' : 'rgba(255, 0, 85, 0.1)'
+            };
+
+            const layout = {
+                title: false,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(255,255,255,0.05)',
+                font: { color: '#aaa' },
+                margin: { t: 20, l: 40, r: 20, b: 40 },
+                xaxis: { gridcolor: '#333' },
+                yaxis: { gridcolor: '#333' }
+            };
+
+            Plotly.newPlot('detail-chart', [trace], layout);
+        };
+
 
         const openDetail = async (stock) => {
             // Use pre-computed data from backend (same as table)
@@ -1253,38 +1281,14 @@ Please analyze this feedback and determine if it's a true bug.`;
         };
 
 
-        // Reactive Chart Update
+        // Reactive Chart Update - watch() for tab changes
         watch(resultTab, () => {
             if (detailStock.value) {
                 renderDetailChart(detailStock.value);
             }
         });
 
-        const renderDetailChart = (stock) => {
-            const isWealth = resultTab.value === 'wealth';
-            const trace = {
-                x: stock.wealthPath.map(d => d.year),
-                y: isWealth ? stock.wealthPath.map(d => d.value) : stock.wealthPath.map(d => d.dividend),
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: isWealth ? 'Buy At Opening' : 'Yearly Cash Div.',
-                line: { color: isWealth ? '#00f2ea' : '#ff0055', width: 3 },
-                fill: 'tozeroy',
-                fillcolor: isWealth ? 'rgba(0, 242, 234, 0.1)' : 'rgba(255, 0, 85, 0.1)'
-            };
-
-            const layout = {
-                title: false,
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(255,255,255,0.05)',
-                font: { color: '#aaa' },
-                margin: { t: 20, l: 40, r: 20, b: 40 },
-                xaxis: { gridcolor: '#333' },
-                yaxis: { gridcolor: '#333' }
-            };
-
-            Plotly.newPlot('detail-chart', [trace], layout);
-        };
+        // renderDetailChart is now defined above openDetail (line ~1230)
 
         const analyzeCB = async () => {
             loadingCB.value = true;

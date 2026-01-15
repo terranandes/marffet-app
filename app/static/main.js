@@ -681,7 +681,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             return { marketValue, totalCost, realized, unrealized, unrealizedPct };
         });
 
-        // Sorting Logic
+        // Sorting Logic - Top 50 only
         const sortedMarsList = computed(() => {
             return [...marsList.value].sort((a, b) => {
                 let valA = a[sortKey.value];
@@ -693,7 +693,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
                 if (valA < valB) return sortDesc.value ? 1 : -1; if (valA > valB) return sortDesc.value ? -1 : 1;
                 return 0;
-            });
+            }).slice(0, 50); // Top 50 only
         });
 
         const sortBy = (key) => {

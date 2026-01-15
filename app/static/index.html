@@ -411,7 +411,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/10">
-                                <tr v-for="(stock, idx) in marsList" :key="stock.id" @click="openDetail(stock)"
+                                <tr v-for="(stock, idx) in sortedMarsList" :key="stock.id" @click="openDetail(stock)"
                                     class="hover:bg-white/10 transition cursor-pointer">
                                     <td class="px-6 py-4 text-gray-500 font-mono">{{ idx + 1 }}</td>
                                     <td class="px-6 py-4 font-mono text-cyber-cyan">{{ stock.id }}</td>
@@ -1553,7 +1553,8 @@
                         </div>
                         <div class="bg-black/30 p-4 rounded-lg">
                             <div class="text-gray-400">Yearly ROI (CAGR)</div>
-                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr_pct || detailStock.cagr || 0).toFixed(2) }}%
+                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr_pct || detailStock.cagr
+                                || 0).toFixed(2) }}%
                             </div>
                         </div>
                     </div>

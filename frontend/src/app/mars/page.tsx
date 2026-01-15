@@ -296,9 +296,7 @@ export default function MarsPage() {
                                         </button>
                                     </th>
                                     <th className="px-4 py-3 text-right">
-                                        <button onClick={() => handleSort("volatility_pct")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
-                                            Volatility % <span className={getSortIcon("volatility_pct")}>▼</span>
-                                        </button>
+                                        <span className="text-gray-400">Volatility %</span>
                                     </th>
                                 </tr>
                             </thead>

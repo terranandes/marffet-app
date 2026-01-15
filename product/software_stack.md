@@ -1,34 +1,50 @@
 # Martian Investment System - Software Stack
-**Version**: 2.0
-**Date**: 2026-01-15
+**Version**: 2.1  
+**Date**: 2026-01-16  
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer
 **"The Cyberpunk Visualizer"**
 
-*   **Framework**: [Next.js 14](https://nextjs.org/) (React 18)
-    *   *Why*: Server Actions, Robust Routing, easy deployment.
-*   **Styling**: [TailwindCSS](https://tailwindcss.com/)
-    *   *Theme*: Custom "Cyberpunk" palette (Cyan/Gold/Zinc-950).
-    *   *Font*: 'Inter' (Google Fonts).
-*   **Visualization**: [ECharts for React](https://git.hust.cc/echarts-for-react/)
-    *   *Usage*: Bar Chart Race, Trend Lines, Portfolio Donut.
-*   **State Management**: React `useState` / `useContext` (Lightweight).
+| Category | Technology | Notes |
+|----------|------------|-------|
+| Framework | Next.js 14 (React 18) | App Router, Server Actions |
+| Styling | TailwindCSS | Cyberpunk theme (Cyan/Gold/Zinc-950) |
+| Fonts | Inter (Google) | Clean, modern |
+| Visualization | ECharts for React | Bar Chart Race, Trend Lines, Donut |
+| State | React useState/useContext | Lightweight |
 
 ## 2. Backend Layer
 **"The Mathematical Core"**
 
-*   **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12)
-    *   *Why*: Async performance, Auto-Swagger docs, easy simulation integration.
-*   **Data Processing**: [Pandas](https://pandas.pydata.org/)
-    *   *Usage*: Financial Simulation, Excel I/O, DataFrames.
-*   **Authentication**: [Authlib](https://docs.authlib.org/) + Starlette Sessions.
-    *   *Strategy*: OAuth 2.0 with Google.
-*   **Database**: SQLite (via standard library) + JSON Flat Files.
-    *   *Philosophy*: "Zero-Maintenance Persistence".
+| Category | Technology | Notes |
+|----------|------------|-------|
+| Framework | FastAPI (Python 3.12) | Async, Auto-Swagger |
+| Data Processing | Pandas | Simulation, Excel I/O |
+| Authentication | Authlib + Starlette | OAuth 2.0 (Google) |
+| Database | SQLite + JSON | Zero-maintenance |
 
-## 3. DevOps & Automation
-*   **Containerization**: Docker (Multi-stage builds).
-*   **Testing**: [Playwright](https://playwright.dev/) (Python Sync API).
-    *   *Coverage*: Full E2E (Login -> UI -> Simulation -> Logout).
-*   **CI/CD**: Manual Push -> Zeabur Auto-Deploy.
+## 3. Legacy UI Layer
+**"The Original Interface"**
+
+| Category | Technology | Notes |
+|----------|------------|-------|
+| Framework | Vue.js 3 (CDN) | Embedded in backend static |
+| Visualization | D3.js, Plotly.js | Bar Chart Race, Detail Charts |
+| Styling | TailwindCSS (CDN) | Same cyberpunk theme |
+
+## 4. DevOps & Automation
+
+| Category | Technology | Notes |
+|----------|------------|-------|
+| Containerization | Docker | Multi-stage builds |
+| E2E Testing | Playwright | Python Sync API |
+| CI/CD | Zeabur | Auto-deploy on git push |
+
+## 5. Key Files
+| Path | Purpose |
+|------|---------|
+| `app/main.py` | Backend API + simulation engine |
+| `app/static/main.js` | Legacy UI Vue app |
+| `app/static/index.html` | Legacy UI template |
+| `frontend/src/app/` | Next.js pages |

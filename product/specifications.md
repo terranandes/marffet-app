@@ -1,67 +1,88 @@
 # Martian Investment System - Technical Specifications
-**Version**: 2.0 (Next.js Migration)
-**Date**: 2026-01-15
+**Version**: 2.1  
+**Date**: 2026-01-16  
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
-The system adopts a **Decoupled Client-Server Architecture** tailored for containerized deployment (Zeabur).
+Decoupled Client-Server architecture for containerized deployment (Zeabur).
 
 ### 1.1 Components
-1.  **Backend Service (Data Core)**:
-    *   **Technique**: Python FastAPI
-    *   **Role**: REST API, Authentication Authority, Data Persistence (SQLite/JSON), Simulation Engine.
-    *   **Origin**: `https://martian-api.zeabur.app`
-2.  **Frontend Service (UI Layer)**:
-    *   **Technique**: Next.js 14+ (App Router)
-    *   **Role**: Interactive UI, Data Visualization (ECharts), SSR/CSR.
-    *   **Origin**: `https://martian-app.zeabur.app`
+| Component | Tech | Role | URL |
+|-----------|------|------|-----|
+| Backend | FastAPI (Python 3.12) | REST API, Auth, Simulation Engine | `martian-api.zeabur.app` |
+| Frontend | Next.js 14+ | UI, Visualization (ECharts), SSR | `martian-app.zeabur.app` |
+| Legacy UI | Vue.js (embedded) | Static HTML served by backend | Same as Backend |
 
-### 1.2 Authentication & Security
-*   **Protocol**: OAuth 2.0 (Google).
-*   **Flow**:
-    1.  Frontend triggers Login -> Redirects to `Backend/auth/login`.
-    2.  Backend handles Google flow -> Sets `httpOnly` Session Cookie (`SameSite=None`, `Secure`).
-    3.  Backend redirects back to Frontend Dashboard.
-*   **Cross-Domain Strategy**:
-    *   Backend CORS allows specific Frontend Origin.
-    *   Frontend fetches directly from Backend absolute URL.
+### 1.2 Authentication
+- **Protocol**: OAuth 2.0 (Google)
+- **Cookie**: `httpOnly`, `SameSite=None`, `Secure`
+- **CORS**: Backend allows specific Frontend origin
 
 ## 2. API Specification
-### 2.1 Base URL
-*   **Production**: Defined by `FRONTEND_URL` and Zeabur Service Name.
-*   **Local**: `http://localhost:8000`
+
+### 2.1 Base URLs
+| Environment | URL |
+|-------------|-----|
+| Production | `https://martian-api.zeabur.app` |
+| Local | `http://localhost:8000` |
 
 ### 2.2 Key Endpoints
-*   `GET /auth/me`: user session status.
-*   `GET /api/notifications`: user alerts.
-*   `GET /api/race-data`: historical simulation data.
-*   `GET /api/results`: filtered stock list.
-*   `GET /api/public/profile/{uid}`: guest view.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/me` | GET | User session status |
+| `/api/results` | GET | Mars Strategy simulation results |
+| `/api/race-data` | GET | Flat race data for BCR (wealth, cagr, dividend) |
+| `/api/stock/{id}/history` | GET | Raw price/dividend history |
+| `/api/export/excel` | GET | Excel export with dynamic params |
 
-## 3. Data Structures
-### 3.1 User
+### 2.3 Race-Data Response Format (v2.1)
 ```json
-{
-  "id": "google_sub_id",
-  "email": "user@example.com",
-  "name": "User Name",
-  "nickname": "MarsExplorer",
-  "is_admin": false
-}
+[
+  {
+    "id": "2383",
+    "name": "台光電",
+    "year": 2006,
+    "wealth": 1000000,
+    "value": 1000000,
+    "dividend": 0,
+    "cagr": 0,
+    "roi": 0
+  }
+]
 ```
+**Note**: Changed from nested `{year, stocks}` to flat format for legacy UI compatibility.
+
+## 3. Simulation Engine
+
+### 3.1 Key Parameters
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `start_year` | 2006 | Simulation start year |
+| `principal` | 1,000,000 | Initial investment (TWD) |
+| `contribution` | 60,000 | Annual contribution (TWD) |
+
+### 3.2 History Output
+- **Year Range**: `start_year` → 2026 (21 years inclusive)
+- **Fields**: `year`, `value` (wealth), `dividend`
+- Year 2006 added as initial investment point (v2.1 fix)
 
 ## 4. Deployment Strategy
-*   **Platform**: Zeabur (or Docker-compatible PaaS).
-*   **Service 1 (Backend)**:
-    *   Build: `Dockerfile` (Root).
-    *   Env Vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SECRET_KEY`, `FRONTEND_URL`, `GM_EMAILS`.
-*   **Service 2 (Frontend)**:
-    *   Build: `frontend/Dockerfile`.
-    *   Env Vars: `NEXT_PUBLIC_API_URL`.
 
-## 5. Environment Variables Map
-| Variable | Service | Purpose | Value Example |
-| :--- | :--- | :--- | :--- |
-| `FRONTEND_URL` | Backend | Redirect Target | `https://martian-app.zeabur.app` |
-| `NEXT_PUBLIC_API_URL` | Frontend | API Target | `https://martian-api.zeabur.app` |
-| `SECRET_KEY` | Backend | Session Encryption | `long_random_string` |
+### 4.1 Services
+| Service | Build | Env Vars |
+|---------|-------|----------|
+| Backend | `Dockerfile` (root) | `GOOGLE_CLIENT_ID`, `SECRET_KEY`, `FRONTEND_URL` |
+| Frontend | `frontend/Dockerfile` | `NEXT_PUBLIC_API_URL` |
+
+### 4.2 Environment Variables
+| Variable | Service | Example |
+|----------|---------|---------|
+| `FRONTEND_URL` | Backend | `https://martian-app.zeabur.app` |
+| `NEXT_PUBLIC_API_URL` | Frontend | `https://martian-api.zeabur.app` |
+| `SECRET_KEY` | Backend | `long_random_string` |
+
+## 5. Changelog (v2.1)
+- Fixed race-data format: nested → flat
+- Added year 2006 as initial investment point
+- Fixed dividend field in race-data response
+- Modal now uses pre-computed backend data

@@ -336,7 +336,7 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
                     "wealth": rec['value'],  # Renamed for clarity
                     "value": rec['value'],   # Also include 'value' for backward compat
                     "dividend": rec['dividend'],  # Include dividend for chart
-                    "cagr": 0,
+                    "cagr": rec.get('cagr', 0),
                     "roi": 0,
                     "div_yield": 0
                 })
@@ -608,7 +608,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
         wealth_trend.append({
             "year": start_year,
             "value": round(principal, 0),  # Initial investment value
-            "dividend": 0
+            "dividend": 0,
+            "cagr": 0
         })
         
         # To calculate CAGR/ROI properly for the final export row
@@ -705,10 +706,17 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                     cost += contribution
 
                 # Store history for frontend chart
+                sim_cagr = 0
+                if cost > 0 and wealth > 0:
+                    years_elapsed = year - start_year + 1
+                    if years_elapsed > 0:
+                        sim_cagr = ((wealth / cost) ** (1 / years_elapsed) - 1) * 100
+
                 wealth_trend.append({
                     "year": year,
                     "value": round(wealth, 0),
-                    "dividend": round(div_cash * shares, 0)
+                    "dividend": round(div_cash * shares, 0),
+                    "cagr": round(sim_cagr, 2)
                 })
 
                 if pd.notnull(final_roi) and final_roi != 0:
@@ -746,48 +754,7 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
              })
     return results
 
-@app.get("/api/race-data")
-def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
-    """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
-    try:
-        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-        print(f"[DEBUG] Loading Excel from: {SOURCE_FILE}")
-        df = pd.read_excel(SOURCE_FILE)
-        df = df.fillna(0) # Ensure no NaNs
-        
-        # DIVIDENDS_DB is loaded globally
-        
-        # Pre-load ALL Price Data (Performance Optimization)
-        # Structure: PRICES_DB[year][stock_id] = {'start': x, 'end': y}
-        PRICES_DB = {}
-        import json, os
-        # Load up to current year if possible, or 2026
-        for year in range(2006, 2026):
-            p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-            if p_file.exists():
-                try:
-                    with open(p_file, "r") as f:
-                        PRICES_DB[year] = json.load(f)
-                except:
-                    PRICES_DB[year] = {}
-            else:
-                PRICES_DB[year] = {}
-                
-            # Load TPEx Prices (OTC)
-            tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-            if tpex_file.exists():
-                try:
-                    with open(tpex_file, "r") as f:
-                        tpex_data = json.load(f)
-                        PRICES_DB[year].update(tpex_data)
-                except:
-                    pass
 
-        # Run simulation
-        race_data = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
-        return race_data
-    except Exception as e:
-        return {"error": str(e)}
 
 @app.get("/api/cb/analyze")
 async def analyze_cb(code: str):

@@ -16,14 +16,27 @@ from contextlib import contextmanager
 
 # Database file location
 # Use persistent storage on Zeabur, fallback to local for dev
-import os
 # Zeabur mounts volume at /data (as configured in Volumes tab)
+# Auto-restore logic: If persistent DB missing, copy from repo (seed/backup)
+import shutil
 PERSISTENT_DIR = Path("/data")
+REPO_DB_PATH = Path(__file__).parent / "portfolio.db"
+
 if PERSISTENT_DIR.exists() and PERSISTENT_DIR.is_dir():
     DB_PATH = PERSISTENT_DIR / "portfolio.db"
+    
+    # If persistent DB is missing calling sqlite3.connect would create an empty one.
+    # We want to restore from repo backup first if available.
+    if not DB_PATH.exists() and REPO_DB_PATH.exists():
+        try:
+            print(f"[DB] Restoring persistent DB from repo backup: {REPO_DB_PATH}")
+            shutil.copy2(REPO_DB_PATH, DB_PATH)
+        except Exception as e:
+            print(f"[DB] Restore failed: {e}")
+            
     print(f"[DB] Using persistent storage: {DB_PATH}")
 else:
-    DB_PATH = Path(__file__).parent / "portfolio.db"
+    DB_PATH = REPO_DB_PATH
     print(f"[DB] Using local storage: {DB_PATH}")
 
 # Tier limits

@@ -49,6 +49,49 @@ PREMIUM_MAX_GROUPS = 30
 PREMIUM_MAX_TARGETS_PER_GROUP = 200
 PREMIUM_MAX_TX_PER_TARGET = 1000
 
+# --- Global Name Cache ---
+STOCK_NAME_CACHE = {}
+
+# Initial manual map for recent ETFs not in history file
+SUPPLEMENTARY_STOCK_NAMES = {
+    "00937B": "群益ESG投等債20+",
+    "00953B": "群益優選非投等債",
+    "00933B": "國泰10Y+金融債", 
+    "00950B": "凱基A級公司債",
+    "00945B": "凱基美國非投等債",
+    "00980D": "大華投等美債15Y+",
+    "00981A": "亞太優質高息", 
+    "00687B": "國泰20年美債",
+    "00679B": "元大美債20年",
+}
+
+def load_stock_name_cache():
+    """Load stock names from Mars references into global cache."""
+    global STOCK_NAME_CACHE
+    if STOCK_NAME_CACHE: return 
+    
+    # Pre-populate with supplementary
+    STOCK_NAME_CACHE.update(SUPPLEMENTARY_STOCK_NAMES)
+    
+    try:
+        import pandas as pd
+        from pathlib import Path
+        mars_file = Path(__file__).parent.parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        if mars_file.exists():
+            df = pd.read_excel(mars_file)
+            # Build lookup: stock_id -> name
+            new_cache = {}
+            if 'Unnamed: 0' in df.columns and 'name' in df.columns:
+                new_cache = dict(zip(df['Unnamed: 0'].astype(str), df['name']))
+            elif 'id' in df.columns and 'name' in df.columns:
+                new_cache = dict(zip(df['id'].astype(str), df['name']))
+            
+            STOCK_NAME_CACHE.update(new_cache)
+            print(f"[Portfolio cache] Loaded {len(new_cache)} names from file")
+    except Exception as e:
+        print(f"[Portfolio cache] Error loading file: {e}")
+
+
 
 @contextmanager
 def get_db():
@@ -269,27 +312,15 @@ def initialize_default_portfolio(user_id: str) -> None:
         },
     ]
     
-    # Load stock name lookup from Mars Strategy data
-    stock_name_cache = {}
-    try:
-        import pandas as pd
-        from pathlib import Path
-        mars_file = Path(__file__).parent.parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-        if mars_file.exists():
-            df = pd.read_excel(mars_file)
-            # Build lookup: stock_id -> name
-            if 'Unnamed: 0' in df.columns and 'name' in df.columns:
-                stock_name_cache = dict(zip(df['Unnamed: 0'].astype(str), df['name']))
-            elif 'id' in df.columns and 'name' in df.columns:
-                stock_name_cache = dict(zip(df['id'].astype(str), df['name']))
-            print(f"[Portfolio] Loaded {len(stock_name_cache)} stock names from Mars data")
-    except Exception as e:
-        print(f"[Portfolio] Could not load Mars data for name lookup: {e}")
+    
+    # Ensure cache is loaded
+    load_stock_name_cache()
     
     print(f"[Portfolio] Initializing default groups for user: {user_id}")
     
     with get_db() as conn:
         cursor = conn.cursor()
+
         
         for group_def in DEFAULT_GROUPS:
             # Create group
@@ -301,8 +332,8 @@ def initialize_default_portfolio(user_id: str) -> None:
             
             # Add targets to group
             for stock_id in group_def["targets"]:
-                # Lookup name from cache, fallback to yfinance fetch
-                stock_name = stock_name_cache.get(stock_id) or stock_name_cache.get(stock_id.upper())
+                # Lookup name from global cache (which includes supplementary)
+                stock_name = STOCK_NAME_CACHE.get(stock_id) or STOCK_NAME_CACHE.get(stock_id.upper())
                 
                 # If not in Mars data, try fetching from yfinance
                 if not stock_name:
@@ -684,7 +715,19 @@ def fetch_live_prices(stock_ids: list) -> dict:
 
 
 def fetch_stock_name(stock_id: str) -> Optional[str]:
-    """Fetch stock name from yfinance."""
+    """
+    Fetch stock name.
+    Priority:
+    1. Global Cache (Mars Data + Manual Map) -> CHT
+    2. YFinance -> Often EN
+    """
+    load_stock_name_cache()
+    
+    # 1. Check Cache
+    if stock_id in STOCK_NAME_CACHE:
+        return STOCK_NAME_CACHE[stock_id]
+        
+    # 2. YFinance Fallback
     import yfinance as yf
     try:
         # Try TW then TWO
@@ -692,8 +735,14 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
             ticker = yf.Ticker(f"{stock_id}{suffix}")
             # Try fetching explicit name
             info = ticker.info # This triggers a network request
+            
+            # YF often gives English 'longName'.
+            # We check if there is a 'shortName' which might be better?
+            # Usually they are both English for TW stocks in YF.
             name = info.get('longName') or info.get('shortName')
             if name:
+                # Cache it (even if English, better than nothing)
+                STOCK_NAME_CACHE[stock_id] = name
                 return name
     except:
         pass

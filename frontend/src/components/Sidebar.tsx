@@ -329,13 +329,7 @@ export default function Sidebar() {
                     </nav>
                 </div>
 
-                {/* Global Settings Trigger */}
-                <button
-                    onClick={() => setShowSettings(true)}
-                    className="mx-6 mb-2 py-2 flex items-center justify-center gap-2 text-xs font-bold text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 rounded-lg transition"
-                >
-                    ⚙️ Settings
-                </button>
+
 
                 {user ? (
                     <div className="mt-auto mb-4 p-4 rounded-xl bg-[var(--color-bg-secondary)]/30 border border-[var(--color-border)]">
@@ -355,6 +349,17 @@ export default function Sidebar() {
                                     {user.email || "Guest"}
                                 </div>
                             </div>
+                            {/* Settings Icon in User Card */}
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition"
+                                title="Settings"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
                         </div>
                         <a
                             href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`}
@@ -364,16 +369,22 @@ export default function Sidebar() {
                         </a>
                     </div>
                 ) : (
-                    <div className="mt-auto mb-4 p-4">
+                    <div className="mt-auto mb-4 p-4 flex gap-2">
                         <a
                             href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
-                            className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
+                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                             </svg>
                             Login
                         </a>
+                        <button
+                            onClick={() => setShowSettings(true)}
+                            className="p-3 bg-zinc-800 text-zinc-400 hover:text-white rounded-xl border border-zinc-700 hover:bg-zinc-700 transition"
+                        >
+                            ⚙️
+                        </button>
                     </div>
                 )}
 

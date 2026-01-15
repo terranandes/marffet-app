@@ -26,6 +26,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     const [apiKey, setApiKey] = useState("");
     const [language, setLanguage] = useState("en");
     const [region, setRegion] = useState("US");
+    const [isPremium, setIsPremium] = useState(false);
 
     // Feedback State
     const [feedbackCategory, setFeedbackCategory] = useState("settings");
@@ -43,6 +44,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
             setApiKey(localStorage.getItem("martian_api_key") || "");
             setLanguage(localStorage.getItem("martian_lang") || "en");
             setRegion(localStorage.getItem("martian_region") || "US");
+            setIsPremium(localStorage.getItem("martian_premium") === "true");
             setMsg(null);
         }
     }, [isOpen, user]);
@@ -74,6 +76,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     const handleSavePreferences = () => {
         localStorage.setItem("martian_lang", language);
         localStorage.setItem("martian_region", region);
+        localStorage.setItem("martian_premium", String(isPremium));
         setMsg({ type: "success", text: "Preferences saved (reload to apply)" });
     };
 
@@ -230,8 +233,29 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                     >
                                         <option value="US">🇺🇸 United States (USD)</option>
                                         <option value="TW">🇹🇼 Taiwan (TWD)</option>
+                                        <option value="CN">🇨🇳 China (CNY)</option>
                                     </select>
                                 </div>
+
+                                {user?.is_admin && (
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">GM Controls</label>
+                                        <div className="flex items-center gap-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                                            <div className="flex-1">
+                                                <div className="font-bold text-white">Premium Status</div>
+                                                <div className="text-xs text-zinc-400">Unlock advanced features for testing</div>
+                                            </div>
+                                            <button
+                                                onClick={() => setIsPremium(!isPremium)}
+                                                className={`w-12 h-6 rounded-full transition-colors relative ${isPremium ? 'bg-[var(--color-cta)]' : 'bg-zinc-700'
+                                                    }`}
+                                            >
+                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isPremium ? 'left-7' : 'left-1'
+                                                    }`} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Language</label>
@@ -254,7 +278,17 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                                 }`}
                                         >
                                             <span className="text-2xl">🇹🇼</span>
-                                            <span className="font-bold">Traditional Chinese</span>
+                                            <span className="font-bold">繁體中文</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setLanguage('zh-CN')}
+                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition ${language === 'zh-CN'
+                                                ? 'bg-[var(--color-cta)]/10 border-[var(--color-cta)] text-white'
+                                                : 'border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                                                }`}
+                                        >
+                                            <span className="text-2xl">🇨🇳</span>
+                                            <span className="font-bold">簡體中文</span>
                                         </button>
                                     </div>
                                     <p className="text-xs text-yellow-500/80 mt-2">⚠️ Note: Language switching is deferred to Q2.</p>

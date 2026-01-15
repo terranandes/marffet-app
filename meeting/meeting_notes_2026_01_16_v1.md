@@ -36,6 +36,10 @@
 | BUG-003 | Year range showing 19 instead of 21 years | ✅ Fixed |
 | BUG-004 | CAGR showing 34.47% instead of 28.10% | ✅ Fixed |
 | BUG-005 | Dividend chart showing zero/flat line | ✅ Fixed |
+| BUG-006 | CORS Error on Zeabur | ✅ Fixed (Hardcoded fallback) |
+| BUG-007 | `renderDetailChart` hoisting error | ✅ Fixed |
+| BUG-008 | "Valid Candidates" showing 1941 instead of 50 | ✅ Fixed |
+| BUG-009 | Race Data CAGR 0% | ✅ Fixed (Backend logic updated) |
 
 ### Open Issues
 | Bug ID | Description | Priority | Assignee |

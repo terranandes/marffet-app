@@ -27,6 +27,9 @@ from app.portfolio_db import (
     init_db
 )
 
+# Import New Router
+from app.routers.portfolio import router as portfolio_router
+
 app = FastAPI(title="Martian Investment System")
 
 # Proxy Headers for Zeabur/Render/Cloud Run (Must be FIRST)
@@ -62,8 +65,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])
 
 # ---------------- Notification Engine (Premium) ----------------
 from app.engines import RuthlessManager

@@ -1133,6 +1133,29 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+@app.post("/api/admin/crawl")
+async def admin_trigger_crawl(
+    background_tasks: BackgroundTasks, 
+    key: str = Query(..., description="Access Key"),
+    force: bool = Query(False, description="Force Cold Run (Clear Cache)"),
+    user: dict = Depends(get_current_user)
+):
+    """
+    Trigger Market Analysis Crawler (Background Task).
+    """
+    from app.auth import GM_EMAILS
+    from app.services.crawler_service import CrawlerService
+    
+    if not user or user.get('email') not in GM_EMAILS:
+        return JSONResponse(status_code=403, content={"error": "Admin access required"})
+    
+    # Add to background
+    background_tasks.add_task(CrawlerService.run_market_analysis, force)
+    
+    mode = "COLD RUN (Cache Cleared)" if force else "Smart Run"
+    return {"status": "accepted", "message": f"Market Analysis started in background. Mode: {mode}"}
+
+
 # ---------------- User Feedback System ----------------
 from app.feedback_db import (
     submit_feedback, get_all_feedback, update_feedback, 

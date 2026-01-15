@@ -238,6 +238,40 @@ Please analyze this feedback and determine if it's a true bug.`;
                 <div className="flex gap-4">
                     <button
                         onClick={async () => {
+                            if (!confirm("Trigger analysis? (Background Task)")) return;
+                            try {
+                                const res = await fetch(`${API_BASE}/api/admin/crawl?key=secret&force=false`, {
+                                    method: "POST",
+                                    credentials: "include"
+                                });
+                                const data = await res.json();
+                                alert(res.ok ? "✅ Started: " + data.message : "❌ Error: " + data.error);
+                            } catch (e) { alert("❌ Network Error"); }
+                        }}
+                        className="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                    >
+                        ⚡ Update Market Data (Smart)
+                    </button>
+
+                    <button
+                        onClick={async () => {
+                            if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~3 mins).")) return;
+                            try {
+                                const res = await fetch(`${API_BASE}/api/admin/crawl?key=secret&force=true`, {
+                                    method: "POST",
+                                    credentials: "include"
+                                });
+                                const data = await res.json();
+                                alert(res.ok ? "✅ Started: " + data.message : "❌ Error: " + data.error);
+                            } catch (e) { alert("❌ Network Error"); }
+                        }}
+                        className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                    >
+                        🔥 Rebuild All (Cold Run)
+                    </button>
+
+                    <button
+                        onClick={async () => {
                             if (!confirm("Trigger manual backup to GitHub?")) return;
                             try {
                                 const res = await fetch(`${API_BASE}/api/admin/backup`, {

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,7 +31,38 @@ from app.portfolio_db import (
 # Import New Router
 from app.routers.portfolio import router as portfolio_router
 
-app = FastAPI(title="Martian Investment System")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup Logic
+    try:
+        # 1. Initialize DB
+        init_db()
+        print("[Startup] Portfolio Database Initialized")
+        
+        # 2. Start Scheduler for Backup
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from app.services.backup import BackupService
+        
+        scheduler = BackgroundScheduler()
+        # Schedule daily backup at 01:00 UTC (09:00 Taipei)
+        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0)
+        scheduler.start()
+        app.state.scheduler = scheduler
+        print("[Startup] Backup Scheduler Started")
+        
+    except Exception as e:
+        print(f"[Startup] Error initializing services: {e}")
+    
+    yield
+    
+    # Shutdown Logic
+    try:
+        if hasattr(app.state, 'scheduler'):
+            app.state.scheduler.shutdown()
+            print("[Shutdown] Scheduler Stopped")
+    except: pass
+
+app = FastAPI(title="Martian Investment System", lifespan=lifespan)
 
 # Proxy Headers for Zeabur/Render/Cloud Run (Must be FIRST)
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -808,7 +840,8 @@ from pydantic import BaseModel
 from typing import Optional
 
 # Initialize portfolio DB on startup
-init_db()
+# Portfolio DB initialized in lifespan
+# init_db()
 
 # ---------------- Leaderboard & Profile ----------------
 
@@ -1175,3 +1208,21 @@ if __name__ == "__main__":
     import uvicorn
     # Use 0.0.0.0 to make it accessible if needed, or 127.0.0.1 for local
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+# ---------------- Admin / System ----------------
+
+@app.post("/api/admin/backup")
+async def trigger_backup(user: dict = Depends(get_current_user)):
+    """Trigger manual database backup to GitHub."""
+    # Simple auth check - assume all logged in users can trigger for now? 
+    # Or restrict to specific ID? For now, open to authenticated users as requested by PL.
+    if not user: raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    from app.services.backup import BackupService
+    result = BackupService.backup_db()
+    
+    if result.get("status") == "success":
+        return {"message": "Backup successful", "details": result}
+    elif result.get("status") == "skipped":
+        return {"message": "Backup skipped (missing config)", "details": result}
+    else:
+        raise HTTPException(status_code=500, detail=f"Backup failed: {result.get('reason')}")

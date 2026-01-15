@@ -230,6 +230,37 @@ Please analyze this feedback and determine if it's a true bug.`;
                 )}
             </div>
 
+            {/* System Operations */}
+            <div className="glass-card p-6 rounded-xl border border-[var(--color-tier-premium)]/30">
+                <h3 className="text-sm text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+                    🛠️ System Operations
+                </h3>
+                <div className="flex gap-4">
+                    <button
+                        onClick={async () => {
+                            if (!confirm("Trigger manual backup to GitHub?")) return;
+                            try {
+                                const res = await fetch(`${API_BASE}/api/admin/backup`, {
+                                    method: "POST",
+                                    credentials: "include"
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
+                                } else {
+                                    alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
+                                }
+                            } catch (e) {
+                                alert("❌ Network Error");
+                            }
+                        }}
+                        className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                    >
+                        💾 Backup Portfolio DB to GitHub
+                    </button>
+                </div>
+            </div>
+
             {/* Feedback Panel */}
             <div className="glass-card p-6 rounded-xl border border-[var(--color-border)]">
                 <div className="flex items-center justify-between mb-4">

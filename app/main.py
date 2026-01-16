@@ -1155,6 +1155,22 @@ async def admin_trigger_crawl(
     mode = "COLD RUN (Cache Cleared)" if force else "Smart Run"
     return {"status": "accepted", "message": f"Market Analysis started in background. Mode: {mode}"}
 
+@app.get("/api/admin/crawl/status")
+async def admin_get_crawl_status(
+    key: str = Query(..., description="Access Key"),
+    user: dict = Depends(get_current_user)
+):
+    """
+    Get status of the Market Analysis Crawler.
+    """
+    from app.auth import GM_EMAILS
+    from app.services.crawler_service import CrawlerService
+    
+    if not user or user.get('email') not in GM_EMAILS:
+        return JSONResponse(status_code=403, content={"error": "Admin access required"})
+        
+    return CrawlerService.get_status()
+
 
 # ---------------- User Feedback System ----------------
 from app.feedback_db import (

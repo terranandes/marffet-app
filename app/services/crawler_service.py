@@ -5,6 +5,18 @@ from project_tw.run_analysis import main as run_analysis_main
 
 class CrawlerService:
     _is_running = False
+    _last_run_time = None
+    _last_run_status = "idle" # idle, running, success, error
+    _last_message = ""
+
+    @classmethod
+    def get_status(cls):
+        return {
+            "is_running": cls._is_running,
+            "last_run_time": cls._last_run_time.isoformat() if cls._last_run_time else None,
+            "status": cls._last_run_status,
+            "message": cls._last_message
+        }
 
     @classmethod
     async def run_market_analysis(cls, force_cold_run: bool = False):
@@ -14,7 +26,11 @@ class CrawlerService:
         if cls._is_running:
             return {"status": "skipped", "message": "Analysis already running"}
             
-        cls._is_running = True
+            cls._is_running = True
+            cls._last_run_status = "running"
+            cls._last_message = "Analysis in progress..."
+            
+            # ... (execution) ...
         try:
             print("[CrawlerService] Starting Market Analysis...")
             
@@ -52,11 +68,19 @@ class CrawlerService:
 
             # Run Analysis
             await run_analysis_main()
-            print("[CrawlerService] Market Analysis Complete.")
+            import datetime
+            cls._last_run_time = datetime.datetime.now()
+            cls._last_run_status = "success"
+            cls._last_message = "Analysis completed successfully."
             
+            print("[CrawlerService] Market Analysis Complete.")
             return {"status": "success", "message": "Analysis completed"}
             
         except Exception as e:
+            import datetime
+            cls._last_run_time = datetime.datetime.now()
+            cls._last_run_status = "error"
+            cls._last_message = str(e)
             print(f"[CrawlerService] Error: {e}")
             return {"status": "error", "message": str(e)}
         finally:

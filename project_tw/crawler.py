@@ -449,7 +449,7 @@ class TWSECrawler:
                         # If current year, scan backwards from TODAY
                         print(f"DEBUG: Current Year {year} detected. Scanning backward from {today}...")
                         end_dates = [
-                            (today - datetime.timedelta(days=i)).strftime("%Y%m%d")
+                            (today - timedelta(days=i)).strftime("%Y%m%d")
                             for i in range(7)
                         ]
                     else:

@@ -47,7 +47,8 @@ async def lifespan(app: FastAPI):
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
         scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup')
         # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
-        scheduler.add_job(BackupService.refresh_prewarm_data, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
+        # This runs Cold Run first, then pushes to GitHub
+        scheduler.add_job(BackupService.annual_prewarm_with_rebuild, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
         scheduler.start()
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")

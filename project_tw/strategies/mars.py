@@ -152,26 +152,26 @@ class MarsStrategy:
                         if 2025 in years: stock_divs[2025] = {'cash': 1.035, 'stock': 0.0} # 30 is too high, 1.035 is approx H1
                         
                     
-                    # ALGORITHMIC SPLIT DETECTION (Async Deep Scan)
-                    # If Yearly Drop > 65%, scan daily data for sharp drop.
-                    # This await was blocking the loop. Now concurrent.
-                    for y_idx in df.index:
-                        y = y_idx.year
-                        row_data = df.loc[y_idx]
-                        p_ope = row_data['open']
-                        p_clo = row_data['close']
-                        
-                        if p_ope > 0 and p_clo > 0:
-                            ret = p_clo / p_ope
-                            if ret < 0.35: # Candidate for Split
-                                curr_div = stock_divs.get(y, {}).get('stock', 0.0)
-                                if curr_div < 0.5:
-                                    # Trigger Deep Scan
-                                    inferred_val = await self.crawler.detect_daily_split(code, y)
-                                    if inferred_val > 0:
-                                        print(f"CONFIRMED SPLIT via Daily Scan: {code} in {y}. StockDiv {inferred_val}")
-                                        if y not in stock_divs: stock_divs[y] = {'cash': 0, 'stock': 0}
-                                        stock_divs[y]['stock'] = inferred_val
+                    # ALGORITHMIC SPLIT DETECTION (Disabled for speed)
+                    # This was triggering expensive 12-API-calls/stock deep scans
+                    # TODO: Re-enable with caching or move to background job
+                    # for y_idx in df.index:
+                    #     y = y_idx.year
+                    #     row_data = df.loc[y_idx]
+                    #     p_ope = row_data['open']
+                    #     p_clo = row_data['close']
+                    #     
+                    #     if p_ope > 0 and p_clo > 0:
+                    #         ret = p_clo / p_ope
+                    #         if ret < 0.35: # Candidate for Split
+                    #             curr_div = stock_divs.get(y, {}).get('stock', 0.0)
+                    #             if curr_div < 0.5:
+                    #                 # Trigger Deep Scan
+                    #                 inferred_val = await self.crawler.detect_daily_split(code, y)
+                    #                 if inferred_val > 0:
+                    #                     print(f"CONFIRMED SPLIT via Daily Scan: {code} in {y}. StockDiv {inferred_val}")
+                    #                     if y not in stock_divs: stock_divs[y] = {'cash': 0, 'stock': 0}
+                    #                     stock_divs[y]['stock'] = inferred_val
     
                     # PATCH: 00937B (Bond ETF) - Monthly distributions
                     # Approx 0.084 * 12 = ~1.0 per year. Yield ~6%.

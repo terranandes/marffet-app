@@ -3,7 +3,8 @@ import os
 import pandas as pd
 from project_tw.strategies.mars import MarsStrategy
 
-async def main():
+async def main(status_callback=None):
+    if status_callback: status_callback("Initializing Mars Analysis Batch...")
     print("Starting Mars Analysis Batch...")
     
     # 1. Define Stock Universe
@@ -54,9 +55,12 @@ async def main():
     strategy = MarsStrategy()
     
     print(f"Analyzing {len(stock_universe)} stocks from {start_year} to {end_year}...")
-    results = await strategy.analyze_stock_batch(stock_universe, start_year, end_year)
+    if status_callback: status_callback(f"Analyzing {len(stock_universe)} stocks ({start_year}-{end_year})...")
+    
+    results = await strategy.analyze_stock_batch(stock_universe, start_year, end_year, status_callback=status_callback)
     
     print(f"Analysis complete. Metrics calculated for {len(results)} stocks.")
+    if status_callback: status_callback("Analysis Processing Complete. Saving results...")
     
     # Enrich Names (Before Filtering)
     for r in results:

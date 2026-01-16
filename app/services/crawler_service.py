@@ -67,7 +67,11 @@ class CrawlerService:
                     print(f"[CrawlerService] Cleared {count} cache files for {current_year}")
 
             # Run Analysis
-            await run_analysis_main()
+            def update_status(msg):
+                cls._last_message = msg
+                print(f"[CrawlerService Status] {msg}")
+
+            await run_analysis_main(status_callback=update_status)
             import datetime
             cls._last_run_time = datetime.datetime.now()
             cls._last_run_status = "success"

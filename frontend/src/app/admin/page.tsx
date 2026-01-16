@@ -278,6 +278,12 @@ export default function AdminPage() {
                                 </span>
                             </div>
                         )}
+                        {/* Status Message Display */}
+                        {crawlerStatus && crawlerStatus.is_running && (
+                            <span className="ml-4 text-sm text-[var(--color-text-muted)] animate-pulse">
+                                {crawlerStatus.message}
+                            </span>
+                        )}
                     </h2>
                     <div className="flex gap-4">
                         <button

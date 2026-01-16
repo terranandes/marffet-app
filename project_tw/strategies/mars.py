@@ -12,14 +12,17 @@ class MarsStrategy:
         self.calculator = ROICalculator()
         self.top_50 = []
         
-    async def analyze_stock_batch(self, stock_codes: list, start_year: int, end_year: int, std_threshold: float = 100.0):
+    async def analyze_stock_batch(self, stock_codes: list, start_year: int, end_year: int, std_threshold: float = 100.0, status_callback=None):
         """
         Analyze a batch of stocks concurrently using Market-Wide Batch Data.
         """
         results = []
         
         # 1. Pre-fetch Dividend Data (TWT49U) - Efficient (Annual Queries)
-        print("Fetching Dividend Data (TWSE TWT49U)...")
+        msg = "Fetching Dividend Data (TWSE TWT49U)..."
+        print(msg)
+        if status_callback: status_callback(msg)
+        
         dividend_data = {} # {year: {code: {'cash': x, 'stock': y}}}
         years = list(range(start_year, end_year + 1))
         
@@ -42,7 +45,10 @@ class MarsStrategy:
         print("Dividend Data Fetched (Parallel).")
 
         # 2. Pre-fetch Market Prices (Start Jan / End Dec) - Efficient (~40 calls total)
-        print("Fetching Market Prices (TWSE + TPEx) in Parallel...")
+        msg = f"Fetching Market Prices ({start_year}-{end_year})..."
+        print(msg)
+        if status_callback: status_callback(msg)
+        
         # Concurrent Fetch
         # TWSE
         task_twse = self.crawler.fetch_market_prices_batch(years)

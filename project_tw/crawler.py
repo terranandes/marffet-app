@@ -15,6 +15,103 @@ class TWSECrawler:
         # TWSE has strict rate limits (suggestion: 3s delay)
         self.rate_limit_delay = 1.5 
 
+    async def fetch_listing_dates(self):
+        """
+        Fetch Listing Dates for all TWSE stocks from the ISIN Registry.
+        Returns: {code: "YYYY-MM-DD"}
+        """
+        cache_file = os.path.join(self.data_dir, "ListingDates.json")
+        
+        # 1. Check Cache (Expires in 30 days)
+        if os.path.exists(cache_file):
+            mtime = os.path.getmtime(cache_file)
+            if (time.time() - mtime) < 86400 * 30:
+                print("CACHE HIT: ListingDates.json")
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+
+        print("Fetching Listing Dates from ISIN Registry...")
+        url = "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url)
+                resp.raise_for_status()
+                
+            # HTML parsing (handling Big5 encoding if simple decoding fails)
+            try:
+                content = resp.content.decode('big5')
+            except:
+                content = resp.text # Fallback
+                
+            # Needs BeautifulSoup
+            from bs4 import BeautifulSoup
+            # Use 'ignore' in case of minor encoding bytes issues
+            try:
+                content = resp.content.decode('big5', errors='ignore')
+            except:
+                content = resp.text
+
+            soup = BeautifulSoup(content, 'html.parser')
+            
+            # Target Table Index 1 (based on analysis)
+            tables = soup.find_all('table')
+            if len(tables) < 2:
+                print("Error: ISIN table not found (count < 2)")
+                return {}
+            
+            table = tables[1]
+            listing_map = {}
+            rows = table.find_all('tr')
+            
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) < 4: continue
+                
+                # Header Check
+                first_text = cols[0].get_text(strip=True)
+                if "有價證券代號" in first_text: continue
+                
+                # Data Row Structure:
+                # Col 0: 1101 台泥 (Code + Name)
+                # Col 1: ISIN Code
+                # Col 2: Listing Date (1962/02/09)
+                # Col 3: Market
+                # ...
+                
+                # Careful: Col 0 might be "Stock" category header in some rows?
+                # Based on 'h4' class table structure usually:
+                # <tr><td bgcolor="#D5FFD5">股票</td>...</tr> (Category Header)
+                # <tr><td>1101　台泥</td><td>TW0001101004</td><td>1962/02/09</td>...</tr> (Data)
+                
+                code_name = cols[0].get_text(strip=True)
+                # Split "1101 台泥" -> ["1101", "台泥"]
+                parts = code_name.split()
+                if not parts: continue
+                
+                code = parts[0]
+                
+                # If code is not 4 digits, likely a category header or special row
+                if not (code.isdigit() and len(code) == 4):
+                     continue
+                     
+                date_str = cols[2].get_text(strip=True) # Index 2 is Date
+                
+                # Validate Date "YYYY/MM/DD"
+                if len(date_str) == 10 and date_str[4] == '/':
+                    listing_map[code] = date_str.replace('/', '-')
+
+            # Save Cache
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(listing_map, f)
+                
+            print(f"Parsed {len(listing_map)} Listing Dates.")
+            return listing_map
+
+        except Exception as e:
+            print(f"Error fetching Listing Dates: {e}")
+            return {}
+
     def _taiwan_to_ad(self, date_str):
         """Convert '113/01/02' to '2024-01-02'"""
         try:
@@ -309,12 +406,15 @@ class TWSECrawler:
         Fetch Market-Wide Prices (Start/End) using MI_INDEX (Daily Quotes).
         Returns: {year: {code: {'start': float, 'end': float}}}
         """
+        # 1. Fetch Listing Dates Map (Fast, Cached)
+        listing_dates = await self.fetch_listing_dates()
+
         results = {}
         sem = asyncio.Semaphore(4) # Limit concurrency to avoid global ban
 
         async def fetch_one_year(year):
              async with sem:
-                 # Cache File
+                # Cache File
                 cache_file = os.path.join(self.data_dir, f"Market_{year}_Prices.json")
                 if os.path.exists(cache_file):
                     # Cache Expiry for Current Year
@@ -361,16 +461,45 @@ class TWSECrawler:
                     result_data = {}
                     all_codes = set(s_prices.keys()) | set(e_prices.keys())
                     
+                    # Identify IPO Lookup Candidates (Start Missing + Known Listing Date in this Year)
+                    ipo_lookup_dates = {} # {date_str: [code1, code2]}
+                    
+                    for code in all_codes:
+                        s_p = s_prices.get(code, 0.0)
+                        
+                        # Optimization: Smart IPO Lookup
+                        if s_p == 0 and code in listing_dates:
+                            listing_date = listing_dates[code] # "YYYY-MM-DD"
+                            # Check if Listing Year matches Target Year
+                            if listing_date.startswith(str(year)):
+                                # Formate as YYYYMMDD
+                                d_str = listing_date.replace('-', '')
+                                if d_str not in ipo_lookup_dates:
+                                    ipo_lookup_dates[d_str] = []
+                                ipo_lookup_dates[d_str].append(code)
+
+                    # Execute Targeted IPO Lookups (Batched by Date)
+                    if ipo_lookup_dates:
+                        print(f"  Performing Targeted IPO Lookups for {len(ipo_lookup_dates)} dates (Parallel)...")
+                        
+                        async def fetch_ipo_date(d_str, codes):
+                             # Reuse _fetch_market_day but for a SINGLE date
+                             ipo_prices = await self._fetch_market_day(client, [d_str], f"IPO_{d_str}")
+                             return d_str, codes, ipo_prices
+
+                        ipo_tasks = [fetch_ipo_date(d, c) for d, c in ipo_lookup_dates.items()]
+                        ipo_results = await asyncio.gather(*ipo_tasks)
+                        
+                        for _, codes, ipo_prices in ipo_results:
+                            for code in codes:
+                                price = ipo_prices.get(code, 0.0)
+                                if price > 0:
+                                    s_prices[code] = price
+
+                    # Final Merge
                     for code in all_codes:
                         s_p = s_prices.get(code, 0.0)
                         e_p = e_prices.get(code, 0.0)
-                        
-                        if s_p == 0 and e_p > 0:
-                            # SKIP heavy deep scan for speed (<1min goal)
-                            # try:
-                            #     s_p = await self.find_first_price(code, year)
-                            # except: pass
-                            pass
 
                         if s_p > 0 or e_p > 0:
                             result_data[code] = {
@@ -393,38 +522,6 @@ class TWSECrawler:
 
         return results
 
-    async def find_first_price(self, code, year):
-        """
-        Scans monthly STOCK_DAY to find the first valid closing price (IPO).
-        """
-        async with httpx.AsyncClient() as client:
-            for m in range(1, 13):
-                date_str = f"{year}{m:02d}01"
-                url = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
-                params = {"response": "json", "date": date_str, "stockNo": code}
-                try:
-                    await asyncio.sleep(0.1) # Fast scan
-                    resp = await client.get(url, params=params, timeout=5.0)
-                    data = resp.json()
-                    if data.get('stat') == 'OK':
-                        rows = data.get('data', [])
-                        # Use first row's Closing Price? Or Opening?
-                        # User wants Buy Price. "3/27/2019 prize 378".
-                        # If 3/27 is listing date, Open/Close might differ.
-                        # Using Closing of first day is safest "First Price".
-                        # Or Opening of first day. User said "prize 378". 6669 IPO 2019/3/27 Open 470? Close 378?
-                        # Let's use Open for "Buy at Open" logic, or Close if Open is weird.
-                        # Strategy uses 'open' column for Start Price.
-                        # So let's return Open price of first day.
-                        if rows:
-                            first_row = rows[0]
-                            # fields: index 3=Open, 6=Close
-                            op = float(first_row[3].replace(',', ''))
-                            # cl = float(first_row[6].replace(',', ''))
-                            return op
-                except:
-                    pass
-        return 0.0
 
     async def _fetch_market_day(self, client, candidates, label):
         for date_str in candidates:

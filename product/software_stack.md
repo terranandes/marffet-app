@@ -25,6 +25,7 @@
 | Database | SQLite + JSON | Zero-maintenance, **Auto-Backup to GitHub** |
 | Persistence | Git Backup Loop | [Read Architecture Spec](./backup_restore.md) |
 | Data Crawler | AsyncIO + HTTPX | **[Crawler Architecture](./crawler_architecture.md)** |
+| Data Pipeline | Python, Pandas, Asyncio, HTTPX | **[Data Pipeline Architecture](./data_pipeline.md)** |
 
 ## 3. Legacy UI Layer
 **"The Original Interface"**

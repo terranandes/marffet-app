@@ -91,6 +91,13 @@ export default function MarsPage() {
 
     useEffect(() => {
         fetchStocks();
+
+        // Auto-warm: Trigger smart market data update in background (silent)
+        // This ensures data is fresh when user enters Mars Strategy tab
+        fetch(`/api/admin/crawl?key=secret&force=false`, {
+            method: 'POST',
+            credentials: 'include'
+        }).catch(() => { }); // Silent - ignore errors
     }, []); // Initial load
 
     // Sorted stocks

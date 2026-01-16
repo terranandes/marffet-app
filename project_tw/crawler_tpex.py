@@ -257,20 +257,18 @@ class TPEXCrawler:
         import socket
         socket.setdefaulttimeout(15) # Prevent infinite hangs
         
-        # 2. Batch Processing
-        batch_size = 10 # Reduced to prevent stalls
+        # 2. Batch Processing (Optimized: larger batches, shorter sleep)
+        batch_size = 50 # Increased from 10 for speed
         yf_tickers = [c + ".TWO" for c in universe]
         
         total = len(yf_tickers)
         for i in range(0, total, batch_size):
-            if i % 50 == 0:
+            if i % 100 == 0:
                 print(f"  Processing TPEx Dividend Batch {i}/{total}...")
             batch = yf_tickers[i:i+batch_size]
             
             try:
-                if i > 0: await asyncio.sleep(0.5)
-                
-                if i > 0: await asyncio.sleep(0.5)
+                if i > 0: await asyncio.sleep(0.3)  # Reduced from duplicate 0.5+0.5
                 
                 # Define scope vars for interior function
                 s_date = f"{year}-01-01"

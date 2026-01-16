@@ -342,7 +342,7 @@ class TWSECrawler:
                     s_prices = await self._fetch_market_day(client, start_dates, "Start")
                     
                     # Fetch End (Dec or Today)
-                    today = datetime.date.today()
+                    today = datetime.now().date()
                     
                     if year == today.year:
                         # If current year, scan backwards from TODAY
@@ -366,10 +366,11 @@ class TWSECrawler:
                         e_p = e_prices.get(code, 0.0)
                         
                         if s_p == 0 and e_p > 0:
-                            # Try to find first price
-                            try:
-                                s_p = await self.find_first_price(code, year)
-                            except: pass
+                            # SKIP heavy deep scan for speed (<1min goal)
+                            # try:
+                            #     s_p = await self.find_first_price(code, year)
+                            # except: pass
+                            pass
 
                         if s_p > 0 or e_p > 0:
                             result_data[code] = {

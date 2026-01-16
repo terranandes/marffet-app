@@ -85,7 +85,7 @@ class TPEXCrawler:
             print(f"Fetching History {start_date} to {end_date} (Batch Optimized)...")
 
             # 3. Batch Fetch Full History
-            batch_size = 30
+            batch_size = 100 # Increased from 30 for speed
             yf_tickers = [c + ".TWO" for c in universe]
             
             total = len(yf_tickers)
@@ -94,7 +94,7 @@ class TPEXCrawler:
                 
                 try:
                     # Rate Limit
-                    if i > 0: await asyncio.sleep(2.0)
+                    if i > 0: await asyncio.sleep(1.0) # Reduced sleep
                     
                     df = await asyncio.to_thread(yf.download, batch, start=start_date, end=end_date, auto_adjust=False, progress=False)
                     

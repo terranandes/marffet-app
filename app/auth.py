@@ -74,12 +74,17 @@ async def login(request: Request):
 
 # Frontend Redirect URL
 FRONTEND_URL = os.getenv('FRONTEND_URL', '/')
+print(f"[AUTH DEBUG] Loaded FRONTEND_URL: {FRONTEND_URL}")
 
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):
+    print("[AUTH] Callback triggered")
+    print(f"[AUTH DEBUG] Session keys: {list(request.session.keys())}")
+    print(f"[AUTH DEBUG] Request URL: {request.url}")
     try:
         token = await oauth.google.authorize_access_token(request)
         user = token.get('userinfo')
+        print(f"[AUTH] Google User: {user.get('email')}")
         if user:
             # Simple session storage
             request.session['user'] = {
@@ -88,6 +93,8 @@ async def auth_callback(request: Request):
                 'email': user['email'],
                 'picture': user['picture']
             }
+            print("[AUTH] Session 'user' set.")
+            
             # Sync user to DB and log activity
             from .portfolio_db import get_db, log_activity
             with get_db() as conn:
@@ -101,9 +108,11 @@ async def auth_callback(request: Request):
         
         # RESTORE REDIRECT
         target = request.session.pop('auth_redirect_uri', FRONTEND_URL)
+        print(f"[AUTH] Redirecting to: {target}")
         return RedirectResponse(url=target)
 
     except Exception as e:
+        print(f"[AUTH] Callback Error: {e}")
         return JSONResponse(status_code=400, content={"error": str(e)})
 
 
@@ -125,8 +134,16 @@ async def logout(request: Request):
     return RedirectResponse(url=FRONTEND_URL)
 
 @router.get("/me")
-async def get_me(user: dict = Depends(get_current_user)):
+async def get_me(request: Request): 
+    # Checking raw session first for debug
+    if 'user' in request.session:
+        print(f"[AUTH] /me Check: User found in session: {request.session['user'].get('email')}")
+    else:
+        print("[AUTH] /me Check: No user in session.")
+
+    user = request.session.get('user')
     if not user: return {"id": None}
+    
     from .portfolio_db import get_user_public_profile
     # Fetch fresh DB data (e.g. nickname)
     db_profile = get_user_public_profile(user['id'])

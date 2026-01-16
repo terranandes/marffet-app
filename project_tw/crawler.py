@@ -410,7 +410,8 @@ class TWSECrawler:
         listing_dates = await self.fetch_listing_dates()
 
         results = {}
-        sem = asyncio.Semaphore(4) # Limit concurrency to avoid global ban
+        results = {}
+        sem = asyncio.Semaphore(12) # Increased from 4 for speed
 
         async def fetch_one_year(year):
              async with sem:

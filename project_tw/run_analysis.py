@@ -49,8 +49,9 @@ async def main(status_callback=None):
     # else:
     #     pass
     
+    import datetime
     start_year = 2006
-    end_year = 2025 # As per user filename request
+    end_year = datetime.datetime.now().year  # Dynamic: includes current year
     
     strategy = MarsStrategy()
     

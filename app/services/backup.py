@@ -68,3 +68,133 @@ class BackupService:
         except Exception as e:
             logger.exception(f"[Backup] Failed: {e}")
             return {"status": "error", "reason": str(e)}
+
+    @staticmethod
+    def refresh_prewarm_data():
+        """
+        Backup pre-warm cache files (data/raw/*.json) to GitHub repository.
+        Uses Git Trees API to create a SINGLE commit for all files.
+        """
+        from pathlib import Path
+        
+        token = os.getenv("GITHUB_TOKEN")
+        repo = os.getenv("GITHUB_REPO")
+        
+        if not token or not repo:
+            logger.warning("[PreWarm] GITHUB_TOKEN or GITHUB_REPO not set.")
+            return {"status": "skipped", "reason": "missing_env_vars"}
+        
+        # Target files: Market prices, TPEx prices, Dividends, ListingDates
+        data_dir = Path("data/raw")
+        if not data_dir.exists():
+            return {"status": "error", "reason": "data/raw not found"}
+        
+        # Filter patterns (exclude CB_Issuance - too large and changes daily)
+        patterns = [
+            "Market_*_Prices.json",
+            "TPEx_Market_*_Prices.json",
+            "TPEx_Dividends_*.json",
+            "ListingDates.json"
+        ]
+        
+        files_to_upload = []
+        for pattern in patterns:
+            files_to_upload.extend(data_dir.glob(pattern))
+        
+        if not files_to_upload:
+            return {"status": "error", "reason": "no_files_found"}
+        
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        }
+        
+        try:
+            # Step 1: Get the current commit SHA of master branch
+            ref_url = f"https://api.github.com/repos/{repo}/git/refs/heads/master"
+            ref_resp = requests.get(ref_url, headers=headers)
+            if ref_resp.status_code != 200:
+                return {"status": "error", "reason": f"Failed to get ref: {ref_resp.text}"}
+            
+            current_commit_sha = ref_resp.json()["object"]["sha"]
+            
+            # Step 2: Get the tree SHA of the current commit
+            commit_url = f"https://api.github.com/repos/{repo}/git/commits/{current_commit_sha}"
+            commit_resp = requests.get(commit_url, headers=headers)
+            base_tree_sha = commit_resp.json()["tree"]["sha"]
+            
+            # Step 3: Create blobs for each file and build tree entries
+            tree_entries = []
+            for file_path in files_to_upload:
+                with open(file_path, "rb") as f:
+                    content = f.read()
+                
+                # Create blob
+                blob_url = f"https://api.github.com/repos/{repo}/git/blobs"
+                blob_resp = requests.post(blob_url, headers=headers, json={
+                    "content": base64.b64encode(content).decode("utf-8"),
+                    "encoding": "base64"
+                })
+                
+                if blob_resp.status_code != 201:
+                    logger.error(f"Failed to create blob for {file_path.name}")
+                    continue
+                
+                blob_sha = blob_resp.json()["sha"]
+                tree_entries.append({
+                    "path": f"data/raw/{file_path.name}",
+                    "mode": "100644",  # Regular file
+                    "type": "blob",
+                    "sha": blob_sha
+                })
+            
+            if not tree_entries:
+                return {"status": "error", "reason": "no_blobs_created"}
+            
+            # Step 4: Create new tree
+            tree_url = f"https://api.github.com/repos/{repo}/git/trees"
+            tree_resp = requests.post(tree_url, headers=headers, json={
+                "base_tree": base_tree_sha,
+                "tree": tree_entries
+            })
+            
+            if tree_resp.status_code != 201:
+                return {"status": "error", "reason": f"Failed to create tree: {tree_resp.text}"}
+            
+            new_tree_sha = tree_resp.json()["sha"]
+            
+            # Step 5: Create commit with all files
+            commit_create_url = f"https://api.github.com/repos/{repo}/git/commits"
+            commit_msg = f"Pre-warm: {len(tree_entries)} cache files @ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            commit_create_resp = requests.post(commit_create_url, headers=headers, json={
+                "message": commit_msg,
+                "tree": new_tree_sha,
+                "parents": [current_commit_sha]
+            })
+            
+            if commit_create_resp.status_code != 201:
+                return {"status": "error", "reason": f"Failed to create commit: {commit_create_resp.text}"}
+            
+            new_commit_sha = commit_create_resp.json()["sha"]
+            
+            # Step 6: Update ref to point to new commit
+            update_ref_resp = requests.patch(ref_url, headers=headers, json={
+                "sha": new_commit_sha
+            })
+            
+            if update_ref_resp.status_code != 200:
+                return {"status": "error", "reason": f"Failed to update ref: {update_ref_resp.text}"}
+            
+            logger.info(f"[PreWarm] Single commit created: {new_commit_sha[:7]} ({len(tree_entries)} files)")
+            
+            return {
+                "status": "success",
+                "uploaded": len(tree_entries),
+                "commit_sha": new_commit_sha[:7],
+                "message": commit_msg,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.exception(f"[PreWarm] Failed: {e}")
+            return {"status": "error", "reason": str(e)}

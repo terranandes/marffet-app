@@ -45,10 +45,12 @@ async def lifespan(app: FastAPI):
         
         scheduler = BackgroundScheduler()
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
-        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0)
+        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup')
+        # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
+        scheduler.add_job(BackupService.refresh_prewarm_data, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
         scheduler.start()
         app.state.scheduler = scheduler
-        print("[Startup] Backup Scheduler Started")
+        print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")
         
     except Exception as e:
         print(f"[Startup] Error initializing services: {e}")
@@ -74,8 +76,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    same_site='none',      # Required for Cross-Domain (app -> api)
-    https_only=True,       # Required if same_site='none'
+    same_site='lax',       # 'lax' is better for localhost than 'none' if http
+    https_only=os.getenv("NODE_ENV") == "production", # False for local
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 
@@ -85,7 +87,10 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8000",  # Backend itself for OAuth callback
+    "http://127.0.0.1:8000",
     "https://martian-app.zeabur.app",  # Hardcoded fallback for Zeabur
+    "https://martian-api.zeabur.app",
     FRONTEND_URL.rstrip('/') # e.g. https://martian-app.zeabur.app
 ]
 
@@ -1265,3 +1270,22 @@ async def trigger_backup(user: dict = Depends(get_current_user)):
         return {"message": "Backup skipped (missing config)", "details": result}
     else:
         raise HTTPException(status_code=500, detail=f"Backup failed: {result.get('reason')}")
+
+
+@app.post("/api/admin/refresh-prewarm")
+async def trigger_prewarm_refresh(user: dict = Depends(get_current_user)):
+    """Trigger pre-warm data refresh to GitHub."""
+    from app.auth import GM_EMAILS
+    
+    if not user or user.get('email') not in GM_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from app.services.backup import BackupService
+    result = BackupService.refresh_prewarm_data()
+    
+    if result.get("status") in ("success", "partial"):
+        return {"message": f"Pre-warm refresh: {result.get('uploaded', 0)} files uploaded", "details": result}
+    elif result.get("status") == "skipped":
+        return {"message": "Skipped (missing config)", "details": result}
+    else:
+        raise HTTPException(status_code=500, detail=f"Failed: {result.get('reason')}")

@@ -285,49 +285,87 @@ export default function AdminPage() {
                             </span>
                         )}
                     </h2>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={async () => {
-                                if (!confirm("Trigger analysis? (Background Task)")) return;
-                                await handleCrawl(false);
-                            }}
-                            className="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                        >
-                            ⚡ Update Market Data (Smart)
-                        </button>
 
-                        <button
-                            onClick={async () => {
-                                if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~1 min).")) return;
-                                await handleCrawl(true);
-                            }}
-                            className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                        >
-                            🔥 Rebuild All (Cold Run)
-                        </button>
+                    {/* Category 1: Crawler Speed Test */}
+                    <div className="mb-4">
+                        <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
+                            📊 Crawler Speed Test
+                        </h3>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={async () => {
+                                    if (!confirm("Trigger analysis? (Background Task)")) return;
+                                    await handleCrawl(false);
+                                }}
+                                className="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                ⚡ Update Market Data (Smart)
+                            </button>
 
-                        <button
-                            onClick={async () => {
-                                if (!confirm("Trigger manual backup to GitHub?")) return;
-                                try {
-                                    const res = await fetch(`${API_BASE}/api/admin/backup`, {
-                                        method: "POST",
-                                        credentials: "include"
-                                    });
-                                    const data = await res.json();
-                                    if (res.ok) {
-                                        alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
-                                    } else {
-                                        alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
+                            <button
+                                onClick={async () => {
+                                    if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~2 min).")) return;
+                                    await handleCrawl(true);
+                                }}
+                                className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                🔥 Rebuild All (Cold Run)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Category 2: Backup & Refresh */}
+                    <div>
+                        <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
+                            💾 Backup & Refresh
+                        </h3>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={async () => {
+                                    if (!confirm("Trigger manual backup to GitHub?")) return;
+                                    try {
+                                        const res = await fetch(`${API_BASE}/api/admin/backup`, {
+                                            method: "POST",
+                                            credentials: "include"
+                                        });
+                                        const data = await res.json();
+                                        if (res.ok) {
+                                            alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
+                                        } else {
+                                            alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
+                                        }
+                                    } catch {
+                                        alert("❌ Network Error");
                                     }
-                                } catch {
-                                    alert("❌ Network Error");
-                                }
-                            }}
-                            className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                        >
-                            💾 Backup Portfolio DB to GitHub
-                        </button>
+                                }}
+                                className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                💾 Backup Portfolio DB to GitHub
+                            </button>
+
+                            <button
+                                onClick={async () => {
+                                    if (!confirm("📦 Refresh pre-warm data to GitHub?\nThis uploads ~60 cache files.")) return;
+                                    try {
+                                        const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
+                                            method: "POST",
+                                            credentials: "include"
+                                        });
+                                        const data = await res.json();
+                                        if (res.ok) {
+                                            alert(`✅ Pre-warm Refresh Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
+                                        } else {
+                                            alert("❌ Failed: " + (data.detail || "Unknown error"));
+                                        }
+                                    } catch {
+                                        alert("❌ Network Error");
+                                    }
+                                }}
+                                className="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                📦 Refresh Pre-warm Data to GitHub
+                            </button>
+                        </div>
                     </div>
                 </div>
 

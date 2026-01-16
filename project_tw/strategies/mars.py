@@ -27,7 +27,7 @@ class MarsStrategy:
         years = list(range(start_year, end_year + 1))
         
         # Use Concurrent Fetching with Semaphore to respect rate limits
-        sem_div = asyncio.Semaphore(4) 
+        sem_div = asyncio.Semaphore(12) 
 
         async def fetch_year_div(y):
             async with sem_div:

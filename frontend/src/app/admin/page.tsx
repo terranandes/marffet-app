@@ -345,7 +345,7 @@ export default function AdminPage() {
 
                             <button
                                 onClick={async () => {
-                                    if (!confirm("📦 Refresh pre-warm data to GitHub?\nThis uploads ~60 cache files.")) return;
+                                    if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~2 min\n2. Push ~60 cache files to GitHub")) return;
                                     try {
                                         const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
                                             method: "POST",
@@ -353,7 +353,7 @@ export default function AdminPage() {
                                         });
                                         const data = await res.json();
                                         if (res.ok) {
-                                            alert(`✅ Pre-warm Refresh Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
+                                            alert(`✅ Pre-warm Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
                                         } else {
                                             alert("❌ Failed: " + (data.detail || "Unknown error"));
                                         }
@@ -363,7 +363,7 @@ export default function AdminPage() {
                                 }}
                                 className="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
                             >
-                                📦 Refresh Pre-warm Data to GitHub
+                                📦 Rebuild & Push Pre-warm Data
                             </button>
                         </div>
                     </div>

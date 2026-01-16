@@ -1282,10 +1282,11 @@ async def trigger_prewarm_refresh(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     
     from app.services.backup import BackupService
-    result = BackupService.refresh_prewarm_data()
+    # Same as annual job: Rebuild first, then push to GitHub
+    result = BackupService.annual_prewarm_with_rebuild()
     
-    if result.get("status") in ("success", "partial"):
-        return {"message": f"Pre-warm refresh: {result.get('uploaded', 0)} files uploaded", "details": result}
+    if result.get("status") == "success":
+        return {"message": f"Pre-warm complete: Rebuild + {result.get('push', {}).get('uploaded', 0)} files pushed", "details": result}
     elif result.get("status") == "skipped":
         return {"message": "Skipped (missing config)", "details": result}
     else:

@@ -72,7 +72,7 @@ mcp_playwright_browser_click(element="Play button")
 | Guest mode button | Visible in Sidebar | ✅ |
 | /auth/guest endpoint | Returns 200 | ✅ |
 | System Ops in Legacy UI | 4 buttons visible | ✅ |
-| Cold run time | ~2 minutes | ✅ |
+| Cold run time | ~5-6 min | ✅ |
 | Pre-warm (Rebuild + Push) | ~5 minutes | ✅ |
 | Pre-warm single commit | 1 commit for all files | ✅ |
 

@@ -652,7 +652,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const triggerCrawl = async (force = false) => {
             const msg = force
-                ? "⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~2 min)."
+                ? "⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~5-6 min)."
                 : "Trigger analysis? (Background Task)";
             if (!confirm(msg)) return;
 
@@ -689,7 +689,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         };
 
         const triggerPrewarmRefresh = async () => {
-            if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~2 min\n2. Push ~60 cache files to GitHub")) return;
+            if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
             try {
                 crawlerRunning.value = true;
                 const res = await fetch('/api/admin/refresh-prewarm', { method: 'POST' });

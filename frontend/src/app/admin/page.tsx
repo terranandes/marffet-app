@@ -304,7 +304,7 @@ export default function AdminPage() {
 
                             <button
                                 onClick={async () => {
-                                    if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~2 min).")) return;
+                                    if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~5-6 min).")) return;
                                     await handleCrawl(true);
                                 }}
                                 className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
@@ -345,7 +345,7 @@ export default function AdminPage() {
 
                             <button
                                 onClick={async () => {
-                                    if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~2 min\n2. Push ~60 cache files to GitHub")) return;
+                                    if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
                                     try {
                                         const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
                                             method: "POST",

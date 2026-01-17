@@ -369,26 +369,54 @@ export default function Sidebar() {
                         </a>
                     </div>
                 ) : (
-                    <div className="mt-auto mb-4 p-4 flex gap-2">
+                    <div className="mt-auto mb-4 p-4 space-y-2">
                         <a
                             href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                             </svg>
-                            Login
+                            Sign in with Google
                         </a>
                         <button
-                            onClick={() => setShowSettings(true)}
-                            className="p-3 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-xl transition border border-white/5"
-                            title="Settings"
+                            onClick={async () => {
+                                try {
+                                    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                                    const res = await fetch(`${API_URL}/auth/guest`, {
+                                        method: "POST",
+                                        credentials: "include"
+                                    });
+                                    if (res.ok) {
+                                        fetchData(); // Refresh user state
+                                    } else {
+                                        alert("Failed to enter guest mode");
+                                    }
+                                } catch (e) {
+                                    console.error("Guest mode error:", e);
+                                    alert("Network error");
+                                }
+                            }}
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 text-zinc-300 font-semibold rounded-xl hover:bg-white/10 transition-all border border-white/10"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
+                            Continue as Guest
                         </button>
+                        <p className="text-xs text-zinc-500 text-center">Data stored locally only</p>
+                        <div className="flex justify-center">
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition border border-white/5"
+                                title="Settings"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 )}
 

@@ -70,22 +70,18 @@ class BackupService:
             return {"status": "error", "reason": str(e)}
 
     @staticmethod
-    def annual_prewarm_with_rebuild():
+    async def annual_prewarm_with_rebuild():
         """
         Annual scheduled job: Rebuild cache data, then push to GitHub.
-        Called on Jan 1st via APScheduler.
+        Called on Jan 1st via APScheduler or manually from Admin Dashboard.
         """
-        import asyncio
         from app.services.crawler_service import CrawlerService
         
         logger.info("[Annual Pre-warm] Starting Rebuild + Push...")
         
         try:
-            # Step 1: Run Cold Run to regenerate data
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(CrawlerService.run_market_analysis(force_cold_run=True))
-            loop.close()
+            # Step 1: Run Cold Run to regenerate data (async)
+            result = await CrawlerService.run_market_analysis(force_cold_run=True)
             
             if result.get("status") != "success":
                 logger.error(f"[Annual Pre-warm] Rebuild failed: {result}")

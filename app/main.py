@@ -46,9 +46,15 @@ async def lifespan(app: FastAPI):
         scheduler = BackgroundScheduler()
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
         scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup')
+        
+        # Wrapper for async prewarm function (APScheduler uses sync jobs)
+        def run_annual_prewarm():
+            import asyncio
+            asyncio.run(BackupService.annual_prewarm_with_rebuild())
+        
         # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
         # This runs Cold Run first, then pushes to GitHub
-        scheduler.add_job(BackupService.annual_prewarm_with_rebuild, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
+        scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
         scheduler.start()
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")
@@ -1283,7 +1289,7 @@ async def trigger_prewarm_refresh(user: dict = Depends(get_current_user)):
     
     from app.services.backup import BackupService
     # Same as annual job: Rebuild first, then push to GitHub
-    result = BackupService.annual_prewarm_with_rebuild()
+    result = await BackupService.annual_prewarm_with_rebuild()
     
     if result.get("status") == "success":
         return {"message": f"Pre-warm complete: Rebuild + {result.get('push', {}).get('uploaded', 0)} files pushed", "details": result}

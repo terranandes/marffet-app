@@ -152,3 +152,16 @@ async def get_me(request: Request):
     # Merge DB data into session data for response
     return {**user, **db_profile, "is_admin": is_admin}
 
+
+@router.post("/guest")
+async def guest_login(request: Request):
+    """Create a guest session for users who don't want to sign in."""
+    request.session['user'] = {
+        'id': 'guest',
+        'name': 'Guest',
+        'email': 'guest@local',
+        'picture': None,
+        'is_guest': True
+    }
+    print("[AUTH] Guest mode activated")
+    return {"status": "ok", "message": "Guest mode activated"}

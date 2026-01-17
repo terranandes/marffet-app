@@ -647,6 +647,65 @@ Please analyze this feedback and determine if it's a true bug.`;
             }
         };
 
+        // ========== SYSTEM OPERATIONS (Aligned with New Frontend) ==========
+        const crawlerRunning = ref(false);
+
+        const triggerCrawl = async (force = false) => {
+            const msg = force
+                ? "⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~2 min)."
+                : "Trigger analysis? (Background Task)";
+            if (!confirm(msg)) return;
+
+            crawlerRunning.value = true;
+            try {
+                const res = await fetch(`/api/admin/crawl?key=secret&force=${force}`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`✅ Crawler started!\n${data.message || 'Running in background...'}`);
+                } else {
+                    alert("❌ Failed: " + (data.detail || "Unknown error"));
+                }
+            } catch (e) {
+                alert("❌ Network Error");
+            } finally {
+                // Don't reset immediately - let polling check status
+                setTimeout(() => { crawlerRunning.value = false; }, 3000);
+            }
+        };
+
+        const triggerBackup = async () => {
+            if (!confirm("Trigger manual backup to GitHub?")) return;
+            try {
+                const res = await fetch('/api/admin/backup', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
+                } else {
+                    alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
+                }
+            } catch (e) {
+                alert("❌ Network Error");
+            }
+        };
+
+        const triggerPrewarmRefresh = async () => {
+            if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~2 min\n2. Push ~60 cache files to GitHub")) return;
+            try {
+                crawlerRunning.value = true;
+                const res = await fetch('/api/admin/refresh-prewarm', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`✅ Pre-warm Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
+                } else {
+                    alert("❌ Failed: " + (data.detail || "Unknown error"));
+                }
+            } catch (e) {
+                alert("❌ Network Error");
+            } finally {
+                crawlerRunning.value = false;
+            }
+        };
+
 
         // Sorting State
         const sortKey = ref('finalValue');
@@ -2158,7 +2217,9 @@ Please analyze this feedback and determine if it's a true bug.`;
             currentUser, isGuest, GUEST_LIMITS,
             // Admin Dashboard (GM Only)
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
-            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes
+            feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes,
+            // System Operations
+            crawlerRunning, triggerCrawl, triggerBackup, triggerPrewarmRefresh
         };
     }
 }).mount('#app')

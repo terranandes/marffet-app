@@ -1516,6 +1516,48 @@
                             </div>
                         </div>
 
+                        <!-- SYSTEM OPERATIONS (Aligned with New Frontend) -->
+                        <div class="mt-6 border-t border-white/10 pt-6">
+                            <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                🛠️ System Operations
+                                <span v-if="crawlerRunning" class="ml-2 px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500 text-yellow-500 text-xs animate-pulse">
+                                    Running...
+                                </span>
+                            </h3>
+
+                            <!-- Crawler Speed Test -->
+                            <div class="mb-4">
+                                <div class="text-xs text-gray-500 mb-2">📊 Crawler Speed Test</div>
+                                <div class="flex gap-3 flex-wrap">
+                                    <button @click="triggerCrawl(false)"
+                                        :disabled="crawlerRunning"
+                                        class="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2 disabled:opacity-50">
+                                        ⚡ Update Market Data (Smart)
+                                    </button>
+                                    <button @click="triggerCrawl(true)"
+                                        :disabled="crawlerRunning"
+                                        class="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2 disabled:opacity-50">
+                                        🔥 Rebuild All (Cold Run)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Backup & Refresh -->
+                            <div>
+                                <div class="text-xs text-gray-500 mb-2">💾 Backup & Refresh</div>
+                                <div class="flex gap-3 flex-wrap">
+                                    <button @click="triggerBackup"
+                                        class="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                                        💾 Backup Portfolio DB to GitHub
+                                    </button>
+                                    <button @click="triggerPrewarmRefresh"
+                                        class="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                                        📦 Rebuild & Push Pre-warm Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="text-xs text-gray-600 text-center mt-6">
                             Data refreshes on tab switch • Admin access only
                         </div>

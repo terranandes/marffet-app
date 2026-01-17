@@ -706,6 +706,13 @@ class TWSECrawler:
         Uses Quarterly fetching to avoid API range limits.
         Returns dict: {stock_code: {'cash': float, 'stock_rate': float}}
         """
+        # CACHE CHECK - avoid re-fetching every run
+        cache_file = os.path.join(self.data_dir, f"TWSE_Dividends_{year}.json")
+        if os.path.exists(cache_file):
+            print(f"CACHE HIT: {cache_file}")
+            with open(cache_file, 'r') as f:
+                return json.load(f)
+        
         url = "https://www.twse.com.tw/exchangeReport/TWT49U"
         results = {}
         
@@ -828,5 +835,11 @@ class TWSECrawler:
                                 pass
                 except Exception as e:
                     print(f"Error fetching TWT49U for {year} Q: {e}")
+        
+        # CACHE SAVE - persist for future runs
+        if results:
+            with open(cache_file, 'w') as f:
+                json.dump(results, f)
+            print(f"CACHE SAVED: {cache_file} ({len(results)} stocks)")
                     
         return results

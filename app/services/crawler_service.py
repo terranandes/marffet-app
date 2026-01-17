@@ -47,6 +47,7 @@ class CrawlerService:
                         f"{data_dir}/Market_{current_year}_Prices.json",
                         f"{data_dir}/TPEx_Market_{current_year}_Prices.json",
                         f"{data_dir}/TPEx_Dividends_{current_year}.json",
+                        f"{data_dir}/TWSE_Dividends_{current_year}.json",
                     ]
                     
                     count = 0

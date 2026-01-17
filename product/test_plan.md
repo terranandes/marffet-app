@@ -73,6 +73,7 @@ mcp_playwright_browser_click(element="Play button")
 | /auth/guest endpoint | Returns 200 | ✅ |
 | System Ops in Legacy UI | 4 buttons visible | ✅ |
 | Cold run time | ~2 minutes | ✅ |
+| Pre-warm (Rebuild + Push) | ~5 minutes | ✅ |
 | Pre-warm single commit | 1 commit for all files | ✅ |
 
 ## 4. Known Issues

@@ -3,10 +3,10 @@ import asyncio
 
 async def probe_tpex_div():
     # Target: TPEX Ex-Rights Result
-    # URL: https://www.tpex.org.tw/web/stock/exright/dailyo/exdaily_result.php
+    # URL: https://www.tpex.org.tw/web/stock/exright/daily/daily_result.php
     # Params: d=112/06/01 (ROC Date), l=zh-tw, o=json
     
-    base_url = "https://www.tpex.org.tw/web/stock/exright/dailyo/exdaily_result.php"
+    base_url = "https://www.tpex.org.tw/web/stock/exright/daily/daily_result.php"
     
     # Try a month range? TPEX APIs usually take 'd' as a specific date, or sometimes YYYY/MM for month?
     # Let's try a specific date first that is likely to have dividends (June/July/Aug).

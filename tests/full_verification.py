@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import time
 import os
 
-screenshots_dir = '/home/terwu01/.gemini/antigravity/brain/951e48e9-e02d-4fb3-a019-9fefff545832'
+screenshots_dir = '/home/terwu01/.gemini/antigravity/brain/1f67aed8-cf82-47ed-9aaa-a43a86a43af7'
 base_url = 'http://localhost:3000'
 
 def run_tests():

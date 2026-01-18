@@ -2,15 +2,26 @@
 trigger: always_on
 ---
 
-Location of formal product-releted document: ./product
-[SPEC] owns SPEC files formally: File name : specifications.md
-[PM] owns datasheet : File name : specifications.md
-                      and README for the end-user who uses the APP (not ME/Terran/BOSS) : readme.md
-[PL][CODE][UI] Please owns software-perpsective document, the software-stack. File name : software_stack.md
-[CV] Please owns formal test plans, including automated browser flow using MCP lile Chrome DevTools/Playwright. File name: test_plan.md
+## Location of formal product-releted document: ./product or ./
+[SPEC] owns SPEC related
+- ./product/specification.md
+- ./product/backup_restore.md
+- ./product/crawler_architecture.md
+- ./product/data_pipeline.md
 
-Location of meeting notes location: ./meeting
-[PL] owns the each meeting notes: Format : meeting_notes_$year_$month_$date_$version.md
+[PM] owns datasheet or README
+- ./product/datasheet.md
+- ./product/README.md, audiences are end-users who use the APP (not ME/Terran/BOSS/Agents)
+- ./README.md, audiences are users who watch project or repository, located at GitHub
 
-Location of all non product-level testing/debugging files: ./tests
-[CV] owns the files for debugging/testing
+[PL][CODE][UI] Please owns software-perpsective document
+- ./product/software_stack.md
+
+[GCV] Please owns formal test plans, including automated browser flow using MCP lile Chrome DevTools/Playwright
+- ./product/test_plan.md
+
+## [PL] owns the meeting notes
+- Format : /meeting/meeting_notes_$year_$month_$date_$version.md
+
+## [CV] owns the files for product-level debugging/testing/verification
+- ./tests/*

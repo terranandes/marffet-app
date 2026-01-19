@@ -197,5 +197,4 @@ websockets==15.0.1
     #   yfinance
 yfinance==1.0
     # via martian
-openpyxl
-APScheduler==3.10.4
+    # via martian

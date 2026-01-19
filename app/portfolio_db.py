@@ -229,6 +229,12 @@ def init_db():
             cursor.execute("ALTER TABLE users ADD COLUMN subscription_tier INTEGER DEFAULT 0")
         except:
             pass  # Column already exists
+
+        # Migration: Add is_initialized to users (for default portfolio)
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN is_initialized BOOLEAN DEFAULT 0")
+        except:
+            pass
         
         # Enable foreign keys
         cursor.execute("PRAGMA foreign_keys = ON")
@@ -262,6 +268,10 @@ def create_group(name: str, user_id: str = "default") -> dict:
             "INSERT INTO user_groups (id, user_id, name) VALUES (?, ?, ?)",
             (group_id, user_id, name)
         )
+        
+        # Ensure user is marked initialized
+        cursor.execute("UPDATE users SET is_initialized = 1 WHERE id = ?", (user_id,))
+        
         return {"id": group_id, "name": name, "user_id": user_id}
 
 
@@ -275,15 +285,38 @@ def list_groups(user_id: str = "default") -> list:
         )
         groups = [dict(row) for row in cursor.fetchall()]
         
-        # Auto-initialize default portfolio for new users
-        if not groups and user_id != "guest":
-            initialize_default_portfolio(user_id)
-            # Re-fetch after initialization
-            cursor.execute(
-                "SELECT id, name, created_at FROM user_groups WHERE user_id = ? ORDER BY created_at",
-                (user_id,)
-            )
-            groups = [dict(row) for row in cursor.fetchall()]
+        if user_id == "guest":
+            return groups
+
+        # Check if user is initialized
+        cursor.execute("SELECT is_initialized FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        is_initialized = row[0] if row else 0
+
+        # Logic:
+        # 1. If not initialized AND empty: Initialize (New User)
+        # 2. If not initialized AND NOT empty: Mark initialized (Existing User Migration)
+        # 3. If initialized: Do nothing (User deleted all groups intentionally)
+        
+        if not is_initialized:
+            if not groups:
+                # Case 1: New User
+                initialize_default_portfolio(user_id)
+                
+                # Mark as initialized
+                cursor.execute("UPDATE users SET is_initialized = 1 WHERE id = ?", (user_id,))
+                conn.commit()
+                
+                # Re-fetch
+                cursor.execute(
+                    "SELECT id, name, created_at FROM user_groups WHERE user_id = ? ORDER BY created_at",
+                    (user_id,)
+                )
+                groups = [dict(row) for row in cursor.fetchall()]
+            else:
+                # Case 2: Existing User (Correcting flag)
+                cursor.execute("UPDATE users SET is_initialized = 1 WHERE id = ?", (user_id,))
+                conn.commit()
         
         return groups
 

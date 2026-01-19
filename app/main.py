@@ -156,13 +156,6 @@ async def api_mark_read(id: str, user: dict = Depends(get_current_user)):
 
 
 # ---------------- AI Copilot ----------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ---------------- API Endpoints ----------------
 

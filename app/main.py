@@ -78,13 +78,17 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
-# Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
+# Auto-detect if we're running on HTTPS based on FRONTEND_URL
+FRONTEND_URL_FOR_DETECTION = os.getenv("FRONTEND_URL", "http://localhost:3000")
+IS_HTTPS = FRONTEND_URL_FOR_DETECTION.startswith("https://")
+
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    same_site='lax',       # 'lax' is better for localhost than 'none' if http
-    https_only=os.getenv("NODE_ENV") == "production", # False for local
+    same_site='none' if IS_HTTPS else 'lax',  # 'none' required for cross-origin HTTPS
+    https_only=IS_HTTPS,  # True for Zeabur, False for localhost
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 

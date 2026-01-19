@@ -116,6 +116,16 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])
 
+# ---------------- Health Check Endpoint ----------------
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring."""
+    return {
+        "status": "healthy",
+        "service": "martian-backend",
+        "version": "1.0.0"
+    }
+
 # ---------------- Notification Engine (Premium) ----------------
 from app.engines import RuthlessManager
 from app.portfolio_db import get_unread_notifications, mark_notification_read

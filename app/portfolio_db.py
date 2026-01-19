@@ -748,12 +748,87 @@ def fetch_live_prices(stock_ids: list) -> dict:
     return prices
 
 
+
+def fetch_chinese_name_from_api(stock_id: str) -> Optional[str]:
+    """
+    Fetch Chinese stock name from official TWSE/TPEx APIs.
+    Returns Chinese name or None if not found.
+    """
+    import httpx
+    from datetime import datetime, timedelta
+    
+    try:
+        # Get a recent trading date (use yesterday or last Friday)
+        today = datetime.now()
+        # Simple logic: go back 1-5 days to find a working date if needed, 
+        # but usually using a known recent date or just 'latest' if API supports
+        # TWSE needs specific date. Let's use yesterday.
+        offset = 1
+        if today.weekday() == 0: offset = 3 # Monday -> Friday
+        elif today.weekday() == 6: offset = 2 # Sunday -> Friday
+        
+        date_obj = today - timedelta(days=offset)
+        date_str = date_obj.strftime("%Y%m%d")
+        
+        # Try TWSE first (covers most stocks)
+        try:
+            url = "https://www.twse.com.tw/exchangeReport/MI_INDEX"
+            params = {"response": "json", "type": "ALLBUT0999", "date": date_str}
+            
+            # fast timeout
+            with httpx.Client(verify=False, timeout=5.0) as client:
+                resp = client.get(url, params=params)
+                data = resp.json()
+                
+                if data.get('stat') == 'OK':
+                    tables = data.get('tables', [])
+                    # Usually table 9 is the main price table with Code/Name
+                    for table in tables:
+                        fields = table.get('fields', [])
+                        if '證券代號' in fields and '證券名稱' in fields:
+                            idx_code = fields.index('證券代號')
+                            idx_name = fields.index('證券名稱')
+                            
+                            for row in table.get('data', []):
+                                if row[idx_code] == stock_id:
+                                    return row[idx_name]
+        except Exception as e:
+            print(f"[API] TWSE fetch error: {e}")
+        
+        # Try TPEx (OTC stocks)
+        try:
+            # TPEx needs ROC year: 2024 -> 113
+            roc_year = date_obj.year - 1911
+            roc_date = f"{roc_year}/{date_obj.month:02d}/{date_obj.day:02d}"
+            
+            url = "https://www.tpex.org.tw/web/stock/aftertrading/daily_close_quotes/stk_quote_result.php"
+            params = {"l": "zh-tw", "d": roc_date, "se": "AL"}  # AL = All securities
+            
+            with httpx.Client(timeout=5.0) as client:
+                resp = client.get(url, params=params)
+                data = resp.json()
+                
+                if 'aaData' in data:
+                    for row in data['aaData']:
+                        # Row format: [Code, Name, ...]
+                        if row[0] == stock_id:
+                            return row[1]
+        except Exception as e:
+            print(f"[API] TPEx fetch error: {e}")
+            
+    except Exception as e:
+        print(f"[API] Error fetching name for {stock_id}: {e}")
+    
+    return None
+
+
 def fetch_stock_name(stock_id: str) -> Optional[str]:
     """
     Fetch stock name.
     Priority:
     1. Global Cache (Mars Data + Manual Map) -> CHT
-    2. YFinance -> Often EN
+    2. Official TWSE/TPEx APIs -> CHT (New)
+    3. YFinance -> Often EN
     """
     load_stock_name_cache()
     
@@ -761,7 +836,17 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
     if stock_id in STOCK_NAME_CACHE:
         return STOCK_NAME_CACHE[stock_id]
         
-    # 2. YFinance Fallback
+    # 2. Try Official API (Chinese Name)
+    try:
+        cht_name = fetch_chinese_name_from_api(stock_id)
+        if cht_name:
+            STOCK_NAME_CACHE[stock_id] = cht_name
+            print(f"[Fetch] Used API for {stock_id}: {cht_name}")
+            return cht_name
+    except:
+        pass
+
+    # 3. YFinance Fallback
     import yfinance as yf
     try:
         # Try TW then TWO

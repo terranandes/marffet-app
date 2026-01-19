@@ -63,6 +63,7 @@ SUPPLEMENTARY_STOCK_NAMES = {
     "00981A": "亞太優質高息", 
     "00687B": "國泰20年美債",
     "00679B": "元大美債20年",
+    "6533": "晶心科技",  # Andes Technology - not in Mars Excel file
 }
 
 def load_stock_name_cache():

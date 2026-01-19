@@ -77,14 +77,22 @@ export default function Sidebar() {
 
             if (userRes.ok) {
                 const userData = await userRes.json();
-                setUser(userData);
 
-                // Fetch notifications if logged in
-                const notifRes = await fetch(`${API_URL}/api/notifications`, {
-                    credentials: "include"
-                });
-                if (notifRes.ok) {
-                    setNotifications(await notifRes.json());
+                // Only set user if they actually have an ID (not {id: null})
+                if (userData && userData.id) {
+                    setUser(userData);
+
+                    // Fetch notifications if logged in
+                    const notifRes = await fetch(`${API_URL}/api/notifications`, {
+                        credentials: "include"
+                    });
+                    if (notifRes.ok) {
+                        setNotifications(await notifRes.json());
+                    }
+                } else {
+                    // User is logged out (id is null)
+                    setUser(null);
+                    setNotifications([]);
                 }
             } else {
                 setUser(null);

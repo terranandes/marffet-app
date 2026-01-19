@@ -407,6 +407,10 @@ def delete_group(group_id: str) -> bool:
 
 def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, asset_type: str = "stock") -> dict:
     """Add a stock/ETF target to a group."""
+    stock_id = stock_id.strip()
+    if stock_name:
+        stock_name = stock_name.strip()
+
     if asset_type not in ('stock', 'etf', 'cb'):
         # Auto-detect asset type based on stock_id
         if stock_id.startswith('00'):
@@ -830,6 +834,7 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
     2. Official TWSE/TPEx APIs -> CHT (New)
     3. YFinance -> Often EN
     """
+    stock_id = stock_id.strip()
     load_stock_name_cache()
     
     # 1. Check Cache

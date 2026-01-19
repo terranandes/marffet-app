@@ -120,7 +120,16 @@ async def auth_callback(request: Request):
 async def logout(request: Request):
     request.session.pop('user', None)
     
-    # Smart Logout Redirect
+    # Detect if this is an API call (fetch) or direct browser navigation
+    # API calls will have Accept: application/json or similar
+    accept_header = request.headers.get("accept", "")
+    is_api_call = "application/json" in accept_header or "fetch" in request.headers.get("sec-fetch-mode", "")
+    
+    if is_api_call:
+        # Return JSON for API calls (from frontend fetch)
+        return JSONResponse({"status": "ok", "message": "Logged out successfully"})
+    
+    # Smart Logout Redirect for direct browser access
     # If user logout from Backend (direct API usage), go to Backend Root
     # If user logout from Frontend (app), go to Frontend Root
     referer = request.headers.get("referer", "")

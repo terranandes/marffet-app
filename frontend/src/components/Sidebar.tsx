@@ -361,12 +361,32 @@ export default function Sidebar() {
                                 </svg>
                             </button>
                         </div>
-                        <a
-                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`}
-                            className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition"
+                        <button
+                            onClick={async () => {
+                                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                                try {
+                                    const res = await fetch(`${API_URL}/auth/logout`, {
+                                        method: "GET",
+                                        credentials: "include"
+                                    });
+                                    if (res.ok) {
+                                        // Clear local state and refresh
+                                        fetchData();
+                                    } else {
+                                        console.error("Logout failed:", res.status);
+                                        // Still refresh to clear local state
+                                        fetchData();
+                                    }
+                                } catch (e) {
+                                    console.error("Logout error:", e);
+                                    // Still refresh to clear local state
+                                    fetchData();
+                                }
+                            }}
+                            className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
                         >
                             Sign Out
-                        </a>
+                        </button>
                     </div>
                 ) : (
                     <div className="mt-auto mb-4 p-4 space-y-2">

@@ -367,7 +367,10 @@ export default function Sidebar() {
                                 try {
                                     const res = await fetch(`${API_URL}/auth/logout`, {
                                         method: "GET",
-                                        credentials: "include"
+                                        credentials: "include",
+                                        headers: {
+                                            "Accept": "application/json"
+                                        }
                                     });
                                     if (res.ok) {
                                         // Clear local state and refresh

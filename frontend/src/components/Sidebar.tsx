@@ -381,12 +381,28 @@ export default function Sidebar() {
                         </a>
                         <button
                             onClick={async () => {
-                                try {
-                                    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+                                // Helper function to attempt guest login
+                                const attemptGuestLogin = async () => {
                                     const res = await fetch(`${API_URL}/auth/guest`, {
                                         method: "POST",
                                         credentials: "include"
                                     });
+                                    return res;
+                                };
+
+                                try {
+                                    // First attempt
+                                    let res = await attemptGuestLogin();
+
+                                    // If first attempt fails (common with cross-origin cookies), retry once
+                                    if (!res.ok) {
+                                        console.log("Guest login first attempt failed, retrying...");
+                                        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+                                        res = await attemptGuestLogin();
+                                    }
+
                                     if (res.ok) {
                                         fetchData(); // Refresh user state
                                     } else {

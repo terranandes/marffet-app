@@ -118,7 +118,9 @@ async def auth_callback(request: Request):
 
 @router.get("/logout")
 async def logout(request: Request):
-    request.session.pop('user', None)
+    # CRITICAL: Use clear() instead of pop() to ensure session is fully cleared
+    # With cross-origin cookies (SameSite=None), pop() may not properly persist the change
+    request.session.clear()
     
     # Detect if this is an API call (fetch) or direct browser navigation
     # API calls will have Accept: application/json or similar

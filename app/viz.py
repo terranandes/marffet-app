@@ -10,7 +10,7 @@ import asyncio
 # Add project root to path
 sys.path.append(os.getcwd())
 
-from project_tw.strategies.cb import CBStrategy
+from app.project_tw.strategies.cb import CBStrategy
 
 st.set_page_config(page_title="Martian Investment", layout="wide", page_icon="🚀")
 
@@ -41,7 +41,7 @@ tabs = st.tabs(["📊 Mars Strategy", "🏁 Bar Chart Race", "💰 Convertible B
 
 @st.cache_data
 def load_mars_data():
-    path = 'project_tw/output/stock_list_s2006e2025_filtered.xlsx'
+    path = 'app/project_tw/output/stock_list_s2006e2025_filtered.xlsx'
     if os.path.exists(path):
         return pd.read_excel(path)
     return pd.DataFrame()

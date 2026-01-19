@@ -5,7 +5,7 @@ description: 6 agents sync-up meeting
 Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] are starting a brief discussion on
 - project progress
 - current bugs
-- triages for bugs found by us (agents and BOSS)
+- triages for bugs found by us (agents and BOSS) and Jira tickets at ./jira
 - performance improvement
 - features implemented
 - features unimplmented or deferred

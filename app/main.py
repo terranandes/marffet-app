@@ -16,8 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 load_dotenv()
 
-from project_tw.strategies.cb import CBStrategy
-from project_tw.calculator import ROICalculator
+from app.project_tw.strategies.cb import CBStrategy
+from app.project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
 from app.auth import router as auth_router, get_current_user
 from app.portfolio_db import (
@@ -316,7 +316,7 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
     """Return filtered results with Mars Simulation"""
     try:
         # Load filtered list
-        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0)
         
@@ -349,7 +349,7 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
 def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
-        SOURCE_FILE = BASE_DIR / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0) # Ensure no NaNs
         
@@ -414,7 +414,7 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
         
         # 1. Determine Source File (Now using 2026)
         filename_source = "stock_list_s2006e2026_unfiltered.xlsx" if mode == "raw" else "stock_list_s2006e2026_filtered.xlsx"
-        source_path = BASE_DIR / "project_tw/references" / filename_source
+        source_path = BASE_DIR / "app/project_tw/references" / filename_source
         
         if not source_path.exists():
              raise HTTPException(status_code=404, detail=f"Source file not found: {filename_source}")

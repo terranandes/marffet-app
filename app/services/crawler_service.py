@@ -1,7 +1,7 @@
 import asyncio
 import os
 import glob
-from project_tw.run_analysis import main as run_analysis_main
+from app.project_tw.run_analysis import main as run_analysis_main
 
 class CrawlerService:
     _is_running = False

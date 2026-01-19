@@ -27,6 +27,7 @@
 | Persistence | Git Backup Loop | [Read Architecture Spec](./backup_restore.md) |
 | Data Crawler | AsyncIO + HTTPX | **[Crawler Architecture](./crawler_architecture.md)** |
 | Data Pipeline | Python, Pandas, Asyncio, HTTPX | **[Data Pipeline Architecture](./data_pipeline.md)** |
+| External API | TWSE (MI_INDEX), TPEx | Stock Name Resolution & Verification |
 | Pre-warm | APScheduler | Annual auto-rebuild + push |
 
 ## 3. Legacy UI Layer

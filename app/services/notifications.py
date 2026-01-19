@@ -185,7 +185,7 @@ class NotificationEngine:
             return []
             
         try:
-            from project_tw.strategies.cb import CBStrategy
+            from app.project_tw.strategies.cb import CBStrategy
             strategy = CBStrategy()
             results = await strategy.analyze_specific_cbs(list(cb_targets.keys()))
             

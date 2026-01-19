@@ -77,7 +77,7 @@ def load_stock_name_cache():
     try:
         import pandas as pd
         from pathlib import Path
-        mars_file = Path(__file__).parent.parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        mars_file = Path(__file__).parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         if mars_file.exists():
             df = pd.read_excel(mars_file)
             # Build lookup: stock_id -> name

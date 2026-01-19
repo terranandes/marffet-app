@@ -298,14 +298,27 @@ def list_groups(user_id: str = "default") -> list:
         # 2. If not initialized AND NOT empty: Mark initialized (Existing User Migration)
         # 3. If initialized: Do nothing (User deleted all groups intentionally)
         
+        print(f"[Debug] list_groups for {user_id}: Init={is_initialized}, Groups={len(groups)}")
+
         if not is_initialized:
             if not groups:
                 # Case 1: New User
-                initialize_default_portfolio(user_id)
+                print(f"[Debug] Creating default portfolio for new user {user_id}")
+                # Pass 'conn' to ensure atomicity with the is_initialized update
+                initialize_default_portfolio(user_id, db_conn=conn)
                 
                 # Mark as initialized
                 cursor.execute("UPDATE users SET is_initialized = 1 WHERE id = ?", (user_id,))
-                conn.commit()
+                
+                # NOTE: conn.commit() is handled by context manager on exit? 
+                # NO. get_db() yields conn. Context manager closes/commits on exit if it wraps it.
+                # Here we are inside 'with get_db() as conn'.
+                # We should commit explicitly if we want to read it back immediately?
+                # Or wait for block exit?
+                # If we wait for block exit, we can't re-fetch in same transaction?
+                # Re-fetch works in same transaction (Snapshot Isolation).
+                
+                conn.commit() # Commit transaction
                 
                 # Re-fetch
                 cursor.execute(
@@ -315,13 +328,15 @@ def list_groups(user_id: str = "default") -> list:
                 groups = [dict(row) for row in cursor.fetchall()]
             else:
                 # Case 2: Existing User (Correcting flag)
+                print(f"[Debug] Self-healing existing user {user_id} (Marking initialized)")
                 cursor.execute("UPDATE users SET is_initialized = 1 WHERE id = ?", (user_id,))
                 conn.commit()
         
         return groups
 
 
-def initialize_default_portfolio(user_id: str) -> None:
+
+def initialize_default_portfolio(user_id: str, db_conn=None) -> None:
     """Initialize default portfolio groups for a new user.
     
     Creates 3 starter groups with sample stocks:
@@ -329,7 +344,7 @@ def initialize_default_portfolio(user_id: str) -> None:
     2. 高股息債券ETF (Bond ETFs): High-yield bond ETFs
     3. 美台尖牙ETF (US-TW FANG ETFs): Tech-focused ETFs
     
-    Stock names are looked up from cached Mars Strategy data.
+    Stock names are looked up from global cache (which includes supplementary)
     """
     DEFAULT_GROUPS = [
         {
@@ -346,52 +361,66 @@ def initialize_default_portfolio(user_id: str) -> None:
         },
     ]
     
-    
     # Ensure cache is loaded
     load_stock_name_cache()
     
     print(f"[Portfolio] Initializing default groups for user: {user_id}")
     
-    with get_db() as conn:
-        cursor = conn.cursor()
-
-        
-        for group_def in DEFAULT_GROUPS:
-            # Create group
-            group_id = str(uuid.uuid4())
-            cursor.execute(
-                "INSERT INTO user_groups (id, user_id, name) VALUES (?, ?, ?)",
-                (group_id, user_id, group_def["name"])
-            )
-            
-            # Add targets to group
-            for stock_id in group_def["targets"]:
-                # Lookup name from global cache (which includes supplementary)
-                stock_name = STOCK_NAME_CACHE.get(stock_id) or STOCK_NAME_CACHE.get(stock_id.upper())
-                
-                # If not in Mars data, try fetching from yfinance
-                if not stock_name:
-                    try:
-                        stock_name = fetch_stock_name(stock_id)
-                        print(f"    [Fetch] {stock_id} -> {stock_name}")
-                    except:
-                        stock_name = None
-                
-                # Determine asset type
-                if stock_id.startswith('00'):
-                    asset_type = 'etf'
-                else:
-                    asset_type = 'stock'
-                
-                target_id = str(uuid.uuid4())
-                cursor.execute(
-                    "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
-                    (target_id, group_id, stock_id, stock_name, asset_type)
-                )
-            
-            print(f"  [+] Created group '{group_def['name']}' with {len(group_def['targets'])} targets")
+    # Use provided connection or create new one
+    ctx =  db_conn if db_conn else get_db()
+    # If using context manager on existing connection, it doesn't close it, which is fine.
+    # But get_db returns a context manager.
+    # Optimization: Use existing cursor/conn directly if provided?
     
+    # If db_conn is provided (sqlite3.Connection), use it.
+    # If NOT, use 'with get_db() as conn:'
+
+    if db_conn:
+        _init_logic(db_conn, user_id, DEFAULT_GROUPS)
+    else:
+        with get_db() as conn:
+            _init_logic(conn, user_id, DEFAULT_GROUPS)
+
     print(f"[Portfolio] Default portfolio initialized for {user_id}")
+
+
+def _init_logic(conn, user_id, default_groups):
+    """Helper to execute initialization SQLs on a connection."""
+    cursor = conn.cursor()
+    for group_def in default_groups:
+        # Create group
+        group_id = str(uuid.uuid4())
+        cursor.execute(
+            "INSERT INTO user_groups (id, user_id, name) VALUES (?, ?, ?)",
+            (group_id, user_id, group_def["name"])
+        )
+        
+        # Add targets to group
+        for stock_id in group_def["targets"]:
+            # Lookup name from global cache
+            stock_name = STOCK_NAME_CACHE.get(stock_id) or STOCK_NAME_CACHE.get(stock_id.upper())
+            
+            # Fallback fetch
+            if not stock_name:
+                try:
+                    stock_name = fetch_stock_name(stock_id)
+                    print(f"    [Fetch] {stock_id} -> {stock_name}")
+                except Exception as e:
+                    print(f"    [Fetch Error] {stock_id}: {e}")
+                    stock_name = None
+            
+            if stock_id.startswith('00'):
+                asset_type = 'etf'
+            else:
+                asset_type = 'stock'
+            
+            target_id = str(uuid.uuid4())
+            cursor.execute(
+                "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
+                (target_id, group_id, stock_id, stock_name, asset_type)
+            )
+        
+        print(f"  [+] Created group '{group_def['name']}' with {len(group_def['targets'])} targets")
 
 
 def delete_group(group_id: str) -> bool:

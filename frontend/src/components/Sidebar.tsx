@@ -56,6 +56,7 @@ const SidebarItem = ({
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const pathname = usePathname();
 
     // Notifications State
@@ -100,6 +101,8 @@ export default function Sidebar() {
         } catch (e) {
             console.error("Fetch error:", e);
             setUser(null);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -339,7 +342,17 @@ export default function Sidebar() {
 
 
 
-                {user ? (
+                {isLoading ? (
+                    <div className="mt-auto mb-4 p-4 space-y-3 animate-pulse">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/10" />
+                            <div className="flex-1 space-y-2">
+                                <div className="h-3 w-20 bg-white/10 rounded" />
+                                <div className="h-2 w-16 bg-white/10 rounded" />
+                            </div>
+                        </div>
+                    </div>
+                ) : user ? (
                     <div className="mt-auto mb-4 p-4 rounded-xl bg-[var(--color-bg-secondary)]/30 border border-[var(--color-border)]">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-cta)] to-blue-600 flex items-center justify-center text-white font-bold shadow-lg">

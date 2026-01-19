@@ -1,9 +1,9 @@
 
 import asyncio
 import pandas as pd
-from project_tw.crawler import TWSECrawler
-from project_tw.crawler_tpex import TPEXCrawler
-from project_tw.calculator import ROICalculator
+from app.project_tw.crawler import TWSECrawler
+from app.project_tw.crawler_tpex import TPEXCrawler
+from app.project_tw.calculator import ROICalculator
 
 class MarsStrategy:
     def __init__(self):

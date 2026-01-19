@@ -6,7 +6,7 @@ import sys
 # Add project root to path
 sys.path.append(os.getcwd())
 
-from project_tw.crawler_cb import CBCrawler
+from app.project_tw.crawler_cb import CBCrawler
 
 async def verify():
     print("--- Verifying CBCrawler ---")

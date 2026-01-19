@@ -1,5 +1,5 @@
 import asyncio
-from project_tw.crawler_cb import CBCrawler
+from app.project_tw.crawler_cb import CBCrawler
 
 class CBStrategy:
     """

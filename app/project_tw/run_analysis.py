@@ -1,7 +1,7 @@
 import asyncio
 import os
 import pandas as pd
-from project_tw.strategies.mars import MarsStrategy
+from app.project_tw.strategies.mars import MarsStrategy
 
 async def main(status_callback=None):
     if status_callback: status_callback("Initializing Mars Analysis Batch...")

@@ -945,12 +945,37 @@ def get_all_targets_by_type(user_id: str = "default") -> dict:
         """, (user_id,))
         
         result = {"stock": [], "etf": [], "cb": []}
+        
+        # Self-Healing: Check for missing names (where name == id)
+        updates_needed = []
+
         for row in cursor.fetchall():
             target = dict(row)
+            
+            # Check if name is explicitly the ID (Bad State)
+            start_name = target.get("stock_name") or ""
+            stock_id = target.get("stock_id")
+            
+            # If name is missing, empty, or same as ID -> Try to Heal
+            if not start_name or start_name == stock_id:
+                new_name = fetch_stock_name(stock_id)
+                if new_name and new_name != stock_id:
+                    target["stock_name"] = new_name
+                    updates_needed.append((new_name, target["id"]))
+                    print(f"[Healing] Fixed name for {stock_id}: {new_name}")
+
             asset_type = target.get("asset_type", "stock") or "stock"
             if asset_type not in result:
                 asset_type = "stock"
             result[asset_type].append(target)
+            
+        # Apply DB Updates
+        if updates_needed:
+            try:
+                cursor.executemany("UPDATE group_targets SET stock_name = ? WHERE id = ?", updates_needed)
+                conn.commit()
+            except Exception as e:
+                print(f"[Healing] DB Update failed: {e}")
         
         return result
 

@@ -44,4 +44,5 @@ include = [
     "app/project_tw/references/*.xlsx",
     "app/project_tw/output/*.xlsx",
     "app/project_tw/*.csv",
+    "app/static/**/*",
 ]

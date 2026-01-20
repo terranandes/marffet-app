@@ -1620,9 +1620,14 @@ Please analyze this feedback and determine if it's a true bug.`;
                     body: JSON.stringify({ stock_id: newTargetId.value.trim(), stock_name: finalName || null })
                 });
                 if (res.ok) {
+                    const data = await res.json(); // Get the created target
                     newTargetId.value = '';
                     newTargetName.value = '';
                     await selectGroup(selectedGroupId.value);
+
+                    // Show success with actual name
+                    const nameToShow = data.stock_name || data.stock_id;
+                    addNotification(`✅ ${nameToShow} added`);
                 } else {
                     const err = await res.json();
                     alert(err.error || 'Add target failed');

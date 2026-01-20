@@ -497,7 +497,8 @@ def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, a
         if not stock_name:
             try:
                 stock_name = fetch_stock_name(stock_id)
-            except:
+            except Exception as e:
+                print(f"[Add Target] Name fetch failed for {stock_id}: {e}")
                 pass
 
         target_id = str(uuid.uuid4())
@@ -505,6 +506,7 @@ def add_target(group_id: str, stock_id: str, stock_name: Optional[str] = None, a
             "INSERT INTO group_targets (id, group_id, stock_id, stock_name, asset_type) VALUES (?, ?, ?, ?, ?)",
             (target_id, group_id, stock_id, stock_name, asset_type)
         )
+        # Return the actual name persisted (even if None, frontend handles it, but better if we found it)
         return {"id": target_id, "group_id": group_id, "stock_id": stock_id, "stock_name": stock_name, "asset_type": asset_type}
 
 

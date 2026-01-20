@@ -1,5 +1,17 @@
 import { createApp, ref, onMounted, computed, watch, nextTick } from '/static/vendor/vue.esm-browser.js'
 
+import CONFIG from '/static/js/config.js'
+
+const originalFetch = window.fetch;
+const apiFetch = async (url, options = {}) => {
+    let finalUrl = url;
+    if (typeof url === 'string' && url.startsWith('/')) {
+        finalUrl = CONFIG.API_BASE + url;
+    }
+    const finalOptions = { ...options, credentials: 'include' };
+    return originalFetch(finalUrl, finalOptions);
+};
+
 createApp({
     setup() {
         const currentUser = ref(null); // Auth State
@@ -51,7 +63,7 @@ createApp({
             if (!currentUser.value) return;
             try {
                 // Calling /api/notifications triggers the Lazy RuthlessManager check
-                const res = await fetch('/api/notifications');
+                const res = await apiFetch('/api/notifications');
                 if (res.ok) {
                     const data = await res.json();
                     // Merge/Update logic:
@@ -87,7 +99,7 @@ createApp({
                 // Optimistic UI update
                 n.is_read = 1;
                 // Call Backend
-                await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' });
+                await apiFetch(`/api/notifications/${n.id}/read`, { method: 'POST' });
                 // Re-fetch to sync (it will disappear from list if backend only returns unread)
                 // Let's wait a bit or just let the next poll handle removal?
                 // Better UX: Fade out or keep as read until close?
@@ -127,7 +139,7 @@ createApp({
         const fetchPortfolioCBs = async () => {
             loadingPortfolioCBs.value = true;
             try {
-                const res = await fetch('/api/cb/portfolio');
+                const res = await apiFetch('/api/cb/portfolio');
                 if (res.ok) portfolioCBs.value = await res.json();
             } catch (e) {
                 console.error(e);
@@ -410,7 +422,7 @@ createApp({
             feedbackSuccess.value = false;
 
             try {
-                const res = await fetch('/api/feedback', {
+                const res = await apiFetch('/api/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -480,7 +492,7 @@ ${holdingsDetail || '        (No holdings yet)'}
         `;
 
             try {
-                const res = await fetch('/api/chat', {
+                const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -512,7 +524,7 @@ ${holdingsDetail || '        (No holdings yet)'}
         const fetchStrategyAlerts = async () => {
             if (!isPremium.value) return; // Premium only
             try {
-                const res = await fetch('/api/notifications/check');
+                const res = await apiFetch('/api/notifications/check');
                 if (res.ok) {
                     const alerts = await res.json();
                     alerts.forEach(alert => {
@@ -564,7 +576,7 @@ ${holdingsDetail || '        (No holdings yet)'}
             adminLoading.value = true;
             adminError.value = null;
             try {
-                const res = await fetch('/api/admin/metrics');
+                const res = await apiFetch('/api/admin/metrics');
                 if (res.status === 403) {
                     adminError.value = 'Access Denied: Admin privileges required';
                 } else if (res.status === 401) {
@@ -588,8 +600,8 @@ ${holdingsDetail || '        (No holdings yet)'}
         const fetchFeedbackList = async () => {
             try {
                 const [listRes, statsRes] = await Promise.all([
-                    fetch('/api/feedback'),
-                    fetch('/api/feedback/stats')
+                    apiFetch('/api/feedback'),
+                    apiFetch('/api/feedback/stats')
                 ]);
                 if (listRes.ok) feedbackList.value = await listRes.json();
                 if (statsRes.ok) feedbackStats.value = await statsRes.json();
@@ -600,13 +612,13 @@ ${holdingsDetail || '        (No holdings yet)'}
 
         const updateFeedbackStatus = async (id, status) => {
             try {
-                await fetch(`/api/feedback/${id}`, {
+                await apiFetch(`/api/feedback/${id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status })
                 });
                 // Refresh stats after update
-                const statsRes = await fetch('/api/feedback/stats');
+                const statsRes = await apiFetch('/api/feedback/stats');
                 if (statsRes.ok) feedbackStats.value = await statsRes.json();
             } catch (e) {
                 console.error('Update feedback error:', e);
@@ -637,7 +649,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const updateFeedbackNotes = async (id, notes) => {
             try {
-                await fetch(`/api/feedback/${id}`, {
+                await apiFetch(`/api/feedback/${id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ agent_notes: notes })
@@ -658,7 +670,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             crawlerRunning.value = true;
             try {
-                const res = await fetch(`/api/admin/crawl?key=secret&force=${force}`, { method: 'POST' });
+                const res = await apiFetch(`/api/admin/crawl?key=secret&force=${force}`, { method: 'POST' });
                 const data = await res.json();
                 if (res.ok) {
                     alert(`✅ Crawler started!\n${data.message || 'Running in background...'}`);
@@ -676,7 +688,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const triggerBackup = async () => {
             if (!confirm("Trigger manual backup to GitHub?")) return;
             try {
-                const res = await fetch('/api/admin/backup', { method: 'POST' });
+                const res = await apiFetch('/api/admin/backup', { method: 'POST' });
                 const data = await res.json();
                 if (res.ok) {
                     alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
@@ -692,7 +704,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
             try {
                 crawlerRunning.value = true;
-                const res = await fetch('/api/admin/refresh-prewarm', { method: 'POST' });
+                const res = await apiFetch('/api/admin/refresh-prewarm', { method: 'POST' });
                 const data = await res.json();
                 if (res.ok) {
                     alert(`✅ Pre-warm Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
@@ -814,8 +826,8 @@ Please analyze this feedback and determine if it's a true bug.`;
                     contribution: sim.value.contribution
                 });
                 const [res1, res2] = await Promise.all([
-                    fetch('/api/results'),
-                    fetch(`/api/race-data?${params.toString()}`)
+                    apiFetch('/api/results'),
+                    apiFetch(`/api/race-data?${params.toString()}`)
                 ]);
                 if (res1.ok) rawMarsData.value = await res1.json();
                 if (res2.ok) rawRaceData.value = await res2.json();
@@ -1353,7 +1365,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             loadingCB.value = true;
             cbResult.value = null;
             try {
-                const res = await fetch(`/api/cb/analyze?code=${cbInput.value}`);
+                const res = await apiFetch(`/api/cb/analyze?code=${cbInput.value}`);
                 const data = await res.json();
                 cbResult.value = data;
             } catch (e) { console.error(e); }
@@ -1394,7 +1406,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Fetch dividend cash
         const fetchDividendCash = async () => {
             try {
-                const res = await fetch('/api/portfolio/cash');
+                const res = await apiFetch('/api/portfolio/cash');
                 dividendCash.value = await res.json();
             } catch (e) { console.error('Fetch dividend cash error:', e); }
         };
@@ -1403,7 +1415,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const syncDividends = async () => {
             syncingDividends.value = true;
             try {
-                const res = await fetch('/api/portfolio/sync-dividends', { method: 'POST' });
+                const res = await apiFetch('/api/portfolio/sync-dividends', { method: 'POST' });
                 const result = await res.json();
                 console.log('Synced dividends:', result);
                 await fetchDividendCash();
@@ -1428,7 +1440,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             }
             // LOGGED IN: Use API
             try {
-                const res = await fetch('/api/portfolio/groups');
+                const res = await apiFetch('/api/portfolio/groups');
                 portfolioGroups.value = await res.json();
                 if (portfolioGroups.value.length && !selectedGroupId.value) {
                     selectGroup(portfolioGroups.value[0].id);
@@ -1462,7 +1474,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // LOGGED IN: Use API
             try {
-                const res = await fetch('/api/portfolio/groups', {
+                const res = await apiFetch('/api/portfolio/groups', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: newGroupName.value.trim() })
@@ -1497,7 +1509,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // LOGGED IN: Use API
             try {
-                await fetch(`/api/portfolio/groups/${groupId}`, { method: 'DELETE' });
+                await apiFetch(`/api/portfolio/groups/${groupId}`, { method: 'DELETE' });
                 if (selectedGroupId.value === groupId) {
                     selectedGroupId.value = null;
                     groupTargets.value = [];
@@ -1531,14 +1543,14 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // LOGGED IN: Use API
             try {
-                const res = await fetch(`/api/portfolio/groups/${groupId}/targets`);
+                const res = await apiFetch(`/api/portfolio/groups/${groupId}/targets`);
                 const targets = await res.json();
 
                 const stockIds = targets.map(t => t.stock_id).join(',');
                 let livePrices = {};
                 if (stockIds) {
                     try {
-                        const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${stockIds}`);
+                        const priceRes = await apiFetch(`/api/portfolio/prices?stock_ids=${stockIds}`);
                         livePrices = await priceRes.json();
                     } catch (e) { console.warn('Live price fetch failed:', e); }
                 }
@@ -1550,7 +1562,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     const sumUrl = livePrice
                         ? `/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
                         : `/api/portfolio/targets/${t.id}/summary`;
-                    const sumRes = await fetch(sumUrl);
+                    const sumRes = await apiFetch(sumUrl);
                     t.summary = await sumRes.json();
                 }
                 groupTargets.value = targets;
@@ -1601,7 +1613,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                     if (found) finalName = found.name;
                 }
 
-                const res = await fetch(`/api/portfolio/groups/${selectedGroupId.value}/targets`, {
+                const res = await apiFetch(`/api/portfolio/groups/${selectedGroupId.value}/targets`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ stock_id: newTargetId.value.trim(), stock_name: finalName || null })
@@ -1635,7 +1647,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // LOGGED IN: Use API
             try {
-                await fetch(`/api/portfolio/targets/${targetId}`, { method: 'DELETE' });
+                await apiFetch(`/api/portfolio/targets/${targetId}`, { method: 'DELETE' });
                 await selectGroup(selectedGroupId.value);
             } catch (e) { console.error('Delete target error:', e); }
         };
@@ -1685,7 +1697,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             const method = isEdit ? 'PUT' : 'POST';
 
             try {
-                const res = await fetch(url, {
+                const res = await apiFetch(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newTx.value)
@@ -1715,7 +1727,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const fetchTxHistory = async (targetId) => {
             try {
-                const res = await fetch(`/api/portfolio/targets/${targetId}/transactions`);
+                const res = await apiFetch(`/api/portfolio/targets/${targetId}/transactions`);
                 txHistory.value = await res.json();
             } catch (e) { console.error('Fetch history error:', e); }
         };
@@ -1728,7 +1740,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const deleteTx = async (txId) => {
             if (!confirm('Start deletion sequence?')) return;
             try {
-                await fetch(`/api/portfolio/transactions/${txId}`, { method: 'DELETE' });
+                await apiFetch(`/api/portfolio/transactions/${txId}`, { method: 'DELETE' });
                 await fetchTxHistory(showTxHistory.value);
                 await selectGroup(selectedGroupId.value);
             } catch (e) { console.error('Delete tx error:', e); }
@@ -1764,7 +1776,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const fetchTrendData = async () => {
             try {
                 // Fetch ALL trend history (months=0 means get all data from first transaction)
-                const trendRes = await fetch('/api/portfolio/trend?months=0');
+                const trendRes = await apiFetch('/api/portfolio/trend?months=0');
                 trendData.value = await trendRes.json();
                 if (trendData.value.length) {
                     selectedMonth.value = trendData.value[trendData.value.length - 1]?.month;
@@ -1774,7 +1786,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 renderTrendChart();
 
                 // Fetch asset groups
-                const groupRes = await fetch('/api/portfolio/by-type');
+                const groupRes = await apiFetch('/api/portfolio/by-type');
                 const groups = await groupRes.json();
                 assetGroups.value = groups;
 
@@ -1783,12 +1795,12 @@ Please analyze this feedback and determine if it's a true bug.`;
                 const ids = allTargets.map(t => t.stock_id).filter(id => id).join(',');
 
                 if (ids) {
-                    const priceRes = await fetch(`/api/portfolio/prices?stock_ids=${ids}`);
+                    const priceRes = await apiFetch(`/api/portfolio/prices?stock_ids=${ids}`);
                     trendLivePrices.value = await priceRes.json();
                 }
 
                 // Fetch race data
-                const raceRes = await fetch('/api/portfolio/race-data');
+                const raceRes = await apiFetch('/api/portfolio/race-data');
                 portfolioRaceData.value = await raceRes.json();
             } catch (e) { console.error('Fetch trend error:', e); }
         };
@@ -1878,11 +1890,11 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Fetch portfolio race data
         const fetchPortfolioRaceData = async () => {
             try {
-                const raceRes = await fetch('/api/portfolio/race-data');
+                const raceRes = await apiFetch('/api/portfolio/race-data');
                 portfolioRaceData.value = await raceRes.json();
 
                 // Also fetch asset groups for stats
-                const groupRes = await fetch('/api/portfolio/by-type');
+                const groupRes = await apiFetch('/api/portfolio/by-type');
                 assetGroups.value = await groupRes.json();
             } catch (e) { console.error('Fetch race data error:', e); }
         };
@@ -2044,7 +2056,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const fetchLeaderboard = async () => {
             loadingLadder.value = true;
             try {
-                const res = await fetch('/api/leaderboard');
+                const res = await apiFetch('/api/leaderboard');
                 leaderboard.value = await res.json();
             } catch (e) { console.error('Leaderboard error:', e); }
             loadingLadder.value = false;
@@ -2052,7 +2064,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const openProfile = async (userId) => {
             try {
-                const res = await fetch(`/api/public/profile/${userId}`);
+                const res = await apiFetch(`/api/public/profile/${userId}`);
                 if (res.ok) {
                     profileData.value = await res.json();
                     showProfileModal.value = true;
@@ -2075,7 +2087,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const syncStats = async () => {
             try {
-                const res = await fetch('/api/portfolio/sync-stats', { method: 'POST' });
+                const res = await apiFetch('/api/portfolio/sync-stats', { method: 'POST' });
                 if (res.ok) {
                     const data = await res.json();
                     alert(`Rank Synced! ROI: ${data.roi}%`);
@@ -2089,7 +2101,7 @@ Please analyze this feedback and determine if it's a true bug.`;
         const updateProfile = async () => {
             if (!newNickname.value.trim()) return;
             try {
-                const res = await fetch('/api/auth/profile', {
+                const res = await apiFetch('/api/auth/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nickname: newNickname.value.trim() })
@@ -2156,7 +2168,7 @@ Please analyze this feedback and determine if it's a true bug.`;
 
             // Check Auth
             try {
-                const res = await fetch('/auth/me');
+                const res = await apiFetch('/auth/me');
                 const user = await res.json();
                 if (user && user.id) {
                     currentUser.value = user;

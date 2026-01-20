@@ -886,7 +886,7 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
     2. Official TWSE/TPEx APIs -> CHT (New)
     3. YFinance -> Often EN
     """
-    stock_id = stock_id.strip()
+    stock_id = str(stock_id).strip()
     load_stock_name_cache()
     
     # 1. Check Cache

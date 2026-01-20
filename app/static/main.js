@@ -15,6 +15,7 @@ const apiFetch = async (url, options = {}) => {
 createApp({
     setup() {
         const currentUser = ref(null); // Auth State
+        const backendUrl = ref(CONFIG.API_BASE ? 'Remote API' : 'Local Host');
         const currentTab = ref('mars');
         const rawMarsData = ref([]);
         const rawRaceData = ref([]);
@@ -1255,7 +1256,10 @@ Please analyze this feedback and determine if it's a true bug.`;
                 cost += principal;
                 wealth = shares * startData.price_end; // End of Year 1
             }
-
+            searchStocks,
+                backendUrl,
+                // UI Helpers
+                formatCurrency,
             // Loop years
             for (let y = sim.value.startYear; y <= 2025; y++) {
                 const yearData = history.find(h => h.year === y);

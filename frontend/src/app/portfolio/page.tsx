@@ -194,7 +194,7 @@ export default function PortfolioPage() {
                 body: JSON.stringify({
                     group_id: selectedGroupId,
                     stock_id: newTargetId,
-                    stock_name: newTargetName || newTargetId,
+                    stock_name: newTargetName.trim() || null,
                 }),
             });
             if (res.ok) {

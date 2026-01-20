@@ -1256,10 +1256,7 @@ Please analyze this feedback and determine if it's a true bug.`;
                 cost += principal;
                 wealth = shares * startData.price_end; // End of Year 1
             }
-            searchStocks,
-                backendUrl,
-                // UI Helpers
-                formatCurrency,
+
             // Loop years
             for (let y = sim.value.startYear; y <= 2025; y++) {
                 const yearData = history.find(h => h.year === y);
@@ -2235,7 +2232,8 @@ Please analyze this feedback and determine if it's a true bug.`;
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
             feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes,
             // System Operations
-            crawlerRunning, triggerCrawl, triggerBackup, triggerPrewarmRefresh
+            crawlerRunning, triggerCrawl, triggerBackup, triggerPrewarmRefresh,
+            backendUrl
         };
     }
 }).mount('#app')

@@ -905,9 +905,12 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
 
     # 3. YFinance Fallback
     import yfinance as yf
-    try:
-        # Try TW then TWO
-        for suffix in ['.TW', '.TWO']:
+    # 3. YFinance Fallback
+    import yfinance as yf
+    
+    # Try TW then TWO
+    for suffix in ['.TW', '.TWO']:
+        try:
             ticker = yf.Ticker(f"{stock_id}{suffix}")
             # Try fetching explicit name
             info = ticker.info # This triggers a network request
@@ -920,8 +923,8 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
                 # Cache it (even if English, better than nothing)
                 STOCK_NAME_CACHE[stock_id] = name
                 return name
-    except:
-        pass
+        except Exception:
+            continue
     return None
 
 

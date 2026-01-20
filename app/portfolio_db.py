@@ -73,6 +73,9 @@ SUPPLEMENTARY_NAME_CACHE = {
     "6533": "晶心科技",
     "6533.TW": "晶心科技",
     "6533.TWO": "晶心科技",
+    "5904": "寶雅",
+    "5904.TW": "寶雅",
+    "5904.TWO": "寶雅",
 }
 
 def load_stock_name_cache():

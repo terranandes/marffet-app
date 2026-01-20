@@ -66,31 +66,54 @@ SUPPLEMENTARY_STOCK_NAMES = {
     "6533": "晶心科技",  # Andes Technology - not in Mars Excel file
 }
 
+
+# Manual Supplementary Cache for stocks missing from Excel but essential
+# Used to bypass unreliable API fetches in Production (Zeabur)
+SUPPLEMENTARY_NAME_CACHE = {
+    "6533": "晶心科技",
+    "6533.TW": "晶心科技",
+    "6533.TWO": "晶心科技",
+}
+
 def load_stock_name_cache():
-    """Load stock names from Mars references into global cache."""
+    """Load stock names from Mars Strategy Excel file into global cache."""
     global STOCK_NAME_CACHE
-    if STOCK_NAME_CACHE: return 
     
-    # Pre-populate with supplementary
-    STOCK_NAME_CACHE.update(SUPPLEMENTARY_STOCK_NAMES)
-    
+    # Load from Excel
     try:
-        import pandas as pd
-        from pathlib import Path
-        mars_file = Path(__file__).parent / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-        if mars_file.exists():
-            df = pd.read_excel(mars_file)
-            # Build lookup: stock_id -> name
-            new_cache = {}
-            if 'Unnamed: 0' in df.columns and 'name' in df.columns:
-                new_cache = dict(zip(df['Unnamed: 0'].astype(str), df['name']))
-            elif 'id' in df.columns and 'name' in df.columns:
-                new_cache = dict(zip(df['id'].astype(str), df['name']))
+        # 1. Try relative to this file (for deployed app)
+        base_dir = Path(__file__).parent
+        mars_file = base_dir / "project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+        
+        # 2. If not found, try project root (for dev/testing)
+        if not mars_file.exists():
+            mars_file = base_dir.parent / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
             
-            STOCK_NAME_CACHE.update(new_cache)
-            print(f"[Portfolio cache] Loaded {len(new_cache)} names from file")
+        if mars_file.exists():
+            print(f"[Cache] Loading stock names from {mars_file}")
+            import pandas as pd
+            df = pd.read_excel(mars_file, engine='openpyxl')
+            
+            # Create dict: id -> name
+            # Assuming columns: 'id', 'name'
+            if 'id' in df.columns and 'name' in df.columns:
+                # Convert to string to ensure matching
+                df['id'] = df['id'].astype(str)
+                STOCK_NAME_CACHE = dict(zip(df['id'], df['name']))
+                print(f"[Cache] Loaded {len(STOCK_NAME_CACHE)} stock names")
+            else:
+                print(f"[Cache Warning] Columns 'id'/'name' not found in {mars_file}")
+        else:
+            print(f"[Cache Warning] Stock list file not found: {mars_file}")
+            
     except Exception as e:
-        print(f"[Portfolio cache] Error loading file: {e}")
+        print(f"[Cache Error] Failed to load stock list: {e}")
+
+    # Merge Supplementary Cache (Overrides Excel if collision, or adds new)
+    if SUPPLEMENTARY_NAME_CACHE:
+        print(f"[Cache] Merging {len(SUPPLEMENTARY_NAME_CACHE)} supplementary names")
+        STOCK_NAME_CACHE.update(SUPPLEMENTARY_NAME_CACHE)
+
 
 
 

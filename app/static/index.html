@@ -1520,7 +1520,8 @@
                         <div class="mt-6 border-t border-white/10 pt-6">
                             <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 🛠️ System Operations
-                                <span v-if="crawlerRunning" class="ml-2 px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500 text-yellow-500 text-xs animate-pulse">
+                                <span v-if="crawlerRunning"
+                                    class="ml-2 px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500 text-yellow-500 text-xs animate-pulse">
                                     Running...
                                 </span>
                             </h3>
@@ -1529,13 +1530,11 @@
                             <div class="mb-4">
                                 <div class="text-xs text-gray-500 mb-2">📊 Crawler Speed Test</div>
                                 <div class="flex gap-3 flex-wrap">
-                                    <button @click="triggerCrawl(false)"
-                                        :disabled="crawlerRunning"
+                                    <button @click="triggerCrawl(false)" :disabled="crawlerRunning"
                                         class="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2 disabled:opacity-50">
                                         ⚡ Update Market Data (Smart)
                                     </button>
-                                    <button @click="triggerCrawl(true)"
-                                        :disabled="crawlerRunning"
+                                    <button @click="triggerCrawl(true)" :disabled="crawlerRunning"
                                         class="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2 disabled:opacity-50">
                                         🔥 Rebuild All (Cold Run)
                                     </button>
@@ -1992,10 +1991,11 @@
             </div>
         </div>
     </div>
-    <div class="fixed bottom-2 right-2 text-[10px] text-gray-600 font-mono z-50 opacity-50 hover:opacity-100 pointer-events-none">
+    <div
+        class="fixed bottom-2 right-2 text-[10px] text-gray-600 font-mono z-50 opacity-50 hover:opacity-100 pointer-events-none">
         Backend: {{ backendUrl || 'Local' }}
     </div>
-    <script type="module" src="/static/main.js?v=unified_backend_v1"></script>
+    <script type="module" src="/static/main.js?v=instant_name_fix_v2"></script>
     </div>
 </body>
 

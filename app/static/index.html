@@ -860,7 +860,7 @@
                                     </td>
                                     <!-- Dividend Receipt (New) -->
                                     <td class="text-right p-2 border-l border-white/10 relative group cursor-pointer"
-                                        @click="target.summary?.dividend_history?.length ? (showDivDetails = target) : null">
+                                        @click="console.log('Div Click', target); showDivDetails = target">
                                         <div class="font-mono font-bold text-yellow-400 hover:text-white transition">
                                             {{ formatCurrency(target.summary?.total_dividend_cash || 0) }}
                                         </div>

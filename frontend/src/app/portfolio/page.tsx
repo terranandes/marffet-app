@@ -496,7 +496,7 @@ export default function PortfolioPage() {
                                         Realized P/L
                                     </div>
                                     <div
-                                        className={`font-mono font-bold text-lg lg:text-xl ${groupStats.realized >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
+                                        className={`font-mono font-bold text-lg lg:text-xl ${groupStats.realized >= 0 ? "text-red-400" : "text-green-400"
                                             }`}
                                     >
                                         {groupStats.realized >= 0 ? "+" : ""}
@@ -591,7 +591,7 @@ export default function PortfolioPage() {
                                                 {target.summary?.total_shares || 0}
                                             </td>
                                             <td className="p-2 text-right font-mono">
-                                                ${target.summary?.avg_cost?.toFixed(2) || "0.00"}
+                                                {target.summary?.avg_cost?.toFixed(2) || "0.00"}
                                             </td>
                                             <td className="p-2 text-right font-mono font-bold text-white">
                                                 {formatCurrency(target.summary?.market_value || 0)}
@@ -603,25 +603,25 @@ export default function PortfolioPage() {
                                                 {(target.summary?.realized_pnl || 0) >= 0 ? "+" : ""}
                                                 {formatCurrency(target.summary?.realized_pnl || 0)}
                                             </td>
-                                            <td className={`p-2 text-right font-mono font-bold ${(target.summary?.unrealized_pnl || 0) >= 0
+                                            <td className={`p-2 text-right ${(target.summary?.unrealized_pnl || 0) >= 0
                                                 ? "text-red-400"
                                                 : "text-green-400"
                                                 }`}>
-                                                {(target.summary?.unrealized_pnl || 0) >= 0 ? "+" : ""}
-                                                {formatCurrency(target.summary?.unrealized_pnl || 0)}
+                                                <div className="font-mono font-bold">
+                                                    {(target.summary?.unrealized_pnl || 0) >= 0 ? "+" : ""}
+                                                    {formatCurrency(target.summary?.unrealized_pnl || 0)}
+                                                </div>
+                                                <div className="text-xs">
+                                                    ({(target.summary?.unrealized_pnl_pct || 0).toFixed(2)}%)
+                                                </div>
                                             </td>
-                                            <td className="p-2 text-right">
-                                                <div className="font-mono text-[var(--color-warning)] font-bold">
+                                            <td className="p-2 text-right cursor-pointer hover:bg-white/5 transition" onClick={() => fetchDivHistory(target.id, target.stock_name)}>
+                                                <div className="font-mono text-[var(--color-warning)] font-bold hover:text-white transition">
                                                     {formatCurrency(target.summary?.total_dividend_cash || 0)}
                                                 </div>
-                                                {(target.summary?.total_dividend_cash || 0) > 0 && (
-                                                    <button
-                                                        onClick={() => fetchDivHistory(target.id, target.stock_name)}
-                                                        className="text-xs text-[var(--color-cta)] hover:underline cursor-pointer"
-                                                    >
-                                                        View Details
-                                                    </button>
-                                                )}
+                                                <div className="text-xs text-[var(--color-cta)] hover:underline">
+                                                    View Details 📄
+                                                </div>
                                             </td>
                                             <td className="p-2 text-center">
                                                 <div className="flex gap-1 justify-center">

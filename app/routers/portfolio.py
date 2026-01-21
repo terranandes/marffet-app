@@ -34,23 +34,14 @@ class TransactionCreate(BaseModel):
 @router.post("/groups")
 async def api_create_group(group: GroupCreate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    
-    # Check if user needs initialization (first time)
-    existing = list_groups(user['id'])
-    if not existing:
-        initialize_default_portfolio(user['id'])
-        
+    # Note: list_groups() handles initialization internally if needed
     return create_group(group.name, user['id'])
 
 @router.get("/groups")
 async def api_list_groups(user: dict = Depends(get_current_user)):
     if not user: return []
-    # Auto-init if empty
-    groups = list_groups(user['id'])
-    if not groups:
-        initialize_default_portfolio(user['id'])
-        groups = list_groups(user['id'])
-    return groups
+    # list_groups() handles initialization internally with is_initialized flag
+    return list_groups(user['id'])
 
 @router.delete("/groups/{group_id}")
 async def api_delete_group(group_id: str, user: dict = Depends(get_current_user)):

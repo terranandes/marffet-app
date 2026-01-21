@@ -1702,11 +1702,21 @@ Please analyze this feedback and determine if it's a true bug.`;
                 : `/api/portfolio/targets/${showTxForm.value}/transactions`;
             const method = isEdit ? 'PUT' : 'POST';
 
+            // Build payload with proper types (v-model may give strings)
+            const payload = {
+                type: newTx.value.type,
+                shares: parseInt(newTx.value.shares, 10) || 0,
+                price: parseFloat(newTx.value.price) || 0,
+                date: newTx.value.date
+            };
+
+            console.log('[DEBUG] addTransaction:', { url, method, payload, targetId: showTxForm.value });
+
             try {
                 const res = await apiFetch(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newTx.value)
+                    body: JSON.stringify(payload)
                 });
                 if (res.ok) {
                     showTxForm.value = null;
@@ -1720,11 +1730,17 @@ Please analyze this feedback and determine if it's a true bug.`;
                     fetchTrendData();
                     fetchPortfolioRaceData();
                     fetchLeaderboard();
+
+                    addNotification('✅ Transaction saved');
                 } else {
                     const err = await res.json();
+                    console.error('[DEBUG] Transaction API error:', err);
                     alert(err.error || 'Transaction failed');
                 }
-            } catch (e) { console.error('Transaction error:', e); }
+            } catch (e) {
+                console.error('[DEBUG] Transaction exception:', e);
+                addNotification('❌ Transaction failed: ' + e.message);
+            }
         };
 
         // Transaction History

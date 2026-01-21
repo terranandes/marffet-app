@@ -73,9 +73,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Martian Investment System", lifespan=lifespan)
 
-# Proxy Headers for Zeabur/Render/Cloud Run (Must be FIRST)
+# Proxy Headers moved to bottom to enforce execution order
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+# app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"]) -> Moved down
 
 # Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
@@ -112,6 +112,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Proxy Headers (Must be added LAST to be executed FIRST/Outermost)
+# Ensures Request.url.scheme is 'https' for Session and Auth
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])

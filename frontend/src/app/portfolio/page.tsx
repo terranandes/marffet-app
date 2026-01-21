@@ -462,10 +462,12 @@ export default function PortfolioPage() {
                                 <thead>
                                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-xs uppercase">
                                         <th className="text-left p-2">Stock</th>
+                                        <th className="text-right p-2">Price</th>
                                         <th className="text-right p-2">Shares</th>
                                         <th className="text-right p-2">Avg Cost</th>
                                         <th className="text-right p-2">Market Value</th>
-                                        <th className="text-right p-2">Unrealized P/L</th>
+                                        <th className="text-right p-2">Realized</th>
+                                        <th className="text-right p-2">Unrealized</th>
                                         <th className="text-right p-2">Dividends</th>
                                         <th className="text-center p-2">Actions</th>
                                     </tr>
@@ -477,6 +479,17 @@ export default function PortfolioPage() {
                                                 <div className="font-bold text-white">{target.stock_name}</div>
                                                 <div className="text-xs text-[var(--color-text-muted)]">{target.stock_id}</div>
                                             </td>
+                                            <td className="p-2 text-right">
+                                                <div className="font-mono font-bold">
+                                                    ${target.livePrice?.price?.toFixed(2) || "---"}
+                                                </div>
+                                                {target.livePrice && (
+                                                    <div className={`text-xs font-mono ${(target.livePrice.change || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
+                                                        {(target.livePrice.change || 0) >= 0 ? "▲" : "▼"}
+                                                        {Math.abs(target.livePrice.change_pct || 0).toFixed(2)}%
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td className="p-2 text-right font-mono">
                                                 {target.summary?.total_shares || 0}
                                             </td>
@@ -485,6 +498,13 @@ export default function PortfolioPage() {
                                             </td>
                                             <td className="p-2 text-right font-mono font-bold text-white">
                                                 {formatCurrency(target.summary?.market_value || 0)}
+                                            </td>
+                                            <td className={`p-2 text-right font-mono ${(target.summary?.realized_pnl || 0) >= 0
+                                                ? "text-[var(--color-success)]"
+                                                : "text-[var(--color-danger)]"
+                                                }`}>
+                                                {(target.summary?.realized_pnl || 0) >= 0 ? "+" : ""}
+                                                {formatCurrency(target.summary?.realized_pnl || 0)}
                                             </td>
                                             <td className={`p-2 text-right font-mono font-bold ${(target.summary?.unrealized_pnl || 0) >= 0
                                                 ? "text-[var(--color-success)]"
@@ -555,6 +575,12 @@ export default function PortfolioPage() {
                                                                 className="bg-[var(--color-success)] text-black px-2 py-1 rounded text-xs font-bold cursor-pointer"
                                                             >
                                                                 Save
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setShowTxForm(null)}
+                                                                className="border border-white/30 text-white/70 px-2 py-1 rounded text-xs hover:bg-white/10 cursor-pointer"
+                                                            >
+                                                                Cancel
                                                             </button>
                                                         </div>
                                                     </div>

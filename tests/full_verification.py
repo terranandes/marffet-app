@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import time
 import os
 
-screenshots_dir = '/home/terwu01/.gemini/antigravity/brain/1f67aed8-cf82-47ed-9aaa-a43a86a43af7'
+screenshots_dir = '/home/terwu01/.gemini/antigravity/brain/1257ebae-51a2-44cc-a59d-301a14f56619/screenshots'
 base_url = 'http://localhost:3000'
 
 def run_tests():
@@ -103,8 +103,8 @@ def run_tests():
         if page.query_selector('button svg path[d*="M15 17h5"]'):
              print("✅ Notification Bell present")
 
-        # Check Settings Button
-        if page.query_selector('text=Settings'):
+        # Check Settings Button (uses data-testid or aria-label)
+        if page.query_selector('[data-testid="settings-button"]') or page.query_selector('button[aria-label="Settings"]'):
             print("✅ Settings Button verified")
         else:
             print("❌ Settings Button NOT FOUND")

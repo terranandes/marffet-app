@@ -675,79 +675,79 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
     if total_div_cash == 0:
         try:
             # 2. Fallback to Legacy JSON Load (Approximation)
-        # TODO: Optimize to not load file every time? OS file cache handles it usually.
-        import json, os
-        div_db = {}
-        div_file = Path(__file__).parent.parent / "data/dividends_all.json"
+            # TODO: Optimize to not load file every time? OS file cache handles it usually.
+            import json, os
+            div_db = {}
+            div_file = Path(__file__).parent.parent / "data/dividends_all.json"
         
-        # Determine stock ID for lookup
-        # Need to fetch stock_id from group_targets first?
-        # get_target_summary only takes target_id, so we need to query stock_id
-        with get_db() as conn:
-            row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
-            stock_id = row['stock_id'] if row else None
-            
-        if stock_id and os.path.exists(div_file):
-            with open(div_file, "r") as f:
-                full_db = json.load(f)
-                div_db = full_db.get(str(stock_id), {})
-            
-            # Additional Hardcoded Backup for critical stocks (Merge Logic duplicate)
-            # (Ideally this should be shared, but copying for safety in DB layer)
-            if str(stock_id) == "2330" and not div_db:
-                 print(f"[DEBUG] 2330 fallback triggered (DB empty)")
-                 div_db = {
-                    "2023": {"cash": 11.5}, "2024": {"cash": 15.0}, "2025": {"cash": 19.0}
-                 }
-            
-            print(f"[DEBUG] Dividend Calc for {stock_id}: Found {len(div_db)} years. Keys: {list(div_db.keys())[:5]}")
+            # Determine stock ID for lookup
+            # Need to fetch stock_id from group_targets first?
+            # get_target_summary only takes target_id, so we need to query stock_id
+            with get_db() as conn:
+                row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
+                stock_id = row['stock_id'] if row else None
+                
+            if stock_id and os.path.exists(div_file):
+                with open(div_file, "r") as f:
+                    full_db = json.load(f)
+                    div_db = full_db.get(str(stock_id), {})
+                
+                # Additional Hardcoded Backup for critical stocks (Merge Logic duplicate)
+                # (Ideally this should be shared, but copying for safety in DB layer)
+                if str(stock_id) == "2330" and not div_db:
+                     print(f"[DEBUG] 2330 fallback triggered (DB empty)")
+                     div_db = {
+                        "2023": {"cash": 11.5}, "2024": {"cash": 15.0}, "2025": {"cash": 19.0}
+                     }
+                
+                print(f"[DEBUG] Dividend Calc for {stock_id}: Found {len(div_db)} years. Keys: {list(div_db.keys())[:5]}")
 
-            # 2. Replay Holdings to find Shares on Ex-Date
-            # Approximation: Ex-Date = July 1st of each year
-            # Sort tx by date
-            sorted_tx = sorted(transactions, key=lambda t: t['date'])
-            print(f"[DEBUG] Tx Count: {len(sorted_tx)}")
-            
-            # Range of years to check
-            start_year = 2006
-            current_year = date.today().year
-            
-            for y in range(start_year, current_year + 1):
-                year_str = str(y)
-                div_info = div_db.get(year_str) or div_db.get(y)
+                # 2. Replay Holdings to find Shares on Ex-Date
+                # Approximation: Ex-Date = July 1st of each year
+                # Sort tx by date
+                sorted_tx = sorted(transactions, key=lambda t: t['date'])
+                print(f"[DEBUG] Tx Count: {len(sorted_tx)}")
                 
-                if not div_info: continue
+                # Range of years to check
+                start_year = 2006
+                current_year = date.today().year
                 
-                # Get Cash Div amount
-                u_cash = 0
-                if isinstance(div_info, dict): u_cash = div_info.get('cash', 0)
-                elif isinstance(div_info, (int, float)): u_cash = div_info
-                
-                if u_cash <= 0: continue
-                
-                # Calculate shares held on July 1st of Year Y
-                ex_date = f"{y}-07-01"
-                shares_on_ex = 0
-                
-                for t in sorted_tx:
-                    if t['date'] <= ex_date:
-                        if t['type'] == 'buy': shares_on_ex += t['shares']
-                        elif t['type'] == 'sell': shares_on_ex -= t['shares']
-                    else:
-                        break # Sorted, so can stop
-                
-                if shares_on_ex > 0:
-                    received = shares_on_ex * u_cash
-                    total_div_cash += received
-                    dividend_history.append({
-                        "year": y,
-                        "shares": shares_on_ex,
-                        "unit_cash": u_cash,
-                        "total": round(received, 2)
-                    })
+                for y in range(start_year, current_year + 1):
+                    year_str = str(y)
+                    div_info = div_db.get(year_str) or div_db.get(y)
+                    
+                    if not div_info: continue
+                    
+                    # Get Cash Div amount
+                    u_cash = 0
+                    if isinstance(div_info, dict): u_cash = div_info.get('cash', 0)
+                    elif isinstance(div_info, (int, float)): u_cash = div_info
+                    
+                    if u_cash <= 0: continue
+                    
+                    # Calculate shares held on July 1st of Year Y
+                    ex_date = f"{y}-07-01"
+                    shares_on_ex = 0
+                    
+                    for t in sorted_tx:
+                        if t['date'] <= ex_date:
+                            if t['type'] == 'buy': shares_on_ex += t['shares']
+                            elif t['type'] == 'sell': shares_on_ex -= t['shares']
+                        else:
+                            break # Sorted, so can stop
+                    
+                    if shares_on_ex > 0:
+                        received = shares_on_ex * u_cash
+                        total_div_cash += received
+                        dividend_history.append({
+                            "year": y,
+                            "shares": shares_on_ex,
+                            "unit_cash": u_cash,
+                            "total": round(received, 2)
+                        })
 
-    except Exception as e:
-        print(f"Dividend calc error: {e}")
+        except Exception as e:
+            print(f"Dividend calc error: {e}")
 
     result = {
         "total_shares": total_shares,
@@ -1219,12 +1219,7 @@ def sync_dividends_for_target(target_id: str, stock_id: str) -> list:
                         elif tx['type'] == 'sell':
                             shares_held -= tx['shares']
                 
-                if shares_held <= 0:
-                    continue
-
-                total_cash = shares_held * amount
-                
-                # Check if already recorded and matches current calculation
+                # Check if already recorded
                 with get_db() as conn:
                     cursor = conn.cursor()
                     cursor.execute(
@@ -1232,6 +1227,22 @@ def sync_dividends_for_target(target_id: str, stock_id: str) -> list:
                         (target_id, ex_date_str)
                     )
                     existing = cursor.fetchone()
+
+                    # IF SHARES <= 0: DELETE EXISTING RECORD (It shouldn't exist)
+                    if shares_held <= 0:
+                        if existing:
+                            cursor.execute("DELETE FROM dividend_history WHERE id = ?", (existing['id'],))
+                            new_dividends.append({
+                                "id": existing['id'],
+                                "ex_date": ex_date_str,
+                                "shares_held": 0,
+                                "total_cash": 0,
+                                "status": "deleted"
+                            })
+                        continue
+
+                    # IF SHARES > 0: UPSERT
+                    total_cash = shares_held * amount
                     
                     if existing:
                         # Update if shares or amount differs (re-calculation or data correction)

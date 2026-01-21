@@ -71,6 +71,27 @@ async def api_add_transaction(tx: TransactionCreate, user: dict = Depends(get_cu
     if not user: raise HTTPException(status_code=401)
     return add_transaction(tx.target_id, tx.type, tx.shares, tx.price, tx.date)
 
+@router.get("/targets/{target_id}/transactions")
+async def api_list_transactions(target_id: str, user: dict = Depends(get_current_user)):
+    if not user: raise HTTPException(status_code=401)
+    return list_transactions(target_id)
+
+class TransactionUpdate(BaseModel):
+    type: str
+    shares: int
+    price: float
+    date: str
+
+@router.put("/transactions/{tx_id}")
+async def api_update_transaction(tx_id: str, tx: TransactionUpdate, user: dict = Depends(get_current_user)):
+    if not user: raise HTTPException(status_code=401)
+    return {"success": update_transaction(tx_id, tx.type, tx.shares, tx.price, tx.date)}
+
+@router.delete("/transactions/{tx_id}")
+async def api_delete_transaction(tx_id: str, user: dict = Depends(get_current_user)):
+    if not user: raise HTTPException(status_code=401)
+    return {"success": delete_transaction(tx_id)}
+
 @router.get("/dividends/total")
 async def api_dividends_total(user: dict = Depends(get_current_user)):
     if not user: return {"total_cash": 0, "dividend_count": 0}

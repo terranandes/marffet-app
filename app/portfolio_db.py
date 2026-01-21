@@ -588,13 +588,13 @@ def list_transactions(target_id: str) -> list:
 
 
 
-def update_transaction(tx_id: str, shares: int, price: float, tx_date: str) -> bool:
+def update_transaction(tx_id: str, tx_type: str, shares: int, price: float, tx_date: str) -> bool:
     """Update an existing transaction."""
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE transactions SET shares = ?, price = ?, date = ? WHERE id = ?",
-            (shares, price, tx_date, tx_id)
+            "UPDATE transactions SET type = ?, shares = ?, price = ?, date = ? WHERE id = ?",
+            (tx_type, shares, price, tx_date, tx_id)
         )
         return cursor.rowcount > 0
 

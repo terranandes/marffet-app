@@ -61,6 +61,7 @@ export default function PortfolioPage() {
 
     // Transaction form
     const [showTxForm, setShowTxForm] = useState<string | null>(null);
+    const [editingTxId, setEditingTxId] = useState<string | null>(null); // Track ID if editing
     const [newTx, setNewTx] = useState({
         type: "buy" as "buy" | "sell",
         shares: 0,
@@ -274,25 +275,47 @@ export default function PortfolioPage() {
         }
     };
 
-    // Add transaction
-    const handleAddTransaction = async (targetId: string) => {
+    // Add/Update transaction
+    const handleSaveTransaction = async (targetId: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions`, {
-                method: "POST",
+            const isEdit = !!editingTxId;
+            const url = isEdit
+                ? `${API_BASE}/api/portfolio/transactions/${editingTxId}`
+                : `${API_BASE}/api/portfolio/targets/${targetId}/transactions`;
+
+            const method = isEdit ? "PUT" : "POST";
+            const body = isEdit ? {
+                type: newTx.type,
+                shares: newTx.shares,
+                price: newTx.price,
+                date: newTx.date
+            } : {
+                target_id: targetId,
+                ...newTx,
+            };
+
+            const res = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
-                body: JSON.stringify({
-                    target_id: targetId,
-                    ...newTx,
-                }),
+                body: JSON.stringify(body),
             });
+
             if (res.ok) {
                 setShowTxForm(null);
+                setEditingTxId(null);
                 setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+
+                // Refresh parent data
                 fetchTargets();
+
+                // Refresh history if open
+                if (showTxHistory) {
+                    fetchTxHistory(showTxHistory);
+                }
             }
         } catch (err) {
-            console.error("Failed to add transaction:", err);
+            console.error("Failed to save transaction:", err);
         }
     };
 
@@ -596,6 +619,7 @@ export default function PortfolioPage() {
                                                     <button
                                                         onClick={() => {
                                                             setShowTxForm(target.id);
+                                                            setEditingTxId(null); // Ensure add mode
                                                             setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
                                                         }}
                                                         className="bg-[var(--color-cta)]/20 text-[var(--color-cta)] px-2 py-1 rounded text-xs hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
@@ -651,6 +675,7 @@ export default function PortfolioPage() {
                             <button
                                 onClick={() => {
                                     setShowTxForm(showTxHistory);
+                                    setEditingTxId(null); // Ensure add mode
                                     setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
                                 }}
                                 className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-3 py-1.5 rounded text-sm hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
@@ -689,6 +714,21 @@ export default function PortfolioPage() {
                                             </td>
                                             <td className="p-2 text-center">
                                                 <button
+                                                    onClick={() => {
+                                                        setEditingTxId(tx.id);
+                                                        setNewTx({
+                                                            type: tx.type,
+                                                            shares: tx.shares,
+                                                            price: tx.price,
+                                                            date: tx.date
+                                                        });
+                                                        setShowTxForm(tx.target_id);
+                                                    }}
+                                                    className="text-[var(--color-cta)] hover:text-white px-2"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
                                                     onClick={() => handleDeleteTransaction(tx.id)}
                                                     className="text-red-400 hover:text-red-300 px-2"
                                                 >
@@ -723,7 +763,8 @@ export default function PortfolioPage() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                            <span className="text-[var(--color-cta)]">+</span> New Transaction
+                            <span className="text-[var(--color-cta)]">{editingTxId ? "✏️" : "+"}</span>
+                            {editingTxId ? "Edit Transaction" : "New Transaction"}
                         </h3>
 
                         {/* Buy/Sell Toggle */}
@@ -789,16 +830,12 @@ export default function PortfolioPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={async () => {
-                                    await handleAddTransaction(showTxForm);
-                                    setShowTxForm(null);
-                                    // If history modal is open, refresh it
-                                    if (showTxHistory) {
-                                        fetchTxHistory(showTxHistory);
-                                    }
+                                    await handleSaveTransaction(showTxForm);
+                                    // No need to manually refresh here as handleSaveTransaction does it
                                 }}
                                 className="flex-1 bg-[var(--color-cta)] text-black py-3 rounded-lg font-bold text-sm hover:opacity-90 transition cursor-pointer"
                             >
-                                Confirm
+                                {editingTxId ? "Update" : "Confirm"}
                             </button>
                             <button
                                 onClick={() => setShowTxForm(null)}

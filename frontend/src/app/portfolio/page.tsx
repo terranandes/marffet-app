@@ -59,6 +59,10 @@ export default function PortfolioPage() {
         date: new Date().toISOString().split("T")[0],
     });
 
+    // Transaction history
+    const [showTxHistory, setShowTxHistory] = useState<string | null>(null);
+    const [txHistory, setTxHistory] = useState<Transaction[]>([]);
+
     // Stats
     const [groupStats, setGroupStats] = useState({
         marketValue: 0,
@@ -224,7 +228,7 @@ export default function PortfolioPage() {
     // Add transaction
     const handleAddTransaction = async (targetId: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/transactions`, {
+            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -254,6 +258,36 @@ export default function PortfolioPage() {
             fetchDividends();
         } catch (err) {
             console.error("Failed to sync dividends:", err);
+        }
+    };
+
+    // Fetch transaction history
+    const fetchTxHistory = async (targetId: string) => {
+        try {
+            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions`, {
+                credentials: "include"
+            });
+            if (res.ok) {
+                setTxHistory(await res.json());
+                setShowTxHistory(targetId);
+            }
+        } catch (err) {
+            console.error("Failed to fetch transactions:", err);
+        }
+    };
+
+    // Delete transaction
+    const handleDeleteTransaction = async (txId: string) => {
+        if (!confirm("Delete this transaction?")) return;
+        try {
+            await fetch(`${API_BASE}/api/portfolio/transactions/${txId}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (showTxHistory) fetchTxHistory(showTxHistory);
+            fetchTargets();
+        } catch (err) {
+            console.error("Failed to delete transaction:", err);
         }
     };
 
@@ -471,6 +505,12 @@ export default function PortfolioPage() {
                                                         +Tx
                                                     </button>
                                                     <button
+                                                        onClick={() => fetchTxHistory(target.id)}
+                                                        className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs hover:bg-purple-500 hover:text-white transition cursor-pointer"
+                                                    >
+                                                        📜
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleDeleteTarget(target.id)}
                                                         className="bg-[var(--color-danger)]/20 text-[var(--color-danger)] px-2 py-1 rounded text-xs hover:bg-[var(--color-danger)] hover:text-white transition cursor-pointer"
                                                     >
@@ -537,6 +577,81 @@ export default function PortfolioPage() {
                     <p className="text-[var(--color-text-muted)]">
                         Create a group above to start tracking your investments.
                     </p>
+                </div>
+            )}
+
+            {/* Transaction History Modal */}
+            {showTxHistory && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    onClick={() => setShowTxHistory(null)}
+                >
+                    <div
+                        className="bg-[#1a1a2e] p-6 rounded-xl border border-white/20 w-full max-w-2xl max-h-[80vh] overflow-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">📜 Transaction History</h3>
+                            <button
+                                onClick={() => {
+                                    setShowTxForm(showTxHistory);
+                                    setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+                                }}
+                                className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-3 py-1 rounded text-sm hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
+                            >
+                                + Add
+                            </button>
+                        </div>
+                        {txHistory.length === 0 ? (
+                            <p className="text-[var(--color-text-muted)] text-center py-8">
+                                No transactions yet. Add one to start tracking!
+                            </p>
+                        ) : (
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-[var(--color-text-muted)] text-xs uppercase border-b border-white/10">
+                                        <th className="p-2">Date</th>
+                                        <th className="p-2">Type</th>
+                                        <th className="p-2 text-right">Shares</th>
+                                        <th className="p-2 text-right">Price</th>
+                                        <th className="p-2 text-right">Total</th>
+                                        <th className="p-2 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {txHistory.map((tx) => (
+                                        <tr key={tx.id} className="hover:bg-white/5">
+                                            <td className="p-2 font-mono text-xs">{tx.date}</td>
+                                            <td className={`p-2 font-bold ${tx.type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
+                                                {tx.type.toUpperCase()}
+                                            </td>
+                                            <td className="p-2 font-mono text-right">{tx.shares}</td>
+                                            <td className="p-2 font-mono text-right">${tx.price}</td>
+                                            <td className="p-2 font-mono text-right font-bold">
+                                                ${(tx.shares * tx.price).toLocaleString()}
+                                            </td>
+                                            <td className="p-2 text-center">
+                                                <button
+                                                    onClick={() => handleDeleteTransaction(tx.id)}
+                                                    className="text-red-400 hover:text-red-300 px-2"
+                                                >
+                                                    🗑
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => setShowTxHistory(null)}
+                                className="px-4 py-2 border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

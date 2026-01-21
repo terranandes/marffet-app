@@ -108,8 +108,10 @@
 <body class="h-screen flex flex-col overflow-hidden">
 
     <div id="loading-msg" onclick="this.style.display='none'"
-        class="absolute inset-0 flex items-center justify-center text-cyber-cyan font-bold z-[100] bg-black cursor-pointer">
-        {{ t('l_init') }}
+        class="absolute inset-0 flex flex-col items-center justify-center text-cyber-cyan font-bold z-[100] bg-black cursor-pointer gap-4">
+        <div class="w-12 h-12 border-4 border-cyber-cyan/30 border-t-cyber-cyan rounded-full animate-spin"></div>
+        <div class="text-lg">Loading Martian...</div>
+        <div class="text-xs text-gray-500 mt-2">(Click to dismiss)</div>
     </div>
 
     <div id="app" v-cloak class="flex-1 flex flex-col h-full relative"

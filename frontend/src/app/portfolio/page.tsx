@@ -618,19 +618,54 @@ export default function PortfolioPage() {
                     >
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold">📜 Transaction History</h3>
-                            <button
-                                onClick={() => {
-                                    setShowTxForm(showTxHistory);
-                                    setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
-                                }}
-                                className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-3 py-1 rounded text-sm hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
-                            >
-                                + Add
-                            </button>
                         </div>
+
+                        {/* Inline Add Transaction Form */}
+                        <div className="mb-4 p-3 bg-black/40 rounded-lg border border-white/10">
+                            <div className="flex gap-2 items-center flex-wrap">
+                                <select
+                                    value={newTx.type}
+                                    onChange={(e) => setNewTx({ ...newTx, type: e.target.value as "buy" | "sell" })}
+                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm"
+                                >
+                                    <option value="buy">Buy</option>
+                                    <option value="sell">Sell</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    placeholder="Shares"
+                                    value={newTx.shares || ""}
+                                    onChange={(e) => setNewTx({ ...newTx, shares: Number(e.target.value) })}
+                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm w-20"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Price"
+                                    value={newTx.price || ""}
+                                    onChange={(e) => setNewTx({ ...newTx, price: Number(e.target.value) })}
+                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm w-24"
+                                />
+                                <input
+                                    type="date"
+                                    value={newTx.date}
+                                    onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
+                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm"
+                                />
+                                <button
+                                    onClick={async () => {
+                                        await handleAddTransaction(showTxHistory);
+                                        fetchTxHistory(showTxHistory);
+                                    }}
+                                    className="bg-[var(--color-cta)] text-black px-3 py-1.5 rounded text-sm font-bold cursor-pointer"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                        </div>
+
                         {txHistory.length === 0 ? (
                             <p className="text-[var(--color-text-muted)] text-center py-8">
-                                No transactions yet. Add one to start tracking!
+                                No transactions yet. Add one above!
                             </p>
                         ) : (
                             <table className="w-full text-sm">

@@ -656,8 +656,8 @@ export default function PortfolioPage() {
                             <button
                                 onClick={() => setNewTx({ ...newTx, type: "buy" })}
                                 className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "buy"
-                                        ? "bg-green-500 text-black"
-                                        : "bg-black/40 border border-white/20 text-white hover:bg-green-500/20"
+                                    ? "bg-green-500 text-black"
+                                    : "bg-black/40 border border-white/20 text-white hover:bg-green-500/20"
                                     }`}
                             >
                                 Buy
@@ -665,8 +665,8 @@ export default function PortfolioPage() {
                             <button
                                 onClick={() => setNewTx({ ...newTx, type: "sell" })}
                                 className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "sell"
-                                        ? "bg-red-500 text-white"
-                                        : "bg-black/40 border border-white/20 text-red-400 hover:bg-red-500/20"
+                                    ? "bg-red-500 text-white"
+                                    : "bg-black/40 border border-white/20 text-red-400 hover:bg-red-500/20"
                                     }`}
                             >
                                 Sell
@@ -676,12 +676,14 @@ export default function PortfolioPage() {
                         {/* Date */}
                         <div className="mb-4">
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">Date</label>
-                            <input
-                                type="date"
-                                value={newTx.date}
-                                onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
-                                className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-sm focus:border-[var(--color-cta)] outline-none"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="date"
+                                    value={newTx.date}
+                                    onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-sm focus:border-[var(--color-cta)] outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:hover:scale-110 [&::-webkit-calendar-picker-indicator]:transition-transform"
+                                />
+                            </div>
                         </div>
 
                         {/* Shares & Price */}

@@ -652,12 +652,29 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
     
     avg_cost = total_cost / total_shares if total_shares > 0 else 0
     
+    avg_cost = total_cost / total_shares if total_shares > 0 else 0
+    
     # --- Dividend Calculation (Portfolio Receipt) ---
     dividend_history = []
     total_div_cash = 0.0
     
-    try:
-        # 1. Load Dividend DB (Lazy load or cached)
+    # 1. Try fetching from Synced DB first (Most Accurate)
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT SUM(total_cash) FROM dividend_history WHERE target_id = ?", (target_id,))
+        db_total = cursor.fetchone()[0]
+        
+        if db_total is not None:
+            total_div_cash = db_total
+            # Optionally fetch history if needed for legacy compatibility, 
+            # but usually summary only needs total. 
+            # If we want to fully replace the list:
+            # cursor.execute("SELECT * FROM dividend_history WHERE target_id = ? ORDER BY ex_date DESC", (target_id,))
+            # dividend_history = [dict(row) for row in cursor.fetchall()]
+    
+    if total_div_cash == 0:
+        try:
+            # 2. Fallback to Legacy JSON Load (Approximation)
         # TODO: Optimize to not load file every time? OS file cache handles it usually.
         import json, os
         div_db = {}

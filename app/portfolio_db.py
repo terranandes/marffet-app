@@ -1178,34 +1178,61 @@ def sync_dividends_for_target(target_id: str, stock_id: str) -> list:
             if dividends.empty:
                 continue
             
-            # Get current shares held for this target
+            # Fetch all transactions for this target to calculate historical holdings
             with get_db() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT SUM(CASE WHEN type='buy' THEN shares ELSE -shares END) as total_shares
+                    SELECT type, shares, date 
                     FROM transactions 
-                    WHERE target_id = ? AND type IN ('buy', 'sell')
+                    WHERE target_id = ? 
+                    ORDER BY date ASC
                 """, (target_id,))
-                result = cursor.fetchone()
-                shares_held = result['total_shares'] or 0
-            
-            if shares_held <= 0:
-                break
-            
+                transactions = [dict(row) for row in cursor.fetchall()]
+
             # Process each dividend
             for ex_date, amount in dividends.items():
                 ex_date_str = ex_date.strftime('%Y-%m-%d')
+                
+                # Calculate shares held BEFORE the ex-date
+                shares_held = 0
+                for tx in transactions:
+                    if tx['date'] < ex_date_str:
+                        if tx['type'] == 'buy':
+                            shares_held += tx['shares']
+                        elif tx['type'] == 'sell':
+                            shares_held -= tx['shares']
+                
+                if shares_held <= 0:
+                    continue
+
                 total_cash = shares_held * amount
                 
-                # Check if already recorded
+                # Check if already recorded and matches current calculation
                 with get_db() as conn:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "SELECT id FROM dividend_history WHERE target_id = ? AND ex_date = ?",
+                        "SELECT id, shares_held, total_cash FROM dividend_history WHERE target_id = ? AND ex_date = ?",
                         (target_id, ex_date_str)
                     )
-                    if cursor.fetchone():
-                        continue  # Already exists
+                    existing = cursor.fetchone()
+                    
+                    if existing:
+                        # Update if shares or amount differs (re-calculation or data correction)
+                        if existing['shares_held'] != shares_held or abs(existing['total_cash'] - total_cash) > 1:
+                            cursor.execute("""
+                                UPDATE dividend_history 
+                                SET shares_held = ?, total_cash = ?, amount_per_share = ?
+                                WHERE id = ?
+                            """, (shares_held, total_cash, float(amount), existing['id']))
+                            
+                            new_dividends.append({
+                                "id": existing['id'],
+                                "ex_date": ex_date_str,
+                                "shares_held": shares_held,
+                                "total_cash": round(total_cash, 2),
+                                "status": "updated"
+                            })
+                        continue
                     
                     # Record new dividend
                     div_id = str(uuid.uuid4())
@@ -1213,19 +1240,21 @@ def sync_dividends_for_target(target_id: str, stock_id: str) -> list:
                         INSERT INTO dividend_history 
                         (id, target_id, ex_date, amount_per_share, shares_held, total_cash)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, (div_id, target_id, ex_date_str, amount, shares_held, total_cash))
+                    """, (div_id, target_id, ex_date_str, float(amount), shares_held, total_cash))
                     
                     new_dividends.append({
                         "id": div_id,
                         "ex_date": ex_date_str,
                         "amount_per_share": round(amount, 4),
                         "shares_held": shares_held,
-                        "total_cash": round(total_cash, 2)
+                        "total_cash": round(total_cash, 2),
+                        "status": "new"
                     })
             
             break  # Success, no need to try other suffix
             
         except Exception as e:
+            print(f"Error syncing dividends for {stock_id}{suffix}: {e}")
             continue
     
     return new_dividends

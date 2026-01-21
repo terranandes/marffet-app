@@ -498,13 +498,13 @@ export default function PortfolioPage() {
                                 <thead>
                                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-xs uppercase">
                                         <th className="text-left p-2">Stock</th>
-                                        <th className="text-right p-2">Price</th>
+                                        <th className="text-right p-2">Price/Change</th>
                                         <th className="text-right p-2">Shares</th>
-                                        <th className="text-right p-2">Avg Cost</th>
-                                        <th className="text-right p-2">Market Value</th>
+                                        <th className="text-right p-2">Cost/Avg</th>
+                                        <th className="text-right p-2">Market Val</th>
                                         <th className="text-right p-2">Realized</th>
                                         <th className="text-right p-2">Unrealized</th>
-                                        <th className="text-right p-2">Dividends</th>
+                                        <th className="text-right p-2">Div. Receipt</th>
                                         <th className="text-center p-2">Actions</th>
                                     </tr>
                                 </thead>
@@ -517,10 +517,10 @@ export default function PortfolioPage() {
                                             </td>
                                             <td className="p-2 text-right">
                                                 <div className="font-mono font-bold">
-                                                    ${target.livePrice?.price?.toFixed(2) || "---"}
+                                                    {target.livePrice?.price?.toLocaleString() || "---"}
                                                 </div>
                                                 {target.livePrice && (
-                                                    <div className={`text-xs font-mono ${(target.livePrice.change || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
+                                                    <div className={`text-xs font-mono ${(target.livePrice.change || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
                                                         {(target.livePrice.change || 0) >= 0 ? "▲" : "▼"}
                                                         {Math.abs(target.livePrice.change_pct || 0).toFixed(2)}%
                                                     </div>
@@ -549,8 +549,21 @@ export default function PortfolioPage() {
                                                 {(target.summary?.unrealized_pnl || 0) >= 0 ? "+" : ""}
                                                 {formatCurrency(target.summary?.unrealized_pnl || 0)}
                                             </td>
-                                            <td className="p-2 text-right font-mono text-[var(--color-warning)]">
-                                                {formatCurrency(target.summary?.total_dividend_cash || 0)}
+                                            <td className="p-2 text-right">
+                                                <div className="font-mono text-[var(--color-warning)] font-bold">
+                                                    {formatCurrency(target.summary?.total_dividend_cash || 0)}
+                                                </div>
+                                                {(target.summary?.total_dividend_cash || 0) > 0 && (
+                                                    <button
+                                                        onClick={() => {
+                                                            // TODO: Open dividend history modal
+                                                            alert(`Dividend details for ${target.stock_name}`);
+                                                        }}
+                                                        className="text-xs text-[var(--color-cta)] hover:underline cursor-pointer"
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                )}
                                             </td>
                                             <td className="p-2 text-center">
                                                 <div className="flex gap-1 justify-center">

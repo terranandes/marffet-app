@@ -86,6 +86,7 @@ export default function PortfolioPage() {
     });
 
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
+    const [syncing, setSyncing] = useState(false);
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -321,15 +322,18 @@ export default function PortfolioPage() {
 
     // Sync dividends
     const handleSyncDividends = async () => {
+        setSyncing(true);
         try {
             await fetch(`${API_BASE}/api/portfolio/dividends/sync`, {
                 method: "POST",
                 credentials: "include",
             });
-            fetchTargets();
+            await fetchTargets();
             fetchDividends();
         } catch (err) {
             console.error("Failed to sync dividends:", err);
+        } finally {
+            setSyncing(false);
         }
     };
 
@@ -402,9 +406,14 @@ export default function PortfolioPage() {
                     <div className="flex gap-2 w-full lg:w-auto">
                         <button
                             onClick={handleSyncDividends}
-                            className="flex-1 lg:flex-none bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)] px-4 py-2 rounded hover:bg-[var(--color-success)] hover:text-black transition text-sm font-bold cursor-pointer"
+                            disabled={syncing}
+                            className={`flex-1 lg:flex-none border px-4 py-2 rounded transition text-sm font-bold cursor-pointer flex items-center justify-center gap-2 ${syncing
+                                ? "bg-[var(--color-success)]/10 border-[var(--color-success)]/30 text-[var(--color-success)] cursor-not-allowed"
+                                : "bg-[var(--color-success)]/20 border-[var(--color-success)] text-[var(--color-success)] hover:bg-[var(--color-success)] hover:text-black"
+                                }`}
                         >
-                            🔄 Sync Dividends
+                            <span className={syncing ? "animate-spin" : ""}>{syncing ? "⏳" : "🔄"}</span>
+                            <span>{syncing ? "Syncing..." : "Sync Dividends"}</span>
                         </button>
                         <button
                             onClick={() => setShowAddGroup(!showAddGroup)}

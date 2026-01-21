@@ -859,13 +859,13 @@
                                         </div>
                                     </td>
                                     <!-- Dividend Receipt (New) -->
-                                    <td class="text-right p-2 border-l border-white/10 relative group">
-                                        <div class="font-mono font-bold text-yellow-400">
+                                    <td class="text-right p-2 border-l border-white/10 relative group cursor-pointer"
+                                        @click="target.summary?.dividend_history?.length ? (showDivDetails = target) : null">
+                                        <div class="font-mono font-bold text-yellow-400 hover:text-white transition">
                                             {{ formatCurrency(target.summary?.total_dividend_cash || 0) }}
                                         </div>
                                         <!-- Details Button (Click to Open Modal) -->
                                         <button v-if="target.summary?.dividend_history?.length"
-                                            @click="showDivDetails = target"
                                             class="text-xs text-cyber-cyan hover:text-white underline decoration-dashed mt-1 block w-full text-right">
                                             View Details 📄
                                         </button>

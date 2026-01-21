@@ -519,7 +519,10 @@ export default function PortfolioPage() {
                                             <td className="p-2 text-center">
                                                 <div className="flex gap-1 justify-center">
                                                     <button
-                                                        onClick={() => setShowTxForm(showTxForm === target.id ? null : target.id)}
+                                                        onClick={() => {
+                                                            setShowTxForm(target.id);
+                                                            setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+                                                        }}
                                                         className="bg-[var(--color-cta)]/20 text-[var(--color-cta)] px-2 py-1 rounded text-xs hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
                                                     >
                                                         +Tx
@@ -537,54 +540,6 @@ export default function PortfolioPage() {
                                                         🗑
                                                     </button>
                                                 </div>
-
-                                                {/* Transaction Form */}
-                                                {showTxForm === target.id && (
-                                                    <div className="mt-2 p-2 bg-black/40 rounded text-left">
-                                                        <div className="flex gap-2 flex-wrap">
-                                                            <select
-                                                                value={newTx.type}
-                                                                onChange={(e) => setNewTx({ ...newTx, type: e.target.value as "buy" | "sell" })}
-                                                                className="bg-black/50 border border-[var(--color-border)] rounded px-2 py-1 text-xs"
-                                                            >
-                                                                <option value="buy">Buy</option>
-                                                                <option value="sell">Sell</option>
-                                                            </select>
-                                                            <input
-                                                                type="number"
-                                                                placeholder="Shares"
-                                                                value={newTx.shares || ""}
-                                                                onChange={(e) => setNewTx({ ...newTx, shares: Number(e.target.value) })}
-                                                                className="bg-black/50 border border-[var(--color-border)] rounded px-2 py-1 text-xs w-16"
-                                                            />
-                                                            <input
-                                                                type="number"
-                                                                placeholder="Price"
-                                                                value={newTx.price || ""}
-                                                                onChange={(e) => setNewTx({ ...newTx, price: Number(e.target.value) })}
-                                                                className="bg-black/50 border border-[var(--color-border)] rounded px-2 py-1 text-xs w-20"
-                                                            />
-                                                            <input
-                                                                type="date"
-                                                                value={newTx.date}
-                                                                onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
-                                                                className="bg-black/50 border border-[var(--color-border)] rounded px-2 py-1 text-xs"
-                                                            />
-                                                            <button
-                                                                onClick={() => handleAddTransaction(target.id)}
-                                                                className="bg-[var(--color-success)] text-black px-2 py-1 rounded text-xs font-bold cursor-pointer"
-                                                            >
-                                                                Save
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setShowTxForm(null)}
-                                                                className="border border-white/30 text-white/70 px-2 py-1 rounded text-xs hover:bg-white/10 cursor-pointer"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -618,49 +573,15 @@ export default function PortfolioPage() {
                     >
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold">📜 Transaction History</h3>
-                        </div>
-
-                        {/* Inline Add Transaction Form */}
-                        <div className="mb-4 p-3 bg-black/40 rounded-lg border border-white/10">
-                            <div className="flex gap-2 items-center flex-wrap">
-                                <select
-                                    value={newTx.type}
-                                    onChange={(e) => setNewTx({ ...newTx, type: e.target.value as "buy" | "sell" })}
-                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm"
-                                >
-                                    <option value="buy">Buy</option>
-                                    <option value="sell">Sell</option>
-                                </select>
-                                <input
-                                    type="number"
-                                    placeholder="Shares"
-                                    value={newTx.shares || ""}
-                                    onChange={(e) => setNewTx({ ...newTx, shares: Number(e.target.value) })}
-                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm w-20"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Price"
-                                    value={newTx.price || ""}
-                                    onChange={(e) => setNewTx({ ...newTx, price: Number(e.target.value) })}
-                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm w-24"
-                                />
-                                <input
-                                    type="date"
-                                    value={newTx.date}
-                                    onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
-                                    className="bg-black/50 border border-white/20 rounded px-2 py-1.5 text-sm"
-                                />
-                                <button
-                                    onClick={async () => {
-                                        await handleAddTransaction(showTxHistory);
-                                        fetchTxHistory(showTxHistory);
-                                    }}
-                                    className="bg-[var(--color-cta)] text-black px-3 py-1.5 rounded text-sm font-bold cursor-pointer"
-                                >
-                                    + Add
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowTxForm(showTxHistory);
+                                    setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+                                }}
+                                className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-3 py-1.5 rounded text-sm hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
+                            >
+                                + Add
+                            </button>
                         </div>
 
                         {txHistory.length === 0 ? (
@@ -710,6 +631,103 @@ export default function PortfolioPage() {
                                 className="px-4 py-2 border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
                             >
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Transaction Modal Popup */}
+            {showTxForm && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]"
+                    onClick={() => setShowTxForm(null)}
+                >
+                    <div
+                        className="bg-[#1a1a2e] p-6 rounded-xl border border-white/20 w-full max-w-md"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            <span className="text-[var(--color-cta)]">+</span> New Transaction
+                        </h3>
+
+                        {/* Buy/Sell Toggle */}
+                        <div className="flex gap-2 mb-6">
+                            <button
+                                onClick={() => setNewTx({ ...newTx, type: "buy" })}
+                                className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "buy"
+                                        ? "bg-green-500 text-black"
+                                        : "bg-black/40 border border-white/20 text-white hover:bg-green-500/20"
+                                    }`}
+                            >
+                                Buy
+                            </button>
+                            <button
+                                onClick={() => setNewTx({ ...newTx, type: "sell" })}
+                                className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "sell"
+                                        ? "bg-red-500 text-white"
+                                        : "bg-black/40 border border-white/20 text-red-400 hover:bg-red-500/20"
+                                    }`}
+                            >
+                                Sell
+                            </button>
+                        </div>
+
+                        {/* Date */}
+                        <div className="mb-4">
+                            <label className="block text-xs text-[var(--color-text-muted)] mb-1">Date</label>
+                            <input
+                                type="date"
+                                value={newTx.date}
+                                onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
+                                className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-sm focus:border-[var(--color-cta)] outline-none"
+                            />
+                        </div>
+
+                        {/* Shares & Price */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Shares</label>
+                                <input
+                                    type="number"
+                                    value={newTx.shares || ""}
+                                    onChange={(e) => setNewTx({ ...newTx, shares: Number(e.target.value) })}
+                                    placeholder="0"
+                                    className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-sm focus:border-[var(--color-cta)] outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Price</label>
+                                <input
+                                    type="number"
+                                    value={newTx.price || ""}
+                                    onChange={(e) => setNewTx({ ...newTx, price: Number(e.target.value) })}
+                                    placeholder="0"
+                                    className="w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-sm focus:border-[var(--color-cta)] outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={async () => {
+                                    await handleAddTransaction(showTxForm);
+                                    setShowTxForm(null);
+                                    // If history modal is open, refresh it
+                                    if (showTxHistory) {
+                                        fetchTxHistory(showTxHistory);
+                                    }
+                                }}
+                                className="flex-1 bg-[var(--color-cta)] text-black py-3 rounded-lg font-bold text-sm hover:opacity-90 transition cursor-pointer"
+                            >
+                                Confirm
+                            </button>
+                            <button
+                                onClick={() => setShowTxForm(null)}
+                                className="flex-1 border border-white/20 text-white py-3 rounded-lg font-bold text-sm hover:bg-white/10 transition cursor-pointer"
+                            >
+                                Cancel
                             </button>
                         </div>
                     </div>

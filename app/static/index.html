@@ -762,7 +762,7 @@
                                             formatCurrency(target.summary?.realized_pnl || 0) }}
                                         </div>
                                     </div>
-                                    <div class="text-right cursor-pointer" @click="openDivModal(target)">
+                                    <div class="text-right cursor-pointer" @click.stop="openDivModal(target)">
                                         <div class="text-xs text-yellow-500">💰 Div. Receipt</div>
                                         <div class="font-mono text-yellow-400 font-bold hover:text-white transition">{{
                                             formatCurrency(target.summary?.total_dividend_cash || 0) }}</div>
@@ -858,17 +858,16 @@
                                             ({{ target.summary?.unrealized_pnl_pct?.toFixed(2) || 0 }}%)
                                         </div>
                                     </td>
-                                    <!-- Dividend Receipt (New) -->
-                                    <td class="text-right p-2 border-l border-white/10 relative group cursor-pointer"
-                                        @click="openDivModal(target)">
-                                        <div class="font-mono font-bold text-yellow-400 hover:text-white transition">
+                                    <!-- Dividend Receipt (New) - Desktop -->
+                                    <td class="text-right p-2 border-l border-white/10 cursor-pointer hover:bg-yellow-500/10 transition"
+                                        @click.stop="openDivModal(target)" style="z-index: 50;">
+                                        <div class="font-mono font-bold text-yellow-400 pointer-events-none">
                                             {{ formatCurrency(target.summary?.total_dividend_cash || 0) }}
                                         </div>
-                                        <!-- Details Button (Click to Open Modal) -->
-                                        <button @click.stop="openDivModal(target)"
-                                            class="text-xs text-cyber-cyan hover:text-white underline decoration-dashed mt-1 block w-full text-right">
+                                        <div
+                                            class="text-xs text-cyber-cyan underline decoration-dashed mt-1 pointer-events-none">
                                             View Details 📄
-                                        </button>
+                                        </div>
                                     </td>
                                     <!-- Tx Count -->
                                     <td class="text-center p-2 font-mono cursor-pointer hover:text-cyber-cyan transition underline decoration-dashed"

@@ -508,7 +508,7 @@ export default function PortfolioPage() {
                                         Unrealized P/L
                                     </div>
                                     <div
-                                        className={`font-mono font-bold text-lg ${groupStats.unrealized >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
+                                        className={`font-mono font-bold text-lg ${groupStats.unrealized >= 0 ? "text-red-400" : "text-green-400"
                                             }`}
                                     >
                                         {groupStats.unrealized >= 0 ? "+" : ""}
@@ -597,15 +597,15 @@ export default function PortfolioPage() {
                                                 {formatCurrency(target.summary?.market_value || 0)}
                                             </td>
                                             <td className={`p-2 text-right font-mono ${(target.summary?.realized_pnl || 0) >= 0
-                                                ? "text-[var(--color-success)]"
-                                                : "text-[var(--color-danger)]"
+                                                ? "text-red-400"
+                                                : "text-green-400"
                                                 }`}>
                                                 {(target.summary?.realized_pnl || 0) >= 0 ? "+" : ""}
                                                 {formatCurrency(target.summary?.realized_pnl || 0)}
                                             </td>
                                             <td className={`p-2 text-right font-mono font-bold ${(target.summary?.unrealized_pnl || 0) >= 0
-                                                ? "text-[var(--color-success)]"
-                                                : "text-[var(--color-danger)]"
+                                                ? "text-red-400"
+                                                : "text-green-400"
                                                 }`}>
                                                 {(target.summary?.unrealized_pnl || 0) >= 0 ? "+" : ""}
                                                 {formatCurrency(target.summary?.unrealized_pnl || 0)}

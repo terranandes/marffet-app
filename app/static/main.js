@@ -2073,6 +2073,12 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Dividend Modal State
         const showDivDetails = ref(null);
 
+        // Dedicated function to open dividend modal (for debugging)
+        const openDivModal = (target) => {
+            console.log('[openDivModal] Called with target:', target);
+            showDivDetails.value = target;
+        };
+
         const currentYear = new Date().getFullYear();
 
         const fetchLeaderboard = async () => {
@@ -2237,7 +2243,7 @@ Please analyze this feedback and determine if it's a true bug.`;
             // Leaderboard & Profile
             leaderboard, loadingLadder, newNickname, updateProfile, copyPublicLink,
             showProfileModal, profileData, openProfile, getDonutGradient, syncStats,
-            showDivDetails, currentYear, raceConfig, // Dividend Modal State & Race Config
+            showDivDetails, openDivModal, currentYear, raceConfig, // Dividend Modal State & Race Config
             // Settings System
             showSettings, appSettings, isPremium, toggleGMMode, saveSettings, exportToExcel, t,
             // Feedback System

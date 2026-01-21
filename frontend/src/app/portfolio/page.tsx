@@ -92,37 +92,73 @@ export default function PortfolioPage() {
         setLoading(false);
     }, [selectedGroupId]);
 
-    // Fetch targets for selected group
+    // Fetch targets for selected group (matches Legacy UI pattern)
     const fetchTargets = useCallback(async () => {
         if (!selectedGroupId) return;
         try {
+            // Step 1: Get basic target list
             const res = await fetch(`${API_BASE}/api/portfolio/groups/${selectedGroupId}/targets`, {
                 credentials: "include"
             });
-            if (res.ok) {
-                const data = await res.json();
-                setTargets(data);
+            if (!res.ok) return;
 
-                // Calculate group stats
-                let marketValue = 0;
-                let realized = 0;
-                let unrealized = 0;
-                let totalCost = 0;
+            const targets = await res.json();
 
-                data.forEach((t: Target) => {
-                    marketValue += t.summary?.market_value || 0;
-                    realized += t.summary?.realized_pnl || 0;
-                    unrealized += t.summary?.unrealized_pnl || 0;
-                    totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
-                });
-
-                setGroupStats({
-                    marketValue,
-                    realized,
-                    unrealized,
-                    unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
-                });
+            // Step 2: Fetch live prices for all stocks
+            const stockIds = targets.map((t: Target) => t.stock_id).join(',');
+            let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
+            if (stockIds) {
+                try {
+                    const priceRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`, {
+                        credentials: "include"
+                    });
+                    if (priceRes.ok) {
+                        livePrices = await priceRes.json();
+                    }
+                } catch (e) {
+                    console.warn("Live price fetch failed:", e);
+                }
             }
+
+            // Step 3: Fetch summary for each target (with current_price for accurate P/L)
+            for (const t of targets) {
+                const livePrice = livePrices[t.stock_id]?.price || null;
+                t.livePrice = livePrices[t.stock_id] || null;
+
+                try {
+                    const summaryUrl = livePrice
+                        ? `${API_BASE}/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
+                        : `${API_BASE}/api/portfolio/targets/${t.id}/summary`;
+                    const sumRes = await fetch(summaryUrl, { credentials: "include" });
+                    if (sumRes.ok) {
+                        t.summary = await sumRes.json();
+                    }
+                } catch (e) {
+                    console.warn(`Summary fetch failed for ${t.stock_id}:`, e);
+                }
+            }
+
+            setTargets(targets);
+
+            // Calculate group stats from summaries
+            let marketValue = 0;
+            let realized = 0;
+            let unrealized = 0;
+            let totalCost = 0;
+
+            targets.forEach((t: Target) => {
+                marketValue += t.summary?.market_value || 0;
+                realized += t.summary?.realized_pnl || 0;
+                unrealized += t.summary?.unrealized_pnl || 0;
+                totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
+            });
+
+            setGroupStats({
+                marketValue,
+                realized,
+                unrealized,
+                unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
+            });
         } catch (err) {
             console.error("Failed to fetch targets:", err);
         }

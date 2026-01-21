@@ -38,6 +38,15 @@ interface Transaction {
     fee?: number;
 }
 
+interface Dividend {
+    id: string;
+    target_id: string;
+    ex_date: string;
+    shares_held: number;
+    amount_per_share: number;
+    total_cash: number;
+}
+
 export default function PortfolioPage() {
     const [groups, setGroups] = useState<Group[]>([]);
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -62,6 +71,10 @@ export default function PortfolioPage() {
     // Transaction history
     const [showTxHistory, setShowTxHistory] = useState<string | null>(null);
     const [txHistory, setTxHistory] = useState<Transaction[]>([]);
+
+    // Dividend history
+    const [showDivHistory, setShowDivHistory] = useState<{ targetId: string; stockName: string } | null>(null);
+    const [divHistory, setDivHistory] = useState<Dividend[]>([]);
 
     // Stats
     const [groupStats, setGroupStats] = useState({
@@ -312,6 +325,21 @@ export default function PortfolioPage() {
         }
     };
 
+    // Fetch dividend history
+    const fetchDivHistory = async (targetId: string, stockName: string) => {
+        try {
+            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/dividends`, {
+                credentials: "include"
+            });
+            if (res.ok) {
+                setDivHistory(await res.json());
+                setShowDivHistory({ targetId, stockName });
+            }
+        } catch (err) {
+            console.error("Failed to fetch dividends:", err);
+        }
+    };
+
     // Delete transaction
     const handleDeleteTransaction = async (txId: string) => {
         if (!confirm("Delete this transaction?")) return;
@@ -522,7 +550,8 @@ export default function PortfolioPage() {
                                                 {target.livePrice && (
                                                     <div className={`text-xs font-mono ${(target.livePrice.change || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
                                                         {(target.livePrice.change || 0) >= 0 ? "▲" : "▼"}
-                                                        {Math.abs(target.livePrice.change_pct || 0).toFixed(2)}%
+                                                        {Math.abs(target.livePrice.change || 0).toFixed(1)}
+                                                        ({Math.abs(target.livePrice.change_pct || 0).toFixed(2)}%)
                                                     </div>
                                                 )}
                                             </td>
@@ -555,10 +584,7 @@ export default function PortfolioPage() {
                                                 </div>
                                                 {(target.summary?.total_dividend_cash || 0) > 0 && (
                                                     <button
-                                                        onClick={() => {
-                                                            // TODO: Open dividend history modal
-                                                            alert(`Dividend details for ${target.stock_name}`);
-                                                        }}
+                                                        onClick={() => fetchDivHistory(target.id, target.stock_name)}
                                                         className="text-xs text-[var(--color-cta)] hover:underline cursor-pointer"
                                                     >
                                                         View Details
@@ -779,6 +805,67 @@ export default function PortfolioPage() {
                                 className="flex-1 border border-white/20 text-white py-3 rounded-lg font-bold text-sm hover:bg-white/10 transition cursor-pointer"
                             >
                                 Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Dividend History Modal */}
+            {showDivHistory && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    onClick={() => setShowDivHistory(null)}
+                >
+                    <div
+                        className="bg-[#1a1a2e] p-6 rounded-xl border border-white/20 w-full max-w-2xl max-h-[80vh] overflow-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">💰 Dividend Receipt - {showDivHistory.stockName}</h3>
+                        </div>
+                        {divHistory.length === 0 ? (
+                            <p className="text-[var(--color-text-muted)] text-center py-8">
+                                No dividend records found. Click "Sync Dividends" to fetch data.
+                            </p>
+                        ) : (
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)]">
+                                        <th className="text-left p-2">Ex-Date</th>
+                                        <th className="text-right p-2">Shares Held</th>
+                                        <th className="text-right p-2">$/Share</th>
+                                        <th className="text-right p-2">Total Cash</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    {divHistory.map((div) => (
+                                        <tr key={div.id} className="hover:bg-white/5">
+                                            <td className="p-2">{div.ex_date}</td>
+                                            <td className="p-2 font-mono text-right">{div.shares_held}</td>
+                                            <td className="p-2 font-mono text-right">${div.amount_per_share?.toFixed(4)}</td>
+                                            <td className="p-2 font-mono text-right font-bold text-[var(--color-warning)]">
+                                                ${div.total_cash?.toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot>
+                                    <tr className="border-t border-[var(--color-border)] font-bold">
+                                        <td colSpan={3} className="p-2 text-right">Total:</td>
+                                        <td className="p-2 text-right text-[var(--color-warning)]">
+                                            ${divHistory.reduce((sum, d) => sum + (d.total_cash || 0), 0).toLocaleString()}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        )}
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => setShowDivHistory(null)}
+                                className="px-4 py-2 border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
+                            >
+                                Close
                             </button>
                         </div>
                     </div>

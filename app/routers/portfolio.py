@@ -6,7 +6,7 @@ from app.portfolio_db import (
     create_group, list_groups, delete_group,
     add_target, list_targets, delete_target,
     add_transaction, list_transactions, delete_transaction,
-    sync_all_dividends, get_total_dividends,
+    sync_all_dividends, get_total_dividends, get_dividend_history,
     get_all_targets_by_type,
     initialize_default_portfolio
 )
@@ -80,3 +80,9 @@ async def api_dividends_total(user: dict = Depends(get_current_user)):
 async def api_sync_dividends(user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
     return sync_all_dividends(user['id'])
+
+@router.get("/targets/{target_id}/dividends")
+async def api_target_dividends(target_id: str, user: dict = Depends(get_current_user)):
+    """Get dividend history for a specific target."""
+    if not user: raise HTTPException(status_code=401)
+    return get_dividend_history(target_id)

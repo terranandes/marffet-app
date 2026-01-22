@@ -2073,10 +2073,31 @@ Please analyze this feedback and determine if it's a true bug.`;
         // Dividend Modal State
         const showDivDetails = ref(null);
 
-        // Dedicated function to open dividend modal (for debugging)
-        const openDivModal = (target) => {
+        // Dedicated function to open dividend modal - fetches fresh data from API
+        const openDivModal = async (target) => {
             console.log('[openDivModal] Called with target:', target);
-            showDivDetails.value = target;
+            // First show modal with basic info
+            showDivDetails.value = { ...target, divHistory: null, divLoading: true };
+
+            // Then fetch fresh dividend history from API
+            try {
+                const res = await apiFetch(`/api/portfolio/targets/${target.id}/dividends`);
+                if (res.ok) {
+                    const history = await res.json();
+                    console.log('[openDivModal] Fetched history:', history);
+                    showDivDetails.value = {
+                        ...target,
+                        divHistory: history,
+                        divLoading: false
+                    };
+                } else {
+                    console.error('[openDivModal] API error:', res.status);
+                    showDivDetails.value = { ...target, divHistory: [], divLoading: false };
+                }
+            } catch (err) {
+                console.error('[openDivModal] Fetch error:', err);
+                showDivDetails.value = { ...target, divHistory: [], divLoading: false };
+            }
         };
 
         const currentYear = new Date().getFullYear();

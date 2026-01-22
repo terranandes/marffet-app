@@ -908,15 +908,36 @@
                         </div>
 
                         <div class="space-y-2 max-h-64 overflow-y-auto mb-4 border-t border-b border-white/10 py-2">
-                            <div v-for="h in showDivDetails.summary?.dividend_history" :key="h.year"
+                            <!-- Loading State -->
+                            <div v-if="showDivDetails.divLoading" class="text-center py-4 text-gray-400">
+                                ⏳ Loading dividend history...
+                            </div>
+                            <!-- History from API -->
+                            <div v-else-if="showDivDetails.divHistory && showDivDetails.divHistory.length > 0"
+                                v-for="h in showDivDetails.divHistory" :key="h.ex_date"
+                                class="flex justify-between items-center p-2 hover:bg-white/5 rounded">
+                                <span class="font-mono text-cyber-cyan">{{ h.ex_date }}</span>
+                                <div class="text-right">
+                                    <div class="font-bold text-white">+{{ formatCurrency(h.total_cash) }}</div>
+                                    <div class="text-xs text-gray-500">{{ h.shares_held }} shares @ ${{
+                                        h.amount_per_share }}/share
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fallback to summary data if API returned empty -->
+                            <div v-else-if="showDivDetails.summary?.dividend_history"
+                                v-for="h in showDivDetails.summary.dividend_history" :key="h.year"
                                 class="flex justify-between items-center p-2 hover:bg-white/5 rounded">
                                 <span class="font-mono text-cyber-cyan">{{ h.year }}</span>
                                 <div class="text-right">
                                     <div class="font-bold text-white">+${{ h.total }}</div>
-                                    <div class="text-xs text-gray-500">{{ h.shares }} shares @ ${{ h.unit_cash
-                                        }}/unit
+                                    <div class="text-xs text-gray-500">{{ h.shares }} shares @ ${{ h.unit_cash }}/unit
                                     </div>
                                 </div>
+                            </div>
+                            <!-- No Data -->
+                            <div v-else class="text-center py-4 text-gray-500">
+                                No dividend history found
                             </div>
                         </div>
 

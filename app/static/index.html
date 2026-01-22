@@ -944,7 +944,11 @@
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-gray-400 text-sm">Total Received</span>
                             <span class="text-xl font-bold text-yellow-400">
-                                {{ formatCurrency(showDivDetails.summary?.total_dividend_cash || 0) }}
+                                {{ formatCurrency(
+                                showDivDetails.divHistory?.reduce((sum, h) => sum + (h.total_cash || 0), 0)
+                                || showDivDetails.summary?.total_dividend_cash
+                                || 0
+                                ) }}
                             </span>
                         </div>
 

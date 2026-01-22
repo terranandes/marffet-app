@@ -666,11 +666,19 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
         
         if db_total is not None:
             total_div_cash = db_total
-            # Optionally fetch history if needed for legacy compatibility, 
-            # but usually summary only needs total. 
-            # If we want to fully replace the list:
-            # cursor.execute("SELECT * FROM dividend_history WHERE target_id = ? ORDER BY ex_date DESC", (target_id,))
-            # dividend_history = [dict(row) for row in cursor.fetchall()]
+            # Fetch dividend history from DB for modal display
+            cursor.execute("""
+                SELECT ex_date, shares_held, unit_cash, total_cash 
+                FROM dividend_history WHERE target_id = ? 
+                ORDER BY ex_date DESC
+            """, (target_id,))
+            for row in cursor.fetchall():
+                dividend_history.append({
+                    "year": row['ex_date'],  # Using full date as identifier
+                    "shares": row['shares_held'],
+                    "unit_cash": row['unit_cash'],
+                    "total": row['total_cash']
+                })
     
     if total_div_cash == 0:
         try:

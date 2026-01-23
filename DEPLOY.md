@@ -56,7 +56,7 @@ The system is now split into two services:
 | :--- | :--- |
 | `GOOGLE_CLIENT_ID` | (From Google Cloud Console) |
 | `GOOGLE_CLIENT_SECRET` | (From Google Cloud Console) |
-| `GEMINI_API_KEY` | (From Google AI Studio) |
+| `GEMINI_API_KEY` | (Optional, From Google AI Studio) |
 | `GM_EMAILS` | (comma-separated admin emails) |
 | `SECRET_KEY` | (Random string) |
 | `FRONTEND_URL` | `https://martian-app.zeabur.app` (Your Frontend URL - for CORS) |

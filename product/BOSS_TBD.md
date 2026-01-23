@@ -23,11 +23,11 @@ This file is owned by BOSS, prohibited from access by any AI Agent from any plat
 
 ## AI 工具 Skills 目錄對照表
 
-| 平台 / 工具               | 專案目錄 (Project Scope) | 使用者全域目錄 (Global Scope)      |
-| :---                     | :---                     | :---                             |
-| **Google Antigravity**   | `.agent/skills/`         | `~/.gemini/antigravity/skills/`  |
-| **Gemini CLI**           | `.gemini/skills/`        | `~/.gemini/skills/`              |
-| **OpenCode**             | `.opencode/skills/`      | `~/.config/opencode/skills/`     |
+| 平台 / 工具               | 專案目錄 (Project Scope) | 使用者全域目錄 (Global Scope)             |
+| :---                     | :---                     | :---                                    |
+| **Google Antigravity**   | `.agent/skills/`         | `~/.gemini/antigravity/global_skills/`  |
+| **Gemini CLI**           | `.gemini/skills/`        | `~/.gemini/skills/`                     |
+| **OpenCode**             | `.opencode/skills/`      | `~/.config/opencode/skills/`            |
 
 ## AI 工具 workflows/commands 目錄對照表
 

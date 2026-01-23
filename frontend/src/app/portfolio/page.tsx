@@ -718,7 +718,7 @@ export default function PortfolioPage() {
                                     {txHistory.map((tx) => (
                                         <tr key={tx.id} className="hover:bg-white/5">
                                             <td className="p-2 font-mono text-xs">{tx.date}</td>
-                                            <td className={`p-2 font-bold ${tx.type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
+                                            <td className={`p-2 font-bold ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
                                                 {tx.type.toUpperCase()}
                                             </td>
                                             <td className="p-2 font-mono text-right">{tx.shares}</td>

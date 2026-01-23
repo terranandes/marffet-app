@@ -1375,15 +1375,15 @@ Please analyze this feedback and determine if it's a true bug.`;
 
         const getActionColor = (action) => {
             if (!action) return 'text-gray-500';
-            if (action.includes('BUY')) return 'text-green-400';
-            if (action.includes('SELL')) return 'text-red-500';
+            if (action.includes('BUY')) return 'text-red-400';
+            if (action.includes('SELL')) return 'text-green-400';
             return 'text-yellow-400';
         };
 
         const getBorderColor = (action) => {
             if (!action) return 'border-gray-500';
-            if (action.includes('BUY')) return 'border-green-400 from-green-500/10';
-            if (action.includes('SELL')) return 'border-red-500 from-red-500/10';
+            if (action.includes('BUY')) return 'border-red-400 from-red-500/10';
+            if (action.includes('SELL')) return 'border-green-400 from-green-500/10';
             return 'border-yellow-400 from-yellow-500/10';
         };
 

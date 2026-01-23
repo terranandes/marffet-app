@@ -59,6 +59,7 @@ SUPPLEMENTARY_NAME_CACHE = {
     "6533": "晶心科技",
     "6533.TW": "晶心科技",
     "6533.TWO": "晶心科技",
+    "00950B": "凱基A級公司債",     # API returns English
     "00980D": "主動聯博投等入息",
     # 00981A removed - API fetches correct name "主動統一台股增長"
 }

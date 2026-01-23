@@ -786,8 +786,8 @@ export default function PortfolioPage() {
                             <button
                                 onClick={() => setNewTx({ ...newTx, type: "buy" })}
                                 className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "buy"
-                                    ? "bg-green-500 text-black"
-                                    : "bg-black/40 border border-white/20 text-white hover:bg-green-500/20"
+                                    ? "bg-red-500 text-white"
+                                    : "bg-black/40 border border-white/20 text-white hover:bg-red-500/20"
                                     }`}
                             >
                                 Buy
@@ -795,8 +795,8 @@ export default function PortfolioPage() {
                             <button
                                 onClick={() => setNewTx({ ...newTx, type: "sell" })}
                                 className={`flex-1 py-3 rounded-lg font-bold text-sm transition ${newTx.type === "sell"
-                                    ? "bg-red-500 text-white"
-                                    : "bg-black/40 border border-white/20 text-red-400 hover:bg-red-500/20"
+                                    ? "bg-green-500 text-black"
+                                    : "bg-black/40 border border-white/20 text-white hover:bg-green-500/20"
                                     }`}
                             >
                                 Sell

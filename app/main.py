@@ -42,10 +42,18 @@ async def lifespan(app: FastAPI):
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
         from app.services.backup import BackupService
+        from datetime import datetime, timezone
         
-        scheduler = BackgroundScheduler()
+        # Explicit UTC timezone to ensure consistency on Zeabur
+        scheduler = BackgroundScheduler(timezone=timezone.utc)
+        
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
-        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup')
+        # misfire_grace_time=3600: If app sleeps and wakes up at 09:30, it still runs.
+        job = scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=3600)
+        
+        # Print Next Run Time for Verification
+        if job.next_run_time:
+            print(f"[Scheduler] Next Backup Job at: {job.next_run_time} (UTC)")
         
         # Wrapper for async prewarm function (APScheduler uses sync jobs)
         def run_annual_prewarm():
@@ -54,7 +62,7 @@ async def lifespan(app: FastAPI):
         
         # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
         # This runs Cold Run first, then pushes to GitHub
-        scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm')
+        scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm', misfire_grace_time=3600)
         scheduler.start()
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")
@@ -217,7 +225,9 @@ PROMPT_PREMIUM = (
 @app.post("/api/chat")
 async def chat_with_mars(req: ChatRequest):
     """Chat with Mars AI Copilot"""
-    if not req.apiKey:
+    # Allow empty req.apiKey if server has a default key
+    has_server_key = bool(os.getenv("GEMINI_API_KEY"))
+    if not req.apiKey and not has_server_key:
         return JSONResponse(status_code=400, content={"error": "Missing API Key"})
     
     try:

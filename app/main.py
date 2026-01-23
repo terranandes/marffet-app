@@ -238,10 +238,18 @@ async def chat_with_mars(req: ChatRequest):
 
         # Helper for blocking GenAI call
         def generate_response():
+            # DEBUG: Trace Key Source
+            env_key = os.getenv("GEMINI_API_KEY", "")
+            print(f"[DEBUG] Chat Request - Client Key Length: {len(req.apiKey) if req.apiKey else 0}")
+            print(f"[DEBUG] Chat Request - Env Key Length: {len(env_key)}")
+            
             # Use client key or fallback to server key
-            api_key = req.apiKey or os.getenv("GEMINI_API_KEY")
+            api_key = req.apiKey or env_key
             if not api_key:
+                print("[DEBUG] No API Key found in either source.")
                 raise Exception("API Key required (Settings or Server Default)")
+            
+            print(f"[DEBUG] Using Key Source: {'CLIENT' if req.apiKey else 'SERVER'}")
 
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(

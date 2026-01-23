@@ -24,12 +24,16 @@ export default function RacePage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(true);
     const [metric, setMetric] = useState<"wealth" | "cagr">("wealth");
+    const [user, setUser] = useState<any>(null);
 
     const [sim, setSim] = useState<SimSettings>({
         startYear: 2006,
         principal: 1000000,
         contribution: 60000,
     });
+
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
 
     // Load settings from Mars page (localStorage)
     useEffect(() => {
@@ -48,11 +52,21 @@ export default function RacePage() {
         }
     }, []);
 
+    // Fetch user auth status
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+                if (res.ok) setUser(await res.json());
+            } catch (e) { console.error("Auth check failed", e); }
+        };
+        checkAuth();
+    }, []);
+
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const chartRef = useRef<HTMLDivElement>(null);
 
     const TOP_N = 50;
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     // Fetch race data
     const fetchRaceData = useCallback(async () => {
@@ -266,12 +280,19 @@ export default function RacePage() {
                     💰 Wealth
                 </button>
                 <button
-                    onClick={() => { setMetric("cagr"); resetRace(); }}
-                    className={`px-4 py-2 text-sm font-bold rounded transition cursor-pointer ${metric === "cagr"
+                    onClick={() => {
+                        if (isPremium) {
+                            setMetric("cagr"); resetRace();
+                        } else {
+                            alert('🔒 Premium Feature: Upgrade to unlock CAGR analysis.');
+                        }
+                    }}
+                    className={`px-4 py-2 text-sm font-bold rounded transition cursor-pointer flex items-center gap-1 ${metric === "cagr"
                         ? "bg-[var(--color-cta)] text-black"
                         : "text-[var(--color-text-muted)] hover:text-white"
                         }`}
                 >
+                    {!isPremium && <span className="text-xs">🔒</span>}
                     📈 CAGR
                 </button>
             </div>

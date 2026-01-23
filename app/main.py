@@ -238,7 +238,12 @@ async def chat_with_mars(req: ChatRequest):
 
         # Helper for blocking GenAI call
         def generate_response():
-            client = genai.Client(api_key=req.apiKey)
+            # Use client key or fallback to server key
+            api_key = req.apiKey or os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                raise Exception("API Key required (Settings or Server Default)")
+
+            client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
                 model='gemini-3-flash-preview',  # Latest Gemini 3 Flash
                 contents=[
@@ -259,7 +264,11 @@ async def chat_with_mars(req: ChatRequest):
             
             available_models = []
             try:
-                client = genai.Client(api_key=req.apiKey)
+                # Fallback key logic
+                api_key = req.apiKey or os.getenv("GEMINI_API_KEY")
+                if not api_key: raise Exception("No API Key")
+
+                client = genai.Client(api_key=api_key)
                 for m in client.models.list():
                     if hasattr(m, 'supported_generation_methods') and 'generateContent' in m.supported_generation_methods:
                         available_models.append(m.name)
@@ -293,7 +302,7 @@ async def chat_with_mars(req: ChatRequest):
             for model_name in candidates:
                 print(f"  >> Trying candidate: {model_name}...")
                 try:
-                    client = genai.Client(api_key=req.apiKey)
+                    client = genai.Client(api_key=api_key)
                     response = client.models.generate_content(
                         model=model_name,
                         contents=[

@@ -41,10 +41,13 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
     const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
     const isLoggedIn = !!user && user.id !== "guest";
 
+    const hasServerKey = user?.has_gemini_key;
+    const effectiveHasKey = apiKey || hasServerKey;
+
     const sendMessage = async () => {
         if (!input.trim()) return;
 
-        if (!apiKey) {
+        if (!effectiveHasKey) {
             setMessages([...messages, { role: "model", text: "Please set your Gemini API Key in the input below to chat. 🔑" }]);
             return;
         }
@@ -91,8 +94,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
             <button
                 onClick={() => isLoggedIn && setIsOpen(!isOpen)}
                 className={`fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-[9999] transition-all duration-200 ${isLoggedIn
-                        ? "bg-pink-500 hover:bg-pink-600 hover:scale-110 shadow-[0_0_20px_rgba(255,0,85,0.4)]"
-                        : "bg-gray-600 opacity-50 cursor-not-allowed"
+                    ? "bg-pink-500 hover:bg-pink-600 hover:scale-110 shadow-[0_0_20px_rgba(255,0,85,0.4)]"
+                    : "bg-gray-600 opacity-50 cursor-not-allowed"
                     }`}
                 title={isLoggedIn ? "Open AI Copilot" : "Login to use AI Copilot"}
             >
@@ -123,8 +126,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                 <div key={idx} className={msg.role === "user" ? "text-right" : "text-left"}>
                                     <div
                                         className={`inline-block max-w-[85%] px-3 py-2 rounded-lg text-sm ${msg.role === "user"
-                                                ? "bg-cyan-500 text-black font-medium"
-                                                : "bg-zinc-700 text-gray-200"
+                                            ? "bg-cyan-500 text-black font-medium"
+                                            : "bg-zinc-700 text-gray-200"
                                             }`}
                                     >
                                         {msg.text}
@@ -136,8 +139,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                             )}
                         </div>
 
-                        {/* API Key Input (if not set) */}
-                        {!apiKey && (
+                        {/* API Key Input (if not set AND no server key) */}
+                        {!effectiveHasKey && (
                             <div className="p-2 bg-yellow-900/30 border-t border-yellow-500/30">
                                 <div className="flex gap-2">
                                     <input

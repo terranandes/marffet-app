@@ -160,8 +160,11 @@ async def get_me(request: Request):
     db_profile = get_user_public_profile(user['id'])
     # Check if user is admin
     is_admin = user.get('email') in GM_EMAILS
+    # Check if a server-side Gemini Key is available
+    has_gemini_key = bool(os.getenv('GEMINI_API_KEY'))
+    
     # Merge DB data into session data for response
-    return {**user, **db_profile, "is_admin": is_admin}
+    return {**user, **db_profile, "is_admin": is_admin, "has_gemini_key": has_gemini_key}
 
 
 @router.post("/guest")

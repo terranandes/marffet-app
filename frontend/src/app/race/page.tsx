@@ -152,7 +152,7 @@ export default function RacePage() {
                 return;
             }
             setCurrentYear(years[yearIndex]);
-        }, 1000);
+        }, 2000);  // 2 seconds per year
     };
 
     // Pause animation
@@ -329,14 +329,14 @@ export default function RacePage() {
                         No data available for this period.
                     </div>
                 ) : (
-                    <div className="relative min-h-[600px]">
+                    <div className="relative min-h-[450px]">
                         {/* Year Display - Floating Background */}
                         <div className="absolute right-0 bottom-0 text-9xl font-bold text-[var(--color-cta)] font-mono opacity-10 pointer-events-none select-none transition-all duration-700">
                             {currentYear}
                         </div>
 
                         {/* Bars Container */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1.5">
                             <AnimatePresence mode="popLayout">
                                 {currentFrameData.map((stock, index) => {
                                     const value = metric === "wealth" ? stock.wealth : stock.cagr || 0;
@@ -354,7 +354,7 @@ export default function RacePage() {
                                                 layout: { type: "spring", stiffness: 45, damping: 15 }, // Smooth overtaking
                                                 opacity: { duration: 0.3 }
                                             }}
-                                            className="flex items-center gap-3 h-10 w-full"
+                                            className="flex items-center gap-2 h-7 w-full"
                                         >
                                             {/* Rank */}
                                             <div className="w-8 text-right font-mono text-[var(--color-text-muted)]">
@@ -362,11 +362,11 @@ export default function RacePage() {
                                             </div>
 
                                             {/* Bar */}
-                                            <div className="flex-1 relative h-8">
+                                            <div className="flex-1 relative h-6">
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${Math.max(barWidth, 1)}%` }}
-                                                    transition={{ duration: 0.7, ease: "linear" }}
+                                                    transition={{ duration: 1.5, ease: "linear" }}
                                                     className={`h-full rounded-r ${getColor(stock.id)} shadow-lg flex items-center`}
                                                 >
                                                     <span className="px-2 text-sm font-bold text-black truncate drop-shadow-md">

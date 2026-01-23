@@ -1620,7 +1620,9 @@
                         </div>
                         <div class="bg-black/30 p-4 rounded-lg">
                             <div class="text-gray-400">Yearly ROI (CAGR)</div>
-                            <div class="text-xl font-bold text-green-400">{{ (detailStock.cagr_pct || detailStock.cagr
+                            <div class="text-xl font-bold"
+                                :class="(detailStock.cagr_pct || detailStock.cagr || 0) >= 0 ? 'text-red-400' : 'text-green-400'">
+                                {{ (detailStock.cagr_pct || detailStock.cagr
                                 || 0).toFixed(2) }}%
                             </div>
                         </div>
@@ -1646,7 +1648,8 @@
                             </tr>
                             <tr>
                                 <td class="p-3 font-bold text-left pl-6">Total ROI</td>
-                                <td class="p-3 text-green-400">{{ detailStock.totalROI }}%</td>
+                                <td class="p-3" :class="detailStock.totalROI >= 0 ? 'text-red-400' : 'text-green-400'">
+                                    {{ detailStock.totalROI }}%</td>
                                 <td class="p-3 text-gray-500">-</td>
                                 <td class="p-3 text-gray-500">-</td>
                             </tr>
@@ -1972,7 +1975,7 @@
                         </div>
                         <div class="text-right">
                             <span class="block text-2xl font-bold"
-                                :class="profileData?.roi_pct >= 0 ? 'text-green-400' : 'text-red-400'">
+                                :class="profileData?.roi_pct >= 0 ? 'text-red-400' : 'text-green-400'">
                                 {{ profileData?.roi_pct > 0 ? '+' : '' }}{{ profileData?.roi_pct }}%
                             </span>
                             <span class="text-xs text-gray-500 uppercase tracking-widest">Total ROI</span>

@@ -136,6 +136,7 @@ export default function PortfolioPage() {
             }
 
             // Step 3: Fetch summary for each target (with current_price for accurate P/L)
+            console.log(`[DEBUG] Fetching summaries for ${targets.length} targets. Live Prices:`, Object.keys(livePrices).length);
             for (const t of targets) {
                 const livePrice = livePrices[t.stock_id]?.price || null;
                 t.livePrice = livePrices[t.stock_id] || null;
@@ -144,9 +145,13 @@ export default function PortfolioPage() {
                     const summaryUrl = livePrice
                         ? `${API_BASE}/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
                         : `${API_BASE}/api/portfolio/targets/${t.id}/summary`;
+
                     const sumRes = await fetch(summaryUrl, { credentials: "include" });
                     if (sumRes.ok) {
                         t.summary = await sumRes.json();
+                        // console.log(`[DEBUG] Summary for ${t.stock_id}:`, t.summary);
+                    } else {
+                        console.error(`[DEBUG] Summary fetch failed for ${t.stock_id}: ${sumRes.status}`);
                     }
                 } catch (e) {
                     console.warn(`Summary fetch failed for ${t.stock_id}:`, e);

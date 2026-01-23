@@ -6,6 +6,8 @@ import RaceChart from '@/components/RaceChart';
 
 export default function VisualizationPage() {
     const [user, setUser] = useState<any>(null);
+    const [data, setData] = useState<any[]>([]); // Restore missing state
+    const [loading, setLoading] = useState(true); // Restore missing state
 
     useEffect(() => {
         const fetchData = async () => {
@@ -50,13 +52,23 @@ export default function VisualizationPage() {
 
     return (
         <main className="min-h-screen bg-[#050505] text-white p-8">
-            <header className="mb-12 cursor-default">
-                <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-2">
-                    MARS VISUALIZATION
-                </h1>
-                <p className="text-zinc-500 text-lg font-mono uppercase tracking-widest">
-                    Time-Series ROI Analysis /// Project Martian
-                </p>
+            <header className="mb-12 cursor-default flex justify-between items-end">
+                <div>
+                    <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-2">
+                        MARS VISUALIZATION
+                    </h1>
+                    <p className="text-zinc-500 text-lg font-mono uppercase tracking-widest">
+                        Time-Series ROI Analysis /// Project Martian
+                    </p>
+                </div>
+                {/* Debug Info */}
+                <div className="text-right text-xs text-zinc-600 font-mono">
+                    <div>User: {user ? (user.name || user.email || 'Top G') : 'Guest/Loading...'}</div>
+                    <div className={isPremium ? 'text-green-500' : 'text-red-500'}>
+                        Premium: {isPremium ? 'YES' : 'NO'}
+                        {user?.is_admin ? ' (Admin)' : ''}
+                    </div>
+                </div>
             </header>
 
             <section className="w-full max-w-7xl mx-auto">

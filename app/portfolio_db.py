@@ -668,7 +668,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
             total_div_cash = db_total
             # Fetch dividend history from DB for modal display
             cursor.execute("""
-                SELECT ex_date, shares_held, unit_cash, total_cash 
+                SELECT ex_date, shares_held, amount_per_share, total_cash 
                 FROM dividend_history WHERE target_id = ? 
                 ORDER BY ex_date DESC
             """, (target_id,))
@@ -676,7 +676,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                 dividend_history.append({
                     "year": row['ex_date'],  # Using full date as identifier
                     "shares": row['shares_held'],
-                    "unit_cash": row['unit_cash'],
+                    "unit_cash": row['amount_per_share'],  # Map to legacy key name
                     "total": row['total_cash']
                 })
     

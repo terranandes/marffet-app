@@ -52,20 +52,6 @@ PREMIUM_MAX_TX_PER_TARGET = 1000
 # --- Global Name Cache ---
 STOCK_NAME_CACHE = {}
 
-# Initial manual map for recent ETFs not in history file
-SUPPLEMENTARY_STOCK_NAMES = {
-    "00937B": "群益ESG投等債20+",
-    "00953B": "群益優選非投等債",
-    "00933B": "國泰10Y+金融債", 
-    "00950B": "凱基A級公司債",
-    "00945B": "凱基美國非投等債",
-    "00980D": "大華投等美債15Y+",
-    "00981A": "亞太優質高息", 
-    "00687B": "國泰20年美債",
-    "00679B": "元大美債20年",
-    "6533": "晶心科技",  # Andes Technology - not in Mars Excel file
-}
-
 
 # Manual Supplementary Cache for stocks missing from Excel but essential
 # Used to bypass unreliable API fetches in Production (Zeabur)
@@ -73,6 +59,8 @@ SUPPLEMENTARY_NAME_CACHE = {
     "6533": "晶心科技",
     "6533.TW": "晶心科技",
     "6533.TWO": "晶心科技",
+    "00980D": "主動聯博投等入息",
+    # 00981A removed - API fetches correct name "主動統一台股增長"
 }
 
 def load_stock_name_cache():

@@ -20,5 +20,5 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - hold a detailed code review
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
-And save the meeting node at "./meeting". We always trace the note.
+And save the meeting note at "./meeting" and code-review note at "./code_review". We always trace the notes.
 Show me how to run the APP, I will check it when avaiable.

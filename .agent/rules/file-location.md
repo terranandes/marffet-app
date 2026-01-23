@@ -20,14 +20,20 @@ trigger: always_on
 [PL][CODE][UI] Please owns software-perpsective document
 - ./product/software_stack.md
 
-[GCV/CV] Please owns formal test plans, including automated browser flow using MCP like Playwright
-- ./product/test_plan.md
+[CV] Please owns formal test plans, including automated browser flow using MCP like Playwright
+- ./product/test_plan.md, that [GCV] don't touch.
+
+[GCV] Please owns formal test plans, including automated browser flow using MCP like Playwright
+- ./product/test_plan_gemini.md, that [CV] don't touch.
 
 ## [PL] owns the meeting notes
 - Format : /meeting/meeting_notes_$year_$month_$date_$version.md
 
-## [GCV/CV] owns the files for product-level debugging/testing/verification
-- ./tests/*
+## [CV] owns the files for product-level debugging/testing/verification
+- ./tests/* , that [GCV] don't touch.
+
+## [GCV] owns the files for product-level debugging/testing/verification
+- ./tests_gemini/* , that [CV] don't touch.
 
 ## [GCV/CV] owns the Jira bug tickets
-- ./jira/*
+- ./jira/* . You must emphaseize which agent is firing tickets.

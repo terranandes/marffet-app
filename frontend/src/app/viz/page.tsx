@@ -5,11 +5,20 @@ import React, { useEffect, useState } from 'react';
 import RaceChart from '@/components/RaceChart';
 
 export default function VisualizationPage() {
-    const [data, setData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            // Fetch User Status
+            try {
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const userRes = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    setUser(userData);
+                }
+            } catch (e) { console.error("Auth check failed", e); }
+
             try {
                 // Settings from Mars Page
                 let params = "";
@@ -36,6 +45,9 @@ export default function VisualizationPage() {
         fetchData();
     }, []);
 
+    // Helper to check premium
+    const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
+
     return (
         <main className="min-h-screen bg-[#050505] text-white p-8">
             <header className="mb-12 cursor-default">
@@ -55,7 +67,7 @@ export default function VisualizationPage() {
                 ) : (
                     <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-800 rounded-3xl p-6 shadow-2xl">
                         {data.length > 0 ? (
-                            <RaceChart data={data} />
+                            <RaceChart data={data} isPremium={!!isPremium} />
                         ) : (
                             <div className="text-center py-20 text-zinc-500">
                                 No Race Data Available. <br />

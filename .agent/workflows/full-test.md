@@ -2,6 +2,6 @@
 description: Full coverage tests on local and remote Zeabur.
 ---
 
-1. Full headlessly exhausted bug-hunting with automated Playwright Suite on local and remote Zeabur. File the new bug found at ./jira .
-2. Full alignment checks between legacy and Next.js UI with automated Playwright Suite. File the new bug found at ./jira
+1. Full headlessly exhausted bug-hunting with automated Playwright Suite on local and remote Zeabur. File the new bug found at "./jira" .
+2. Full alignment checks between legacy and Next.js UI with automated Playwright Suite. File the new bug found at "./jira". You must emphaseize which agent is firing tickets.
 3. Take screenshots of evidences with Playwright

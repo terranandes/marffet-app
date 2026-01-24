@@ -1,9 +1,10 @@
 # BOSS_TBD
-This file is owned by BOSS, prohibited from access by any AI Agent from any platform.
+This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## 1. Overview
 - mobile or narrow screen portfolio card view
 - align setting modal from legacy to Next.js UI
+- Ensure Tab CB is functionally working and notification will accordingly be sent
 - skills or MCP Server for MCP/skill build (done)
 - Study workflows suitable for AntiGravity
 - agent-browser ?

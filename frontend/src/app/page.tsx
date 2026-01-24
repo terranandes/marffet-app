@@ -1,71 +1,109 @@
-import Link from "next/link";
+"use client";
 
-const DashboardCard = ({
-  title,
-  description,
-  href,
-  color,
-}: {
-  title: string;
-  description: string;
-  href: string;
-  color: string;
-}) => (
-  <Link
-    href={href}
-    className="group relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 p-8 hover:border-zinc-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 block"
-  >
-    <div
-      className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br ${color}`}
-    />
-    <h3 className="text-xl font-bold mb-3 text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-zinc-400">
-      {title}
-    </h3>
-    <p className="text-zinc-400 text-sm leading-relaxed">{description}</p>
-  </Link>
-);
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import StrategyCard from "@/components/StrategyCard";
 
 export default function Home() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Redirect to default page preference if set
+    const defaultPage = localStorage.getItem("martian_default_page");
+    if (defaultPage && defaultPage !== "/" && defaultPage !== "") {
+      router.replace(defaultPage);
+    }
+  }, [router]);
+
+  // Prevent flash of content if redirecting (optional, simple implementation)
+  if (!mounted) return null;
+
   return (
-    <div className="max-w-6xl mx-auto py-10">
-      <div className="mb-12 text-center">
-        <h1 className="text-5xl font-black mb-6 bg-gradient-to-b from-white to-zinc-600 bg-clip-text text-transparent tracking-tight">
-          Welcome to Martian
-        </h1>
-        <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
-          Your command center for low-volatility growth and arbitrage strategies.
-          <br />
-          <span className="text-purple-400 text-sm mt-2 block font-medium">
-            Let's find some alpha today. 🚀
-          </span>
-        </p>
+    <div className="space-y-8 animate-fade-in">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+            Mars Strategy System
+          </h1>
+          <p className="text-gray-400 mt-1">Select a module to begin</p>
+        </div>
+        <div className="flex gap-2 text-sm text-gray-500 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          System Online
+        </div>
       </div>
 
+      {/* Strategy Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <DashboardCard
+        <StrategyCard
           title="Mars Strategy"
-          description="Identify low-volatility, high-growth stocks using our proprietary Gaussian filtering algorithm. Target stable compounders."
+          description="Core trend-following algorithmic trading system with real-time signals."
+          icon="🚀"
           href="/mars"
-          color="from-purple-600 to-pink-600"
+          status="active"
+          metrics={[
+            { label: "Win Rate", value: "68%" },
+            { label: "Active", value: "12" },
+          ]}
         />
-        <DashboardCard
-          title="Visualization"
-          description="Interactive Bar Chart Race visualizing stock performance over the last 15 years. See the winners emerge over time."
+
+        <StrategyCard
+          title="Portfolio"
+          description="Track your assets, monitor performance and analyze allocation."
+          icon="📊"
+          href="/portfolio"
+          status="active"
+          metrics={[
+            { label: "Assets", value: "8" },
+            { label: "Value", value: "$42.5k" },
+          ]}
+        />
+
+        <StrategyCard
+          title="Data Visualization"
+          description="Interactive bar chart races and historical performance visualization."
+          icon="📈"
           href="/viz"
-          color="from-cyan-500 to-blue-600"
+          status="active"
+          metrics={[
+            { label: "Data Points", value: "1.2M" },
+            { label: "Charts", value: "4" },
+          ]}
         />
-        <DashboardCard
-          title="CB Arbitrage"
-          description="Monitor Convertible Bond premiums and hedging opportunities in real-time."
+
+        <StrategyCard
+          title="Stock Discovery"
+          description="AI-powered stock screener and market analysis tools."
+          icon="🔍"
+          href="/discovery"
+          status="dev"
+        />
+
+        <StrategyCard
+          title="Convertible Bonds"
+          description="Advanced CB analysis and arbitrage opportunity finder."
+          icon="💹"
           href="/cb"
-          color="from-emerald-500 to-green-600"
+          status="dev"
         />
       </div>
 
-      <div className="mt-20 border-t border-zinc-900 pt-10 text-center">
-        <div className="inline-block p-4 rounded-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 text-sm">
-          🚀 System Status: <span className="text-green-500">Online</span> •
-          Latest Crawl: Today 04:00 AM
+      {/* Quick Stats / System Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="text-gray-400 text-sm mb-1">Market Status</div>
+          <div className="text-xl font-bold text-green-400">Open</div>
+        </div>
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="text-gray-400 text-sm mb-1">Data Feed</div>
+          <div className="text-xl font-bold text-blue-400">Live</div>
+        </div>
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="text-gray-400 text-sm mb-1">Next Rebalance</div>
+          <div className="text-xl font-bold text-white">04:30:00</div>
         </div>
       </div>
     </div>

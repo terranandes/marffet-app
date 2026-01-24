@@ -11,7 +11,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 |-------------|-----|--------|
 | Local Backend | http://localhost:8000 | ✅ |
 | Local Frontend | http://localhost:3000 | ✅ |
-| Zeabur Backend | martian-app.zeabur.app | ⚠️ Needs verification |
+| Zeabur Backend | martian-api.zeabur.app | ✅ Deployed |
 
 ### 1.2 Test Cases
 
@@ -25,6 +25,9 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-06 | Portfolio | Group CRUD | Create, edit, delete groups |
 | TC-07 | Admin Dashboard | System Ops | Buttons visible for GM |
 | TC-08 | Year Range | History data | 21 years (2006-2026) |
+| TC-09 | AI Copilot | Chat Logic | Server-side Key Fallback works |
+| TC-10 | Legacy UI | Color Convention | Profit=Red, Loss=Green |
+| TC-11 | Backup | Scheduler & Manual | Startup Log verifies UTC Next Run |
 
 ### 1.3 Execution via Playwright MCP
 
@@ -35,14 +38,10 @@ mcp_playwright_browser_navigate(url="http://localhost:3000/mars")
 mcp_playwright_browser_wait_for(time=5)
 mcp_playwright_browser_take_screenshot(filename="test_mars.png")
 
-# Test Guest Mode
-mcp_playwright_browser_click(element="Continue as Guest button")
-mcp_playwright_browser_wait_for(time=2)
-# Verify user appears in sidebar
-
-# Test Race Tab
-mcp_playwright_browser_navigate(url="http://localhost:3000/race")
-mcp_playwright_browser_click(element="Play button")
+# Test AI Copilot (FAB)
+mcp_playwright_browser_click(element="Robot FAB")
+mcp_playwright_browser_fill_form(fields=[{"name": "Ask Mars AI...", "value": "Hi", "ref": "input"}])
+mcp_playwright_browser_click(element="Send button")
 ```
 
 ## 2. Manual Verification Checklist
@@ -62,23 +61,28 @@ mcp_playwright_browser_click(element="Play button")
 - [x] System Operations visible
 - [x] Update Market Data works
 - [x] Rebuild All works
-- [x] Backup to GitHub works
+- [x] Backup to GitHub works (Manual Trigger)
 - [x] Rebuild & Push Pre-warm works
 
-## 3. Regression Tests (v2.2)
+### AI Copilot (New)
+- [x] FAB visible on Portfolio/Race pages
+- [x] Chat works without client-side key (if server key set)
+- [x] "Missing API Key" error properly handled
+
+## 3. Regression Tests (v2.3)
 
 | Test | Expected | Status |
 |------|----------|--------|
 | Guest mode button | Visible in Sidebar | ✅ |
 | /auth/guest endpoint | Returns 200 | ✅ |
 | System Ops in Legacy UI | 4 buttons visible | ✅ |
-| Cold run time | ~5-6 min | ✅ |
-| Pre-warm (Rebuild + Push) | ~5 minutes | ✅ |
-| Pre-warm single commit | 1 commit for all files | ✅ |
+| AI Key Fallback | Chat works with empty client input | ✅ |
+| Backup Scheduler | Logs "Next Backup Job at ... UTC" | ✅ |
+| Zeabur Build | Build logs are Green | ✅ |
 
 ## 4. Known Issues
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| Zeabur frontend 404 | High | Needs deploy check |
+| Zeabur frontend 404 | High | Resolved (Port Fix) |
 | Favicon 404 on legacy | Low | Cosmetic |

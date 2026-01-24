@@ -1,10 +1,15 @@
 # BOSS_TBD
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
-## 1. Overview
+## Web APP Next to do
 - mobile or narrow screen portfolio card view
 - align setting modal from legacy to Next.js UI
 - Ensure Tab CB is functionally working and notification will accordingly be sent
+- Multi-language
+- AICopkot enhancement
+- Email support
+
+## BOSS TBD
 - skills or MCP Server for MCP/skill build (done)
 - Study workflows suitable for AntiGravity
 - agent-browser ?

@@ -59,6 +59,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     const [loading, setLoading] = useState(false);
     const [syncLoading, setSyncLoading] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showDocModal, setShowDocModal] = useState(false); // Documentation Modal State
 
     // Initialize from LocalStorage & User Props
     useEffect(() => {
@@ -406,7 +407,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                 <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Help Center</h3>
 
                                 <div className="mb-6">
-                                    <a href="https://github.com/terranandes/martian" target="_blank" rel="noopener noreferrer"
+                                    <a href="/doc" target="_blank" rel="noopener noreferrer"
                                         className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
                                         <div className="text-2xl">📚</div>
                                         <div>
@@ -518,6 +519,65 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                     </div>
                 </div>
             </div>
+
+            {/* Documentation Modal Overlay */}
+            {showDocModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" onClick={() => setShowDocModal(false)}>
+                    <div className="w-full max-w-3xl bg-[#0e1117] border border-cyan-500/30 rounded-2xl shadow-2xl h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-zinc-900/50">
+                            <h2 className="text-xl font-bold text-white">📚 Documentation</h2>
+                            <button onClick={() => setShowDocModal(false)} className="text-zinc-400 hover:text-white transition">✕</button>
+                        </div>
+                        <div className="flex-1 p-8 overflow-y-auto prose prose-invert max-w-none">
+                            <h1>👽 Martian Investment System</h1>
+                            <p><strong>Project Martian</strong> is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.</p>
+
+                            <h2>🌟 Key Features</h2>
+
+                            <h3>1. Mars Strategy Simulator</h3>
+                            <ul>
+                                <li><strong>The Philosophy</strong>: History repeats itself. Buying the top 50 winners of the past decade and holding them yields superior returns.</li>
+                                <li><strong>The Tool</strong>: Real-time simulation of 20+ years of Taiwan Network History. Customizable Start Year, Principal, and Monthly Contribution.</li>
+                            </ul>
+
+                            <h3>2. Bar Chart Race</h3>
+                            <ul>
+                                <li><strong>Visual Proof</strong>: Watch a dynamic "Race" of stock assets over time. See how "Boring" stocks compound into massive wealth.</li>
+                            </ul>
+
+                            <h3>3. Portfolio Tracker & Leaderboard</h3>
+                            <ul>
+                                <li><strong>Track Your Journey</strong>: Input your own holdings and create groups (Dividend, Growth, Speculative).</li>
+                                <li><strong>Sync Stats</strong>: Compare your ROI against the Global Leaderboard with a single click.</li>
+                                <li><strong>Community</strong>: Compete with other users for the top spot.</li>
+                            </ul>
+
+                            <h3>4. AI Copilot</h3>
+                            <ul>
+                                <li><strong>Smart Analysis</strong>: Get investment advice and market insights from the Mars AI.</li>
+                                <li><strong>Personalized</strong>: Tailored feedback based on your portfolio.</li>
+                            </ul>
+
+                            <h2>🚀 Getting Started</h2>
+                            <h3>Access the App</h3>
+                            <p>Sign in securely with your <strong>Google Account</strong> to access your personalized portfolio.</p>
+                            <ul>
+                                <li><strong>Guest Mode</strong>: Explore the system features without an account.</li>
+                            </ul>
+
+                            <h3>First Steps</h3>
+                            <ol>
+                                <li><strong>Login</strong>: Use your Google Account.</li>
+                                <li><strong>Explore</strong>: Go to "Mars Strategy" to see the backtest results.</li>
+                                <li><strong>Settings</strong>: Customize your profile, nickname, and default landing page.</li>
+                            </ol>
+
+                            <hr className="my-8 border-white/10" />
+                            <p className="text-sm text-zinc-500 italic">*Built with ❤️ by the Martian AI Team.*</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

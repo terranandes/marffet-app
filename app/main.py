@@ -368,7 +368,7 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
                      with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
                  except: pass
 
-        # Run Simulation
+    # Run Simulation
         results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         
         return results

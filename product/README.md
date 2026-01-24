@@ -12,25 +12,31 @@
 ### 2. Bar Chart Race
 *   **Visual Proof**: Watch a dynamic "Race" of stock assets over time. See how "Boring" stocks compound into massive wealth.
 
-### 3. Portfolio Tracker
-*   **Track Your Journey**: Input your own holdings.
-*   **Group Assets**: Organize by "Dividend", "Growth", "Speculative".
-*   **Sync Stats**: Compare your ROI against the Global Leaderboard.
+### 3. Portfolio Tracker & Leaderboard
+*   **Track Your Journey**: Input your own holdings and create groups (Dividend, Growth, Speculative).
+*   **Sync Stats**: Compare your ROI against the Global Leaderboard with a single click.
+*   **Community**: Compete with other users for the top spot.
+
+### 4. AI Copilot
+*   **Smart Analysis**: Get instant investment advice and market insights from the Mars AI.
+*   **Personalized**: Tailored feedback based on your portfolio composition.
 
 ## 🚀 Getting Started
 
 ### Access the App
-Request access from the Grand Master (GM) or use **Guest Mode**.
+Sign in securely with your **Google Account** to access your personalized portfolio.
 *   **URL**: [https://martian-app.zeabur.app](https://martian-app.zeabur.app)
+*   **Guest Mode**: Explore the system features without an account.
 
 ### First Steps
 1.  **Login**: Use your Google Account.
 2.  **Explore**: Go to "Mars Strategy" to see the backtest results.
-3.  **Visualize**: Check "Bar Chart Race" to see the power of compounding.
+3.  **Settings**: Customize your profile, nickname, and default landing page (Dashboard, Portfolio, etc.).
 
 ## 🛠 Support
-*   **Bugs**: Report to Terran (GM).
-*   **Feedback**: Use the "GM Dashboard" (if you have access) or contact directly.
+*   **Bugs**: Report to GM.
+*   **Feedback**: Use the "Help & Support" tab in Settings to send feature requests or bug reports.
+*   **Documentation**: Detailed guides available in the App Settings.
 
 ---
 *Built with ❤️ by the Martian AI Team.*

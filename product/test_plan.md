@@ -1,6 +1,6 @@
 # Martian Investment System - Test Plan
-**Version**: 2.2  
-**Date**: 2026-01-18  
+**Version**: 2.3  
+**Date**: 2026-01-24  
 **Owner**: [CV] Agent
 
 ## 1. Automated Testing Strategy

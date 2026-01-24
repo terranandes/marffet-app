@@ -2,7 +2,8 @@
 This file is owned by BOSS, prohibited from access by any AI Agent from any platform.
 
 ## 1. Overview
-
+- mobile or narrow screen portfolio card view
+- align setting modal from legacy to Next.js UI
 - skills or MCP Server for MCP/skill build (done)
 - Study workflows suitable for AntiGravity
 - agent-browser ?

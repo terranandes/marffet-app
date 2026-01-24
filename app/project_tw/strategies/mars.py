@@ -47,13 +47,48 @@ class MarsStrategy:
         # 2. Pre-fetch Market Prices (Start Jan / End Dec) - Efficient (~40 calls total)
         msg = f"Fetching Market Prices ({start_year}-{end_year})..."
         print(msg)
-        if status_callback: status_callback(msg)
+        if status_callback: status_callback(msg, 20)
         
-        # Concurrent Fetch
+        # Concurrent Fetch with Progress
+        # Track 2 parallel tasks: TWSE (50%) + TPEx (50%) of this phase
+        # Phase Range: 20% -> 90% (Total 70% span? No. processing is 20->90. This fetch is BEFORE processing)
+        # Actually in logic below: 
+        #   Fetching: 20% (init) -> ?
+        #   Processing loop: 20% -> 90%
+        # So "Fetching" should occupy say 20% -> 50% ? And Processing 50% -> 90%?
+        # User complained 15% -> 100%.
+        # Let's re-scale:
+        #   Init: 0-10%
+        #   Divs: 10-15%
+        #   Market Prices: 15% -> 50%
+        #   Processing: 50% -> 95%
+        #   Saving: 95-100%
+        
+        # Progress State
+        prog_state = {'twse': 0.0, 'tpex': 0.0}
+        
+        def update_fetch_progress():
+            # Combined progress for "Fetching Market Prices" (15% -> 50%)
+            # Weight: TWSE 50%, TPEx 50% of the 35% span
+            combined = (prog_state['twse'] + prog_state['tpex']) / 2.0
+            total_pct = 15 + int(combined * 35) # 15 + 35 = 50
+            if status_callback:
+                status_callback(f"Fetching Market Prices ({int(combined*100)}%)...", total_pct)
+
+        def twse_cb(curr, total):
+            if total > 0:
+                prog_state['twse'] = curr / total
+                update_fetch_progress()
+
+        def tpex_cb(curr, total):
+            if total > 0:
+                prog_state['tpex'] = curr / total
+                update_fetch_progress()
+
         # TWSE
-        task_twse = self.crawler.fetch_market_prices_batch(years)
+        task_twse = self.crawler.fetch_market_prices_batch(years, progress_callback=twse_cb)
         # TPEx
-        task_tpex = self.crawler_tpex.fetch_market_prices_batch(years)
+        task_tpex = self.crawler_tpex.fetch_market_prices_batch(years, progress_callback=tpex_cb)
         
         market_prices, tpex_prices = await asyncio.gather(task_twse, task_tpex)
         
@@ -91,9 +126,15 @@ class MarsStrategy:
         print(f"Processing {len(stock_codes)} stocks in parallel...")
         
         sem = asyncio.Semaphore(50) # Limit concurrency to avoid too many open files if deep scan triggers
+        
+        # Progress Tracking
+        total_stocks = len(stock_codes)
+        completed_count = 0
 
         async def process_one(code):
+            nonlocal completed_count
             async with sem:
+                res = None
                 try:
                     # Build Synthetic DataFrame
                     # Rows: One per year. Index: Jan 2 of that year.
@@ -131,109 +172,124 @@ class MarsStrategy:
                     # Relaxed Filter: Allow newer stocks with at least 1 year of data
                     if valid_data_count < 1:
                          # Skip only if NO data
-                         return None
-                         
-                    df = pd.DataFrame(rows)
-                    df.set_index('date', inplace=True)
-                    
-                    # Dividends
-                    stock_divs = {y: dividend_data.get(y, {}).get(code, {'cash': 0, 'stock': 0}) for y in years}
-                    
-                    # Apply Patches (TSMC, 0050, 2881)
-                    # PATCH: TSMC
-                    if code == '2330':
-                        if 2006 in  years: stock_divs[2006] = {'cash': 2.5, 'stock': 0.3}
-                        if 2007 in years: stock_divs[2007] = {'cash': 3.0, 'stock': 0.05}
-                    # PATCH: 0050
-                    if code == '0050':
-                        if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 2.5, 'stock': 0.0}
-                        if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 2.0, 'stock': 0.0}
-                        if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.0, 'stock': 0.0}
-                        if 2025 in years: stock_divs[2025] = {'cash': 1.035, 'stock': 0.0} # 30 is too high, 1.035 is approx H1
+                         # Still count as processed
+                         res = None
+                         pass
+                    else:
+                        df = pd.DataFrame(rows)
+                        df.set_index('date', inplace=True)
                         
-                    
-                    # ALGORITHMIC SPLIT DETECTION (Disabled for speed)
-                    # This was triggering expensive 12-API-calls/stock deep scans
-                    # TODO: Re-enable with caching or move to background job
-                    # for y_idx in df.index:
-                    #     y = y_idx.year
-                    #     row_data = df.loc[y_idx]
-                    #     p_ope = row_data['open']
-                    #     p_clo = row_data['close']
-                    #     
-                    #     if p_ope > 0 and p_clo > 0:
-                    #         ret = p_clo / p_ope
-                    #         if ret < 0.35: # Candidate for Split
-                    #             curr_div = stock_divs.get(y, {}).get('stock', 0.0)
-                    #             if curr_div < 0.5:
-                    #                 # Trigger Deep Scan
-                    #                 inferred_val = await self.crawler.detect_daily_split(code, y)
-                    #                 if inferred_val > 0:
-                    #                     print(f"CONFIRMED SPLIT via Daily Scan: {code} in {y}. StockDiv {inferred_val}")
-                    #                     if y not in stock_divs: stock_divs[y] = {'cash': 0, 'stock': 0}
-                    #                     stock_divs[y]['stock'] = inferred_val
-    
-                    # PATCH: 00937B (Bond ETF) - Monthly distributions
-                    # Approx 0.084 * 12 = ~1.0 per year. Yield ~6%.
-                    if code == '00937B':
-                        if 2024 in years: stock_divs[2024] = {'cash': 1.02, 'stock': 0.0} # Approx
-                        if 2025 in years: stock_divs[2025] = {'cash': 1.02, 'stock': 0.0} # Est
-    
-                    # PATCH: 2881
-                    if code == '2881':
-                        if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 1.15, 'stock': 0.0}
-                        if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 1.00, 'stock': 0.0}
-                        if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.50, 'stock': 0.0}
-    
-                    # Calc
-                    metrics = self.calculator.calculate_complex_simulation(df, start_year, dividend_data=stock_divs, stock_code=code)
-                    
-                    if metrics:
-                        metrics['stock_code'] = code
-                        metrics['stock_name'] = code # Placeholder
-                        metrics['price'] = df.iloc[-1]['close']
+                        # Dividends
+                        stock_divs = {y: dividend_data.get(y, {}).get(code, {'cash': 0, 'stock': 0}) for y in years}
                         
-                        # Calculate Annual Volatility (Price Volatility)
-                        # df index is Yearly (Jan 2). pct_change gives annual return.
-                        if len(df) > 1:
-                            annual_returns = df['close'].pct_change().dropna()
-                            metrics['volatility_pct'] = annual_returns.std() * 100
-                        else:
-                            metrics['volatility_pct'] = 0.0
-    
-                        metrics['cagr_pct'] = metrics.get(f"s{start_year}e{end_year}bao", 0)
+                        # Apply Patches (TSMC, 0050, 2881)
+                        # PATCH: TSMC
+                        if code == '2330':
+                            if 2006 in  years: stock_divs[2006] = {'cash': 2.5, 'stock': 0.3}
+                            if 2007 in years: stock_divs[2007] = {'cash': 3.0, 'stock': 0.05}
+                        # PATCH: 0050
+                        if code == '0050':
+                            if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 2.5, 'stock': 0.0}
+                            if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 2.0, 'stock': 0.0}
+                            if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.0, 'stock': 0.0}
+                            if 2025 in years: stock_divs[2025] = {'cash': 1.035, 'stock': 0.0} # 30 is too high, 1.035 is approx H1
+                            
                         
-                        # NEW: CAGR Trajectory StdDev (User Requirement)
-                        # "Standard Deviation of annualized accumlating returns over years"
-                        # Collect s{Start}e{Y}bao for Y in start..end
-                        traj_values = []
-                        for y in years:
-                            # Skip if y < start_year (not possible if sorted)
-                            key = f"s{start_year}e{y}bao"
-                            val = metrics.get(key)
-                            if val is not None:
-                                try:
-                                    traj_values.append(float(val))
-                                except: pass
+                        # ALGORITHMIC SPLIT DETECTION (Disabled for speed)
+                        # This was triggering expensive 12-API-calls/stock deep scans
+                        # TODO: Re-enable with caching or move to background job
+                        # for y_idx in df.index:
+                        #     y = y_idx.year
+                        #     row_data = df.loc[y_idx]
+                        #     p_ope = row_data['open']
+                        #     p_clo = row_data['close']
+                        #     
+                        #     if p_ope > 0 and p_clo > 0:
+                        #         ret = p_clo / p_ope
+                        #         if ret < 0.35: # Candidate for Split
+                        #             curr_div = stock_divs.get(y, {}).get('stock', 0.0)
+                        #             if curr_div < 0.5:
+                        #                 # Trigger Deep Scan
+                        #                 inferred_val = await self.crawler.detect_daily_split(code, y)
+                        #                 if inferred_val > 0:
+                        #                     print(f"CONFIRMED SPLIT via Daily Scan: {code} in {y}. StockDiv {inferred_val}")
+                        #                     if y not in stock_divs: stock_divs[y] = {'cash': 0, 'stock': 0}
+                        #                     stock_divs[y]['stock'] = inferred_val
+        
+                        # PATCH: 00937B (Bond ETF) - Monthly distributions
+                        # Approx 0.084 * 12 = ~1.0 per year. Yield ~6%.
+                        if code == '00937B':
+                            if 2024 in years: stock_divs[2024] = {'cash': 1.02, 'stock': 0.0} # Approx
+                            if 2025 in years: stock_divs[2025] = {'cash': 1.02, 'stock': 0.0} # Est
+        
+                        # PATCH: 2881
+                        if code == '2881':
+                            if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 1.15, 'stock': 0.0}
+                            if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 1.00, 'stock': 0.0}
+                            if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.50, 'stock': 0.0}
+        
+                        # Calc
+                        metrics = self.calculator.calculate_complex_simulation(df, start_year, dividend_data=stock_divs, stock_code=code)
                         
-                        if len(traj_values) > 1:
-                            metrics['cagr_std'] = pd.Series(traj_values).std()
-                        else:
-                            metrics['cagr_std'] = 999.0 # High value for insufficient data
-                        
-                        # Count Valid Years (s...yrs)
-                        metrics['valid_lasting_years'] = len(df)
-                        
-                        return metrics
-                        
+                        if metrics:
+                            metrics['stock_code'] = code
+                            metrics['stock_name'] = code # Placeholder
+                            metrics['price'] = df.iloc[-1]['close']
+                            
+                            # Calculate Annual Volatility (Price Volatility)
+                            # df index is Yearly (Jan 2). pct_change gives annual return.
+                            if len(df) > 1:
+                                annual_returns = df['close'].pct_change().dropna()
+                                metrics['volatility_pct'] = annual_returns.std() * 100
+                            else:
+                                metrics['volatility_pct'] = 0.0
+        
+                            metrics['cagr_pct'] = metrics.get(f"s{start_year}e{end_year}bao", 0)
+                            
+                            # NEW: CAGR Trajectory StdDev (User Requirement)
+                            # "Standard Deviation of annualized accumlating returns over years"
+                            # Collect s{Start}e{Y}bao for Y in start..end
+                            traj_values = []
+                            for y in years:
+                                # Skip if y < start_year (not possible if sorted)
+                                key = f"s{start_year}e{y}bao"
+                                val = metrics.get(key)
+                                if val is not None:
+                                    try:
+                                        traj_values.append(float(val))
+                                    except: pass
+                            
+                            if len(traj_values) > 1:
+                                metrics['cagr_std'] = pd.Series(traj_values).std()
+                            else:
+                                metrics['cagr_std'] = 999.0 # High value for insufficient data
+                            
+                            # Count Valid Years (s...yrs)
+                            metrics['valid_lasting_years'] = len(df)
+                            
+                            res = metrics
+                            
                 except Exception as e:
                     # print(f"Err {code}: {e}")
                     pass
-                return None
+                
+                # Update Progress
+                completed_count += 1
+                if status_callback and total_stocks > 0:
+                    # Map 50% -> 95% range (Fetch took 15->50)
+                    progress = 50 + int((completed_count / total_stocks) * 45)
+                    
+                    # Throttle updates: Every 1% or every 10 items
+                    if completed_count % max(1, total_stocks // 100) == 0 or completed_count == total_stocks:
+                         status_callback(f"Analyzed {code} ({completed_count}/{total_stocks})...", progress)
+
+                return res
 
         # Gather Parallel
         done_list = await asyncio.gather(*[process_one(c) for c in stock_codes])
         results = [r for r in done_list if r]
+        
+        if status_callback: status_callback("Stock analysis complete.", 90) # 90% progress
         
         return results
 

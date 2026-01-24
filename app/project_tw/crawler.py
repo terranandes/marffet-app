@@ -401,7 +401,7 @@ class TWSECrawler:
 
 
 
-    async def fetch_market_prices_batch(self, years: list):
+    async def fetch_market_prices_batch(self, years: list, progress_callback=None):
         """
         Fetch Market-Wide Prices (Start/End) using MI_INDEX (Daily Quotes).
         Returns: {year: {code: {'start': float, 'end': float}}}
@@ -409,7 +409,6 @@ class TWSECrawler:
         # 1. Fetch Listing Dates Map (Fast, Cached)
         listing_dates = await self.fetch_listing_dates()
 
-        results = {}
         results = {}
         sem = asyncio.Semaphore(12) # Increased from 4 for speed
 
@@ -515,7 +514,20 @@ class TWSECrawler:
                     return year, result_data
 
         # Execute Parallel
-        tasks = [fetch_one_year(y) for y in years]
+        completed = 0
+        total = len(years)
+
+        async def fetch_wrapper(y):
+            res = await fetch_one_year(y)
+            nonlocal completed
+            completed += 1
+            if progress_callback:
+                try:
+                    progress_callback(completed, total)
+                except: pass
+            return res
+
+        tasks = [fetch_wrapper(y) for y in years]
         results_list = await asyncio.gather(*tasks)
         
         for y, r in results_list:

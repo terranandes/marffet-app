@@ -38,6 +38,8 @@ interface CrawlerStatus {
     last_run_time: string | null;
     status: string;
     message: string;
+    progress_pct: number;
+    elapsed_seconds: number;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -53,6 +55,7 @@ export default function AdminPage() {
 
     // Crawler Status
     const [crawlerStatus, setCrawlerStatus] = useState<CrawlerStatus | null>(null);
+    const [lastRunDuration, setLastRunDuration] = useState<string | null>(null);
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -95,7 +98,25 @@ export default function AdminPage() {
         try {
             const res = await fetch(`${API_BASE}/api/admin/crawl/status?key=secret`, { credentials: "include" });
             if (res.ok) {
-                setCrawlerStatus(await res.json());
+                const data = await res.json();
+                setCrawlerStatus(prev => {
+                    // Update duration if:
+                    // 1. Just finished (Running -> Not Running)
+                    // 2. Or Loading page and already finished (prev is null & status=success)
+                    const isJustFinished = prev?.is_running && !data.is_running;
+                    const isAlreadyFinished = !prev && data.status === 'success'; // status could be 'success'
+
+                    if ((isJustFinished || isAlreadyFinished) && data.elapsed_seconds > 0) {
+                        const m = Math.floor(data.elapsed_seconds / 60);
+                        const s = data.elapsed_seconds % 60;
+                        setLastRunDuration(`${m}m ${s}s`);
+                    }
+                    // Reset duration on new start
+                    if (!prev?.is_running && data.is_running) {
+                        setLastRunDuration(null);
+                    }
+                    return data;
+                });
             }
         } catch {
             console.error("Crawler status fetch error");
@@ -203,35 +224,34 @@ export default function AdminPage() {
                 {/* METRICS CARDS */}
                 {metrics && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Users */}
-                        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6">
-                            <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-2 uppercase tracking-wider">User Metrics</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-xs text-[var(--color-text-muted)]">Total Registered Users</p>
+                        {/* Unified User Metrics Card */}
+                        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 col-span-1 lg:col-span-3">
+                            <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-4 uppercase tracking-wider">User Metrics</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Total Users */}
+                                <div className="bg-white/5 rounded-lg p-4">
+                                    <p className="text-sm text-[var(--color-text-muted)]">Total Registered</p>
                                     <p className="text-3xl font-bold text-[var(--color-active)]">{metrics.total_users}</p>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Active Users */}
-                        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 col-span-2 grid grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-2 uppercase tracking-wider">Active Users (Web)</h3>
-                                <p className="text-3xl font-bold text-cyan-400">{metrics.active_users_web}</p>
-                                <p className="text-xs text-[var(--color-text-muted)]">Last 30 days</p>
-                            </div>
-                            <div>
-                                <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-2 uppercase tracking-wider">Active Users (Mobile)</h3>
-                                <p className="text-3xl font-bold text-green-400">{metrics.active_users_mobile}</p>
-                                <p className="text-xs text-[var(--color-text-muted)]">Last 30 days</p>
+                                {/* Active Web */}
+                                <div className="bg-cyan-900/20 border border-cyan-700/30 rounded-lg p-4">
+                                    <p className="text-sm text-cyan-400">Active Users (Web)</p>
+                                    <p className="text-3xl font-bold text-cyan-300">{metrics.active_users_web}</p>
+                                    <p className="text-xs text-cyan-500/70 mt-1">Last 30 days</p>
+                                </div>
+                                {/* Active Mobile */}
+                                <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
+                                    <p className="text-sm text-green-400">Active Users (Mobile)</p>
+                                    <p className="text-3xl font-bold text-green-300">{metrics.active_users_mobile}</p>
+                                    <p className="text-xs text-green-500/70 mt-1">Last 30 days</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Subs Breakdown */}
                         <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 col-span-3">
                             <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-4 uppercase tracking-wider">Subscription Breakdown</h3>
-                            <div className="grid grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                 <div className="bg-white/5 rounded-lg p-4">
                                     <p className="text-sm text-[var(--color-text-muted)]">Free Tier</p>
                                     <p className="text-2xl font-bold text-white">{metrics.subscription_tiers.free}</p>
@@ -265,12 +285,17 @@ export default function AdminPage() {
                                 {crawlerStatus.is_running ? (
                                     <>
                                         <span className="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
-                                        Running Data Update...
+                                        Running... {crawlerStatus.elapsed_seconds ? `(${Math.floor(crawlerStatus.elapsed_seconds / 60)}m ${crawlerStatus.elapsed_seconds % 60}s)` : ''}
                                     </>
                                 ) : (
                                     <>
                                         {crawlerStatus.status === "success" ? "✅" : crawlerStatus.status === "error" ? "❌" : "⚪"}
                                         {crawlerStatus.status.toUpperCase()}
+                                        {crawlerStatus.status === 'success' && lastRunDuration && (
+                                            <span className="ml-2 text-xs text-green-300 font-mono">
+                                                (Finished in {lastRunDuration})
+                                            </span>
+                                        )}
                                     </>
                                 )}
                                 <span className="text-xs opacity-70 border-l border-white/20 pl-2 ml-1">
@@ -278,20 +303,30 @@ export default function AdminPage() {
                                 </span>
                             </div>
                         )}
-                        {/* Status Message Display */}
-                        {crawlerStatus && crawlerStatus.is_running && (
-                            <span className="ml-4 text-sm text-[var(--color-text-muted)] animate-pulse">
-                                {crawlerStatus.message}
-                            </span>
-                        )}
                     </h2>
+
+                    {/* Progress Bar (Visible when Running or recently Finished) */}
+                    {crawlerStatus && (crawlerStatus.is_running || crawlerStatus.progress_pct > 0) && (
+                        <div className="mb-6 bg-black/30 p-4 rounded-lg border border-white/5">
+                            <div className="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Progress: {crawlerStatus.progress_pct}%</span>
+                                <span>{crawlerStatus.message}</span>
+                            </div>
+                            <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="bg-[#00f2ea] h-full transition-all duration-500 ease-out shadow-[0_0_10px_#00f2ea]"
+                                    style={{ width: `${crawlerStatus.progress_pct}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Category 1: Crawler Speed Test */}
                     <div className="mb-4">
                         <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
                             📊 Crawler Speed Test
                         </h3>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap">
                             <button
                                 onClick={async () => {
                                     if (!confirm("Trigger analysis? (Background Task)")) return;
@@ -319,7 +354,7 @@ export default function AdminPage() {
                         <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
                             💾 Backup & Refresh
                         </h3>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap">
                             <button
                                 onClick={async () => {
                                     if (!confirm("Trigger manual backup to GitHub?")) return;
@@ -377,7 +412,7 @@ export default function AdminPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-5 gap-2 mb-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
                         <div className="bg-red-900/20 border border-red-700/50 p-3 rounded text-center">
                             <span className="text-xl font-bold text-red-400">{feedbackStats.new}</span>
                             <p className="text-[10px] text-red-300 uppercase">New</p>

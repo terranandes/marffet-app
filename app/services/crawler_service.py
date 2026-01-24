@@ -8,14 +8,29 @@ class CrawlerService:
     _last_run_time = None
     _last_run_status = "idle" # idle, running, success, error
     _last_message = ""
+    _progress_pct = 0
+    _start_time = None
 
     @classmethod
     def get_status(cls):
+        import datetime
+        elapsed = 0
+        now = datetime.datetime.now(datetime.timezone.utc)
+        
+        if cls._start_time:
+            if cls._is_running:
+                elapsed = (now - cls._start_time).total_seconds()
+            elif cls._last_run_time:
+                # If finished, calculate total duration
+                elapsed = (cls._last_run_time - cls._start_time).total_seconds()
+
         return {
             "is_running": cls._is_running,
             "last_run_time": cls._last_run_time.isoformat() if cls._last_run_time else None,
             "status": cls._last_run_status,
-            "message": cls._last_message
+            "message": cls._last_message,
+            "progress_pct": cls._progress_pct,
+            "elapsed_seconds": int(elapsed)
         }
 
     @classmethod
@@ -29,6 +44,9 @@ class CrawlerService:
         cls._is_running = True
         cls._last_run_status = "running"
         cls._last_message = "Analysis in progress..."
+        cls._progress_pct = 0
+        import datetime
+        cls._start_time = datetime.datetime.now(datetime.timezone.utc)
             
             # ... (execution) ...
         try:
@@ -36,8 +54,10 @@ class CrawlerService:
             
             if force_cold_run:
                 print("[CrawlerService] FORCE COLD RUN: Clearing current year cache...")
+                cls._last_message = "Clearing Cache..."
+                cls._progress_pct = 5
+                
                 # Only clear Current Year to avoid 3-min wait
-                import datetime
                 current_year = datetime.datetime.now().year
                 
                 # Delete data/raw/*{year}*.json (correct path)
@@ -60,24 +80,36 @@ class CrawlerService:
                     print(f"[CrawlerService] Cleared {count} cache files for {current_year}")
 
             # Run Analysis
-            def update_status(msg):
+            # Run Analysis
+            cls._progress_pct = 10
+            def update_status(msg, pct=None):
                 cls._last_message = msg
-                print(f"[CrawlerService Status] {msg}")
+                if pct is not None:
+                    cls._progress_pct = pct
+                else:
+                    # Fallback Heuristic
+                    if "Analyzing" in msg: cls._progress_pct = 20
+                    elif "Processing" in msg: cls._progress_pct = 80
+                    elif "Saving" in msg: cls._progress_pct = 90
+                print(f"[CrawlerService Status] ({cls._progress_pct}%) {msg}")
 
             await run_analysis_main(status_callback=update_status)
             import datetime
-            cls._last_run_time = datetime.datetime.now()
+            cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
             cls._last_run_status = "success"
             cls._last_message = "Analysis completed successfully."
+            cls._progress_pct = 100
             
             print("[CrawlerService] Market Analysis Complete.")
             return {"status": "success", "message": "Analysis completed"}
             
         except Exception as e:
             import datetime
-            cls._last_run_time = datetime.datetime.now()
+            cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
             cls._last_run_status = "error"
             cls._last_message = str(e)
+            print(f"[CrawlerService] Error: {e}")
+            return {"status": "error", "message": str(e)}
             print(f"[CrawlerService] Error: {e}")
             return {"status": "error", "message": str(e)}
         finally:

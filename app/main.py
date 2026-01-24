@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
         
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
         # misfire_grace_time=3600: If app sleeps and wakes up at 09:30, it still runs.
-        job = scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=3600)
+        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=86400)
         
         # Print Next Run Time for Verification
         if job.next_run_time:
@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI):
         
         # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
         # This runs Cold Run first, then pushes to GitHub
-        scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm', misfire_grace_time=3600)
+        scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm', misfire_grace_time=86400)
         scheduler.start()
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")
@@ -1318,20 +1318,19 @@ async def trigger_backup(user: dict = Depends(get_current_user)):
 
 
 @app.post("/api/admin/refresh-prewarm")
-async def trigger_prewarm_refresh(user: dict = Depends(get_current_user)):
-    """Trigger pre-warm data refresh to GitHub."""
+async def trigger_prewarm_refresh(background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    """Trigger pre-warm data refresh to GitHub (Background Task)."""
     from app.auth import GM_EMAILS
     
     if not user or user.get('email') not in GM_EMAILS:
         raise HTTPException(status_code=403, detail="Admin access required")
     
     from app.services.backup import BackupService
-    # Same as annual job: Rebuild first, then push to GitHub
-    result = await BackupService.annual_prewarm_with_rebuild()
     
-    if result.get("status") == "success":
-        return {"message": f"Pre-warm complete: Rebuild + {result.get('push', {}).get('uploaded', 0)} files pushed", "details": result}
-    elif result.get("status") == "skipped":
-        return {"message": "Skipped (missing config)", "details": result}
-    else:
-        raise HTTPException(status_code=500, detail=f"Failed: {result.get('reason')}")
+    # Run in background to prevent timeout
+    async def run_bg_prewarm():
+        await BackupService.annual_prewarm_with_rebuild()
+        
+    background_tasks.add_task(run_bg_prewarm)
+    
+    return {"message": "Pre-warm Rebuild & Push started in background.", "status": "accepted"}

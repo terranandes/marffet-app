@@ -16,7 +16,7 @@ class TPEXCrawler:
         roc_year = date_obj.year - 1911
         return f"{roc_year}/{date_obj.month:02d}/{date_obj.day:02d}"
 
-    async def fetch_market_prices_batch(self, years: list):
+    async def fetch_market_prices_batch(self, years: list, progress_callback=None):
         """
         Refactored: Fetch TPEx Market-Wide Prices using YFinance (Historical) 
         and st43 (Universe discovery).
@@ -56,6 +56,7 @@ class TPEXCrawler:
                 years_to_fetch.append(year)
         
         if not years_to_fetch:
+            if progress_callback: progress_callback(1, 1)
             return results
 
         async with httpx.AsyncClient(verify=False) as client:
@@ -91,6 +92,14 @@ class TPEXCrawler:
             total = len(yf_tickers)
             for i in range(0, total, batch_size):
                 batch = yf_tickers[i:i+batch_size]
+                
+                # Report Progress
+                if progress_callback:
+                    try:
+                         # Use i + batch_size or total, bounded
+                         current = min(i + batch_size, total)
+                         progress_callback(current, total)
+                    except: pass
                 
                 try:
                     # Rate Limit

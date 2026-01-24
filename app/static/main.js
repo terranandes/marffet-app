@@ -661,7 +661,48 @@ Please analyze this feedback and determine if it's a true bug.`;
         };
 
         // ========== SYSTEM OPERATIONS (Aligned with New Frontend) ==========
-        const crawlerRunning = ref(false);
+        const crawlerStatus = ref(null);
+        const crawlerRunning = computed(() => crawlerStatus.value?.is_running || false);
+        const lastDurationText = ref('');
+
+        const fetchCrawlerStatus = async () => {
+            if (!currentUser.value?.is_admin) return;
+            try {
+                const res = await apiFetch('/api/admin/crawl/status?key=secret');
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Logic to capture duration on finish
+                    if (crawlerStatus.value?.is_running && !data.is_running && data.elapsed_seconds > 0) {
+                        // Just finished transition
+                    }
+
+                    // Always update duration text if available and finished
+                    if (data.status === 'success' && data.elapsed_seconds > 0) {
+                        const m = Math.floor(data.elapsed_seconds / 60);
+                        const s = data.elapsed_seconds % 60;
+                        lastDurationText.value = `${m}m ${s}s`;
+                    } else if (data.is_running) {
+                        lastDurationText.value = ''; // Reset on start
+                    }
+
+                    crawlerStatus.value = data;
+                }
+            } catch (e) {
+                console.error('Crawler status check failed', e);
+            }
+        };
+
+        // Poll when in Admin tab
+        let crawlerInterval = null;
+        watch(currentTab, (newTab) => {
+            if (newTab === 'admin') {
+                fetchCrawlerStatus();
+                crawlerInterval = setInterval(fetchCrawlerStatus, 5000);
+            } else {
+                if (crawlerInterval) clearInterval(crawlerInterval);
+            }
+        });
 
         const triggerCrawl = async (force = false) => {
             const msg = force
@@ -2280,7 +2321,8 @@ Please analyze this feedback and determine if it's a true bug.`;
             adminMetrics, adminLoading, adminError, fetchAdminMetrics,
             feedbackList, feedbackStats, fetchFeedbackList, updateFeedbackStatus, copyFeedback, updateFeedbackNotes,
             // System Operations
-            crawlerRunning, triggerCrawl, triggerBackup, triggerPrewarmRefresh,
+            crawlerRunning, crawlerStatus, triggerCrawl, triggerBackup, triggerPrewarmRefresh,
+            lastDurationText,
             backendUrl
         };
     }

@@ -1546,11 +1546,50 @@
                         <div class="mt-6 border-t border-white/10 pt-6">
                             <h3 class="text-sm text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 🛠️ System Operations
-                                <span v-if="crawlerRunning"
-                                    class="ml-2 px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500 text-yellow-500 text-xs animate-pulse">
-                                    Running...
-                                </span>
+                                <div v-if="crawlerStatus" :class="[
+                                'ml-4 text-xs px-3 py-1 rounded-full border flex items-center gap-2 transition-all',
+                                crawlerRunning 
+                                    ? 'bg-yellow-900/30 border-yellow-500 text-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.3)]' 
+                                    : crawlerStatus.status === 'success'
+                                        ? 'bg-green-900/30 border-green-500 text-green-500'
+                                        : crawlerStatus.status === 'error'
+                                            ? 'bg-red-900/30 border-red-500 text-red-500'
+                                            : 'bg-gray-800 border-gray-600 text-gray-400'
+                            ]">
+                                    <span v-if="crawlerRunning" class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
+                                        Running... <span v-if="crawlerStatus.elapsed_seconds">({{
+                                            Math.floor(crawlerStatus.elapsed_seconds / 60) }}m {{
+                                            crawlerStatus.elapsed_seconds % 60 }}s)</span>
+                                    </span>
+                                    <span v-else class="flex items-center gap-2">
+                                        <span>{{ crawlerStatus.status === 'success' ? '✅' : crawlerStatus.status ===
+                                            'error' ? '❌' : '⚪' }}</span>
+                                        {{ crawlerStatus.status.toUpperCase() }}
+                                        <span v-if="crawlerStatus.status === 'success' && lastDurationText"
+                                            class="ml-1 text-green-300 font-mono">
+                                            (Finished in {{ lastDurationText }})
+                                        </span>
+                                    </span>
+                                    <span class="text-[10px] opacity-70 border-l border-white/20 pl-2 ml-1">
+                                        {{ crawlerStatus.last_run_time ? new
+                                        Date(crawlerStatus.last_run_time).toLocaleTimeString() : 'No Run Recorded' }}
+                                    </span>
+                                </div>
                             </h3>
+
+                            <!-- Progress Bar Logic -->
+                            <div v-if="crawlerStatus && (crawlerRunning || crawlerStatus.progress_pct > 0)"
+                                class="mb-6 bg-black/30 p-4 rounded-lg border border-white/5">
+                                <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                    <span>Progress: {{ crawlerStatus.progress_pct }}%</span>
+                                    <span>{{ crawlerStatus.message }}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-cyber-cyan h-full transition-all duration-500 ease-out shadow-[0_0_10px_#00f2ea]"
+                                        :style="{ width: crawlerStatus.progress_pct + '%' }"></div>
+                                </div>
+                            </div>
 
                             <!-- Crawler Speed Test -->
                             <div class="mb-4">

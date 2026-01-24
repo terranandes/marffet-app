@@ -2,50 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-interface Group {
-    id: string;
-    name: string;
-}
-
-interface Target {
-    id: string;
-    group_id: string;
-    stock_id: string;
-    stock_name: string;
-    summary?: {
-        total_shares: number;
-        avg_cost: number;
-        market_value: number;
-        realized_pnl: number;
-        unrealized_pnl: number;
-        unrealized_pnl_pct: number;
-        total_dividend_cash: number;
-    };
-    livePrice?: {
-        price: number;
-        change: number;
-        change_pct: number;
-    };
-}
-
-interface Transaction {
-    id: string;
-    target_id: string;
-    type: "buy" | "sell";
-    shares: number;
-    price: number;
-    date: string;
-    fee?: number;
-}
-
-interface Dividend {
-    id: string;
-    target_id: string;
-    ex_date: string;
-    shares_held: number;
-    amount_per_share: number;
-    total_cash: number;
-}
+import { PortfolioFactory, IPortfolioService, Group, Target, Transaction, Dividend } from "../../services/portfolioService";
 
 export default function PortfolioPage() {
     const [groups, setGroups] = useState<Group[]>([]);
@@ -90,300 +47,172 @@ export default function PortfolioPage() {
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-    // Fetch groups
-    const fetchGroups = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/groups`, { credentials: "include" });
-            if (res.ok) {
-                const data = await res.json();
-                setGroups(data);
-                if (data.length > 0 && !selectedGroupId) {
-                    setSelectedGroupId(data[0].id);
+    // Services
+    const [service, setService] = useState<IPortfolioService | null>(null);
+    const [isGuest, setIsGuest] = useState(false);
+
+    // Initialize Service
+    useEffect(() => {
+        const initService = async () => {
+            // Check auth by hitting a strictly protected endpoint.
+            // GET /groups returns 200 [] for anon (legacy behavior), so it's unreliable.
+            // GET /targets requires auth (401 if missing).
+            try {
+                const res = await fetch(`${API_BASE}/api/portfolio/targets?group_id=auth_check`, { credentials: "include" });
+                if (res.status === 401 || res.status === 403) {
+                    console.log("Unauthorized, using Guest Mode");
+                    setService(PortfolioFactory.getService(false)); // Guest
+                    setIsGuest(true);
+                } else {
+                    // 200, 404, 422 etc mean we are logged in (or at least passed auth middleware)
+                    setService(PortfolioFactory.getService(true)); // API
                 }
+            } catch (e) {
+                // Network error? Default to Guest?
+                console.log("API Unreachable, using Guest Mode");
+                setService(PortfolioFactory.getService(false));
+                setIsGuest(true);
             }
-        } catch (err) {
-            console.error("Failed to fetch groups:", err);
-        }
-        setLoading(false);
-    }, [selectedGroupId]);
-
-    // Fetch targets for selected group (matches Legacy UI pattern)
-    const fetchTargets = useCallback(async () => {
-        if (!selectedGroupId) return;
-        try {
-            // Step 1: Get basic target list
-            const res = await fetch(`${API_BASE}/api/portfolio/groups/${selectedGroupId}/targets`, {
-                credentials: "include"
-            });
-            if (!res.ok) return;
-
-            const targets = await res.json();
-
-            // Step 2: Fetch live prices for all stocks
-            const stockIds = targets.map((t: Target) => t.stock_id).join(',');
-            let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
-            if (stockIds) {
-                try {
-                    const priceRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`, {
-                        credentials: "include"
-                    });
-                    if (priceRes.ok) {
-                        livePrices = await priceRes.json();
-                    }
-                } catch (e) {
-                    console.warn("Live price fetch failed:", e);
-                }
-            }
-
-            // Step 3: Fetch summary for each target (with current_price for accurate P/L)
-            console.log(`[DEBUG] Fetching summaries for ${targets.length} targets. Live Prices:`, Object.keys(livePrices).length);
-            for (const t of targets) {
-                const livePrice = livePrices[t.stock_id]?.price || null;
-                t.livePrice = livePrices[t.stock_id] || null;
-
-                try {
-                    const summaryUrl = livePrice
-                        ? `${API_BASE}/api/portfolio/targets/${t.id}/summary?current_price=${livePrice}`
-                        : `${API_BASE}/api/portfolio/targets/${t.id}/summary`;
-
-                    const sumRes = await fetch(summaryUrl, { credentials: "include" });
-                    if (sumRes.ok) {
-                        t.summary = await sumRes.json();
-                        // console.log(`[DEBUG] Summary for ${t.stock_id}:`, t.summary);
-                    } else {
-                        console.error(`[DEBUG] Summary fetch failed for ${t.stock_id}: ${sumRes.status}`);
-                    }
-                } catch (e) {
-                    console.warn(`Summary fetch failed for ${t.stock_id}:`, e);
-                }
-            }
-
-            setTargets(targets);
-
-            // Calculate group stats from summaries
-            let marketValue = 0;
-            let realized = 0;
-            let unrealized = 0;
-            let totalCost = 0;
-
-            targets.forEach((t: Target) => {
-                marketValue += t.summary?.market_value || 0;
-                realized += t.summary?.realized_pnl || 0;
-                unrealized += t.summary?.unrealized_pnl || 0;
-                totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
-            });
-
-            setGroupStats({
-                marketValue,
-                realized,
-                unrealized,
-                unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
-            });
-        } catch (err) {
-            console.error("Failed to fetch targets:", err);
-        }
-    }, [selectedGroupId]);
-
-    // Fetch dividend cash
-    const fetchDividends = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/dividends/total`, { credentials: "include" });
-            if (res.ok) {
-                const data = await res.json();
-                setDividendCash(data);
-            }
-        } catch (err) {
-            console.error("Failed to fetch dividends:", err);
-        }
+        };
+        initService();
     }, []);
 
-    useEffect(() => {
-        fetchGroups();
-        fetchDividends();
-    }, [fetchGroups, fetchDividends]);
-
-    useEffect(() => {
-        fetchTargets();
-    }, [selectedGroupId, fetchTargets]);
-
-    // Create group
-    const handleCreateGroup = async () => {
-        if (!newGroupName.trim()) return;
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/groups`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ name: newGroupName }),
-            });
-            if (res.ok) {
-                setNewGroupName("");
-                setShowAddGroup(false);
-                fetchGroups();
-            }
-        } catch (err) {
-            console.error("Failed to create group:", err);
+    // Fetch groups
+    const fetchGroups = useCallback(async () => {
+        if (!service) return;
+        setLoading(true);
+        const data = await service.getGroups();
+        setGroups(data);
+        if (data.length > 0 && !selectedGroupId) {
+            setSelectedGroupId(data[0].id);
         }
-    };
+        setLoading(false);
+    }, [service, selectedGroupId]);
 
-    // Delete group
-    const handleDeleteGroup = async (groupId: string) => {
-        if (!confirm("Delete this group and all its contents?")) return;
-        try {
-            await fetch(`${API_BASE}/api/portfolio/groups/${groupId}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
-            if (selectedGroupId === groupId) {
-                setSelectedGroupId(null);
-            }
+    // Fetch targets
+    const fetchTargets = useCallback(async () => {
+        if (!service || !selectedGroupId) return;
+        const data = await service.getTargets(selectedGroupId);
+        setTargets(data);
+
+        // Calculate stats
+        let marketValue = 0;
+        let realized = 0;
+        let unrealized = 0;
+        let totalCost = 0;
+
+        data.forEach((t) => {
+            marketValue += t.summary?.market_value || 0;
+            realized += t.summary?.realized_pnl || 0;
+            unrealized += t.summary?.unrealized_pnl || 0;
+            totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
+        });
+
+        setGroupStats({
+            marketValue,
+            realized,
+            unrealized,
+            unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
+        });
+    }, [service, selectedGroupId]);
+
+    // Fetch dividends
+    const fetchDividends = useCallback(async () => {
+        if (!service) return;
+        const data = await service.getDividendStats();
+        setDividendCash(data);
+    }, [service]);
+
+    useEffect(() => {
+        if (service) {
             fetchGroups();
-        } catch (err) {
-            console.error("Failed to delete group:", err);
-        }
-    };
-
-    // Add target
-    const handleAddTarget = async () => {
-        if (!selectedGroupId || !newTargetId.trim()) return;
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    group_id: selectedGroupId,
-                    stock_id: newTargetId,
-                    stock_name: newTargetName.trim() || null,
-                }),
-            });
-            if (res.ok) {
-                setNewTargetId("");
-                setNewTargetName("");
-                fetchTargets();
-            }
-        } catch (err) {
-            console.error("Failed to add target:", err);
-        }
-    };
-
-    // Delete target
-    const handleDeleteTarget = async (targetId: string) => {
-        if (!confirm("Delete this stock from portfolio?")) return;
-        try {
-            await fetch(`${API_BASE}/api/portfolio/targets/${targetId}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
-            fetchTargets();
-        } catch (err) {
-            console.error("Failed to delete target:", err);
-        }
-    };
-
-    // Add/Update transaction
-    const handleSaveTransaction = async (targetId: string) => {
-        try {
-            const isEdit = !!editingTxId;
-            const url = isEdit
-                ? `${API_BASE}/api/portfolio/transactions/${editingTxId}`
-                : `${API_BASE}/api/portfolio/targets/${targetId}/transactions`;
-
-            const method = isEdit ? "PUT" : "POST";
-            const body = isEdit ? {
-                type: newTx.type,
-                shares: newTx.shares,
-                price: newTx.price,
-                date: newTx.date
-            } : {
-                target_id: targetId,
-                ...newTx,
-            };
-
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(body),
-            });
-
-            if (res.ok) {
-                setShowTxForm(null);
-                setEditingTxId(null);
-                setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
-
-                // Refresh parent data
-                fetchTargets();
-
-                // Refresh history if open
-                if (showTxHistory) {
-                    fetchTxHistory(showTxHistory);
-                }
-            }
-        } catch (err) {
-            console.error("Failed to save transaction:", err);
-        }
-    };
-
-    // Sync dividends
-    const handleSyncDividends = async () => {
-        setSyncing(true);
-        try {
-            await fetch(`${API_BASE}/api/portfolio/dividends/sync`, {
-                method: "POST",
-                credentials: "include",
-            });
-            await fetchTargets();
             fetchDividends();
-        } catch (err) {
-            console.error("Failed to sync dividends:", err);
-        } finally {
-            setSyncing(false);
+        }
+    }, [service, fetchGroups, fetchDividends]);
+
+    useEffect(() => {
+        if (service && selectedGroupId) {
+            fetchTargets();
+        }
+    }, [service, selectedGroupId, fetchTargets]);
+
+    // Actions
+    const handleCreateGroup = async () => {
+        if (!service || !newGroupName.trim()) return;
+        const res = await service.createGroup(newGroupName);
+        if (res) {
+            setNewGroupName("");
+            setShowAddGroup(false);
+            fetchGroups();
         }
     };
 
-    // Fetch transaction history
+    const handleDeleteGroup = async (groupId: string) => {
+        if (!service || !confirm("Delete this group?")) return;
+        if (await service.deleteGroup(groupId)) {
+            if (selectedGroupId === groupId) setSelectedGroupId(null);
+            fetchGroups();
+        }
+    };
+
+    const handleAddTarget = async () => {
+        if (!service || !selectedGroupId || !newTargetId.trim()) return;
+        const res = await service.addTarget(selectedGroupId, newTargetId, newTargetName.trim() || "");
+        if (res) {
+            setNewTargetId("");
+            setNewTargetName("");
+            fetchTargets();
+        }
+    };
+
+    const handleDeleteTarget = async (targetId: string) => {
+        if (!service || !confirm("Delete this stock?")) return;
+        if (await service.deleteTarget(targetId)) fetchTargets();
+    };
+
+    const handleSaveTransaction = async (targetId: string) => {
+        if (!service) return;
+        const txData = editingTxId
+            ? { id: editingTxId, ...newTx }
+            : { target_id: targetId, ...newTx };
+
+        if (await service.saveTransaction(txData)) {
+            setShowTxForm(null);
+            setEditingTxId(null);
+            setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+            fetchTargets();
+            if (showTxHistory) fetchTxHistory(showTxHistory);
+        }
+    };
+
+    const handleSyncDividends = async () => {
+        if (!service) return;
+        setSyncing(true);
+        await service.syncDividends();
+        await fetchTargets();
+        fetchDividends();
+        setSyncing(false);
+    };
+
     const fetchTxHistory = async (targetId: string) => {
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions`, {
-                credentials: "include"
-            });
-            if (res.ok) {
-                setTxHistory(await res.json());
-                setShowTxHistory(targetId);
-            }
-        } catch (err) {
-            console.error("Failed to fetch transactions:", err);
-        }
+        if (!service) return;
+        const data = await service.getTransactions(targetId);
+        setTxHistory(data);
+        setShowTxHistory(targetId);
     };
 
-    // Fetch dividend history
     const fetchDivHistory = async (targetId: string, stockName: string) => {
-        try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/dividends`, {
-                credentials: "include"
-            });
-            if (res.ok) {
-                setDivHistory(await res.json());
-                setShowDivHistory({ targetId, stockName });
-            }
-        } catch (err) {
-            console.error("Failed to fetch dividends:", err);
-        }
+        if (!service) return;
+        const data = await service.getDividends(targetId);
+        setDivHistory(data);
+        setShowDivHistory({ targetId, stockName });
     };
 
-    // Delete transaction
     const handleDeleteTransaction = async (txId: string) => {
-        if (!confirm("Delete this transaction?")) return;
-        try {
-            await fetch(`${API_BASE}/api/portfolio/transactions/${txId}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
+        if (!service || !confirm("Delete transaction?")) return;
+        if (await service.deleteTransaction(txId)) {
             if (showTxHistory) fetchTxHistory(showTxHistory);
             fetchTargets();
-        } catch (err) {
-            console.error("Failed to delete transaction:", err);
         }
     };
 
@@ -397,8 +226,13 @@ export default function PortfolioPage() {
             <div className="glass-card p-5 rounded-xl">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-[var(--color-cta)]">
+                        <h1 className="text-2xl font-bold text-[var(--color-cta)] flex items-center gap-2">
                             📊 My Portfolio
+                            {isGuest && (
+                                <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded border border-yellow-500/50">
+                                    Guest Mode
+                                </span>
+                            )}
                         </h1>
                         <div className="text-sm text-[var(--color-text-muted)] mt-1">
                             💰 Dividend Cash:{" "}

@@ -98,11 +98,17 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 FRONTEND_URL_FOR_DETECTION = os.getenv("FRONTEND_URL", "http://localhost:3000")
 IS_HTTPS = FRONTEND_URL_FOR_DETECTION.startswith("https://")
 
+# Robust HTTPS Detection for Zeabur / Production
+# Zeabur sets specific headers, but we can also infer from FRONTEND_URL or external env vars
+IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("ZEABUR_URL") or "zeabur.app" in FRONTEND_URL_FOR_DETECTION
+
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    same_site='none' if IS_HTTPS else 'lax',  # 'none' required for cross-origin HTTPS
-    https_only=IS_HTTPS,  # True for Zeabur, False for localhost
+    # Cross-site Auth (Google) requires SameSite='none' and Secure=True
+    # Mobile Safari is strict about this.
+    same_site='none' if (IS_HTTPS or IS_PRODUCTION) else 'lax',
+    https_only=(IS_HTTPS or IS_PRODUCTION), 
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 
@@ -116,7 +122,8 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://martian-app.zeabur.app",  # Hardcoded fallback for Zeabur
     "https://martian-api.zeabur.app",
-    FRONTEND_URL.rstrip('/') # e.g. https://martian-app.zeabur.app
+    FRONTEND_URL.rstrip('/'), # e.g. https://martian-app.zeabur.app
+    "https://accounts.google.com" # Sometimes needed for certain redirect flows (though usually not for CORS)
 ]
 
 app.add_middleware(

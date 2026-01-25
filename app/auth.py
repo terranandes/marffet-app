@@ -89,8 +89,27 @@ async def login(request: Request):
 FRONTEND_URL = os.getenv('FRONTEND_URL', '/')
 print(f"[AUTH DEBUG] Loaded FRONTEND_URL: {FRONTEND_URL}")
 
+# Debug Endpoint
+@router.get("/debug")
+async def auth_debug(request: Request):
+    """Dump config and session info for debugging"""
+    from .main import IS_PRODUCTION, COOKIE_DOMAIN, IS_HTTPS
+    return {
+        "session": dict(request.session),
+        "cookies": request.cookies,
+        "headers": dict(request.headers),
+        "config": {
+            "IS_PRODUCTION": IS_PRODUCTION,
+            "IS_HTTPS": IS_HTTPS,
+            "COOKIE_DOMAIN": COOKIE_DOMAIN,
+            "FRONTEND_URL": FRONTEND_URL
+        },
+        "url_for_callback": str(request.url_for('auth_callback'))
+    }
+
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):
+
     print("[AUTH] Callback triggered")
     print(f"[AUTH DEBUG] Callback Headers: {dict(request.headers)}")
     print(f"[AUTH DEBUG] Callback Cookies: {request.cookies}")

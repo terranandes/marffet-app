@@ -17,7 +17,7 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - update of product related files that agents owns at ./product
 - migration status from legacy UI https://martian-api.zeabur.app/ to Next.js UI https://martian-app.zeabur.app/
 - review the mobile Web layout, which shall be elegant and feacible
-- hold a detailed code review
+- [CV] hold a detailed code review
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
 And save the meeting note at "./meeting" and code-review note at "./code_review". We always trace the notes.

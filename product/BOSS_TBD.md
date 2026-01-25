@@ -6,7 +6,7 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - align setting modal from legacy to Next.js UI
 - Ensure Tab CB is functionally working and notification will accordingly be sent
 - Multi-language
-- AICopkot enhancement
+- AICopilot enhancement
 - Email support
 
 ## BOSS TBD

@@ -28,6 +28,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-09 | AI Copilot | Chat Logic | Server-side Key Fallback works |
 | TC-10 | Legacy UI | Color Convention | Profit=Red, Loss=Green |
 | TC-11 | Backup | Scheduler & Manual | Startup Log verifies UTC Next Run |
+| TC-12 | Mobile UI | Card View | Verify Cards replace Table on <md screens |
+| TC-13 | Login Overlay | Intersection Check | Verify Overlay doesn't block mobile interaction |
 
 ### 1.3 Execution via Playwright MCP
 

@@ -48,8 +48,8 @@ async def lifespan(app: FastAPI):
         scheduler = BackgroundScheduler(timezone=timezone.utc)
         
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
-        # misfire_grace_time=3600: If app sleeps and wakes up at 09:30, it still runs.
-        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=86400)
+        # misfire_grace_time=86400 (24h): If app sleeps and wakes up, run immediately if missed.
+        job = scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=86400)
         
         # Print Next Run Time for Verification
         if job.next_run_time:

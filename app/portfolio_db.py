@@ -10,7 +10,7 @@ SQLite database for user portfolio feature:
 import sqlite3
 import uuid
 from pathlib import Path
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 from contextlib import contextmanager
 
@@ -118,6 +118,23 @@ def get_db():
         conn.close()
 
 
+def update_user_login(user_id, email, name, picture, provider='google'):
+    """Update user record on login"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+        cursor.execute('''
+            INSERT INTO users (id, email, name, picture, auth_provider, last_login_at) 
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                email = excluded.email,
+                name = excluded.name,
+                picture = excluded.picture,
+                last_login_at = excluded.last_login_at
+        ''', (user_id, email, name, picture, provider, now))
+        conn.commit()
+
+
 def init_db():
     """Initialize database with schema."""
     with get_db() as conn:
@@ -131,7 +148,9 @@ def init_db():
                 name TEXT,
                 nickname TEXT, -- Display Name for Leaderboard
                 picture TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                auth_provider TEXT DEFAULT 'google',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login_at TIMESTAMP
             )
         """)
         

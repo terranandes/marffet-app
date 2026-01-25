@@ -10,24 +10,14 @@ const nextConfig: NextConfig = {
         destination: `${API_URL}/api/:path*`,
       },
       {
-        source: "/auth/me",
-        destination: `${API_URL}/auth/me`,
+        source: "/auth/:path*",
+        destination: `${API_URL}/auth/:path*`,
       },
     ];
   },
   async redirects() {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
     return [
-      {
-        source: "/auth/login",
-        destination: `${API_URL}/auth/login`,
-        permanent: false,
-      },
-      {
-        source: "/auth/logout",
-        destination: `${API_URL}/auth/logout`,
-        permanent: false,
-      },
+      // Auth moved to rewrites to solve Cross-Domain Cookie issues
     ];
   },
 };

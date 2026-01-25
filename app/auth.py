@@ -68,7 +68,15 @@ async def login(request: Request):
     # Store in session for callback
     request.session['auth_redirect_uri'] = str(target)
 
-    redirect_uri = request.url_for('auth_callback')
+    # Force Redirect URI to match Frontend URL
+    base_url = str(FRONTEND_URL).rstrip('/')
+    if base_url.startswith('http'):
+        redirect_uri = f"{base_url}/auth/callback"
+    else:
+        redirect_uri = request.url_for('auth_callback')
+    
+    print(f"[AUTH] Login Redirect URI: {redirect_uri}")
+    
     # Force account picker to allow switching accounts
     return await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
 
@@ -81,8 +89,20 @@ async def auth_callback(request: Request):
     print("[AUTH] Callback triggered")
     print(f"[AUTH DEBUG] Session keys: {list(request.session.keys())}")
     print(f"[AUTH DEBUG] Request URL: {request.url}")
+    # Force Redirect URI to match Frontend URL (Critical for Zeabur+Next.js Rewrite)
+    # The request.url_for might return the internal Backend URL (martian-api)
+    # But Google expects the public Frontend URL (martian-app)
+    base_url = str(FRONTEND_URL).rstrip('/')
+    if base_url.startswith('http'):
+        redirect_uri = f"{base_url}/auth/callback"
+    else:
+        redirect_uri = str(request.url_for('auth_callback'))
+        
+    print(f"[AUTH] Using Redirect URI: {redirect_uri}")
+
     try:
-        token = await oauth.google.authorize_access_token(request)
+        # Pass redirect_uri explicitly to authorize_access_token (required by some providers/versions)
+        token = await oauth.google.authorize_access_token(request, redirect_uri=redirect_uri)
         user = token.get('userinfo')
         print(f"[AUTH] Google User: {user.get('email')}")
         if user:
@@ -95,15 +115,12 @@ async def auth_callback(request: Request):
             }
             print("[AUTH] Session 'user' set.")
             
-            # Sync user to DB and log activity
-            from .portfolio_db import get_db, log_activity
-            with get_db() as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT OR REPLACE INTO users (id, email, name, picture) VALUES (?, ?, ?, ?)",
-                    (user['sub'], user['email'], user['name'], user['picture'])
-                )
+            # Sync user to DB using new helper
+            from .portfolio_db import update_user_login
+            update_user_login(user['sub'], user['email'], user['name'], user['picture'])
+
             # Log login activity
+            from .portfolio_db import log_activity
             log_activity(user['sub'], 'web', 'login')
         
         # RESTORE REDIRECT

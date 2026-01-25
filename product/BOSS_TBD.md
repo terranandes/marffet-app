@@ -2,6 +2,9 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
+- Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
+- Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
+- Bug report for google login failure when using mobile to access https://martian-app.zeabur.app/
 - mobile or narrow screen portfolio card view
 - align setting modal from legacy to Next.js UI
 - Ensure Tab CB is functionally working and notification will accordingly be sent
@@ -10,9 +13,7 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - Email support
 
 ## BOSS TBD
-- skills or MCP Server for MCP/skill build (done)
 - Study workflows suitable for AntiGravity
-- agent-browser ?
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
 - Manus workflow
 - study and integrate GEMINI CLI into AntiGravity

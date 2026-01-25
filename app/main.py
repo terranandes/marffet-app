@@ -105,18 +105,23 @@ IS_PRODUCTION = True # FORCE TRUE for deployment branch (Safety First for Zeabur
 if os.getenv("dev_mode"): IS_PRODUCTION = False
 
 # Derive Domain for Cookie
-# REVERT to None (Host Only Cookie) to avoid mismatch issues
-COOKIE_DOMAIN = None 
+# CRITICAL: Since we are behind a Next.js Rewrite, the Host header is 'martian-api'
+# But the Browser is on 'martian-app'. We MUST explicitly set the domain to 'martian-app.zeabur.app'
+# Otherwise, the Host-Only cookie will be set for 'martian-api' and dropped by the browser.
+from urllib.parse import urlparse
+parsed_frontend = urlparse(FRONTEND_URL_FOR_DETECTION)
+COOKIE_DOMAIN = parsed_frontend.hostname if IS_PRODUCTION else None
 
 print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}")
 
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    # Cross-site Auth (Google) requires SameSite='none' and Secure=True
-    same_site='none',
+    # OAuth Redirects are Top-Level Navigations -> SameSite='lax' is Best Practice
+    # 'None' is fragile on Safari (ITP).
+    same_site='lax', 
     https_only=True, # Force Secure
-    domain=None,     # Use Host Only
+    domain=COOKIE_DOMAIN, 
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 

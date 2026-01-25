@@ -60,6 +60,11 @@ async def login(request: Request):
     # 2. 'Referer' header
     # 3. Default: FRONTEND_URL
     target = request.query_params.get("next") or request.headers.get("referer") or FRONTEND_URL
+    
+    # DEBUG: Inspect Headers and Session
+    print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
+    print(f"[AUTH DEBUG] Login Request Cookies: {request.cookies}")
+    print(f"[AUTH DEBUG] Current Session BEFORE: {dict(request.session)}")
 
     # Sanitize: If referer is google auth, fallback to front
     if "accounts.google.com" in str(target) or "googleapis.com" in str(target):
@@ -87,8 +92,10 @@ print(f"[AUTH DEBUG] Loaded FRONTEND_URL: {FRONTEND_URL}")
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):
     print("[AUTH] Callback triggered")
-    print(f"[AUTH DEBUG] Session keys: {list(request.session.keys())}")
-    print(f"[AUTH DEBUG] Request URL: {request.url}")
+    print(f"[AUTH DEBUG] Callback Headers: {dict(request.headers)}")
+    print(f"[AUTH DEBUG] Callback Cookies: {request.cookies}")
+    print(f"[AUTH DEBUG] Session content: {dict(request.session)}")
+    
     # Force Redirect URI to match Frontend URL (Critical for Zeabur+Next.js Rewrite)
     # The request.url_for might return the internal Backend URL (martian-api)
     # But Google expects the public Frontend URL (martian-app)

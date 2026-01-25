@@ -42,6 +42,19 @@ export default function PortfolioPage() {
         unrealizedPct: 0,
     });
 
+    // Mobile Card View State
+    const [expandedTargets, setExpandedTargets] = useState<Set<string>>(new Set());
+
+    const toggleCard = (id: string) => {
+        const newSet = new Set(expandedTargets);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setExpandedTargets(newSet);
+    };
+
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
     const [syncing, setSyncing] = useState(false);
 
@@ -386,13 +399,134 @@ export default function PortfolioPage() {
                         </button>
                     </div>
 
-                    {/* Targets Table */}
-                    {targets.length === 0 ? (
-                        <div className="text-center text-[var(--color-text-muted)] py-8">
+                    {/* MOBILE CARD VIEW (Phone/Tablet) - Collapsible */}
+                    <div className="lg:hidden space-y-3">
+                        {targets.length === 0 ? (
+                            <div className="text-center text-[var(--color-text-muted)] py-8">
+                                No stocks in this group yet. Add one above!
+                            </div>
+                        ) : (
+                            targets.map((target) => {
+                                const isExpanded = expandedTargets.has(target.id);
+                                return (
+                                    <div key={target.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition">
+                                        {/* Collapsed Header (Always Visible) - Click to Expand */}
+                                        <div
+                                            onClick={() => toggleCard(target.id)}
+                                            className="p-4 cursor-pointer active:bg-white/10 transition"
+                                        >
+                                            {/* Row 1: Name + Market Value */}
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-base text-white">
+                                                        {target.stock_name || target.stock_id}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400 bg-black/30 px-1.5 py-0.5 rounded">
+                                                        {target.stock_id}
+                                                    </span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="font-mono font-bold text-white">
+                                                        {formatCurrency(target.summary?.market_value || 0)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Row 2: Price + Unrealized P/L (Compact) */}
+                                            <div className="flex justify-between items-center text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono text-[var(--color-text-muted)]">
+                                                        {target.livePrice?.price?.toLocaleString() || "-"}
+                                                    </span>
+                                                    {target.livePrice && (
+                                                        <span className={`text-xs ${(target.livePrice.change || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
+                                                            {(target.livePrice.change || 0) >= 0 ? "▲" : "▼"}
+                                                            {Math.abs(target.livePrice.change_pct || 0).toFixed(2)}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div
+                                                    className={`font-mono font-bold ${(target.summary?.unrealized_pnl || 0) >= 0 ? "text-red-400" : "text-green-400"}`}
+                                                >
+                                                    {(target.summary?.unrealized_pnl || 0) >= 0 ? "+" : ""}
+                                                    {formatCurrency(target.summary?.unrealized_pnl || 0)}
+                                                </div>
+                                            </div>
+                                            {/* Expand Indicator */}
+                                            <div className="text-center text-[var(--color-text-muted)] text-xs mt-2">
+                                                {isExpanded ? '▲ Collapse' : '▼ Tap for Details'}
+                                            </div>
+                                        </div>
+
+                                        {/* Expanded Details (Conditionally Visible) */}
+                                        {isExpanded && (
+                                            <div className="border-t border-white/10 bg-black/20 p-4 space-y-3">
+                                                {/* Detail Grid */}
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <div>
+                                                        <div className="text-xs text-[var(--color-text-muted)]">Shares</div>
+                                                        <div className="font-mono">{target.summary?.total_shares || 0}</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs text-[var(--color-text-muted)]">Avg Cost</div>
+                                                        <div className="font-mono">${target.summary?.avg_cost?.toFixed(2) || '0.00'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-xs text-[var(--color-text-muted)]">Realized P/L</div>
+                                                        <div className={`font-mono ${(target.summary?.realized_pnl || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
+                                                            {(target.summary?.realized_pnl || 0) >= 0 ? "+" : ""}
+                                                            {formatCurrency(target.summary?.realized_pnl || 0)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right cursor-pointer" onClick={(e) => { e.stopPropagation(); fetchDivHistory(target.id, target.stock_name || target.id); }}>
+                                                        <div className="text-xs text-[var(--color-warning)]">💰 Div. Receipt</div>
+                                                        <div className="font-mono text-[var(--color-warning)] font-bold hover:text-white transition">
+                                                            {formatCurrency(target.summary?.total_dividend_cash || 0)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-2 pt-2 border-t border-white/5">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowTxForm(target.id);
+                                                            setEditingTxId(null);
+                                                            setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
+                                                        }}
+                                                        className="flex-1 bg-[var(--color-cta)]/20 text-[var(--color-cta)] py-2 rounded-lg hover:bg-[var(--color-cta)] hover:text-black transition text-sm font-bold"
+                                                    >
+                                                        ➕ Add Tx
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); fetchTxHistory(target.id); }}
+                                                        className="flex-1 bg-white/10 text-white py-2 rounded-lg hover:bg-white/20 transition text-sm font-bold"
+                                                    >
+                                                        📜 History
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteTarget(target.id); }}
+                                                        className="bg-[var(--color-danger)]/10 text-[var(--color-danger)] px-4 py-2 rounded-lg hover:bg-[var(--color-danger)] hover:text-white transition text-sm font-bold"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Targets Table (Desktop) */}
+                    {targets.length === 0 && (
+                        <div className="hidden lg:block text-center text-[var(--color-text-muted)] py-8">
                             No stocks in this group yet. Add one above!
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
+                    )}
+
+                    {targets.length > 0 && (
+                        <div className="hidden lg:block overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-xs uppercase">

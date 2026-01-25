@@ -84,22 +84,39 @@ def run_e2e():
             # row = page.locator("tr", has_text="TSMC")
             # row.get_by_text("+Tx").click()
             # Simplified:
-            page.locator("button", has_text="+Tx").first.click()
+            # Fix for Mobile/Desktop DOM duplication:
+            # We must ensure we click the VISIBLE button (Desktop).
+            # .first might pick the hidden mobile one.
+            tx_btns = page.locator("button", has_text="+Tx")
+            # Iterate to find visible one
+            clicked = False
+            for i in range(tx_btns.count()):
+                if tx_btns.nth(i).is_visible():
+                    tx_btns.nth(i).click()
+                    clicked = True
+                    break
+            
+            if not clicked:
+                print("❌ No visible '+Tx' button found!") 
+            # page.locator("button", has_text="+Tx").first.click()
             
             # Modal opens
             print("   Modal Opened. Entering Buy 1000 shares @ 500...")
-            page.get_by_placeholder("Shares").fill("1000")
-            page.get_by_placeholder("Price").fill("500")
-            page.get_by_text("Save Transaction").click()
+            # Use type=number locator since placeholder is "0"
+            page.locator('input[type="number"]').nth(0).fill("1000")
+            page.locator('input[type="number"]').nth(1).fill("500")
+            page.get_by_text("Confirm").click()
             
             time.sleep(2)
             
             # Verify Holdings
+            # Verify Holdings
             # Look for 1,000 in shares column
-            if page.get_by_text("1,000").count() > 0:
+            try:
+                page.get_by_text("1,000").wait_for(state="visible", timeout=5000)
                 print("✅ Transaction Saved (1,000 shares visible)")
-            else:
-                print("❌ Transaction Verification Failed")
+            except:
+                print("❌ Transaction Verification Failed (Timeout looking for '1,000')")
                 
             page.screenshot(path=f'{SCREENSHOT_DIR}/3_transaction_added.png')
 
@@ -125,3 +142,14 @@ def run_e2e():
 
 if __name__ == "__main__":
     run_e2e()
+    
+    # Run Mobile Verification
+    print("\n📱 Running Mobile Verification...")
+    try:
+        from tests import test_mobile_portfolio
+        test_mobile_portfolio.run_mobile_test()
+    except ImportError:
+        # If running from root
+        import test_mobile_portfolio
+        test_mobile_portfolio.run_mobile_test()
+

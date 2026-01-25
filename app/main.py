@@ -102,6 +102,14 @@ IS_HTTPS = FRONTEND_URL_FOR_DETECTION.startswith("https://")
 # Zeabur sets specific headers, but we can also infer from FRONTEND_URL or external env vars
 IS_PRODUCTION = os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("ZEABUR_URL") or "zeabur.app" in FRONTEND_URL_FOR_DETECTION
 
+# Derive Domain for Cookie
+# If FRONTEND_URL is "https://martian-app.zeabur.app", domain should be "martian-app.zeabur.app"
+from urllib.parse import urlparse
+parsed_frontend = urlparse(FRONTEND_URL_FOR_DETECTION)
+COOKIE_DOMAIN = parsed_frontend.hostname if IS_PRODUCTION else None
+
+print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}")
+
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
@@ -109,6 +117,7 @@ app.add_middleware(
     # Mobile Safari is strict about this.
     same_site='none' if (IS_HTTPS or IS_PRODUCTION) else 'lax',
     https_only=(IS_HTTPS or IS_PRODUCTION), 
+    domain=COOKIE_DOMAIN,
     max_age=60 * 60 * 24 * 7  # 7 days
 )
 

@@ -70,6 +70,58 @@ class BackupService:
             return {"status": "error", "reason": str(e)}
 
     @staticmethod
+    def check_and_backup_if_needed():
+        """
+        Check if the last backup on GitHub is older than 20 hours.
+        If so, trigger a backup immediately.
+        Used on Startup to handle Ephemeral Container restarts (Zeabur) which might miss cron windows.
+        """
+        from datetime import timezone, timedelta
+        
+        token = os.getenv("GITHUB_TOKEN")
+        repo = os.getenv("GITHUB_REPO")
+        
+        if not token or not repo:
+            return
+            
+        try:
+            target_path = "app/portfolio.db"
+            url = f"https://api.github.com/repos/{repo}/commits?path={target_path}&per_page=1"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json"
+            }
+            
+            resp = requests.get(url, headers=headers)
+            if resp.status_code == 200:
+                commits = resp.json()
+                if commits and len(commits) > 0:
+                    last_date_str = commits[0]["commit"]["committer"]["date"]
+                    # Format: 2024-01-25T15:00:00Z
+                    last_backup_time = datetime.fromisoformat(last_date_str.replace("Z", "+00:00"))
+                    
+                    now = datetime.now(timezone.utc)
+                    age = now - last_backup_time
+                    
+                    logger.info(f"[BackupCheck] Last backup was {age} ago ({last_backup_time})")
+                    
+                    if age > timedelta(hours=20):
+                        logger.info(f"[BackupCheck] Backup is stale (>20h). Triggering immediate backup...")
+                        BackupService.backup_db()
+                    else:
+                        logger.info(f"[BackupCheck] Backup is fresh. Skipping.")
+                        
+                else:
+                     # File likely doesn't exist or no commits, try backup
+                     logger.info(f"[BackupCheck] No history found. Triggering backup.")
+                     BackupService.backup_db()
+            else:
+                 logger.warning(f"[BackupCheck] Failed to check history: {resp.status_code}")
+                 
+        except Exception as e:
+            logger.error(f"[BackupCheck] Error verifying backup status: {e}")
+            
+    @staticmethod
     async def annual_prewarm_with_rebuild():
         """
         Annual scheduled job: Rebuild cache data, then push to GitHub.

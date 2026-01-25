@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
         from app.services.backup import BackupService
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
         
         # Explicit UTC timezone to ensure consistency on Zeabur
         scheduler = BackgroundScheduler(timezone=timezone.utc)
@@ -54,6 +54,15 @@ async def lifespan(app: FastAPI):
         # Print Next Run Time for Verification
         if job.next_run_time:
             print(f"[Scheduler] Next Backup Job at: {job.next_run_time} (UTC)")
+
+        # 3. Smart Startup Check: If we missed the window due to sleep, check if backup is stale
+        # We perform this check 30 seconds after startup to allow server to settle
+        scheduler.add_job(
+            BackupService.check_and_backup_if_needed, 
+            'date', 
+            run_date=datetime.now(timezone.utc) + timedelta(seconds=10),
+            id='startup_backup_check'
+        )
         
         # Wrapper for async prewarm function (APScheduler uses sync jobs)
         def run_annual_prewarm():

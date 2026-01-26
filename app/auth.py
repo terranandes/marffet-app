@@ -231,30 +231,21 @@ async def auth_callback(request: Request):
 @router.get("/logout")
 async def logout(request: Request):
     # CRITICAL: Use clear() instead of pop() to ensure session is fully cleared
-    # With cross-origin cookies (SameSite=None), pop() may not properly persist the change
     request.session.clear()
     
-    # Detect if this is an API call (fetch) or direct browser navigation
-    # API calls will have Accept: application/json or similar
-    accept_header = request.headers.get("accept", "")
-    is_api_call = "application/json" in accept_header or "fetch" in request.headers.get("sec-fetch-mode", "")
+    # "Nuclear Option": Explicitly expire the cookie on multiple plausible domains 
+    # to clean up any "Zombie Cookies" (Host-Only vs Explicit Domain)
+    response = RedirectResponse(url=FRONTEND_URL)
     
-    if is_api_call:
-        # Return JSON for API calls (from frontend fetch)
-        return JSONResponse({"status": "ok", "message": "Logged out successfully"})
+    # 1. Clear for the configured domain (Correct one)
+    if COOKIE_DOMAIN:
+        response.delete_cookie("session", domain=COOKIE_DOMAIN)
     
-    # Smart Logout Redirect for direct browser access
-    # If user logout from Backend (direct API usage), go to Backend Root
-    # If user logout from Frontend (app), go to Frontend Root
-    referer = request.headers.get("referer", "")
-    current_host = str(request.base_url)
-    
-    # If Referer contains Backend Host -> Stay on Backend Root
-    if current_host.replace("https://", "").replace("http://", "").rstrip("/") in referer:
-         return RedirectResponse(url='/')
-    
-    # Default: Go to Frontend
-    return RedirectResponse(url=FRONTEND_URL)
+    # 2. Clear for Host-Only (just in case they have a stuck one from previous tests)
+    response.delete_cookie("session", domain=None)
+    response.delete_cookie("session") # Default delete
+
+    return response
 
 @router.get("/me")
 async def get_me(request: Request): 
@@ -272,8 +263,11 @@ async def get_me(request: Request):
     db_profile = get_user_public_profile(user['id'])
     # Check if user is admin
     is_admin = user.get('email') in GM_EMAILS
-    # Check if a server-side Gemini Key is available
-    has_gemini_key = bool(os.getenv('GEMINI_API_KEY'))
+    
+    # GEMINI CHECK
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    has_gemini_key = bool(gemini_key and len(gemini_key) > 5) # Basic validation
+    print(f"[AUTH] Gemini Key Check: Loaded? {bool(gemini_key)}. Valid? {has_gemini_key}")
     
     # Merge DB data into session data for response
     return {**user, **db_profile, "is_admin": is_admin, "has_gemini_key": has_gemini_key}

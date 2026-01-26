@@ -65,11 +65,6 @@ async def login(request: Request):
     # Import config check
     from .main import COOKIE_DOMAIN
     
-    # DEBUG: Inspect Headers and Session
-    print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
-    print(f"[AUTH DEBUG] Login Request Cookies: {request.cookies}")
-    print(f"[AUTH DEBUG] Current Session BEFORE: {dict(request.session)}")
-
     # Sanitize: If referer is google auth, fallback to front
     if "accounts.google.com" in str(target) or "googleapis.com" in str(target):
          target = FRONTEND_URL
@@ -241,14 +236,8 @@ async def auth_callback(request: Request):
 
     except Exception as e:
         print(f"[AUTH] Callback Error: {e}")
-        # DEBUG: return session keys to identifying if cookie was lost or just mismatched
-        debug_info = {
-            "error": str(e), 
-            "session_keys": list(request.session.keys()),
-            "cookie_present": bool(request.cookies.get("session")),
-            "debug_cookie": request.cookies.get("debug_persist")
-        }
-        return JSONResponse(status_code=400, content=debug_info)
+        # Return generic error
+        return JSONResponse(status_code=400, content={"error": "Authentication failed", "details": str(e)})
 
 
 @router.get("/logout")

@@ -160,6 +160,12 @@ def init_db():
         except:
             pass
 
+        # Migration: Add auth_provider if not exists
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'google'")
+        except:
+            pass
+
         # Migration: Add Leaderboard Stats columns
         for col in ["total_wealth REAL DEFAULT 0", "total_cost REAL DEFAULT 0", "total_roi REAL DEFAULT 0", "last_synced TEXT"]:
             try:

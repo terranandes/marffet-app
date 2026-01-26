@@ -62,9 +62,6 @@ async def login(request: Request):
     # 3. Default: FRONTEND_URL
     target = request.query_params.get("next") or request.headers.get("referer") or FRONTEND_URL
     
-    # Import config check
-    from .main import COOKIE_DOMAIN
-    
     # DEBUG: Inspect Headers and Session
     print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
     print(f"[AUTH DEBUG] Login Request Cookies: {request.cookies}")
@@ -128,7 +125,7 @@ async def login(request: Request):
         max_age=300, 
         secure=True, 
         samesite='none',
-        domain=COOKIE_DOMAIN # Match the session cookie domain
+        domain=None # Host-Only (Matches Session)
     )
     return response
 
@@ -236,23 +233,14 @@ async def logout(request: Request):
     # CRITICAL: Use clear() instead of pop() to ensure session is fully cleared
     request.session.clear()
     
-    # Safe Domain Calculation (Avoids circular import from .main)
-    from urllib.parse import urlparse
-    # Logic matches main.py: use hostname in prod/default, None if specific dev flag (less critical here)
-    # We essentially just want the hostname of the FRONTEND_URL to clear the cookie there.
-    try:
-        domain = urlparse(FRONTEND_URL).hostname
-    except:
-        domain = None
-    
-    # "Nuclear Option": Explicitly expire the cookie on multiple plausible domains 
-    
     # helper to add delete headers
     def nuke_cookies(resp):
-        if domain:
-            resp.delete_cookie("session", domain=domain)
+        # Clear Host-Only
         resp.delete_cookie("session", domain=None)
+        # Clear default (just in case)
         resp.delete_cookie("session")
+        # Clear frontend url domain if possible (blind attempt)
+        # resp.delete_cookie("session", domain=urlparse(FRONTEND_URL).hostname)
         return resp
 
     # Detect if this is an API call (fetch) or direct browser navigation

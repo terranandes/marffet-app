@@ -107,6 +107,24 @@ async def auth_debug(request: Request):
         "url_for_callback": str(request.url_for('auth_callback'))
     }
 
+# --- COOKIE STICKINESS TEST ---
+@router.get("/test-cookie-set")
+async def test_cookie_set(request: Request):
+    """Sets a test session variable and redirects."""
+    request.session['test_val'] = f"hello_mobile_{datetime.now().timestamp()}"
+    print(f"[COOKIE TEST] Setting session: {request.session['test_val']}")
+    return RedirectResponse(url="/auth/test-cookie-check")
+
+@router.get("/test-cookie-check")
+async def test_cookie_check(request: Request):
+    """Checks if the session variable survived the redirect."""
+    val = request.session.get('test_val')
+    print(f"[COOKIE TEST] Read session: {val}")
+    if val:
+        return JSONResponse({"status": "PASS", "message": "Cookie Persisted!", "value": val, "cookies": request.cookies})
+    else:
+        return JSONResponse({"status": "FAIL", "message": "Cookie LOST during redirect.", "cookies": request.cookies}, status_code=400)
+
 @router.get("/callback", name='auth_callback')
 async def auth_callback(request: Request):
 

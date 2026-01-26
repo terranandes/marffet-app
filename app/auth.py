@@ -235,17 +235,28 @@ async def logout(request: Request):
     
     # "Nuclear Option": Explicitly expire the cookie on multiple plausible domains 
     # to clean up any "Zombie Cookies" (Host-Only vs Explicit Domain)
-    response = RedirectResponse(url=FRONTEND_URL)
     
-    # 1. Clear for the configured domain (Correct one)
-    if COOKIE_DOMAIN:
-        response.delete_cookie("session", domain=COOKIE_DOMAIN)
-    
-    # 2. Clear for Host-Only (just in case they have a stuck one from previous tests)
-    response.delete_cookie("session", domain=None)
-    response.delete_cookie("session") # Default delete
+    # helper to add delete headers
+    def nuke_cookies(resp):
+        if COOKIE_DOMAIN:
+            resp.delete_cookie("session", domain=COOKIE_DOMAIN)
+        resp.delete_cookie("session", domain=None)
+        resp.delete_cookie("session")
+        return resp
 
-    return response
+    # Detect if this is an API call (fetch) or direct browser navigation
+    # API calls will have Accept: application/json or similar
+    accept_header = request.headers.get("accept", "")
+    is_api_call = "application/json" in accept_header or "fetch" in request.headers.get("sec-fetch-mode", "")
+    
+    if is_api_call:
+        # Return JSON for API calls (from frontend fetch)
+        response = JSONResponse({"status": "ok", "message": "Logged out successfully"})
+        return nuke_cookies(response)
+    
+    # Smart Logout Redirect for direct browser access
+    response = RedirectResponse(url=FRONTEND_URL)
+    return nuke_cookies(response)
 
 @router.get("/me")
 async def get_me(request: Request): 

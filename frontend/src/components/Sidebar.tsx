@@ -383,29 +383,11 @@ export default function Sidebar() {
                             </button>
                         </div>
                         <button
-                            onClick={async () => {
+                            onClick={() => {
+                                // Force hard navigation to ensure cookies are cleared properly by the browser
+                                // Fetch requests sometimes swallow 302/Cookie headers depending on CORS/ITP
                                 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                                try {
-                                    const res = await fetch(`${API_URL}/auth/logout`, {
-                                        method: "GET",
-                                        credentials: "include",
-                                        headers: {
-                                            "Accept": "application/json"
-                                        }
-                                    });
-                                    if (res.ok) {
-                                        // Clear local state and refresh
-                                        fetchData();
-                                    } else {
-                                        console.error("Logout failed:", res.status);
-                                        // Still refresh to clear local state
-                                        fetchData();
-                                    }
-                                } catch (e) {
-                                    console.error("Logout error:", e);
-                                    // Still refresh to clear local state
-                                    fetchData();
-                                }
+                                window.location.href = `${API_URL}/auth/logout`;
                             }}
                             className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
                         >

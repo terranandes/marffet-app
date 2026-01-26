@@ -385,9 +385,8 @@ export default function Sidebar() {
                         <button
                             onClick={() => {
                                 // Force hard navigation to ensure cookies are cleared properly by the browser
-                                // Fetch requests sometimes swallow 302/Cookie headers depending on CORS/ITP
-                                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                                window.location.href = `${API_URL}/auth/logout`;
+                                // Use relative path to utilize Next.js Rewrite and keep user on the current host
+                                window.location.href = `/auth/logout`;
                             }}
                             className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
                         >
@@ -397,7 +396,7 @@ export default function Sidebar() {
                 ) : (
                     <div className="mt-auto mb-4 p-4 space-y-2">
                         <a
-                            href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`}
+                            href={`/auth/login`}
                             className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

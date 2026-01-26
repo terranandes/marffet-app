@@ -69,8 +69,8 @@ export default function Sidebar() {
 
     const fetchData = async () => {
         try {
-            // Use Absolute URL for Cross-Domain Auth check
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            // Use Relative URL to Proxy via Next.js (preserves Cookie)
+            const API_URL = "";
 
             const userRes = await fetch(`${API_URL}/auth/me`, {
                 credentials: "include"

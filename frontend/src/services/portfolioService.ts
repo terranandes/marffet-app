@@ -66,7 +66,7 @@ export interface IPortfolioService {
     syncDividends(): Promise<boolean>;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "";
 
 // 1. API Implementation (Registered User)
 class ApiPortfolioService implements IPortfolioService {

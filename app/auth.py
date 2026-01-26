@@ -233,13 +233,21 @@ async def logout(request: Request):
     # CRITICAL: Use clear() instead of pop() to ensure session is fully cleared
     request.session.clear()
     
+    # Safe Domain Calculation (Avoids circular import from .main)
+    from urllib.parse import urlparse
+    # Logic matches main.py: use hostname in prod/default, None if specific dev flag (less critical here)
+    # We essentially just want the hostname of the FRONTEND_URL to clear the cookie there.
+    try:
+        domain = urlparse(FRONTEND_URL).hostname
+    except:
+        domain = None
+    
     # "Nuclear Option": Explicitly expire the cookie on multiple plausible domains 
-    # to clean up any "Zombie Cookies" (Host-Only vs Explicit Domain)
     
     # helper to add delete headers
     def nuke_cookies(resp):
-        if COOKIE_DOMAIN:
-            resp.delete_cookie("session", domain=COOKIE_DOMAIN)
+        if domain:
+            resp.delete_cookie("session", domain=domain)
         resp.delete_cookie("session", domain=None)
         resp.delete_cookie("session")
         return resp

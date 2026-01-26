@@ -94,6 +94,13 @@ async def login(request: Request):
         # Fallback to standard request.url_for (uses Host header)
         # This handles localhost:8000 direct access or Legacy UI (martian-api)
         redirect_uri = str(request.url_for('auth_callback'))
+        
+        # PROD FIX: Force HTTPS if we are in production (Legacy API access)
+        # request.url_for might return http if proxy headers aren't perfect yet
+        from .main import IS_PRODUCTION
+        if IS_PRODUCTION and redirect_uri.startswith("http://"):
+             redirect_uri = redirect_uri.replace("http://", "https://")
+             
         print(f"[AUTH] Detected Standard Origin ({referer_base} or None). Using: {redirect_uri}")
     
     print(f"[AUTH] Login Redirect URI: {redirect_uri}")

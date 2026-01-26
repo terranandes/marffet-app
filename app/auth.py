@@ -277,7 +277,10 @@ async def logout(request: Request):
         return nuke_cookies(response)
     
     # Smart Logout Redirect for direct browser access
-    response = RedirectResponse(url=FRONTEND_URL)
+    # Fix: Do not force FRONTEND_URL. Redirect to root ('/') which keeps the user on the current host.
+    # If they are on localhost:8000, they go to localhost:8000/
+    # If they are on localhost:3000, they go to localhost:3000/ (via Next.js rewrite handling)
+    response = RedirectResponse(url="/")
     return nuke_cookies(response)
 
 @router.get("/me")

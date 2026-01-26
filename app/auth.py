@@ -146,10 +146,18 @@ print(f"[AUTH DEBUG] Loaded FRONTEND_URL: {FRONTEND_URL}")
 async def auth_debug(request: Request):
     """Dump config and session info for debugging"""
     from .main import IS_PRODUCTION, COOKIE_DOMAIN, IS_HTTPS
-    return {
+    
+    # Check what the server sees
+    debug_data = {
         "session": dict(request.session),
         "cookies": request.cookies,
-        "headers": dict(request.headers),
+        "headers": {
+            "host": request.headers.get("host"),
+            "x-forwarded-host": request.headers.get("x-forwarded-host"),
+            "x-forwarded-proto": request.headers.get("x-forwarded-proto"),
+            "user-agent": request.headers.get("user-agent"),
+        },
+        "request_url": str(request.url),
         "config": {
             "IS_PRODUCTION": IS_PRODUCTION,
             "IS_HTTPS": IS_HTTPS,
@@ -158,6 +166,11 @@ async def auth_debug(request: Request):
         },
         "url_for_callback": str(request.url_for('auth_callback'))
     }
+    
+    # Try setting a test cookie available to JS
+    response = JSONResponse(debug_data)
+    response.set_cookie("debug_probe", "active", domain=COOKIE_DOMAIN, samesite='lax')
+    return response
 
 # --- COOKIE STICKINESS TEST ---
 @router.get("/test-cookie-set")

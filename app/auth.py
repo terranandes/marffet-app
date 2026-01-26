@@ -258,12 +258,20 @@ async def logout(request: Request):
     
     # helper to add delete headers
     def nuke_cookies(resp):
-        # Clear Host-Only
+        # Import the exact domain used to set the cookie
+        try:
+            from .main import COOKIE_DOMAIN
+        except ImportError:
+            COOKIE_DOMAIN = None
+            
+        # 1. Clear Host-Only (domain=None) - covers generic cases
         resp.delete_cookie("session", domain=None)
-        # Clear default (just in case)
-        resp.delete_cookie("session")
-        # Clear frontend url domain if possible (blind attempt)
-        # resp.delete_cookie("session", domain=urlparse(FRONTEND_URL).hostname)
+        
+        # 2. Clear Explicit Domain (if set) - covers localhost/production cases
+        if COOKIE_DOMAIN:
+            resp.delete_cookie("session", domain=COOKIE_DOMAIN)
+            
+        print(f"[AUTH] Logout - Nuking cookies on domains: None, {COOKIE_DOMAIN}")
         return resp
 
     # Detect if this is an API call (fetch) or direct browser navigation

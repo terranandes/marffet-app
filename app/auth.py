@@ -62,6 +62,9 @@ async def login(request: Request):
     # 3. Default: FRONTEND_URL
     target = request.query_params.get("next") or request.headers.get("referer") or FRONTEND_URL
     
+    # Import config check
+    from .main import COOKIE_DOMAIN
+    
     # DEBUG: Inspect Headers and Session
     print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
     print(f"[AUTH DEBUG] Login Request Cookies: {request.cookies}")
@@ -118,6 +121,11 @@ async def login(request: Request):
     </html>
     """
     response = HTMLResponse(content=html_content)
+    # DEBUG: Inspect Headers and Session
+    print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
+    print(f"[AUTH DEBUG] Login Request Host: {request.headers.get('host')}")
+    print(f"[AUTH DEBUG] Login Request Scheme: {request.url.scheme}")
+
     # Set a debug cookie to test persistence explicitly
     response.set_cookie(
         key="debug_persist", 
@@ -125,7 +133,7 @@ async def login(request: Request):
         max_age=300, 
         secure=True, 
         samesite='none',
-        domain=None # Host-Only (Matches Session)
+        domain=COOKIE_DOMAIN # Match the session cookie domain
     )
     return response
 

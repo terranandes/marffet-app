@@ -105,12 +105,27 @@ IS_PRODUCTION = True # FORCE TRUE for deployment branch (Safety First for Zeabur
 if os.getenv("dev_mode"): IS_PRODUCTION = False
 
 # Derive Domain for Cookie
-# SIMPLIFICATION: Use Host-Only (None) to support both martian-app and martian-api access
-# The Browser will automatically assign the cookie to the hostname in the address bar.
-# This avoids "Domain Mismatch" errors when internal vs external hostnames differ.
-COOKIE_DOMAIN = None
+# CRITICAL: Since we are behind a Next.js Rewrite, the Host header is likely rewritten to 'martian-api'
+# But the Browser is on 'martian-app'.
+# We MUST explicitly set the domain to the Frontend's hostname (e.g. 'martian-app.zeabur.app')
+# Otherwise, 'Domain=None' defaults to 'martian-api', and the browser ignores it.
+from urllib.parse import urlparse
 
-print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}")
+def get_domain_from_url(url):
+    """Robustly extract hostname from URL, handling missing scheme."""
+    if not url: return None
+    try:
+        if not url.startswith("http"):
+            url = "https://" + url
+        return urlparse(url).hostname
+    except Exception as e:
+        print(f"[Startup Error] Failed to parse FRONTEND_URL: {e}")
+        return None
+
+# FORCE Explicit Domain in Production
+COOKIE_DOMAIN = get_domain_from_url(FRONTEND_URL_FOR_DETECTION) if IS_PRODUCTION else None
+
+print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}, Frontend={FRONTEND_URL_FOR_DETECTION}")
 
 app.add_middleware(
     SessionMiddleware, 

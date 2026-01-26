@@ -117,9 +117,8 @@ print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOM
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
-    # OAuth Redirects are Top-Level Navigations -> SameSite='lax' is Best Practice
-    # 'None' is fragile on Safari (ITP).
-    same_site='lax', 
+    # Revert to 'none' for maximum Cross-Site compatibility (safest with JS Redirect)
+    same_site='none', 
     https_only=True, # Force Secure
     domain=COOKIE_DOMAIN, 
     max_age=60 * 60 * 24 * 7  # 7 days

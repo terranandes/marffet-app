@@ -69,7 +69,7 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 | **CB Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts |
 | **Rebalancing Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts when portfolio needs rebalancing |
 | **Bar Chart Race** | Basic | Basic | Advanced (custom metrics) |
-| **Data Export** | ❌ | ❌ | ✅ CSV/Excel |
+| **Data Export** | ❌ | ✅ Unfiltered CSV/Excel | ✅ Filtered CSV/Excel |
 
 ### 2.1 Premium Rebalancing Engine (Core Feature)
 The **Ruthless Wealth Manager** continuously monitors your portfolio against three key discipline metrics. Premium users receive **In-App Notifications** when action is required.

@@ -117,7 +117,17 @@ async def login(request: Request):
         </body>
     </html>
     """
-    return HTMLResponse(content=html_content)
+    response = HTMLResponse(content=html_content)
+    # Set a debug cookie to test persistence explicitly
+    response.set_cookie(
+        key="debug_persist", 
+        value=f"set_at_{datetime.now().timestamp()}", 
+        max_age=300, 
+        secure=True, 
+        samesite='none',
+        domain=None # Try Host-Only for this one to compare
+    )
+    return response
 
 # Frontend Redirect URL
 FRONTEND_URL = os.getenv('FRONTEND_URL', '/')
@@ -212,7 +222,8 @@ async def auth_callback(request: Request):
         debug_info = {
             "error": str(e), 
             "session_keys": list(request.session.keys()),
-            "cookie_present": bool(request.cookies.get("session"))
+            "cookie_present": bool(request.cookies.get("session")),
+            "debug_cookie": request.cookies.get("debug_persist")
         }
         return JSONResponse(status_code=400, content=debug_info)
 

@@ -123,7 +123,12 @@ def get_domain_from_url(url):
         return None
 
 # FORCE Explicit Domain in Production
-COOKIE_DOMAIN = get_domain_from_url(FRONTEND_URL_FOR_DETECTION) if IS_PRODUCTION else None
+# CAUTION: For Zeabur, we have two domains: 
+# 1. martian-app.zeabur.app (Next.js Frontend)
+# 2. martian-api.zeabur.app (Legacy/Backend)
+# If we force 'martian-app', the Legacy UI (martian-api) cannot set cookies.
+# We MUST use None (Host Only) to allow both independent domains to work.
+COOKIE_DOMAIN = None # get_domain_from_url(FRONTEND_URL) if IS_PRODUCTION else None
 
 print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}, Frontend={FRONTEND_URL_FOR_DETECTION}")
 

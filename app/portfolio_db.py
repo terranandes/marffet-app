@@ -166,6 +166,18 @@ def init_db():
         except:
             pass
 
+        # Migration: Add last_login_at if not exists
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP")
+        except:
+            pass
+
+        # Migration: Add picture if not exists
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN picture TEXT")
+        except:
+            pass
+
         # Migration: Add Leaderboard Stats columns
         for col in ["total_wealth REAL DEFAULT 0", "total_cost REAL DEFAULT 0", "total_roi REAL DEFAULT 0", "last_synced TEXT"]:
             try:

@@ -109,8 +109,15 @@ if os.getenv("dev_mode"): IS_PRODUCTION = False
 # But the Browser is on 'martian-app'. We MUST explicitly set the domain to 'martian-app.zeabur.app'
 # Otherwise, the Host-Only cookie will be set for 'martian-api' and dropped by the browser.
 from urllib.parse import urlparse
-parsed_frontend = urlparse(FRONTEND_URL_FOR_DETECTION)
-COOKIE_DOMAIN = parsed_frontend.hostname if IS_PRODUCTION else None
+
+def get_domain_from_url(url):
+    """Robustly extract hostname from URL, handling missing scheme."""
+    if not url: return None
+    if not url.startswith("http"):
+        url = "https://" + url
+    return urlparse(url).hostname
+
+COOKIE_DOMAIN = get_domain_from_url(FRONTEND_URL_FOR_DETECTION) if IS_PRODUCTION else None
 
 print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}")
 
@@ -148,7 +155,7 @@ app.add_middleware(
 
 # Proxy Headers (Must be added LAST to be executed FIRST/Outermost)
 # Ensures Request.url.scheme is 'https' for Session and Auth
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+# app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"]) -> MOVED TO TOP (Line 92)
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])

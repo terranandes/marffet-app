@@ -83,8 +83,41 @@ async def login(request: Request):
     
     print(f"[AUTH] Login Redirect URI: {redirect_uri}")
     
-    # Force account picker to allow switching accounts
-    return await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
+    # Generate the OAuth Redirect Logic (populates request.session state)
+    redirect_obj = await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
+    google_url = redirect_obj.headers.get("location")
+    
+    # ITP Workaround: Instead of returning 302 directly (which Safari might strip cookies on),
+    # return a 200 OK page that saves the cookie, then JS redirects.
+    from fastapi.responses import HTMLResponse
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Redirecting...</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body {{ font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #fff; }}
+                .loader {{ border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }}
+                @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+            </style>
+        </head>
+        <body>
+            <div style="text-align:center">
+                <div class="loader" style="margin:0 auto 20px"></div>
+                <p>Connecting to Google...</p>
+                <div id="debug" style="display:none">{google_url}</div>
+            </div>
+            <script>
+                // Short timeout to ensure cookie is processed
+                setTimeout(function() {{
+                    window.location.href = "{google_url}";
+                }}, 100);
+            </script>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 # Frontend Redirect URL
 FRONTEND_URL = os.getenv('FRONTEND_URL', '/')

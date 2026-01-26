@@ -175,7 +175,13 @@ async def auth_callback(request: Request):
 
     except Exception as e:
         print(f"[AUTH] Callback Error: {e}")
-        return JSONResponse(status_code=400, content={"error": str(e)})
+        # DEBUG: return session keys to identifying if cookie was lost or just mismatched
+        debug_info = {
+            "error": str(e), 
+            "session_keys": list(request.session.keys()),
+            "cookie_present": bool(request.cookies.get("session"))
+        }
+        return JSONResponse(status_code=400, content=debug_info)
 
 
 @router.get("/logout")

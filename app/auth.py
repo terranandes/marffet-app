@@ -211,7 +211,9 @@ async def auth_callback(request: Request):
 
     try:
         # Pass redirect_uri explicitly to authorize_access_token (required by some providers/versions)
-        token = await oauth.google.authorize_access_token(request, redirect_uri=redirect_uri)
+        # UPDATE: Authlib 1.6+ retrieves this from session state automatically if authorize_redirect had it.
+        # Passing it explicitly caused "multiple values" TypeError.
+        token = await oauth.google.authorize_access_token(request)
         user = token.get('userinfo')
         print(f"[AUTH] Google User: {user.get('email')}")
         if user:

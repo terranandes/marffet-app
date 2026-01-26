@@ -88,8 +88,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Martian Investment System", lifespan=lifespan)
 
 # Proxy Headers moved to bottom to enforce execution order
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+# (Removed from here)
 
 # Session Middleware (Must be before CORS if using cookies, relies on correct ordering)
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")

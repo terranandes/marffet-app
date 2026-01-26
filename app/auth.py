@@ -72,12 +72,29 @@ async def login(request: Request):
     # Store in session for callback
     request.session['auth_redirect_uri'] = str(target)
 
-    # Force Redirect URI to match Frontend URL
-    base_url = str(FRONTEND_URL).rstrip('/')
-    if base_url.startswith('http'):
-        redirect_uri = f"{base_url}/auth/callback"
+    # Force Redirect URI to match the Origin (Frontend vs Backend)
+    # This is critical for Zeabur where we have two potential domains.
+    # We decide based on where the user came from (Referer).
+    
+    # 1. Get potential Frontend Base URL
+    frontend_base = str(FRONTEND_URL).rstrip('/')
+    
+    # 2. Get Referer Base URL
+    referer = request.headers.get("referer", "")
+    referer_base = "/".join(referer.split("/")[:3]) if referer else ""
+    
+    # 3. Decision Logic
+    # If referer matches configured Frontend URL, we MUST use Frontend URL for callback.
+    # This ensures the user returns to the domain where the cookie was set.
+    # (Matches Logic in Sidebar.tsx which links to /auth/login)
+    if frontend_base in referer_base:
+        redirect_uri = f"{frontend_base}/auth/callback"
+        print(f"[AUTH] Detected Frontend Origin ({referer_base}). Using: {redirect_uri}")
     else:
-        redirect_uri = request.url_for('auth_callback')
+        # Fallback to standard request.url_for (uses Host header)
+        # This handles localhost:8000 direct access or Legacy UI (martian-api)
+        redirect_uri = str(request.url_for('auth_callback'))
+        print(f"[AUTH] Detected Standard Origin ({referer_base} or None). Using: {redirect_uri}")
     
     print(f"[AUTH] Login Redirect URI: {redirect_uri}")
     

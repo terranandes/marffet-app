@@ -2,38 +2,82 @@
 trigger: always_on
 ---
 
-## Location of formal product-releted document: ./product or ./
-[SPEC/OSPEC] owns SPEC related
-- ./product/specification.md
-- ./product/backup_restore.md
-- ./product/crawler_architecture.md
-- ./product/data_pipeline.md
+# File System Authority & Ownership Protocols
 
-[PM] owns datasheet or README
-- ./product/datasheet.md
-- ./product/README.md , audiences are end-users who use the APP (not ME/Terran/BOSS/Agents)
-- ./README.md , audiences are users who watch project or repository, located at GitHub
+## 1. Governance Principles
+- **Exclusivity:** Agents must strictly adhere to write permissions. Do not modify files owned by other agents unless explicitly instructed by `[PL]`.
+- **Root Directory:** All product-related documentation resides in `./product/` or the root `./`.
+- **Traceability:** All generated files must reflect the authoring agent's identity in the content or metadata.
 
-[PL] owns the meeting minutes
-- ./meeting/* , after a agent meeting finishes
+---
 
-[PL][CODE][UI] Please owns software-perpsective document
-- ./product/software_stack.md
+## 2. Product Vision & Public Interface
+**Owner:** `[PM]` (Product Manager)
 
-[CV] Please owns formal test plans, including automated browser flow using MCP like Playwright
-- ./product/test_plan.md, that [GCV] don't touch.
+| File Path | Target Audience | Purpose |
+| :--- | :--- | :--- |
+| `./README.md` | **Developers / Repo Watchers** | Technical entry point. Explains how to build, contribute, and install. (GitHub landing page). |
+| `./product/README.md` | **End-Users** | User Manual. Explains how to *use* the App. No technical jargon. |
+| `./product/datasheet.md` | **Stakeholders / Business** | Product specs, market fit, and feature summary. |
+| `./product/social_media_promo.md` | **Customers / Promotion** | Social media promo |
 
-[GCV] Please owns formal test plans, including automated browser flow using MCP like Playwright
-- ./product/test_plan_gemini.md, that [CV] don't touch.
+---
 
-## [PL] owns the meeting notes
-- Format : /meeting/meeting_notes_$year_$month_$date_$version.md
+## 3. Technical Specifications & Architecture
+**Owner:** `[SPEC]` (AntiGravity) or `[OSPEC]` (Opencode CLI)
 
-## [CV] owns the files for product-level debugging/testing/verification
-- ./tests/* , that [GCV] don't touch.
+> **Directive:** These files form the "Law" of the project. `[CODE]` must strictly follow these.
 
-## [GCV] owns the files for product-level debugging/testing/verification
-- ./tests_gemini/* , that [CV] don't touch.
+- `./product/specification.md` (Master Logic Document)
+- `./product/backup_restore.md`
+- `./product/crawler_architecture.md`
+- `./product/data_pipeline.md`
+- `./product/auth_db_architecture.md`
 
-## [GCV/CV] owns the Jira bug tickets
-- ./jira/* . You must emphaseize which agent is firing tickets.
+---
+
+## 4. Project Management & Orchestration
+**Owner:** `[PL]` (Project Leader)
+
+### Task Tracking
+- `./product/tasks.md`
+    - **Rule:** Must be updated dynamically. `[PL]` ensures this reflects the live status of all agents.
+
+### Meeting Records
+- `./meeting/meeting_notes_YYYY_MM_DD_v{version}.md`
+    - **Format:** Strict ISO date format.
+    - **Trigger:** Auto-generated after any multi-agent synchronization session.
+
+### Technical Stack (Shared Ownership)
+- `./product/software_stack.md`
+    - **Primary Owner:** `[PL]` (Maintains structure)
+    - **Contributors:** `[CODE]`, `[UI]` (Provide library details)
+
+---
+
+## 5. Quality Assurance & Verification (Strict Separation)
+**Warning:** `[CV]` and `[GCV]` possess distinct memory and logic streams. **Cross-contamination is prohibited.**
+
+### Standard Verification (AntiGravity)
+**Owner:** `[CV]`
+**Access:** `[GCV]` is **FORBIDDEN** from modifying these files.
+- `./product/test_plan.md` (Master Test Strategy)
+- `./tests/*` (Unit & Integration tests code)
+
+### Gemini Advanced Verification (Gemini CLI)
+**Owner:** `[GCV]`
+**Access:** `[CV]` is **FORBIDDEN** from modifying these files.
+- `./product/test_plan_gemini.md` (Complex reasoning test plans)
+- `./tests_gemini/*` (Tests requiring multimodal or advanced reasoning)
+
+---
+
+## 6. Issue Tracking (Jira Simulation)
+**Shared Owners:** `[CV]` & `[GCV]`
+
+> **Directive:** When filing a ticket, the filename must explicitly identify the reporter.
+
+- **Path:** `./jira/*`
+- **Naming Convention:** `ticket_{AGENT_ID}_{ISSUE_TYPE}_{TIMESTAMP}.md`
+    - Example: `ticket_GCV_bug_20240127.md`
+- **Content Requirement:** The file content must strictly state *which agent* discovered the bug.

@@ -113,8 +113,8 @@ export default function Sidebar() {
         // Poll notifications every 30s
         const interval = setInterval(async () => {
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                const res = await fetch(`${API_URL}/api/notifications`, { credentials: "include" });
+                // Use relative path to leverage Next.js rewrites
+                const res = await fetch(`/api/notifications`, { credentials: "include" });
                 if (res.ok) setNotifications(await res.json());
             } catch (e) { console.error("Poll error:", e); }
         }, 30000);
@@ -124,8 +124,8 @@ export default function Sidebar() {
 
     const markAsRead = async (id: number) => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-            await fetch(`${API_URL}/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
+            // Use relative path to leverage Next.js rewrites
+            await fetch(`/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
         } catch (e) { console.error("Mark read error:", e); }
     };
@@ -406,11 +406,10 @@ export default function Sidebar() {
                         </a>
                         <button
                             onClick={async () => {
-                                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
+                                // Use relative path to leverage Next.js rewrites
                                 // Helper function to attempt guest login
                                 const attemptGuestLogin = async () => {
-                                    const res = await fetch(`${API_URL}/auth/guest`, {
+                                    const res = await fetch(`/auth/guest`, {
                                         method: "POST",
                                         credentials: "include"
                                     });

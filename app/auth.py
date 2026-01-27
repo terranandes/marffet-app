@@ -146,12 +146,14 @@ async def login(request: Request):
     print(f"[AUTH DEBUG] Login Request Scheme: {request.url.scheme}")
 
     # Set a debug cookie to test persistence explicitly
+    # Use dynamic config from main.py to match SessionMiddleware settings
+    from .main import COOKIE_SECURE, COOKIE_SAMESITE
     response.set_cookie(
         key="debug_persist", 
         value=f"set_at_{datetime.now().timestamp()}", 
         max_age=300, 
-        secure=True, 
-        samesite='none',
+        secure=COOKIE_SECURE, 
+        samesite=COOKIE_SAMESITE,
         domain=COOKIE_DOMAIN # Match the session cookie domain
     )
     return response

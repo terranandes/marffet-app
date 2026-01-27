@@ -99,8 +99,13 @@ IS_HTTPS = FRONTEND_URL_FOR_DETECTION.startswith("https://")
 
 # Robust HTTPS Detection for Zeabur / Production
 # Robust HTTPS Detection for Zeabur / Production
-IS_PRODUCTION = True # FORCE TRUE for deployment branch (Safety First for Zeabur)
-# If local, we can override or just accept it might break local HTTP testing without HTTPS
+IS_PRODUCTION = True 
+
+# Auto-Example: If we see localhost in the URL, strictly disable Production mode
+if "localhost" in FRONTEND_URL_FOR_DETECTION or "127.0.0.1" in FRONTEND_URL_FOR_DETECTION:
+    IS_PRODUCTION = False
+
+# OR allow explicit override
 if os.getenv("dev_mode"): IS_PRODUCTION = False
 
 # Derive Domain for Cookie
@@ -129,14 +134,20 @@ def get_domain_from_url(url):
 # We MUST use None (Host Only) to allow both independent domains to work.
 COOKIE_DOMAIN = None # get_domain_from_url(FRONTEND_URL) if IS_PRODUCTION else None
 
-print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={IS_PRODUCTION}, Frontend={FRONTEND_URL_FOR_DETECTION}")
+# Cookie Security Settings
+# Localhost (HTTP): Secure=False, SameSite='lax' (None requires Secure)
+# Production (HTTPS): Secure=True, SameSite='none' (Best for Mobile/Auth Flows)
+COOKIE_SECURE = IS_PRODUCTION
+COOKIE_SAMESITE = 'none' if IS_PRODUCTION else 'lax'
+
+print(f"[Startup] Session Config: Production={IS_PRODUCTION}, Domain={COOKIE_DOMAIN}, Secure={COOKIE_SECURE}, SameSite={COOKIE_SAMESITE}, Frontend={FRONTEND_URL_FOR_DETECTION}")
 
 app.add_middleware(
     SessionMiddleware, 
     secret_key=SECRET_KEY,
     # Revert to 'none' for maximum Cross-Site compatibility (safest with JS Redirect)
-    same_site='none', 
-    https_only=True, # Force Secure
+    same_site=COOKIE_SAMESITE, 
+    https_only=COOKIE_SECURE, # Force Secure
     domain=COOKIE_DOMAIN, 
     max_age=60 * 60 * 24 * 7  # 7 days
 )

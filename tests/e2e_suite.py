@@ -6,7 +6,7 @@ import sys
 # Configuration
 # Default to Local, can be overridden by TARGET_URL env var
 BASE_URL = os.getenv("TARGET_URL", "http://localhost:3000")
-SCREENSHOT_DIR = '/home/terwu01/.gemini/antigravity/brain/1f67aed8-cf82-47ed-9aaa-a43a86a43af7/evidence'
+SCREENSHOT_DIR = '/home/terwu01/.gemini/antigravity/brain/b49fbb77-9d9c-4a6f-b522-53f3e307f306/evidence'
 
 print(f"🎯 Target URL: {BASE_URL}")
 print(f"📸 Evidence Dir: {SCREENSHOT_DIR}")

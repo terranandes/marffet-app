@@ -58,7 +58,9 @@ export default function PortfolioPage() {
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
     const [syncing, setSyncing] = useState(false);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    // Use relative paths (empty string) to proxy via Next.js rewrites
+    // This ensures session cookies are passed correctly on Zeabur (cross-domain)
+    const API_BASE = "";
 
     // Services
     const [service, setService] = useState<IPortfolioService | null>(null);

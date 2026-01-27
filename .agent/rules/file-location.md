@@ -79,5 +79,6 @@ trigger: always_on
 
 - **Path:** `./jira/*`
 - **Naming Convention:** `ticket_{AGENT_ID}_{ISSUE_TYPE}_{TIMESTAMP}.md`
-    - Example: `ticket_GCV_bug_20240127.md`
+- **Naming Convention:** `BUG-{SERIAL_ID}-{REPORTER}_{BUG_DESCRIPTION}.md`
+    - Example: `BUG-110-GCV_mobile_google_login.md`
 - **Content Requirement:** The file content must strictly state *which agent* discovered the bug.

@@ -135,8 +135,9 @@ def get_domain_from_url(url):
 COOKIE_DOMAIN = None # get_domain_from_url(FRONTEND_URL) if IS_PRODUCTION else None
 
 # Cookie Security Settings
-# Localhost (HTTP): Secure=False, SameSite='lax' (None requires Secure)
-# Production (HTTPS): Secure=True, SameSite='none' (Best for Mobile/Auth Flows)
+# Localhost (HTTP): Secure=False, SameSite='lax' (lax allows OAuth redirects which are top-level navigations)
+# Production (HTTPS): Secure=True, SameSite='none' (Required for cross-domain with Secure)
+# NOTE: SameSite=none WITHOUT Secure is SILENTLY REJECTED by Chrome 80+
 COOKIE_SECURE = IS_PRODUCTION
 COOKIE_SAMESITE = 'none' if IS_PRODUCTION else 'lax'
 

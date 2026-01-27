@@ -261,9 +261,12 @@ async def auth_callback(request: Request):
         return RedirectResponse(url=target)
 
     except Exception as e:
-        print(f"[AUTH] Callback Error: {e}")
-        # Return generic error
-        return JSONResponse(status_code=400, content={"error": "Authentication failed", "details": str(e)})
+        import traceback
+        error_details = f"{type(e).__name__}: {e}"
+        print(f"[AUTH] Callback Error: {error_details}")
+        print(f"[AUTH] Exception traceback:\n{traceback.format_exc()}")
+        # Return generic error with actual exception info
+        return JSONResponse(status_code=400, content={"error": "Authentication failed", "details": error_details})
 
 
 @router.get("/logout")

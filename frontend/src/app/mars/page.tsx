@@ -142,7 +142,7 @@ export default function MarsPage() {
     };
 
     const handleExport = () => {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const API_URL = "";
         window.open(
             `${API_URL}/api/export/excel?mode=filtered&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
             "_blank"

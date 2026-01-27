@@ -22,7 +22,7 @@ export default function LadderPage() {
         allocation?: { name: string; pct: number }[];
     } | null>(null);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const API_BASE = "";
 
     // Fetch all users leaderboard
     const fetchLeaderboard = useCallback(async () => {

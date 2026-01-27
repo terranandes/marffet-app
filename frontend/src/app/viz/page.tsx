@@ -13,7 +13,7 @@ export default function VisualizationPage() {
         const fetchData = async () => {
             // Fetch User Status
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const API_URL = "";
                 const userRes = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
                 if (userRes.ok) {
                     const userData = await userRes.json();

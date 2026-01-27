@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import AICopilot from "./AICopilot";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "";
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);

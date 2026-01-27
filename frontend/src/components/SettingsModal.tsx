@@ -78,7 +78,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         setLoading(true);
         setMsg(null);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const API_URL = "";
             const res = await fetch(`${API_URL}/api/auth/profile`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -102,7 +102,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         setSyncLoading(true);
         setMsg(null);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const API_URL = "";
             const res = await fetch(`${API_URL}/api/portfolio/sync-stats`, {
                 method: "POST",
                 credentials: "include"
@@ -139,7 +139,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         }
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const API_URL = "";
             const res = await fetch(`${API_URL}/api/feedback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

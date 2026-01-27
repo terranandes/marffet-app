@@ -32,7 +32,7 @@ export default function RacePage() {
         contribution: 60000,
     });
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const API_BASE = "";
     const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
 
     // Load settings from Mars page (localStorage)

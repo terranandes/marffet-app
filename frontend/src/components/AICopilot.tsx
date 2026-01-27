@@ -13,7 +13,7 @@ interface AICopilotProps {
     portfolioContext?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "";
 
 export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
     const [isOpen, setIsOpen] = useState(false);

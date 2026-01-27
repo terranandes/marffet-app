@@ -95,6 +95,12 @@ async def login(request: Request):
         # This handles localhost:8000 direct access or Legacy UI (martian-api)
         redirect_uri = str(request.url_for('auth_callback'))
         
+        # LOCAL FIX: Normalize 127.0.0.1 to localhost for cookie consistency
+        # Next.js proxy connects via 127.0.0.1 but cookies are set on localhost domain
+        if "127.0.0.1" in redirect_uri:
+            redirect_uri = redirect_uri.replace("127.0.0.1", "localhost")
+            print(f"[AUTH] Normalized 127.0.0.1 to localhost for cookie compatibility")
+        
         # PROD FIX: Force HTTPS if we are in production (Legacy API access)
         # request.url_for might return http if proxy headers aren't perfect yet
         from .main import IS_PRODUCTION
@@ -131,10 +137,11 @@ async def login(request: Request):
                 <div id="debug" style="display:none">{google_url}</div>
             </div>
             <script>
-                // Short timeout to ensure cookie is processed
+                // Longer timeout to ensure cookie is processed before redirect
+                // Some browsers (Safari ITP, Firefox) need extra time
                 setTimeout(function() {{
                     window.location.href = "{google_url}";
-                }}, 100);
+                }}, 300);
             </script>
         </body>
     </html>
@@ -324,7 +331,7 @@ async def get_me(request: Request):
     # Fetch fresh DB data (e.g. nickname)
     db_profile = get_user_public_profile(user['id'])
     # Check if user is admin
-    is_admin = user.get('email') in GM_EMAILS
+    is_admin = user.get('email', '').strip().lower() in GM_EMAILS
     
     # GEMINI CHECK
     gemini_key = os.getenv('GEMINI_API_KEY')

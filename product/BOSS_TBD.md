@@ -5,11 +5,15 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - PC local login/logout correctness, http://localhost:8000/ and http://localhost:3000/
 - PC remote login/logout correctness, https://martian-api.zeabur.app/ and https://martian-app.zeabur.app/
 - Mobile login/logout correctness on https://martian-app.zeabur.app/
-- Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
-- Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
 - mobile or narrow screen portfolio card view
 - align setting modal from legacy to Next.js UI
 - Ensure Tab CB is functionally working and notification will accordingly be sent
+- Totally migration to Next.js UI. Remove legacy UI.
+
+- === Barrier ===
+
+- Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
+- Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
 - Multi-language
 - AICopilot enhancement
 - Email support

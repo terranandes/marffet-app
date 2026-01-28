@@ -997,23 +997,75 @@ def get_all_targets_by_type(user_id: str = "default") -> dict:
     """
     with get_db() as conn:
         cursor = conn.cursor()
+        # Efficiently fetch ALL transactions for this user to calculate Avg Cost
         cursor.execute("""
-            SELECT gt.*, ug.name as group_name,
-            COALESCE((SELECT SUM(CASE WHEN t.type='buy' THEN t.shares WHEN t.type='sell' THEN -t.shares ELSE 0 END) 
-                      FROM transactions t WHERE t.target_id = gt.id), 0) as total_shares
-            FROM group_targets gt
+            SELECT t.target_id, t.type, t.shares, t.price
+            FROM transactions t
+            JOIN group_targets gt ON t.target_id = gt.id
             JOIN user_groups ug ON gt.group_id = ug.id
             WHERE ug.user_id = ?
-            ORDER BY gt.asset_type, gt.added_at
+            ORDER BY t.date ASC
         """, (user_id,))
         
+        tx_map = {}
+        for tx in cursor.fetchall():
+            tid = tx['target_id']
+            if tid not in tx_map: tx_map[tid] = []
+            tx_map[tid].append(tx)
+
         result = {"stock": [], "etf": [], "cb": []}
         
         # Self-Healing: Check for missing names (where name == id)
         updates_needed = []
 
-        for row in cursor.fetchall():
+        for row in cursor.execute("""
+            SELECT gt.*, ug.name as group_name
+            FROM group_targets gt
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+            ORDER BY gt.asset_type, gt.added_at
+        """, (user_id,)).fetchall():
             target = dict(row)
+            
+            # Create summary from transactions
+            target_txs = tx_map.get(target['id'], [])
+            
+            # Compute Holdings & Avg Cost
+            calc_shares = 0
+            total_cost = 0
+            
+            for tx in target_txs:
+                if tx['type'] == 'buy':
+                    calc_shares += tx['shares']
+                    total_cost += tx['shares'] * tx['price']
+                elif tx['type'] == 'sell':
+                    # Selling reduces cost proportionally (Avg Cost stays same)
+                    # Avoid division by zero
+                    if calc_shares > 0:
+                        # Avg Cost = total_cost / calc_shares
+                        # Reduced Cost = Avg Cost * sold_shares
+                        avg_cost = total_cost / calc_shares
+                        reduced_cost = avg_cost * tx['shares']
+                        total_cost -= reduced_cost
+                        calc_shares -= tx['shares']
+                    else:
+                        # Should not happen in normal flow (selling more than owned)
+                        calc_shares -= tx['shares']
+                        # Cost stays? Or force 0? 
+                        # If sold short, cost logic is complex. Assuming long-only.
+                        if calc_shares <= 0: total_cost = 0
+
+            # Handling small float errors
+            if calc_shares < 0.0001: 
+                calc_shares = 0
+                total_cost = 0
+                
+            avg_cost = 0
+            if calc_shares > 0:
+                avg_cost = total_cost / calc_shares
+                
+            target['total_shares'] = calc_shares
+            target['avg_cost'] = avg_cost
             
             # Check if name is explicitly the ID (Bad State)
             start_name = target.get("stock_name") or ""

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface TrendDataPoint {
     month: string;
@@ -28,25 +29,20 @@ export default function TrendPage() {
     const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
     const [assetGroups, setAssetGroups] = useState<AssetGroups>({ stock: [], etf: [], cb: [] });
     const [livePrices, setLivePrices] = useState<LivePrices>({});
-    const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
     const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const chartRef = useRef<HTMLDivElement>(null);
 
+    // Using relative path for API
     const API_BASE = "";
 
     // Fetch user's portfolio trend data
     const fetchTrendData = useCallback(async () => {
         try {
-            // Fetch trend history (all months)
+            // Fetch trend history (matches "real transactions" timeline via months=0)
             const trendRes = await fetch(`${API_BASE}/api/portfolio/trend?months=0`, { credentials: "include" });
             if (!trendRes.ok) throw new Error("Failed to fetch trend");
             const trend = await trendRes.json();
             setTrendData(trend);
-
-            if (trend.length > 0) {
-                setSelectedMonth(trend[trend.length - 1]?.month);
-            }
 
             // Fetch asset groups (by type)
             const groupRes = await fetch(`${API_BASE}/api/portfolio/by-type`, { credentials: "include" });
@@ -79,8 +75,10 @@ export default function TrendPage() {
     const getGroupTotal = (type: keyof AssetGroups) => {
         const targets = assetGroups[type] || [];
         return targets.reduce((total, t) => {
+            // Only count active holdings
+            if ((t.total_shares || 0) <= 0) return total;
             const price = livePrices[t.stock_id]?.price || 0;
-            return total + (t.total_shares || 0) * price;
+            return total + t.total_shares * price;
         }, 0);
     };
 
@@ -88,15 +86,14 @@ export default function TrendPage() {
     const getGroupCost = (type: keyof AssetGroups) => {
         const targets = assetGroups[type] || [];
         return targets.reduce((total, t) => {
-            return total + (t.total_shares || 0) * (t.avg_cost || 0);
+            if ((t.total_shares || 0) <= 0) return total;
+            return total + t.total_shares * (t.avg_cost || 0);
         }, 0);
     };
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(val);
     };
-
-    const maxCost = Math.max(...trendData.map((t) => t.cost), 1);
 
     const assetTypes = [
         { key: "stock" as const, label: "📈 Stocks", color: "var(--color-cta)" },
@@ -105,7 +102,7 @@ export default function TrendPage() {
     ];
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 pb-20">
             {/* Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
@@ -113,7 +110,7 @@ export default function TrendPage() {
                         📈 Portfolio Trend
                     </h1>
                     <p className="text-[var(--color-text-muted)]">
-                        Track your net investment and asset allocation over time
+                        Net investment curve aligned with your transaction history
                     </p>
                 </div>
                 <button
@@ -133,70 +130,77 @@ export default function TrendPage() {
                     <p className="text-6xl mb-4">📊</p>
                     <h2 className="text-2xl font-bold mb-2">No Transaction History</h2>
                     <p className="text-[var(--color-text-muted)]">
-                        Add transactions to your portfolio to see your investment trend over time.
+                        Add transactions to begin tracking your investment curve.
                     </p>
-                    <a
-                        href="/portfolio"
-                        className="inline-block mt-4 bg-[var(--color-cta)] text-black px-4 py-2 rounded font-bold"
-                    >
+                    <a href="/portfolio" className="inline-block mt-4 bg-[var(--color-cta)] text-black px-4 py-2 rounded font-bold">
                         Go to Portfolio →
                     </a>
                 </div>
             ) : (
                 <>
-                    {/* Chart Section */}
-                    <div className="glass-card rounded-xl p-6" ref={chartRef}>
+                    {/* Curve Chart Section */}
+                    <div className="glass-card rounded-xl p-6 h-[400px]">
                         <h3 className="text-lg font-bold text-white mb-4">
                             💰 Net Investment Over Time
                         </h3>
-
-                        {/* Simple bar chart visualization */}
-                        <div className="space-y-1 max-h-80 overflow-y-auto">
-                            {trendData.map((point) => (
-                                <div
-                                    key={point.month}
-                                    onClick={() => setSelectedMonth(point.month)}
-                                    className={`flex items-center gap-3 py-1 cursor-pointer transition rounded ${selectedMonth === point.month
-                                        ? "bg-[var(--color-cta)]/20"
-                                        : "hover:bg-white/5"
-                                        }`}
-                                >
-                                    <span className="w-20 text-xs font-mono text-[var(--color-text-muted)]">
-                                        {point.month}
-                                    </span>
-                                    <div className="flex-1 h-6 bg-black/30 rounded overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-[var(--color-cta)] to-[var(--color-primary)] transition-all duration-300"
-                                            style={{ width: `${(point.cost / maxCost) * 100}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-28 text-right font-mono font-bold text-white">
-                                        ${formatCurrency(point.cost)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Summary */}
-                        <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex justify-between text-sm">
-                            <span className="text-[var(--color-text-muted)]">
-                                {trendData.length} months tracked
-                            </span>
-                            <span className="font-mono font-bold text-[var(--color-primary)]">
-                                Current: ${formatCurrency(trendData[trendData.length - 1]?.cost || 0)}
-                            </span>
+                        <div className="w-full h-[320px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={trendData}>
+                                    <defs>
+                                        <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-cta)" stopOpacity={0.4} />
+                                            <stop offset="95%" stopColor="var(--color-cta)" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.3} />
+                                    <XAxis
+                                        dataKey="month"
+                                        tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        minTickGap={30}
+                                    />
+                                    <YAxis
+                                        tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(val) => `$${val / 1000}k`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
+                                        itemStyle={{ color: 'var(--color-cta)' }}
+                                        formatter={(value: number) => [`$${formatCurrency(value)}`, 'Net Investment']}
+                                        labelStyle={{ color: 'var(--color-text-muted)' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="cost"
+                                        stroke="var(--color-cta)"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorCost)"
+                                        animationDuration={1500}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Asset Groups */}
+                    {/* Asset Groups (Filtered) */}
                     <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4">
-                            🗂️ Asset Groups
+                            🗂️ Active Holdings
                         </h3>
 
                         <div className="space-y-3">
                             {assetTypes.map((type) => {
-                                const targets = assetGroups[type.key] || [];
+                                // Filter: Only show targets with active shares
+                                // (If shares are 0, it's a watchlist item or sold out - excluded as requested)
+                                const rawTargets = assetGroups[type.key] || [];
+                                const activeTargets = rawTargets.filter(t => (t.total_shares || 0) > 0);
+
+                                if (activeTargets.length === 0) return null;
+
                                 const marketValue = getGroupTotal(type.key);
                                 const cost = getGroupCost(type.key);
                                 const pnl = marketValue - cost;
@@ -211,7 +215,7 @@ export default function TrendPage() {
                                             <div className="flex items-center gap-3">
                                                 <span className="text-lg">{type.label}</span>
                                                 <span className="text-xs text-[var(--color-text-muted)]">
-                                                    ({targets.length} holdings)
+                                                    ({activeTargets.length} holdings)
                                                 </span>
                                             </div>
                                             <div className="text-right">
@@ -224,7 +228,7 @@ export default function TrendPage() {
                                             </div>
                                         </div>
 
-                                        {isExpanded && targets.length > 0 && (
+                                        {isExpanded && (
                                             <div className="border-t border-[var(--color-border)] bg-black/20 p-3">
                                                 <table className="w-full text-sm">
                                                     <thead className="text-xs text-[var(--color-text-muted)]">
@@ -237,11 +241,11 @@ export default function TrendPage() {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {targets.map((t) => {
+                                                        {activeTargets.map((t) => {
                                                             const price = livePrices[t.stock_id]?.price || 0;
                                                             const value = t.total_shares * price;
                                                             return (
-                                                                <tr key={t.stock_id} className="border-t border-white/5">
+                                                                <tr key={t.stock_id} className="border-t border-white/5 hover:bg-white/5">
                                                                     <td className="p-1 font-medium">{t.stock_name || t.stock_id}</td>
                                                                     <td className="p-1 text-right font-mono">{t.total_shares}</td>
                                                                     <td className="p-1 text-right font-mono">${t.avg_cost?.toFixed(2)}</td>
@@ -261,6 +265,15 @@ export default function TrendPage() {
                                     </div>
                                 );
                             })}
+
+                            {/* Fallback if all groups are empty */}
+                            {assetTypes.every(t => (assetGroups[t.key] || []).filter(at => (at.total_shares || 0) > 0).length === 0) && (
+                                <div className="text-[var(--color-text-muted)] text-center py-4">
+                                    No active holdings found.
+                                    <br />
+                                    <span className="text-xs">Targets with 0 shares (watchlist) are hidden.</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </>

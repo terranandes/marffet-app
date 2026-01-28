@@ -607,7 +607,7 @@ def list_transactions(target_id: str) -> list:
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, type, shares, price, date, created_at FROM transactions WHERE target_id = ? ORDER BY date",
+            "SELECT id, target_id, type, shares, price, date, created_at FROM transactions WHERE target_id = ? ORDER BY date",
             (target_id,)
         )
         return [dict(row) for row in cursor.fetchall()]

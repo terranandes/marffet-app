@@ -5,7 +5,7 @@ from app.auth import get_current_user
 from app.portfolio_db import (
     create_group, list_groups, delete_group,
     add_target, list_targets, delete_target,
-    add_transaction, list_transactions, delete_transaction,
+    add_transaction, list_transactions, delete_transaction, update_transaction,
     sync_all_dividends, get_total_dividends, get_dividend_history,
     get_all_targets_by_type,
     initialize_default_portfolio

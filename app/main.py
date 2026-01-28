@@ -1090,7 +1090,7 @@ def api_update_transaction(tx_id: str, data: TransactionCreate):
     """Update a transaction"""
     try:
         from app.portfolio_db import update_transaction
-        success = update_transaction(tx_id, data.shares, data.price, data.date)
+        success = update_transaction(tx_id, data.type, data.shares, data.price, data.date)
         return {"updated": success}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

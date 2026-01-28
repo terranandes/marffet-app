@@ -115,6 +115,11 @@ if os.getenv("dev_mode"): IS_PRODUCTION = False
 # Otherwise, 'Domain=None' defaults to 'martian-api', and the browser ignores it.
 from urllib.parse import urlparse
 
+# Shared Simulation Cache
+# Key: (start_year, principal, contribution) -> { "timestamp": float, "data": [...] }
+SIM_CACHE = {}
+import time
+
 def get_domain_from_url(url):
     """Robustly extract hostname from URL, handling missing scheme."""
     if not url: return None
@@ -398,8 +403,14 @@ async def chat_with_mars(req: ChatRequest):
 
 @app.get("/api/results")
 def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
-    """Return filtered results with Mars Simulation"""
+    """Return filtered results with Mars Simulation (Cached)"""
     try:
+        # Check Cache
+        cache_key = (start_year, principal, contribution)
+        if cache_key in SIM_CACHE:
+            print(f"[Mars] Serving simulation from cache for {cache_key}")
+            return SIM_CACHE[cache_key]["data"]
+
         # Load filtered list
         SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         df = pd.read_excel(SOURCE_FILE)
@@ -425,6 +436,12 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
     # Run Simulation
         results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         
+        # Save to Cache
+        SIM_CACHE[cache_key] = {
+            "timestamp": time.time(),
+            "data": results
+        }
+        
         return results
     except Exception as e:
         print(f"Error in get_results: {e}")
@@ -434,29 +451,47 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
 def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     try:
-        SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-        df = pd.read_excel(SOURCE_FILE)
-        df = df.fillna(0) # Ensure no NaNs
+        # Check Cache first (reuse Mars Strategy result)
+        cache_key = (start_year, principal, contribution)
+        results = []
         
-        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
-        PRICES_DB = {}
-        import json
-        current_max_year = 2026
-        for year in range(start_year, current_max_year + 1):
-             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-             if p_file.exists():
-                 try:
-                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
-                 except: PRICES_DB[year] = {}
-             # TPEx
-             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-             if tpex_file.exists():
-                 try:
-                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
-                 except: pass
-
-        # Run Simulation
-        results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        if cache_key in SIM_CACHE:
+             print(f"[Race] Reusing cached simulation for {cache_key}")
+             results = SIM_CACHE[cache_key]["data"]
+        else:
+            # If not cached, we strictly should compute it.
+            # But strictly refactoring this to call `get_results` logic is cleaner, 
+            # but to minimize risk, I will duplicate the cache-miss logic but SAVE to cache.
+            
+            SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+            df = pd.read_excel(SOURCE_FILE)
+            df = df.fillna(0) # Ensure no NaNs
+            
+            # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
+            PRICES_DB = {}
+            import json
+            current_max_year = 2026
+            for year in range(start_year, current_max_year + 1):
+                p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+                if p_file.exists():
+                    try:
+                        with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
+                    except: PRICES_DB[year] = {}
+                # TPEx
+                tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+                if tpex_file.exists():
+                    try:
+                        with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
+                    except: pass
+    
+            # Run Simulation
+            results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+            
+            # Save to Cache
+            SIM_CACHE[cache_key] = {
+                "timestamp": time.time(),
+                "data": results
+            }
         
         # Transform for Race - Flattened format for Legacy UI
         # Legacy UI expects: [{id, year, wealth, name, ...}, ...]

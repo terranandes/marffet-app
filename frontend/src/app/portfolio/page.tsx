@@ -708,13 +708,15 @@ export default function PortfolioPage() {
                                                         });
                                                         setShowTxForm(tx.target_id);
                                                     }}
-                                                    className="text-[var(--color-cta)] hover:text-white px-2"
+                                                    className="text-[var(--color-cta)] hover:text-white hover:bg-[var(--color-cta)]/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
+                                                    title="Edit transaction"
                                                 >
                                                     ✏️
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteTransaction(tx.id)}
-                                                    className="text-red-400 hover:text-red-300 px-2"
+                                                    className="text-red-400 hover:text-white hover:bg-red-500/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
+                                                    title="Delete transaction"
                                                 >
                                                     🗑
                                                 </button>

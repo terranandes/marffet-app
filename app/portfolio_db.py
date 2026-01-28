@@ -285,6 +285,13 @@ def init_db():
         except:
             pass
         
+        # --- Performance Indices ---
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_group_targets_group_id ON group_targets(group_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_transactions_target_id ON transactions(target_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_dividend_history_target_id ON dividend_history(target_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)")
+
+        
         # Enable foreign keys
         cursor.execute("PRAGMA foreign_keys = ON")
         

@@ -64,6 +64,9 @@ export interface IPortfolioService {
     getDividends(targetId: string): Promise<Dividend[]>;
     getDividendStats(): Promise<{ total_cash: number; dividend_count: number }>;
     syncDividends(): Promise<boolean>;
+
+    // New granular update method
+    getTargetSummary(targetId: string, currentPrice?: number): Promise<any>;
 }
 
 const API_BASE = "";
@@ -109,6 +112,19 @@ class ApiPortfolioService implements IPortfolioService {
             });
             return res.ok;
         } catch { return false; }
+    }
+
+    // Explicitly fetch summary for one target (updates main view without full reload)
+    async getTargetSummary(targetId: string, currentPrice?: number): Promise<any> {
+        try {
+            const url = currentPrice
+                ? `${API_BASE}/api/portfolio/targets/${targetId}/summary?current_price=${currentPrice}`
+                : `${API_BASE}/api/portfolio/targets/${targetId}/summary`;
+
+            const res = await fetch(url, { credentials: "include" });
+            if (res.ok) return await res.json();
+        } catch { }
+        return null;
     }
 
     async getTargets(groupId: string): Promise<Target[]> {
@@ -441,6 +457,47 @@ class GuestPortfolioService implements IPortfolioService {
 
     async syncDividends(): Promise<boolean> {
         return true; // No-op
+    }
+
+    // New granular update method (Local Calculation)
+    async getTargetSummary(targetId: string, currentPrice?: number): Promise<any> {
+        const data = this.loadData();
+        const txs = data.transactions.filter(t => t.target_id === targetId);
+        const price = currentPrice || 0;
+
+        let shares = 0;
+        let cost = 0;
+
+        for (const tx of txs) {
+            if (tx.type === 'buy') {
+                cost += tx.shares * tx.price;
+                shares += tx.shares;
+            } else {
+                if (shares > 0) {
+                    const avgCost_unit = cost / shares;
+                    cost -= (tx.shares * avgCost_unit);
+                    shares -= tx.shares;
+                }
+            }
+        }
+
+        if (shares < 0) shares = 0;
+        if (cost < 0) cost = 0;
+
+        const avg_cost = shares > 0 ? cost / shares : 0;
+        const market_value = shares * price;
+        const unrealized_pnl = market_value - cost;
+        const unrealized_pnl_pct = cost > 0 ? (unrealized_pnl / cost) * 100 : 0;
+
+        return {
+            total_shares: shares,
+            avg_cost: avg_cost,
+            market_value: market_value,
+            realized_pnl: 0,
+            unrealized_pnl: unrealized_pnl,
+            unrealized_pnl_pct: unrealized_pnl_pct,
+            total_dividend_cash: 0
+        };
     }
 }
 

@@ -185,6 +185,22 @@ export default function PortfolioPage() {
         if (await service.deleteTarget(targetId)) fetchTargets();
     };
 
+    // Helper to refresh only one target's summary (Performance)
+    const refreshSingleTarget = async (targetId: string) => {
+        if (!service) return;
+        const target = targets.find(t => t.id === targetId);
+        // Pass current price if available to avoid refetching it inside service
+        const currentPrice = target?.livePrice?.price;
+
+        const newSummary = await service.getTargetSummary(targetId, currentPrice);
+
+        if (newSummary) {
+            setTargets(prev => prev.map(t =>
+                t.id === targetId ? { ...t, summary: newSummary } : t
+            ));
+        }
+    };
+
     const handleSaveTransaction = async (targetId: string) => {
         if (!service) return;
         const txData = editingTxId
@@ -195,9 +211,10 @@ export default function PortfolioPage() {
             setShowTxForm(null);
             setEditingTxId(null);
             setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
-            // Only refresh the transaction history, NOT the full targets list
-            // (Performance: avoids slow refetch of prices + summaries for all targets)
+            // Refresh history
             if (showTxHistory) fetchTxHistory(showTxHistory);
+            // Refresh summary for this target only (Fast)
+            refreshSingleTarget(targetId);
         }
     };
 
@@ -229,6 +246,11 @@ export default function PortfolioPage() {
         if (await service.deleteTransaction(txId)) {
             // Only refresh transaction history, NOT the full targets list
             if (showTxHistory) fetchTxHistory(showTxHistory);
+
+            // We need targetId to refresh summary. 
+            // In delete, we don't have it easily unless we look it up or pass it.
+            // Assumption: User deletes from Modal where showTxHistory == targetId
+            if (showTxHistory) refreshSingleTarget(showTxHistory);
         }
     };
 

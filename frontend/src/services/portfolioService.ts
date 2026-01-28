@@ -68,6 +68,14 @@ export interface IPortfolioService {
 
 const API_BASE = "";
 
+// Price cache with TTL
+interface PriceCache {
+    data: Record<string, { price: number; change: number; change_pct: number }>;
+    timestamp: number;
+}
+let priceCache: PriceCache | null = null;
+const PRICE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // 1. API Implementation (Registered User)
 class ApiPortfolioService implements IPortfolioService {
     isGuest = false;
@@ -104,9 +112,6 @@ class ApiPortfolioService implements IPortfolioService {
     }
 
     async getTargets(groupId: string): Promise<Target[]> {
-        // Complex logic: fetch targets -> fetch prices -> fetch summaries
-        // For efficiency, we replicate the page.tsx logic here or simplify?
-        // Let's implement the full logic to abstract it out of the View.
         try {
             const res = await fetch(`${API_BASE}/api/portfolio/groups/${groupId}/targets`, { credentials: "include" });
             if (!res.ok) return [];
@@ -114,18 +119,29 @@ class ApiPortfolioService implements IPortfolioService {
             const targets: Target[] = await res.json();
             if (targets.length === 0) return [];
 
-            // Fetch Live Prices
+            // Use cached prices if still valid
+            const now = Date.now();
             const stockIds = targets.map(t => t.stock_id).join(',');
-            let livePrices: any = {};
-            if (stockIds) {
+            let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
+
+            if (priceCache && (now - priceCache.timestamp) < PRICE_CACHE_TTL) {
+                // Use cache
+                livePrices = priceCache.data;
+                console.log('[Portfolio] Using cached prices');
+            } else if (stockIds) {
+                // Fetch fresh prices
                 try {
                     const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`, { credentials: "include" });
-                    if (pRes.ok) livePrices = await pRes.json();
+                    if (pRes.ok) {
+                        livePrices = await pRes.json();
+                        priceCache = { data: livePrices, timestamp: now };
+                        console.log('[Portfolio] Fetched fresh prices');
+                    }
                 } catch { }
             }
 
-            // Fetch Summaries
-            for (const t of targets) {
+            // Fetch summaries in PARALLEL (not sequential!)
+            await Promise.all(targets.map(async (t) => {
                 t.livePrice = livePrices[t.stock_id] || null;
                 const price = t.livePrice?.price;
                 const url = price
@@ -136,7 +152,8 @@ class ApiPortfolioService implements IPortfolioService {
                     const sRes = await fetch(url, { credentials: "include" });
                     if (sRes.ok) t.summary = await sRes.json();
                 } catch { }
-            }
+            }));
+
             return targets;
         } catch { return []; }
     }

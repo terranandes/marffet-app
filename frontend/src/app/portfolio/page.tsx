@@ -195,7 +195,8 @@ export default function PortfolioPage() {
             setShowTxForm(null);
             setEditingTxId(null);
             setNewTx({ type: "buy", shares: 0, price: 0, date: new Date().toISOString().split("T")[0] });
-            fetchTargets();
+            // Only refresh the transaction history, NOT the full targets list
+            // (Performance: avoids slow refetch of prices + summaries for all targets)
             if (showTxHistory) fetchTxHistory(showTxHistory);
         }
     };
@@ -226,8 +227,8 @@ export default function PortfolioPage() {
     const handleDeleteTransaction = async (txId: string) => {
         if (!service || !confirm("Delete transaction?")) return;
         if (await service.deleteTransaction(txId)) {
+            // Only refresh transaction history, NOT the full targets list
             if (showTxHistory) fetchTxHistory(showTxHistory);
-            fetchTargets();
         }
     };
 

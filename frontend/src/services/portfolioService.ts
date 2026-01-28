@@ -135,25 +135,42 @@ class ApiPortfolioService implements IPortfolioService {
             const targets: Target[] = await res.json();
             if (targets.length === 0) return [];
 
-            // Use cached prices if still valid
+            // Cache Logic: Check for missing prices
             const now = Date.now();
-            const stockIds = targets.map(t => t.stock_id).join(',');
             let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
 
+            // 1. Load valid cache
             if (priceCache && (now - priceCache.timestamp) < PRICE_CACHE_TTL) {
-                // Use cache
-                livePrices = priceCache.data;
-                console.log('[Portfolio] Using cached prices');
-            } else if (stockIds) {
-                // Fetch fresh prices
-                try {
-                    const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`, { credentials: "include" });
-                    if (pRes.ok) {
-                        livePrices = await pRes.json();
-                        priceCache = { data: livePrices, timestamp: now };
-                        console.log('[Portfolio] Fetched fresh prices');
-                    }
-                } catch { }
+                livePrices = { ...priceCache.data };
+            }
+
+            // 2. Identify missing stocks
+            const missingIds = targets
+                .map(t => t.stock_id)
+                .filter(id => !livePrices[id]);
+
+            // 3. Fetch missing ONLY
+            if (missingIds.length > 0) {
+                const stockIdsParam = missingIds.join(',');
+                if (stockIdsParam) {
+                    console.log(`[Portfolio] Cache miss for ${missingIds.length} stocks. Fetching...`);
+                    try {
+                        const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIdsParam}`, { credentials: "include" });
+                        if (pRes.ok) {
+                            const newPrices = await pRes.json();
+                            // Merge into local map
+                            Object.assign(livePrices, newPrices);
+
+                            // Update Global Cache (Merge)
+                            priceCache = {
+                                data: { ...(priceCache?.data || {}), ...newPrices },
+                                timestamp: now
+                            };
+                        }
+                    } catch { }
+                }
+            } else {
+                console.log('[Portfolio] Fully served from cache');
             }
 
             // Fetch summaries in PARALLEL (not sequential!)

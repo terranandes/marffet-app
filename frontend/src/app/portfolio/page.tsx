@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 import { PortfolioFactory, IPortfolioService, Group, Target, Transaction, Dividend } from "../../services/portfolioService";
 
@@ -58,6 +58,9 @@ export default function PortfolioPage() {
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
     const [syncing, setSyncing] = useState(false);
 
+    // Request tracking to prevent race conditions on rapid group switches
+    const fetchRequestIdRef = useRef(0);
+
     // Use relative paths (empty string) to proxy via Next.js rewrites
     // This ensures session cookies are passed correctly on Zeabur (cross-domain)
     const API_BASE = "";
@@ -104,11 +107,24 @@ export default function PortfolioPage() {
         setLoading(false);
     }, [service, selectedGroupId]);
 
-    // Fetch targets
+    // Fetch targets with race condition prevention
     const fetchTargets = useCallback(async () => {
         if (!service || !selectedGroupId) return;
+
+        // Increment request ID to track this specific request
+        const requestId = ++fetchRequestIdRef.current;
+
+        setLoading(true);
         const data = await service.getTargets(selectedGroupId);
+
+        // Only update state if this is still the latest request
+        if (requestId !== fetchRequestIdRef.current) {
+            console.log(`[Portfolio] Discarding stale response for request ${requestId}`);
+            return; // Stale request, discard
+        }
+
         setTargets(data);
+        setLoading(false);
 
         // Calculate stats
         let marketValue = 0;

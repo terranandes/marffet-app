@@ -284,3 +284,126 @@ class BackupService:
         except Exception as e:
             logger.exception(f"[PreWarm] Failed: {e}")
             return {"status": "error", "reason": str(e)}
+
+    @staticmethod
+    def backup_dividend_cache():
+        """
+        Backup dividend cache files (app/data/dividends/*.json) to GitHub repository.
+        Called by Admin "Sync All Dividends" to persist cache across deploys.
+        Uses Git Trees API to create a SINGLE commit for all files.
+        """
+        from pathlib import Path
+        
+        token = os.getenv("GITHUB_TOKEN")
+        repo = os.getenv("GITHUB_REPO")
+        
+        if not token or not repo:
+            logger.warning("[DividendBackup] GITHUB_TOKEN or GITHUB_REPO not set.")
+            return {"status": "skipped", "reason": "missing_env_vars"}
+        
+        # Target directory for dividend cache
+        data_dir = Path(__file__).parent.parent / "data" / "dividends"
+        if not data_dir.exists():
+            return {"status": "error", "reason": "app/data/dividends not found"}
+        
+        # Get all JSON files
+        files_to_upload = list(data_dir.glob("*.json"))
+        
+        if not files_to_upload:
+            return {"status": "error", "reason": "no_dividend_cache_files"}
+        
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        }
+        
+        try:
+            # Step 1: Get the current commit SHA of master branch
+            ref_url = f"https://api.github.com/repos/{repo}/git/refs/heads/master"
+            ref_resp = requests.get(ref_url, headers=headers)
+            if ref_resp.status_code != 200:
+                return {"status": "error", "reason": f"Failed to get ref: {ref_resp.text}"}
+            
+            current_commit_sha = ref_resp.json()["object"]["sha"]
+            
+            # Step 2: Get the tree SHA of the current commit
+            commit_url = f"https://api.github.com/repos/{repo}/git/commits/{current_commit_sha}"
+            commit_resp = requests.get(commit_url, headers=headers)
+            base_tree_sha = commit_resp.json()["tree"]["sha"]
+            
+            # Step 3: Create blobs for each file and build tree entries
+            tree_entries = []
+            for file_path in files_to_upload:
+                with open(file_path, "rb") as f:
+                    content = f.read()
+                
+                # Create blob
+                blob_url = f"https://api.github.com/repos/{repo}/git/blobs"
+                blob_resp = requests.post(blob_url, headers=headers, json={
+                    "content": base64.b64encode(content).decode("utf-8"),
+                    "encoding": "base64"
+                })
+                
+                if blob_resp.status_code != 201:
+                    logger.error(f"[DividendBackup] Failed to create blob for {file_path.name}")
+                    continue
+                
+                blob_sha = blob_resp.json()["sha"]
+                tree_entries.append({
+                    "path": f"app/data/dividends/{file_path.name}",
+                    "mode": "100644",  # Regular file
+                    "type": "blob",
+                    "sha": blob_sha
+                })
+            
+            if not tree_entries:
+                return {"status": "error", "reason": "no_blobs_created"}
+            
+            # Step 4: Create new tree
+            tree_url = f"https://api.github.com/repos/{repo}/git/trees"
+            tree_resp = requests.post(tree_url, headers=headers, json={
+                "base_tree": base_tree_sha,
+                "tree": tree_entries
+            })
+            
+            if tree_resp.status_code != 201:
+                return {"status": "error", "reason": f"Failed to create tree: {tree_resp.text}"}
+            
+            new_tree_sha = tree_resp.json()["sha"]
+            
+            # Step 5: Create commit with all files
+            commit_create_url = f"https://api.github.com/repos/{repo}/git/commits"
+            commit_msg = f"Dividend cache: {len(tree_entries)} stocks @ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            commit_create_resp = requests.post(commit_create_url, headers=headers, json={
+                "message": commit_msg,
+                "tree": new_tree_sha,
+                "parents": [current_commit_sha]
+            })
+            
+            if commit_create_resp.status_code != 201:
+                return {"status": "error", "reason": f"Failed to create commit: {commit_create_resp.text}"}
+            
+            new_commit_sha = commit_create_resp.json()["sha"]
+            
+            # Step 6: Update ref to point to new commit
+            update_ref_resp = requests.patch(ref_url, headers=headers, json={
+                "sha": new_commit_sha
+            })
+            
+            if update_ref_resp.status_code != 200:
+                return {"status": "error", "reason": f"Failed to update ref: {update_ref_resp.text}"}
+            
+            logger.info(f"[DividendBackup] Commit created: {new_commit_sha[:7]} ({len(tree_entries)} files)")
+            
+            return {
+                "status": "success",
+                "uploaded": len(tree_entries),
+                "commit_sha": new_commit_sha[:7],
+                "message": commit_msg,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.exception(f"[DividendBackup] Failed: {e}")
+            return {"status": "error", "reason": str(e)}
+

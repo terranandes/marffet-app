@@ -81,13 +81,20 @@ async def sync_all_users_dividends(user: dict = Depends(get_current_user)):
     if not all_stock_ids:
         return {"success": True, "message": "No stocks in system", "synced": 0}
     
-    # Sync all stocks
+    # Sync all stocks (updates DB + files)
     result = dividend_cache.sync_all_caches(all_stock_ids)
+    
+    # ADMIN ONLY: Backup to GitHub
+    from app.services.backup import BackupService
+    backup_result = BackupService.backup_dividend_cache()
+    
     return {
         "success": True,
         "message": f"Synced dividends for {result['success_count']}/{len(all_stock_ids)} stocks across all users",
         "synced": result['success_count'],
         "total_stocks": len(all_stock_ids),
         "total_records": result['total_records'],
+        "git_backup": backup_result,
         "details": result.get('details', {})
     }
+

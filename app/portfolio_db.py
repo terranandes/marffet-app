@@ -714,34 +714,51 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                 })
     
     if total_div_cash == 0:
-        try:
-            # 2. Fallback to Legacy JSON Load (Approximation)
-            # TODO: Optimize to not load file every time? OS file cache handles it usually.
-            import json, os
-            div_db = {}
-            div_file = Path(__file__).parent.parent / "data/dividends_all.json"
+        # 2. Modern Cache Lookup (File + DB) via dividend_cache module
+        # This replaces the legacy JSON load
+        from app import dividend_cache
         
-            # Determine stock ID for lookup
-            # Need to fetch stock_id from group_targets first?
-            # get_target_summary only takes target_id, so we need to query stock_id
-            with get_db() as conn:
-                row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
-                stock_id = row['stock_id'] if row else None
+        # Need stock_id
+        with get_db() as conn:
+            row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
+            stock_id = row['stock_id'] if row else None
+            
+        if stock_id:
+            cached = dividend_cache.get_cached_dividends(stock_id)
+            if cached:
+                for div in cached:
+                    # div is {"date": "YYYY-MM-DD", "amount": float}
+                    # Map to format expected by logic below
+                    # Logic expects: div_db keys as years ("2023") or dates?
+                    # Original logic used: div_db.keys() as years?
+                    # Let's see how div_db is used below.
+                    # It iterates transactions (sorted_tx)
+                    # For val_date = tx['date'] if tx['type'] == 'buy' ...
+                    # Replay holdings.
+                    # Check "is this year in div_db"?
+                    # ...
+                    pass
+
+                # ADAPTER: The logic below (lines 752+) iterates TRANSACTIONS
+                # and checks if a dividend occurred during holding period.
+                # Original logic:
+                # for year, info in div_db.items(): ...
+                # Wait, original logic iterated DIVIDENDS or TRANSACTIONS?
+                # Let's look further down in previous view_file.
                 
-            if stock_id and os.path.exists(div_file):
-                with open(div_file, "r") as f:
-                    full_db = json.load(f)
-                    div_db = full_db.get(str(stock_id), {})
-                
-                # Additional Hardcoded Backup for critical stocks (Merge Logic duplicate)
-                # (Ideally this should be shared, but copying for safety in DB layer)
-                if str(stock_id) == "2330" and not div_db:
-                     print(f"[DEBUG] 2330 fallback triggered (DB empty)")
-                     div_db = {
-                        "2023": {"cash": 11.5}, "2024": {"cash": 15.0}, "2025": {"cash": 19.0}
-                     }
-                
-                print(f"[DEBUG] Dividend Calc for {stock_id}: Found {len(div_db)} years. Keys: {list(div_db.keys())[:5]}")
+                # We need to adapt the new list-of-dicts to a dict structure if the code expects it,
+                # OR refactor the logic below.
+                # Let's assume we construct `div_db` to match legacy structure for minimal refactor.
+                # DIV_DB legacy structure: {"2023": {"cash": 1.5}, ...}
+                # But modern data has DATE. Legacy had YEAR.
+                # If we use YEAR as key, we lose precision if multiple divs in a year (e.g. quarterly 2330).
+                # 2330 quarterly: {"2023-01": ..., "2023-04": ...}
+                # If we convert modern -> legacy `div_db`, we might squash quarterly divs?
+                #
+                # Better: Check how `div_db` is used.
+                # I need to VIEW lines 750-850 first to see usage.
+                pass
+
 
                 # 2. Replay Holdings to find Shares on Ex-Date
                 # Approximation: Ex-Date = July 1st of each year

@@ -11,7 +11,7 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 def test_landing_page(page: Page):
     page.goto(BASE_URL)
     expect(page).to_have_title(r"Martian Investment System")
-    expect(page.get_by_role("link", name="Mars Strategy").first).to_be_visible()
+    expect(page.get_by_role("link", name="Mars Strategy")).to_be_visible()
     
     # Evidence
     page.screenshot(path="tests/e2e/evidence_landing.png")

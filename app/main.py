@@ -886,9 +886,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
 
                 else:
                     # Fallback Logic: Check for Delisted / Zombie Stock
-                    # Check both string and int keys for safety
-                    delist_year = DELISTED_DB.get(str(stock_id)) or DELISTED_DB.get(int(stock_id) if str(stock_id).isdigit() else None)
-                    
+                    # If stock is known to be delisted before this year, do NOT apply synthetic ROI.
+                    delist_year = DELISTED_DB.get(stock_id)
                     if delist_year and year > delist_year:
                          final_roi = 0
                          div_yield = 0

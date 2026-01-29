@@ -730,8 +730,6 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                 cached = dividend_cache.get_cached_dividends(stock_id)
                 if cached:
                     # Adapter: Sum by Year for legacy logic
-                    # Modern: [{"date": "2023-01-01", "amount": 1.5}, ...]
-                    # Legacy div_db: {"2023": {"cash": 1.5}}
                     for div in cached:
                         try:
                             d_date = div.get("date", "")
@@ -740,18 +738,15 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                                 y_str = str(d_date).split("-")[0]
                                 if y_str not in div_db:
                                     div_db[y_str] = {"cash": 0.0}
-                                # Accumulate (e.g. quarterly -> annual total)
+                                # Accumulate
                                 div_db[y_str]["cash"] += d_amt
                         except: pass
                 
-                print(f"[DEBUG] Dividend Cache for {stock_id}: Found {len(div_db)} years.")
+                # print(f"[DEBUG] Dividend Cache for {stock_id}: Found {len(div_db)} years.")
 
-
-                # 2. Replay Holdings to find Shares on Ex-Date
+                # Replay Holdings to find Shares on Ex-Date
                 # Approximation: Ex-Date = July 1st of each year
-                # Sort tx by date
                 sorted_tx = sorted(transactions, key=lambda t: t['date'])
-                print(f"[DEBUG] Tx Count: {len(sorted_tx)}")
                 
                 # Range of years to check
                 start_year = 2006
@@ -763,14 +758,13 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                     
                     if not div_info: continue
                     
-                    # Get Cash Div amount
                     u_cash = 0
                     if isinstance(div_info, dict): u_cash = div_info.get('cash', 0)
                     elif isinstance(div_info, (int, float)): u_cash = div_info
                     
                     if u_cash <= 0: continue
                     
-                    # Calculate shares held on July 1st of Year Y
+                    # Calculate shares held on July 1st
                     ex_date = f"{y}-07-01"
                     shares_on_ex = 0
                     
@@ -779,7 +773,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                             if t['type'] == 'buy': shares_on_ex += t['shares']
                             elif t['type'] == 'sell': shares_on_ex -= t['shares']
                         else:
-                            break # Sorted, so can stop
+                            break
                     
                     if shares_on_ex > 0:
                         received = shares_on_ex * u_cash

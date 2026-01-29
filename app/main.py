@@ -30,6 +30,7 @@ from app.portfolio_db import (
 
 # Import New Router
 from app.routers.portfolio import router as portfolio_router
+from app.routers.sync import router as sync_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -186,6 +187,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])
+app.include_router(sync_router, prefix="/api", tags=["sync"])
 
 # ---------------- Health Check Endpoint ----------------
 @app.get("/health")

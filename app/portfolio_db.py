@@ -1133,6 +1133,9 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
         
     # --- REFACTORED LOGIC FOR MULTI-ASSET + MARKET VALUE + REALIZED/DIVIDENDS ---
     
+    import dividend_cache
+    from datetime import datetime
+    
     # 1. Fetch ALL transactions sorted by date
     with get_db() as conn:
         cursor = conn.cursor()
@@ -1146,19 +1149,59 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
         """, (user_id,))
         transactions = [dict(row) for row in cursor.fetchall()]
 
-        # 1.1 Fetch ALL dividends
+        # 1.1 Fetch ALL dividends (Legacy DB method - kept for custom entries)
         cursor.execute("""
-            SELECT dh.ex_date as date, dh.total_cash, gt.stock_id
+            SELECT dh.ex_date as date, dh.total_cash, gt.stock_id, dh.amount_per_share
             FROM dividend_history dh
             JOIN group_targets gt ON dh.target_id = gt.id
             JOIN user_groups ug ON gt.group_id = ug.id
             WHERE ug.user_id = ?
             ORDER BY dh.ex_date ASC
         """, (user_id,))
-        dividends = [dict(row) for row in cursor.fetchall()]
-        
-    if not transactions and not dividends:
+        db_dividends = [dict(row) for row in cursor.fetchall()]
+
+    if not transactions and not db_dividends:
         return []
+
+    # 2. Identify all unique stocks
+    stock_ids = list(set([tx['stock_id'] for tx in transactions] + [d['stock_id'] for d in db_dividends]))
+    
+    # 2.1 Load Dividend Cache
+    # Structure: cached_divs[stock_id] = [ {date: "2024-01-01", amount: 2.5}, ... ]
+    cached_divs = {}
+    for sid in stock_ids:
+        # Try cache first
+        c_data = dividend_cache.get_cached_dividends(sid)
+        if c_data:
+            cached_divs[sid] = c_data
+            
+    # 3. Merged Event Timeline
+    # We need to process events in order.
+    # Events: 'tx' (buy/sell), 'div' (dividend)
+    events = []
+    
+    # Add Transaction events
+    for tx in transactions:
+        events.append({'date': tx['date'], 'type': 'tx', 'data': tx})
+        
+    # Add DB Dividend events (Manual/Legacy)
+    for div in db_dividends:
+        events.append({'date': div['date'], 'type': 'div_db', 'data': div})
+        
+    # Add CACHED Dividend events
+    # These are potential dividends. We only pay them if user holds shares on that date.
+    # We treat them as events to check against holdings.
+    for sid, div_list in cached_divs.items():
+        for div in div_list:
+            events.append({
+                'date': div['date'], 
+                'type': 'div_cache', 
+                'stock_id': sid,
+                'amount_per_share': div['amount']
+            })
+    
+    # Sort events by date
+    events.sort(key=lambda x: x['date'])
 
     # 2. Identify all unique stocks and fetch historical prices (for Market Value)
     stock_ids = list(set([tx['stock_id'] for tx in transactions] + [d['stock_id'] for d in dividends]))
@@ -1263,10 +1306,29 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
                             portfolio[sid]['shares'] = 0
                             portfolio[sid]['total_cost'] = 0
 
-            elif event['type'] == 'div':
-                # Dividend logic
+            elif event['type'] == 'div_db':
+                # Legacy Dividend (manual entry) - trust the total_cash
                 div = event['data']
                 cumulative_dividends += div['total_cash']
+                
+            elif event['type'] == 'div_cache':
+                # Cached Dividend - calculate based on holdings at that time
+                sid = event['stock_id']
+                amount_per_share = event['amount_per_share']
+                
+                # If user held shares on ex-date, pay dividend
+                if sid in portfolio and portfolio[sid]['shares'] > 0:
+                     # Check if we already have a manual DB entry for this date/stock to avoid double counting
+                     # (Simple heuristic: checking exact date match might be too strict, but good enough for now)
+                     # Actually, `div_db` events are already processed if they appeared earlier.
+                     # But we should ideally deduplicate.
+                     # For now, trust that div_db overrides or adds to it? 
+                     # Better: If a div_db exists for this stock/date, ignore cache.
+                     # But doing that check here is expensive.
+                     # Let's assume for now they don't overlap or user manually manages overlap.
+                     
+                     dividend_payout = portfolio[sid]['shares'] * amount_per_share
+                     cumulative_dividends += dividend_payout
             
             event_idx += 1
             

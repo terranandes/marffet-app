@@ -22,5 +22,6 @@ Likely specific to Mobile Safari or In-App Browsers. Desktop works (implied).
 - Added `https://accounts.google.com` to CORS (just in case).
 
 ## Validation
-- **Status**: [Ready for Deploy]
+- **Status:** ✅ RESOLVED  
+**Verified By:** BOSS (2026-01-29 02:47): [Ready for Deploy]
 - **Verification**: User must test on iPhone after Zeabur redeploy.

@@ -2,13 +2,16 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
-- PC local login/logout correctness, http://localhost:8000/ and http://localhost:3000/
-- PC remote login/logout correctness, https://martian-api.zeabur.app/ and https://martian-app.zeabur.app/
-- Mobile login/logout correctness on https://martian-app.zeabur.app/
-- mobile or narrow screen portfolio card view
-- align setting modal from legacy to Next.js UI
+- PC local login/logout correctness, http://localhost:8000/ and http://localhost:3000/ (done)
+- PC remote login/logout correctness, https://martian-api.zeabur.app/ and https://martian-app.zeabur.app/ (done)
+- Mobile login/logout correctness on https://martian-app.zeabur.app/ (done)
+- mobile or narrow screen portfolio card view (done)
+- align setting modal from legacy to Next.js UI (done)
 - Ensure Tab CB is functionally working and notification will accordingly be sent
-- Totally migration to Next.js UI. Remove legacy UI.
+- [x] Trend alignment with Legacy UI. Curve chart is preferred.
+- [ ] Cash Ladder check
+- [ ] My Race check
+- [ ] Totally migration to Next.js UI. Remove legacy UI.
 
 - === Barrier ===
 

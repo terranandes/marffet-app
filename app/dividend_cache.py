@@ -1,13 +1,17 @@
 """
 Dividend Cache Management
 
-Tier 1 Pre-warm cache for dividend history.
-Files are stored in app/data/dividends/{stock_id}.json
+HYBRID APPROACH:
+- Static Files: app/data/dividends/{stock_id}.json (git-versioned, pre-warm)
+- DB Table: dividend_cache (runtime updates, persists on Zeabur)
+
+Read Order: File → DB → yfinance
+Write: Both file + DB
 """
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -22,12 +26,76 @@ def _get_cache_path(stock_id: str) -> Path:
     return CACHE_DIR / f"{clean_id}.json"
 
 
-def get_cached_dividends(stock_id: str) -> Optional[list[dict]]:
-    """
-    Read dividends from cache file.
+def _normalize_stock_id(stock_id: str) -> str:
+    """Normalize stock_id by removing .TW/.TWO suffix."""
+    return stock_id.replace(".TW", "").replace(".TWO", "")
+
+
+# ============ DB OPERATIONS ============
+
+def _init_db_table():
+    """Ensure dividend_cache table exists."""
+    from app.portfolio_db import get_db
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS dividend_cache (
+                stock_id TEXT PRIMARY KEY,
+                stock_name TEXT,
+                last_synced TEXT,
+                dividends_json TEXT
+            )
+        """)
+        conn.commit()
+
+
+def _get_from_db(stock_id: str) -> Optional[list[dict]]:
+    """Get dividends from DB table."""
+    from app.portfolio_db import get_db
+    clean_id = _normalize_stock_id(stock_id)
     
-    Returns list of {"date": "YYYY-MM-DD", "amount": float} or None if not cached.
-    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT dividends_json FROM dividend_cache WHERE stock_id = ?",
+                (clean_id,)
+            )
+            row = cursor.fetchone()
+            if row and row['dividends_json']:
+                return json.loads(row['dividends_json'])
+    except Exception as e:
+        print(f"[DividendCache] DB read error for {clean_id}: {e}")
+    return None
+
+
+def _save_to_db(stock_id: str, stock_name: str, dividends: list[dict]):
+    """Save dividends to DB table."""
+    from app.portfolio_db import get_db
+    clean_id = _normalize_stock_id(stock_id)
+    
+    try:
+        _init_db_table()  # Ensure table exists
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO dividend_cache (stock_id, stock_name, last_synced, dividends_json)
+                VALUES (?, ?, ?, ?)
+            """, (
+                clean_id,
+                stock_name,
+                datetime.now(timezone.utc).isoformat(),
+                json.dumps(dividends, ensure_ascii=False)
+            ))
+            conn.commit()
+    except Exception as e:
+        print(f"[DividendCache] DB write error for {clean_id}: {e}")
+
+
+# ============ FILE OPERATIONS ============
+
+def _get_from_file(stock_id: str) -> Optional[list[dict]]:
+    """Read dividends from cache file."""
     cache_path = _get_cache_path(stock_id)
     
     if not cache_path.exists():
@@ -38,8 +106,52 @@ def get_cached_dividends(stock_id: str) -> Optional[list[dict]]:
             data = json.load(f)
             return data.get("dividends", [])
     except (json.JSONDecodeError, IOError) as e:
-        print(f"[DividendCache] Error reading {cache_path}: {e}")
+        print(f"[DividendCache] File read error {cache_path}: {e}")
         return None
+
+
+def _save_to_file(stock_id: str, stock_name: str, dividends: list[dict]):
+    """Save dividends to cache file."""
+    clean_id = _normalize_stock_id(stock_id)
+    
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache_path = _get_cache_path(clean_id)
+        cache_data = {
+            "stock_id": clean_id,
+            "stock_name": stock_name,
+            "last_synced": datetime.now(timezone.utc).isoformat(),
+            "source": "yfinance",
+            "dividends": dividends
+        }
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(cache_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[DividendCache] File write error for {clean_id}: {e}")
+
+
+# ============ PUBLIC API ============
+
+def get_cached_dividends(stock_id: str) -> Optional[list[dict]]:
+    """
+    Get dividends using READ ORDER: File → DB → None
+    
+    Returns list of {"date": "YYYY-MM-DD", "amount": float} or None if not cached.
+    """
+    clean_id = _normalize_stock_id(stock_id)
+    
+    # 1st: Check Static File
+    result = _get_from_file(clean_id)
+    if result:
+        return result
+    
+    # 2nd: Check DB
+    result = _get_from_db(clean_id)
+    if result:
+        return result
+    
+    # 3rd: Not cached
+    return None
 
 
 def get_cache_info(stock_id: str) -> Optional[dict]:
@@ -64,17 +176,13 @@ def get_cache_info(stock_id: str) -> Optional[dict]:
 
 def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
     """
-    Fetch dividends from yfinance and update cache file.
+    Fetch dividends from yfinance and save to BOTH file + DB.
     
     Returns {"success": bool, "message": str, "records": int}
     """
     import yfinance as yf
     
-    # Ensure cache directory exists
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Normalize stock_id
-    clean_id = stock_id.replace(".TW", "").replace(".TWO", "")
+    clean_id = _normalize_stock_id(stock_id)
     ticker_symbol = f"{clean_id}.TW"
     
     try:
@@ -108,19 +216,9 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
             except:
                 stock_name = clean_id
         
-        # Build cache data
-        cache_data = {
-            "stock_id": clean_id,
-            "stock_name": stock_name,
-            "last_synced": datetime.utcnow().isoformat() + "Z",
-            "source": "yfinance",
-            "dividends": dividends
-        }
-        
-        # Write to cache file
-        cache_path = _get_cache_path(clean_id)
-        with open(cache_path, "w", encoding="utf-8") as f:
-            json.dump(cache_data, f, ensure_ascii=False, indent=2)
+        # WRITE TO BOTH: File + DB
+        _save_to_file(clean_id, stock_name, dividends)
+        _save_to_db(clean_id, stock_name, dividends)
         
         return {
             "success": True, 

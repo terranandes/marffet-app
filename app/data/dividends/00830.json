@@ -1,0 +1,32 @@
+{
+  "stock_id": "00830",
+  "stock_name": "CATHAY SECS INV TRUST CO LTD PH",
+  "last_synced": "2026-01-29T09:40:58.941741+00:00",
+  "source": "yfinance",
+  "dividends": [
+    {
+      "date": "2026-01-20",
+      "amount": 9.0
+    },
+    {
+      "date": "2025-01-17",
+      "amount": 3.96
+    },
+    {
+      "date": "2024-01-17",
+      "amount": 1.51
+    },
+    {
+      "date": "2023-01-30",
+      "amount": 0.12
+    },
+    {
+      "date": "2022-01-18",
+      "amount": 2.8
+    },
+    {
+      "date": "2021-01-19",
+      "amount": 0.32
+    }
+  ]
+}

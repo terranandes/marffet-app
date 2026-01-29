@@ -1,0 +1,28 @@
+{
+  "stock_id": "6533",
+  "stock_name": "ANDES TECHNOLOGY CORPORATION",
+  "last_synced": "2026-01-29T09:41:06.282756+00:00",
+  "source": "yfinance",
+  "dividends": [
+    {
+      "date": "2023-06-27",
+      "amount": 1.5
+    },
+    {
+      "date": "2022-06-22",
+      "amount": 2.848871
+    },
+    {
+      "date": "2021-06-11",
+      "amount": 0.741546
+    },
+    {
+      "date": "2020-07-13",
+      "amount": 0.340122
+    },
+    {
+      "date": "2019-07-15",
+      "amount": 0.697086
+    }
+  ]
+}

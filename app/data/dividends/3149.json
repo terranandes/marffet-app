@@ -1,0 +1,24 @@
+{
+  "stock_id": "3149",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.410078",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2013-01-01",
+      "amount": 2.255162
+    },
+    {
+      "date": "2012-01-01",
+      "amount": 4.059291
+    },
+    {
+      "date": "2011-01-01",
+      "amount": 0.451032
+    },
+    {
+      "date": "2008-01-01",
+      "amount": 0.273887
+    }
+  ]
+}

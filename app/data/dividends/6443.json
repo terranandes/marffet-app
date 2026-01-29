@@ -1,0 +1,16 @@
+{
+  "stock_id": "6443",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.326779",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2024-01-01",
+      "amount": 0.4
+    },
+    {
+      "date": "2023-01-01",
+      "amount": 0.098828
+    }
+  ]
+}

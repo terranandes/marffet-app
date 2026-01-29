@@ -1,0 +1,32 @@
+{
+  "stock_id": "4807",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.450901",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2023-01-01",
+      "amount": 0.45
+    },
+    {
+      "date": "2022-01-01",
+      "amount": 1.659711
+    },
+    {
+      "date": "2021-01-01",
+      "amount": 0.5
+    },
+    {
+      "date": "2019-01-01",
+      "amount": 4.003119
+    },
+    {
+      "date": "2018-01-01",
+      "amount": 3.0
+    },
+    {
+      "date": "2017-01-01",
+      "amount": 3.0
+    }
+  ]
+}

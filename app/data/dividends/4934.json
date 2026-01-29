@@ -1,0 +1,24 @@
+{
+  "stock_id": "4934",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.425039",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2016-01-01",
+      "amount": 0.939317
+    },
+    {
+      "date": "2015-01-01",
+      "amount": 0.770266
+    },
+    {
+      "date": "2014-01-01",
+      "amount": 0.883939
+    },
+    {
+      "date": "2011-01-01",
+      "amount": 0.720279
+    }
+  ]
+}

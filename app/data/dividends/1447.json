@@ -1,0 +1,16 @@
+{
+  "stock_id": "1447",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.415565",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2019-01-01",
+      "amount": 0.201765
+    },
+    {
+      "date": "2011-01-01",
+      "amount": 0.356923
+    }
+  ]
+}

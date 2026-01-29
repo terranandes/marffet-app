@@ -1,0 +1,32 @@
+{
+  "stock_id": "4956",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.419384",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2022-01-01",
+      "amount": 0.4
+    },
+    {
+      "date": "2018-01-01",
+      "amount": 0.5
+    },
+    {
+      "date": "2015-01-01",
+      "amount": 0.5
+    },
+    {
+      "date": "2014-01-01",
+      "amount": 0.5
+    },
+    {
+      "date": "2013-01-01",
+      "amount": 0.6
+    },
+    {
+      "date": "2012-01-01",
+      "amount": 0.6
+    }
+  ]
+}

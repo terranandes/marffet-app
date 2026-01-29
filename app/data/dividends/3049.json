@@ -1,0 +1,20 @@
+{
+  "stock_id": "3049",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.429155",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2022-01-01",
+      "amount": 0.35
+    },
+    {
+      "date": "2021-01-01",
+      "amount": 0.39
+    },
+    {
+      "date": "2020-01-01",
+      "amount": 0.35
+    }
+  ]
+}

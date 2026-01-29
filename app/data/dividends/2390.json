@@ -1,0 +1,24 @@
+{
+  "stock_id": "2390",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.410431",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2022-01-01",
+      "amount": 2.111111
+    },
+    {
+      "date": "2017-01-01",
+      "amount": 0.066667
+    },
+    {
+      "date": "2016-01-01",
+      "amount": 0.222222
+    },
+    {
+      "date": "2014-01-01",
+      "amount": 0.555556
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "stock_id": "6283",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.369182",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2017-01-01",
+      "amount": 0.12381
+    },
+    {
+      "date": "2008-01-01",
+      "amount": 0.816168
+    },
+    {
+      "date": "2007-01-01",
+      "amount": 1.054421
+    }
+  ]
+}

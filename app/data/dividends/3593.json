@@ -1,0 +1,24 @@
+{
+  "stock_id": "3593",
+  "stock_name": "",
+  "last_synced": "2026-01-30T00:30:54.436999",
+  "source": "legacy_migration",
+  "dividends": [
+    {
+      "date": "2011-01-01",
+      "amount": 2.980614
+    },
+    {
+      "date": "2010-01-01",
+      "amount": 8.345718
+    },
+    {
+      "date": "2009-01-01",
+      "amount": 5.551577
+    },
+    {
+      "date": "2008-01-01",
+      "amount": 4.877857
+    }
+  ]
+}

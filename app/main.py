@@ -970,6 +970,7 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 "totalCost": round(safe_float(cost), 0),
                 "history": wealth_trend
              })
+             })
     return results
 
 

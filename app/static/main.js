@@ -1363,7 +1363,14 @@ Please analyze this feedback and determine if it's a true bug.`;
                 font: { color: '#aaa' },
                 margin: { t: 20, l: 40, r: 20, b: 40 },
                 xaxis: { gridcolor: '#333' },
-                yaxis: { gridcolor: '#333' }
+                yaxis: {
+                    gridcolor: '#333',
+                    tickformatter: (val) => {
+                        if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
+                        if (val >= 1000) return (val / 1000).toFixed(0) + 'k';
+                        return val;
+                    }
+                }
             };
 
             Plotly.newPlot('detail-chart', [trace], layout);

@@ -1,6 +1,6 @@
 # Martian Investment System - Test Plan
-**Version**: 2.3  
-**Date**: 2026-01-24  
+**Version**: 2.4
+**Date**: 2026-01-30
 **Owner**: [CV] Agent
 
 ## 1. Automated Testing Strategy
@@ -33,6 +33,9 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-13 | Login Overlay | Intersection Check | Overlay doesn't block mobile interaction |
 | **TC-14** | **Dividend Cache** | **Hybrid Access** | **File+DB sync verified** |
 | **TC-15** | **Sync Admin** | **Batch Progress** | **Progress bar shows numeric %** |
+| **TC-16** | **Dividend Chart** | **Visualization** | **Charts visible for 2330, 2383** |
+| **TC-17** | **Zombie Stock** | **Delisted Logic** | **6238 flatlines post-2020** |
+| **TC-18** | **Legacy Chart** | **Title Sync** | **"Yearly Cash Div. Received" (k/M)** |
 
 ### 1.3 Execution via Playwright MCP
 

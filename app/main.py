@@ -74,6 +74,20 @@ async def lifespan(app: FastAPI):
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")
         
+        # 4. Immediate Simulation Warm-up (Async Background)
+        # Fixes user complaint about slow first load on "Mars Strategy" tab
+        async def warm_sim_cache():
+            print("[Startup] Warming Simulation Cache (Default: 2006, 1M, 60k)...")
+            try:
+                # Trigger calculation (populates SIM_CACHE)
+                get_results(start_year=2006, principal=1000000, contribution=60000)
+                print("[Startup] Simulation Cache Warmed! Mars Tab will load instantly.")
+            except Exception as e:
+                print(f"[Startup] Warm-up failed: {e}")
+
+        # Run in background look to avoid blocking startup
+        asyncio.create_task(warm_sim_cache())
+        
     except Exception as e:
         print(f"[Startup] Error initializing services: {e}")
     
@@ -750,7 +764,8 @@ def get_stock_history(stock_id: str):
 def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal: float, contribution: float):
     """
     Reusable Mars Strategy Simulation Logic.
-    Returns a list of result dictionaries for each stock.
+    Global DELISTED_DB usage implied or pass in? 
+    Python scoping allows access to global DELISTED_DB if defined in module.
     """
     results = []
     # Identify year_cols - assuming standard format 'bao{year}e'
@@ -870,14 +885,19 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                     prev_wealth = wealth # Update for next loop
 
                 else:
-                    # Fallback to Excel Data if no detailed price JSON
-                    # SYNTHETIC MODE: approximate tracking
-                    final_roi = excel_roi
-                    div_yield = 0
-                    
-                    # Apply ROI + Contribution
-                    # wealth = prev * (1+r) + contrib
-                    wealth = prev_wealth * (1 + final_roi/100) + contribution
+                    # Fallback Logic: Check for Delisted / Zombie Stock
+                    # If stock is known to be delisted before this year, do NOT apply synthetic ROI.
+                    delist_year = DELISTED_DB.get(stock_id)
+                    if delist_year and year > delist_year:
+                         final_roi = 0
+                         div_yield = 0
+                         wealth = prev_wealth # Flatline (Holding dead/converted asset without conversion logic)
+                    else:
+                        # SYNTHETIC MODE: approximate tracking for active stocks missing data
+                        final_roi = excel_roi
+                        div_yield = 0
+                        # Apply ROI + Contribution
+                        wealth = prev_wealth * (1 + final_roi/100) + contribution
                     prev_wealth = wealth
                     cost += contribution
 
@@ -886,20 +906,26 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 if cost > 0 and wealth > 0:
                     years_elapsed = year - start_year + 1
                     if years_elapsed > 0:
-                        sim_cagr = ((wealth / cost) ** (1 / years_elapsed) - 1) * 100
+                        try:
+                            sim_cagr = ((wealth / cost) ** (1 / years_elapsed) - 1) * 100
+                        except:
+                            sim_cagr = 0
 
                 wealth_trend.append({
                     "year": year,
-                    "value": round(wealth, 0),
-                    "dividend": round(div_cash * shares, 0),
-                    "cagr": round(sim_cagr, 2)
+                    "value": round(wealth, 0) if pd.notnull(wealth) else 0,
+                    "dividend": round(div_cash * shares, 0) if pd.notnull(div_cash) else 0,
+                    "cagr": round(sim_cagr, 2) if pd.notnull(sim_cagr) and not np.isinf(sim_cagr) else 0
                 })
 
                 if pd.notnull(final_roi) and final_roi != 0:
                     # Calculate cumulative CAGR from start_year to this year
                     years_elapsed = year - start_year + 1
                     if years_elapsed > 0:
-                        cagr = ((wealth / principal) ** (1 / years_elapsed) - 1) * 100
+                        try:
+                            cagr = ((wealth / principal) ** (1 / years_elapsed) - 1) * 100
+                        except:
+                            cagr = 0
                     else:
                         cagr = 0
                         
@@ -913,21 +939,31 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
         
         # Final Stats Construction
             except Exception as loop_e:
+                # print(f"Error in year loop {stock_id}: {loop_e}")
                 pass
 
         # Final Stats Construction
         if wealth > 0:
              years_held = 2026 - start_year + 1 
              
+             # Safe helpers
+             def safe_float(v, default=0):
+                 if pd.isna(v) or np.isinf(v): return default
+                 return v
+
+             final_cagr = row.get(f's2006e2026bao', 0)
+             volatility = row.get('volatility', 0)
+
              results.append({
                 "id": stock_id,
                 "name": str(row['name']),
-                "finalValue": round(wealth, 0),
-                "cagr_pct": round(row[f's2006e2026bao'], 2) if f's2006e2026bao' in row else 0,
-                "volatility_pct": round(row['volatility'], 2) if 'volatility' in row else 0,
+                "finalValue": round(safe_float(wealth), 0),
+                "cagr_pct": round(safe_float(final_cagr), 2),
+                "volatility_pct": round(safe_float(volatility), 2),
                 "valid_years": years_held,
-                "totalCost": cost,
+                "totalCost": round(safe_float(cost), 0),
                 "history": wealth_trend
+             })
              })
     return results
 

@@ -425,7 +425,10 @@ export default function MarsPage() {
                                             Wealth
                                         </button>
                                         <button
-                                            onClick={() => setVizMode('dividend')}
+                                            onClick={() => {
+                                                console.log("VizMode Dividend: History Data", selectedStock.history);
+                                                setVizMode('dividend');
+                                            }}
                                             className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'dividend' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
                                         >
                                             Dividend

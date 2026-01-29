@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter, HTTPException, Depends
-import dividend_cache
+from app import dividend_cache
 from app.auth import get_current_user
 from app.portfolio_db import get_db
 

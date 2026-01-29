@@ -57,6 +57,7 @@ export default function AdminPage() {
     // Crawler Status
     const [crawlerStatus, setCrawlerStatus] = useState<CrawlerStatus | null>(null);
     const [lastRunDuration, setLastRunDuration] = useState<string | null>(null);
+    const [syncProgress, setSyncProgress] = useState<number | null>(null);
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -123,6 +124,43 @@ export default function AdminPage() {
             console.error("Crawler status fetch error");
         }
     }, []);
+
+    // Handle Sync All Dividends with Simulated Progress
+    const handleSyncAllDividends = async () => {
+        if (!confirm("Sync dividend cache for ALL stocks held by ALL users?\nThis may take a few minutes.")) return;
+
+        setSyncProgress(0);
+        const progressInterval = setInterval(() => {
+            setSyncProgress(prev => {
+                if (prev === null || prev >= 90) return prev;
+                return prev + Math.floor(Math.random() * 5) + 1; // Increment 1-5%
+            });
+        }, 800);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/sync/all-users-dividends`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await res.json();
+
+            clearInterval(progressInterval);
+            setSyncProgress(100);
+
+            if (res.ok) {
+                // Short delay to show 100%
+                await new Promise(r => setTimeout(r, 500));
+                alert(`✅ ${data.message}\nTotal Records: ${data.total_records}\n\nGit Backup: ${data.git_backup?.status === 'success' ? '✅ Success' : '⚠️ ' + (data.git_backup?.reason || 'Skipped')}`);
+            } else {
+                alert(`❌ ${data.detail || 'Sync failed'}`);
+            }
+        } catch {
+            clearInterval(progressInterval);
+            alert('❌ Network error during sync');
+        } finally {
+            setSyncProgress(null);
+        }
+    };
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -306,17 +344,33 @@ export default function AdminPage() {
                         )}
                     </h2>
 
-                    {/* Progress Bar (Visible when Running or recently Finished) */}
+                    {/* Crawler Progress Bar */}
                     {crawlerStatus && (crawlerStatus.is_running || crawlerStatus.progress_pct > 0) && (
                         <div className="mb-6 bg-black/30 p-4 rounded-lg border border-white/5">
                             <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                <span>Progress: {crawlerStatus.progress_pct}%</span>
+                                <span>Crawler Progress: {crawlerStatus.progress_pct}%</span>
                                 <span>{crawlerStatus.message}</span>
                             </div>
                             <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
                                 <div
                                     className="bg-[#00f2ea] h-full transition-all duration-500 ease-out shadow-[0_0_10px_#00f2ea]"
                                     style={{ width: `${crawlerStatus.progress_pct}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Sync Progress Bar */}
+                    {syncProgress !== null && (
+                        <div className="mb-6 bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
+                            <div className="flex justify-between text-xs text-purple-300 mb-1">
+                                <span>Syncing Dividends & Backing up...</span>
+                                <span>{syncProgress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="bg-purple-500 h-full transition-all duration-300 ease-out shadow-[0_0_10px_#a855f7]"
+                                    style={{ width: `${syncProgress}%` }}
                                 ></div>
                             </div>
                         </div>
@@ -347,26 +401,6 @@ export default function AdminPage() {
                             >
                                 🔥 Rebuild All (Cold Run)
                             </button>
-
-                            <button
-                                onClick={async () => {
-                                    if (!confirm("Sync dividend cache for ALL stocks held by ALL users?\nThis may take a few minutes.")) return;
-                                    try {
-                                        const res = await fetch('/api/sync/all-users-dividends', { method: 'POST', credentials: 'include' });
-                                        const data = await res.json();
-                                        if (res.ok) {
-                                            alert(`✅ ${data.message}\nTotal Records: ${data.total_records}`);
-                                        } else {
-                                            alert(`❌ ${data.detail || 'Sync failed'}`);
-                                        }
-                                    } catch {
-                                        alert('❌ Network error during sync');
-                                    }
-                                }}
-                                className="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                            >
-                                💰 Sync All Dividends (Admin)
-                            </button>
                         </div>
                     </div>
 
@@ -376,6 +410,17 @@ export default function AdminPage() {
                             💾 Backup & Refresh
                         </h3>
                         <div className="flex gap-3 flex-wrap">
+                            <button
+                                onClick={handleSyncAllDividends}
+                                disabled={syncProgress !== null}
+                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${syncProgress !== null
+                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
+                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
+                                    }`}
+                            >
+                                {syncProgress !== null ? '⏳ Syncing...' : '💰 Sync All Dividends (Admin)'}
+                            </button>
+
                             <button
                                 onClick={async () => {
                                     if (!confirm("Trigger manual backup to GitHub?")) return;

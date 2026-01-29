@@ -278,6 +278,17 @@ export default function TrendPage() {
                     </div>
                 </>
             )}
+
+            {/* My Race CTA */}
+            <div className="w-full p-4 rounded-xl border border-[var(--color-border)] bg-black/40 flex justify-center items-center gap-2 text-sm mt-8">
+                <span className="text-[var(--color-text-muted)]">See your investments compete! →</span>
+                <a
+                    href="/myrace"
+                    className="font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent hover:opacity-80 transition"
+                >
+                    🏎️ Open My Race Tab
+                </a>
+            </div>
         </div>
     );
 }

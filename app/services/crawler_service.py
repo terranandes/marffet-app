@@ -57,17 +57,17 @@ class CrawlerService:
                 cls._last_message = "Clearing Cache..."
                 cls._progress_pct = 5
                 
-                # Only clear Current Year to avoid 3-min wait
-                current_year = datetime.datetime.now().year
-                
-                # Delete data/raw/*{year}*.json (correct path)
+                # FORCE COLD RUN: Clear ALL cache for full rebuild (User Request)
+                # This ensures we recover missing historic data (e.g. 6238 in 2015)
+                # Delete data/raw/*.json matching patterns
                 data_dir = "data/raw"
                 if os.path.exists(data_dir):
                     patterns = [
-                        f"{data_dir}/Market_{current_year}_Prices.json",
-                        f"{data_dir}/TPEx_Market_{current_year}_Prices.json",
-                        f"{data_dir}/TPEx_Dividends_{current_year}.json",
-                        f"{data_dir}/TWSE_Dividends_{current_year}.json",
+                        f"{data_dir}/Market_*_Prices.json",
+                        f"{data_dir}/TPEx_Market_*_Prices.json",
+                        f"{data_dir}/TPEx_Dividends_*.json",
+                        f"{data_dir}/TWSE_Dividends_*.json",
+                        f"{data_dir}/TWT49U_*.json" # Also clear TWT49U raw cache
                     ]
                     
                     count = 0
@@ -77,7 +77,7 @@ class CrawlerService:
                                 os.remove(f)
                                 count += 1
                             except: pass
-                    print(f"[CrawlerService] Cleared {count} cache files for {current_year}")
+                    print(f"[CrawlerService] Cleared {count} cache files (Full Rebuild)")
 
             # Run Analysis
             # Run Analysis

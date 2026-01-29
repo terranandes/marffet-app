@@ -734,12 +734,15 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                         try:
                             d_date = div.get("date", "")
                             d_amt = float(div.get("amount", 0))
-                            if d_date and d_amt > 0:
+                            d_stock = float(div.get("stock", 0))
+                            
+                            if d_date and (d_amt > 0 or d_stock > 0):
                                 y_str = str(d_date).split("-")[0]
                                 if y_str not in div_db:
-                                    div_db[y_str] = {"cash": 0.0}
+                                    div_db[y_str] = {"cash": 0.0, "stock": 0.0}
                                 # Accumulate
                                 div_db[y_str]["cash"] += d_amt
+                                div_db[y_str]["stock"] += d_stock
                         except: pass
                 
                 # print(f"[DEBUG] Dividend Cache for {stock_id}: Found {len(div_db)} years.")

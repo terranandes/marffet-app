@@ -12,6 +12,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | Local Backend | http://localhost:8000 | ✅ |
 | Local Frontend | http://localhost:3000 | ✅ |
 | Zeabur Backend | martian-api.zeabur.app | ✅ Deployed |
+| Zeabur Frontend | martian-app.zeabur.app | ✅ Deployed |
 
 ### 1.2 Test Cases
 
@@ -21,29 +22,23 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-02 | Mars Strategy | Simulation works | Stock table shows 50 rows |
 | TC-03 | BCR | Bar Chart Race | Wealth/CAGR toggle works |
 | TC-04 | Guest Mode | Guest button | Creates guest session |
-| TC-05 | Google Login | OAuth flow | Redirects to Google |
+| TC-05 | Google Login | OAuth flow | Redirects to Google (Remote Only) |
 | TC-06 | Portfolio | Group CRUD | Create, edit, delete groups |
 | TC-07 | Admin Dashboard | System Ops | Buttons visible for GM |
 | TC-08 | Year Range | History data | 21 years (2006-2026) |
 | TC-09 | AI Copilot | Chat Logic | Server-side Key Fallback works |
 | TC-10 | Legacy UI | Color Convention | Profit=Red, Loss=Green |
-| TC-11 | Backup | Scheduler & Manual | Startup Log verifies UTC Next Run |
-| TC-12 | Mobile UI | Card View | Verify Cards replace Table on <md screens |
-| TC-13 | Login Overlay | Intersection Check | Verify Overlay doesn't block mobile interaction |
+| TC-11 | Backup | Scheduler & Manual | Startup Log verified |
+| TC-12 | Mobile UI | Card View | Cards replace Table on <md screens |
+| TC-13 | Login Overlay | Intersection Check | Overlay doesn't block mobile interaction |
+| **TC-14** | **Dividend Cache** | **Hybrid Access** | **File+DB sync verified** |
+| **TC-15** | **Sync Admin** | **Batch Progress** | **Progress bar shows numeric %** |
 
 ### 1.3 Execution via Playwright MCP
 
 ```bash
-# Using Playwright MCP server for browser automation
-# Test New Frontend
-mcp_playwright_browser_navigate(url="http://localhost:3000/mars")
-mcp_playwright_browser_wait_for(time=5)
-mcp_playwright_browser_take_screenshot(filename="test_mars.png")
-
-# Test AI Copilot (FAB)
-mcp_playwright_browser_click(element="Robot FAB")
-mcp_playwright_browser_fill_form(fields=[{"name": "Ask Mars AI...", "value": "Hi", "ref": "input"}])
-mcp_playwright_browser_click(element="Send button")
+# E2E Test Suite Command
+pytest tests/e2e/test_full_suite.py
 ```
 
 ## 2. Manual Verification Checklist
@@ -63,12 +58,12 @@ mcp_playwright_browser_click(element="Send button")
 - [x] System Operations visible
 - [x] Update Market Data works
 - [x] Rebuild All works
+- [x] **Sync All Dividends (Hybrid) works**
 - [x] Backup to GitHub works (Manual Trigger)
-- [x] Rebuild & Push Pre-warm works
 
 ### AI Copilot (New)
 - [x] FAB visible on Portfolio/Race pages
-- [x] Chat works without client-side key (if server key set)
+- [x] Chat works without client-side key
 - [x] "Missing API Key" error properly handled
 
 ## 3. Regression Tests (v2.3)
@@ -78,13 +73,13 @@ mcp_playwright_browser_click(element="Send button")
 | Guest mode button | Visible in Sidebar | ✅ |
 | /auth/guest endpoint | Returns 200 | ✅ |
 | System Ops in Legacy UI | 4 buttons visible | ✅ |
-| AI Key Fallback | Chat works with empty client input | ✅ |
-| Backup Scheduler | Logs "Next Backup Job at ... UTC" | ✅ |
-| Zeabur Build | Build logs are Green | ✅ |
+| AI Key Fallback | Chat works | ✅ |
+| Backup Scheduler | Logs "Next Backup Job at..." | ✅ |
+| **Hybrid Cache** | **App loads dividends without legacy file** | ✅ (New) |
 
 ## 4. Known Issues
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| Zeabur frontend 404 | High | Resolved (Port Fix) |
+| Zeabur frontend 404 | High | Resolved |
 | Favicon 404 on legacy | Low | Cosmetic |

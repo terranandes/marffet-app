@@ -714,50 +714,37 @@ def get_target_summary(target_id: str, current_price: float = None) -> dict:
                 })
     
     if total_div_cash == 0:
-        # 2. Modern Cache Lookup (File + DB) via dividend_cache module
-        # This replaces the legacy JSON load
-        from app import dividend_cache
-        
-        # Need stock_id
-        with get_db() as conn:
-            row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
-            stock_id = row['stock_id'] if row else None
+        try:
+            # 2. Modern Cache Lookup (File + DB) via dividend_cache module
+            from app import dividend_cache
             
-        if stock_id:
-            cached = dividend_cache.get_cached_dividends(stock_id)
-            if cached:
-                for div in cached:
-                    # div is {"date": "YYYY-MM-DD", "amount": float}
-                    # Map to format expected by logic below
-                    # Logic expects: div_db keys as years ("2023") or dates?
-                    # Original logic used: div_db.keys() as years?
-                    # Let's see how div_db is used below.
-                    # It iterates transactions (sorted_tx)
-                    # For val_date = tx['date'] if tx['type'] == 'buy' ...
-                    # Replay holdings.
-                    # Check "is this year in div_db"?
-                    # ...
-                    pass
+            div_db = {}
+            stock_id = None
 
-                # ADAPTER: The logic below (lines 752+) iterates TRANSACTIONS
-                # and checks if a dividend occurred during holding period.
-                # Original logic:
-                # for year, info in div_db.items(): ...
-                # Wait, original logic iterated DIVIDENDS or TRANSACTIONS?
-                # Let's look further down in previous view_file.
+            # Need stock_id
+            with get_db() as conn:
+                row = conn.execute("SELECT stock_id FROM group_targets WHERE id = ?", (target_id,)).fetchone()
+                stock_id = row['stock_id'] if row else None
                 
-                # We need to adapt the new list-of-dicts to a dict structure if the code expects it,
-                # OR refactor the logic below.
-                # Let's assume we construct `div_db` to match legacy structure for minimal refactor.
-                # DIV_DB legacy structure: {"2023": {"cash": 1.5}, ...}
-                # But modern data has DATE. Legacy had YEAR.
-                # If we use YEAR as key, we lose precision if multiple divs in a year (e.g. quarterly 2330).
-                # 2330 quarterly: {"2023-01": ..., "2023-04": ...}
-                # If we convert modern -> legacy `div_db`, we might squash quarterly divs?
-                #
-                # Better: Check how `div_db` is used.
-                # I need to VIEW lines 750-850 first to see usage.
-                pass
+            if stock_id:
+                cached = dividend_cache.get_cached_dividends(stock_id)
+                if cached:
+                    # Adapter: Sum by Year for legacy logic
+                    # Modern: [{"date": "2023-01-01", "amount": 1.5}, ...]
+                    # Legacy div_db: {"2023": {"cash": 1.5}}
+                    for div in cached:
+                        try:
+                            d_date = div.get("date", "")
+                            d_amt = float(div.get("amount", 0))
+                            if d_date and d_amt > 0:
+                                y_str = str(d_date).split("-")[0]
+                                if y_str not in div_db:
+                                    div_db[y_str] = {"cash": 0.0}
+                                # Accumulate (e.g. quarterly -> annual total)
+                                div_db[y_str]["cash"] += d_amt
+                        except: pass
+                
+                print(f"[DEBUG] Dividend Cache for {stock_id}: Found {len(div_db)} years.")
 
 
                 # 2. Replay Holdings to find Shares on Ex-Date

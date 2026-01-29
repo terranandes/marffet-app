@@ -98,14 +98,3 @@ async def sync_all_users_dividends(user: dict = Depends(get_current_user)):
         "details": result.get('details', {})
     }
 
-@router.get("/dividends/{stock_id}")
-async def get_dividends(stock_id: str):
-    """
-    Get cached dividends for a specific stock.
-    Returns modern format: [{"date": "YYYY-MM-DD", "amount": 1.5}, ...]
-    """
-    cached = dividend_cache.get_cached_dividends(stock_id)
-    if not cached:
-        raise HTTPException(status_code=404, detail="Not Found")
-    return cached
-

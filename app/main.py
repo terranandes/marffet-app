@@ -677,11 +677,6 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
         print(f"Export Error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# Delisted Stocks (Zombie Logic)
-DELISTED_DB = {
-    "6238": 2020
-}
-
 # Global Dividend Database (Cash per Share)
 # Initialize with Critical Hardcoded Data (Safety Baseline)
 DIVIDENDS_DB = {

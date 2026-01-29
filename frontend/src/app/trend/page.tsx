@@ -40,6 +40,7 @@ export default function TrendPage() {
     const [showValue, setShowValue] = useState(true);
     const [showRealized, setShowRealized] = useState(false);
     const [showDividend, setShowDividend] = useState(false);
+    const [showUnrealized, setShowUnrealized] = useState(true); // Show by default
 
     // Using relative path for API
     const API_BASE = "";
@@ -51,7 +52,13 @@ export default function TrendPage() {
             const trendRes = await fetch(`${API_BASE}/api/portfolio/trend?months=0`, { credentials: "include" });
             if (!trendRes.ok) throw new Error("Failed to fetch trend");
             const trend = await trendRes.json();
-            setTrendData(trend);
+
+            // Compute unrealized P/L = Market Value - Cost Basis
+            const trendWithUnrealized = trend.map((d: TrendDataPoint) => ({
+                ...d,
+                unrealized: (d.value || 0) - (d.cost || 0)
+            }));
+            setTrendData(trendWithUnrealized);
 
             // Fetch asset groups (by type)
             const groupRes = await fetch(`${API_BASE}/api/portfolio/by-type`, { credentials: "include" });
@@ -171,6 +178,10 @@ export default function TrendPage() {
                                     <input type="checkbox" checked={showDividend} onChange={() => setShowDividend(!showDividend)} className="accent-purple-400" />
                                     <span className="text-purple-400">🎁 Dividends</span>
                                 </label>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={showUnrealized} onChange={() => setShowUnrealized(!showUnrealized)} className="accent-yellow-400" />
+                                    <span className="text-yellow-400">📊 Unrealized P/L</span>
+                                </label>
                             </div>
                         </div>
                         <div className="w-full h-[350px]">
@@ -192,6 +203,10 @@ export default function TrendPage() {
                                         <linearGradient id="colorDividend" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#c084fc" stopOpacity={0.3} />
                                             <stop offset="95%" stopColor="#c084fc" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorUnrealized" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#facc15" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#facc15" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.3} />
@@ -215,7 +230,8 @@ export default function TrendPage() {
                                                 cost: '💰 Cost Basis',
                                                 value: '📈 Market Value',
                                                 realized: '💵 Realized P/L',
-                                                dividend: '🎁 Dividends'
+                                                dividend: '🎁 Dividends',
+                                                unrealized: '📊 Unrealized P/L'
                                             };
                                             return [`$${formatCurrency(Number(value))}`, labels[name || ''] || name || 'Unknown'];
                                         }}
@@ -266,6 +282,18 @@ export default function TrendPage() {
                                             strokeWidth={2}
                                             fillOpacity={1}
                                             fill="url(#colorDividend)"
+                                            animationDuration={1500}
+                                        />
+                                    )}
+                                    {showUnrealized && (
+                                        <Area
+                                            type="monotone"
+                                            dataKey="unrealized"
+                                            name="unrealized"
+                                            stroke="#facc15"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorUnrealized)"
                                             animationDuration={1500}
                                         />
                                     )}

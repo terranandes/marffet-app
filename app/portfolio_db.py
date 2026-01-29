@@ -1131,73 +1131,182 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # Get ALL transactions for user's targets to calculate correct running cost
+    # --- REFACTORED LOGIC FOR MULTI-ASSET + MARKET VALUE + REALIZED/DIVIDENDS ---
+    
+    # 1. Fetch ALL transactions sorted by date
+    with get_db() as conn:
+        cursor = conn.cursor()
         cursor.execute("""
-            SELECT t.date, t.type, t.shares, t.price
+            SELECT t.date, t.type, t.shares, t.price, gt.stock_id
             FROM transactions t
             JOIN group_targets gt ON t.target_id = gt.id
             JOIN user_groups ug ON gt.group_id = ug.id
             WHERE ug.user_id = ?
-            ORDER BY t.date
+            ORDER BY t.date ASC
         """, (user_id,))
-        
-        transactions = cursor.fetchall()
-    
-    # Build monthly aggregates
-    monthly_data = {}
-    running_cost = 0
-    running_shares = 0
-    
-    for tx in transactions:
-        month = tx['date'][:7]  # "YYYY-MM"
-        if month not in monthly_data:
-            # Carry over previous cost if month gap? No, we just need snapshot at end of month.
-            # But here we are building "change events".
-            # Actually simplest finding state at end of each month.
-            pass
+        transactions = [dict(row) for row in cursor.fetchall()]
 
-        if tx['type'] == 'buy':
-            running_cost += tx['shares'] * tx['price']
-            running_shares += tx['shares']
-        else:
-            if running_shares > 0:
-                avg_cost = running_cost / running_shares
-                running_shares -= tx['shares']
-                running_cost = running_shares * avg_cost
+        # 1.1 Fetch ALL dividends
+        cursor.execute("""
+            SELECT dh.ex_date as date, dh.total_cash, gt.stock_id
+            FROM dividend_history dh
+            JOIN group_targets gt ON dh.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+            ORDER BY dh.ex_date ASC
+        """, (user_id,))
+        dividends = [dict(row) for row in cursor.fetchall()]
         
-        # Update/Overwrite the month's final state
-        # (Since rows are ordered by date, the last update for a month is the final state)
-        if month not in monthly_data:
-            monthly_data[month] = {"month": month, "cost": 0, "tx_count": 0}
+    if not transactions and not dividends:
+        return []
+
+    # 2. Identify all unique stocks and fetch historical prices (for Market Value)
+    stock_ids = list(set([tx['stock_id'] for tx in transactions] + [d['stock_id'] for d in dividends]))
+    
+    # Helper to fetch history
+    import yfinance as yf
+    import pandas as pd
+    
+    # Cache for price history: { "TSMC": pd.Series(index=Date, data=Close) }
+    price_history = {}
+    
+    # Optimization: Only fetch history if we actually need it
+    try:
+        # Download requires at least one ticker
+        if stock_ids:
+            data = yf.download(
+                [s + ".TW" if not (s.endswith('.TW') or s.endswith('.TWO')) else s for s in stock_ids], 
+                start=start_date.strftime("%Y-%m-%d"), 
+                end=end_date.strftime("%Y-%m-%d"),
+                interval="1mo",
+                progress=False
+            )['Close']
             
-        monthly_data[month]['cost'] = round(running_cost, 2)
-        monthly_data[month]['tx_count'] += 1
+            # Handle single ticker vs multi ticker result structure
+            if len(stock_ids) == 1:
+                 for col in data.columns:
+                     clean_id = col.replace(".TW", "").replace(".TWO", "")
+                     price_history[clean_id] = data[col]
+                     price_history[col] = data[col] # Fallback
+            else:
+                 for col in data.columns:
+                     clean_id = col.replace(".TW", "").replace(".TWO", "")
+                     price_history[clean_id] = data[col]
+                     price_history[col] = data[col]
+    except Exception as e:
+        print(f"Failed to fetch history for trend: {e}")
+        pass
+
+    # 3. Merged Event Timeline
+    # We need to process events in order.
+    # Events: 'tx' (buy/sell), 'div' (dividend)
+    events = []
+    for tx in transactions:
+        events.append({'date': tx['date'], 'type': 'tx', 'data': tx})
+    for div in dividends:
+        events.append({'date': div['date'], 'type': 'div', 'data': div})
     
-    # Fill in missing months and filter by requested window
-    result = []
-    current = start_date
+    # Sort events by date
+    events.sort(key=lambda x: x['date'])
+
+    # 4. Simulate Portfolio State Month-by-Month
+    monthly_data = {}
     
-    # Find initial cost basis before start_date
-    # Find latest month in monthly_data that is < start_month_str
-    prev_cost = 0
-    sorted_months = sorted(monthly_data.keys())
+    # State tracking
+    portfolio = {sid: {'shares': 0, 'total_cost': 0} for sid in stock_ids}
+    cumulative_realized_pl = 0
+    cumulative_dividends = 0
     
-    for m in sorted_months:
-        if m < start_month_str:
-            prev_cost = monthly_data[m]['cost']
-        else:
-            break
+    current_iter_date = start_date
+    event_idx = 0
+    total_events = len(events)
+    
+    while current_iter_date <= end_date:
+        month_key = current_iter_date.strftime("%Y-%m")
+        month_end_date = (current_iter_date + relativedelta(months=1)) - relativedelta(days=1)
+        month_end_str = month_end_date.strftime("%Y-%m-%d")
+        
+        # Apply all events up to this month end
+        while event_idx < total_events:
+            event = events[event_idx]
+            if event['date'] > month_end_str:
+                break
+                
+            if event['type'] == 'tx':
+                tx = event['data']
+                sid = tx['stock_id']
+                if sid not in portfolio: portfolio[sid] = {'shares': 0, 'total_cost': 0}
+                
+                if tx['type'] == 'buy':
+                    portfolio[sid]['shares'] += tx['shares']
+                    portfolio[sid]['total_cost'] += tx['shares'] * tx['price']
+                else:
+                    # Sell logic
+                    if portfolio[sid]['shares'] > 0:
+                        # Calculate cost of shares sold (FIFO/Avg)
+                        avg_cost = portfolio[sid]['total_cost'] / portfolio[sid]['shares']
+                        cost_of_shares_sold = tx['shares'] * avg_cost
+                        
+                        # Update realized P/L
+                        # Proceeds = shares * price
+                        # P/L = Proceeds - Cost Basis
+                        proceeds = tx['shares'] * tx['price']
+                        pl = proceeds - cost_of_shares_sold
+                        cumulative_realized_pl += pl
+                        
+                        # Update portfolio state
+                        portfolio[sid]['shares'] -= tx['shares']
+                        portfolio[sid]['total_cost'] -= cost_of_shares_sold
+                        
+                        # Safety clamp
+                        if portfolio[sid]['shares'] <= 0:
+                            portfolio[sid]['shares'] = 0
+                            portfolio[sid]['total_cost'] = 0
+
+            elif event['type'] == 'div':
+                # Dividend logic
+                div = event['data']
+                cumulative_dividends += div['total_cash']
             
-    while current <= end_date:
-        month_key = current.strftime("%Y-%m")
-        if month_key in monthly_data:
-            # If we have data for this month, use it
-            result.append(monthly_data[month_key])
-            prev_cost = monthly_data[month_key]['cost']
-        else:
-            # Carry forward previous cost
-            result.append({"month": month_key, "cost": prev_cost, "tx_count": 0})
-        current += relativedelta(months=1)
+            event_idx += 1
+            
+        # Calculate Snapshot for this month
+        total_invested = sum(p['total_cost'] for p in portfolio.values())
+        
+        # Calculate Market Value
+        total_value = 0
+        for sid, data in portfolio.items():
+            shares = data['shares']
+            if shares > 0:
+                try:
+                    ph = price_history.get(sid)
+                    if ph is not None and not ph.empty:
+                        idx = ph.index.get_indexer([month_end_date], method='nearest')[0]
+                        if idx != -1:
+                            price = ph.iloc[idx]
+                            if pd.notna(price):
+                                total_value += shares * price
+                            else:
+                                total_value += shares * (data['total_cost']/shares) 
+                        else:
+                             total_value += shares * (data['total_cost']/shares)
+                    else:
+                        total_value += shares * (data['total_cost']/shares)
+                except:
+                     if shares > 0: total_value += data['total_cost']
+
+        monthly_data[month_key] = {
+            "month": month_key,
+            "cost": round(total_invested, 2),
+            "value": round(total_value, 2),
+            "realized": round(cumulative_realized_pl, 2),
+            "dividend": round(cumulative_dividends, 2),
+            "tx_count": event_idx // 2 # Rough estimate
+        }
+        
+        current_iter_date += relativedelta(months=1)
+
+    return list(monthly_data.values())
     
     return result
 

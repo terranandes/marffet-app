@@ -26,8 +26,8 @@
 - [x] [UI] Align setting modal from legacy to Next.js UI
 - [x] [UI] Trend alignment with Legacy UI (Curve Chart)
 - [ ] [UI] Ensure Tab CB is functionally working
-- [ ] [UI] Cash Ladder check
-- [ ] [UI] My Race check
+- [x] [UI] Cash Ladder check
+- [x] [UI] My Race check (Backend verified, CTA added)
 - [ ] [UI] Totally migration to Next.js UI. Remove legacy UI.
 ## 5. Maintenance & workflows
 - [ ] **Full Test Suite (Automated)** - `tests/e2e_suite.py` (Passing locally, verify on generic CI eventually)

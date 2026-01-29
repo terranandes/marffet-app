@@ -6,6 +6,9 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 interface TrendDataPoint {
     month: string;
     cost: number;
+    value: number;
+    realized: number;
+    dividend: number;
 }
 
 interface AssetTarget {
@@ -31,6 +34,12 @@ export default function TrendPage() {
     const [livePrices, setLivePrices] = useState<LivePrices>({});
     const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Chart visibility toggles
+    const [showCost, setShowCost] = useState(true);
+    const [showValue, setShowValue] = useState(true);
+    const [showRealized, setShowRealized] = useState(false);
+    const [showDividend, setShowDividend] = useState(false);
 
     // Using relative path for API
     const API_BASE = "";
@@ -139,17 +148,50 @@ export default function TrendPage() {
             ) : (
                 <>
                     {/* Curve Chart Section */}
-                    <div className="glass-card rounded-xl p-6 h-[400px]">
-                        <h3 className="text-lg font-bold text-white mb-4">
-                            💰 Net Investment Over Time
-                        </h3>
-                        <div className="w-full h-[320px]">
+                    <div className="glass-card rounded-xl p-6">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                            <h3 className="text-lg font-bold text-white">
+                                📊 Portfolio Metrics Over Time
+                            </h3>
+                            {/* Toggle Controls */}
+                            <div className="flex flex-wrap gap-3 text-xs">
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={showCost} onChange={() => setShowCost(!showCost)} className="accent-orange-400" />
+                                    <span className="text-orange-400">💰 Cost Basis</span>
+                                </label>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={showValue} onChange={() => setShowValue(!showValue)} className="accent-cyan-400" />
+                                    <span className="text-cyan-400">📈 Market Value</span>
+                                </label>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={showRealized} onChange={() => setShowRealized(!showRealized)} className="accent-green-400" />
+                                    <span className="text-green-400">💵 Realized P/L</span>
+                                </label>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={showDividend} onChange={() => setShowDividend(!showDividend)} className="accent-purple-400" />
+                                    <span className="text-purple-400">🎁 Dividends</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="w-full h-[350px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={trendData}>
                                     <defs>
                                         <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="var(--color-cta)" stopOpacity={0.4} />
-                                            <stop offset="95%" stopColor="var(--color-cta)" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorRealized" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorDividend" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#c084fc" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#c084fc" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.3} />
@@ -167,20 +209,66 @@ export default function TrendPage() {
                                         tickFormatter={(val) => `$${val / 1000}k`}
                                     />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
-                                        itemStyle={{ color: 'var(--color-cta)' }}
-                                        formatter={(value: any) => [`$${formatCurrency(Number(value))}`, 'Net Investment']}
+                                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
+                                        formatter={(value: any, name?: string) => {
+                                            const labels: Record<string, string> = {
+                                                cost: '💰 Cost Basis',
+                                                value: '📈 Market Value',
+                                                realized: '💵 Realized P/L',
+                                                dividend: '🎁 Dividends'
+                                            };
+                                            return [`$${formatCurrency(Number(value))}`, labels[name || ''] || name || 'Unknown'];
+                                        }}
                                         labelStyle={{ color: 'var(--color-text-muted)' }}
                                     />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="cost"
-                                        stroke="var(--color-cta)"
-                                        strokeWidth={2}
-                                        fillOpacity={1}
-                                        fill="url(#colorCost)"
-                                        animationDuration={1500}
-                                    />
+                                    {showCost && (
+                                        <Area
+                                            type="monotone"
+                                            dataKey="cost"
+                                            name="cost"
+                                            stroke="#f97316"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorCost)"
+                                            animationDuration={1500}
+                                        />
+                                    )}
+                                    {showValue && (
+                                        <Area
+                                            type="monotone"
+                                            dataKey="value"
+                                            name="value"
+                                            stroke="#22d3ee"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorValue)"
+                                            animationDuration={1500}
+                                        />
+                                    )}
+                                    {showRealized && (
+                                        <Area
+                                            type="monotone"
+                                            dataKey="realized"
+                                            name="realized"
+                                            stroke="#4ade80"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorRealized)"
+                                            animationDuration={1500}
+                                        />
+                                    )}
+                                    {showDividend && (
+                                        <Area
+                                            type="monotone"
+                                            dataKey="dividend"
+                                            name="dividend"
+                                            stroke="#c084fc"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorDividend)"
+                                            animationDuration={1500}
+                                        />
+                                    )}
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>

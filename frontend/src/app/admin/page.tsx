@@ -347,6 +347,26 @@ export default function AdminPage() {
                             >
                                 🔥 Rebuild All (Cold Run)
                             </button>
+
+                            <button
+                                onClick={async () => {
+                                    if (!confirm("Sync dividend cache for ALL stocks held by ALL users?\nThis may take a few minutes.")) return;
+                                    try {
+                                        const res = await fetch('/api/sync/all-users-dividends', { method: 'POST', credentials: 'include' });
+                                        const data = await res.json();
+                                        if (res.ok) {
+                                            alert(`✅ ${data.message}\nTotal Records: ${data.total_records}`);
+                                        } else {
+                                            alert(`❌ ${data.detail || 'Sync failed'}`);
+                                        }
+                                    } catch {
+                                        alert('❌ Network error during sync');
+                                    }
+                                }}
+                                className="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                💰 Sync All Dividends (Admin)
+                            </button>
                         </div>
                     </div>
 

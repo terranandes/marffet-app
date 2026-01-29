@@ -129,12 +129,29 @@ export default function TrendPage() {
                         Net investment curve aligned with your transaction history
                     </p>
                 </div>
-                <button
-                    onClick={fetchTrendData}
-                    className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
-                >
-                    🔄 Refresh
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('/api/sync/my-dividends', { method: 'POST', credentials: 'include' });
+                                const data = await res.json();
+                                alert(data.message || 'Sync complete!');
+                                fetchTrendData(); // Refresh after sync
+                            } catch (e) {
+                                alert('Sync failed');
+                            }
+                        }}
+                        className="bg-purple-500/20 border border-purple-500 text-purple-400 px-4 py-2 rounded hover:bg-purple-500 hover:text-white transition font-bold text-sm cursor-pointer"
+                    >
+                        🔄 Sync Dividends
+                    </button>
+                    <button
+                        onClick={fetchTrendData}
+                        className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
+                    >
+                        🔄 Refresh
+                    </button>
+                </div>
             </div>
 
             {loading ? (

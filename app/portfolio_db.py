@@ -1687,7 +1687,14 @@ def get_leaderboard(limit: int = 50) -> list:
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, nickname, picture, total_roi, total_wealth, last_synced
+            SELECT 
+                id, 
+                nickname, 
+                picture as avatar, 
+                total_roi as roi, 
+                total_wealth as market_value, 
+                total_cost,
+                last_synced
             FROM users
             WHERE total_cost > 1000  -- Minimum invested capital to qualify
             AND total_roi IS NOT NULL

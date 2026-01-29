@@ -169,7 +169,7 @@ export default function TrendPage() {
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
                                         itemStyle={{ color: 'var(--color-cta)' }}
-                                        formatter={(value: number) => [`$${formatCurrency(value)}`, 'Net Investment']}
+                                        formatter={(value: any) => [`$${formatCurrency(Number(value))}`, 'Net Investment']}
                                         labelStyle={{ color: 'var(--color-text-muted)' }}
                                     />
                                     <Area

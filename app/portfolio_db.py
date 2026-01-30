@@ -1398,23 +1398,45 @@ def update_price_cache(stock_id: str):
         if count > 0:
             return
 
+    # Return the valid stock_id (possibly with new suffix) or None
     try:
         import yfinance as yf
         import pandas as pd
         
-        # Fetch Max History (Monthly)
-        ticker = yf.Ticker(stock_id)
-        hist = ticker.history(period="max", interval="1mo")
+        # Helper to fetch
+        def try_fetch(sid):
+            t = yf.Ticker(sid)
+            h = t.history(period="max", interval="1mo")
+            return h
+
+        hist = try_fetch(stock_id)
+        
+        # If empty, try alternate suffixes for TW/TWO
+        final_id = stock_id
+        if hist.empty:
+            alt_id = None
+            if stock_id.endswith('.TW'):
+                alt_id = stock_id.replace('.TW', '.TWO')
+            elif stock_id.endswith('.TWO'):
+                 alt_id = stock_id.replace('.TWO', '.TW')
+            
+            if alt_id:
+                print(f"[Race Cache] {stock_id} empty. Trying alternate: {alt_id}")
+                hist_alt = try_fetch(alt_id)
+                if not hist_alt.empty:
+                    hist = hist_alt
+                    final_id = alt_id
         
         if hist.empty:
-            return
+            print(f"[Race Cache] No data found for {stock_id} (or alternates)")
+            return None
 
         data_to_insert = []
         for date, row in hist.iterrows():
             month_str = date.strftime('%Y-%m')
             close = row['Close']
             if pd.notna(close):
-                data_to_insert.append((stock_id, month_str, float(close)))
+                data_to_insert.append((final_id, month_str, float(close)))
 
         with get_db() as conn:
             cursor = conn.cursor()
@@ -1424,8 +1446,11 @@ def update_price_cache(stock_id: str):
             """, data_to_insert)
             conn.commit()
             
+        return final_id
+            
     except Exception as e:
         print(f"[Race Cache] Error updating {stock_id}: {e}")
+        return None
 
 
 def get_portfolio_race_data(user_id: str = "default") -> list:
@@ -1446,12 +1471,27 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
         # If standard TW stock (4 digits), append .TW for yfinance if not present?
         # User input might vary. Let's try as-is first.
         sid = target['stock_id']
-        if target.get('asset_type') in ['stock', 'etf', 'cb'] and sid.isdigit() and len(sid) == 4:
-             sid = f"{sid}.TW" # Default to TW if 4 digits
         
+        # Smart Suffix Logic for TWSE/TPEx (Stocks, ETFs, CBs)
+        if target.get('asset_type') in ['stock', 'etf', 'cb']:
+            # Skip if already has suffix
+            if sid.endswith('.TW') or sid.endswith('.TWO'):
+                pass
+            # 4-digit stocks (e.g. 2330)
+            elif sid.isdigit() and len(sid) == 4:
+                sid = f"{sid}.TW"
+            # 5-6 char ETFs/Stocks (e.g. 0050, 00937B)
+            # Heuristic: Starts with digit, length >= 4
+            elif len(sid) >= 4 and sid[0].isdigit():
+                sid = f"{sid}.TW"
+        
+        # Try to update cache (handles suffix swaps e.g. .TW -> .TWO)
+        valid_sid = update_price_cache(sid)
+        if valid_sid:
+            sid = valid_sid
+            
         # Store the YF-compatible ID in target for lookup
         target['_yf_id'] = sid
-        update_price_cache(sid)
 
     # 2. Get Transaction History
     with get_db() as conn:

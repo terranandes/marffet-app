@@ -836,7 +836,30 @@ def fetch_live_prices(stock_ids: list) -> dict:
     import yfinance as yf
     
     prices = {}
+    
+    # Pre-check Negative Cache to avoid DoS loop on invalid IDs
+    # (e.g. 65331 -> Timeout -> Crash)
+    invalid_ids = set()
+    with get_db() as conn:
+        placeholders = ','.join(['?'] * len(stock_ids))
+        # Check if any of these IDs are marked as ERROR in cache
+        # Note: stock_id in DB is singular, but we might have cached alternates.
+        # But 'ERROR' is cached against the REQUESTED stock_id in update_price_cache logic.
+        try:
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT stock_id FROM race_cache WHERE stock_id IN ({placeholders}) AND month='ERROR'", stock_ids)
+            rows = cursor.fetchall()
+            for r in rows:
+                invalid_ids.add(r[0])
+        except Exception as e:
+            print(f"[Live Price] Cache Check Error: {e}")
+
     for sid in stock_ids:
+        if sid in invalid_ids:
+            # Fast fail for known invalid IDs
+            prices[sid] = {"price": 0, "change": 0, "change_pct": 0, "error": "Invalid ID (Cached)"}
+            continue
+
         try:
             # Taiwan stocks have .TW or .TWO suffix
             ticker = f"{sid}.TW"

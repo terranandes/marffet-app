@@ -1785,9 +1785,13 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
         
     # Batch Update
     # mapping returns {input_id: valid_yf_id}
-    # If input_id failed completely, it might map to itself (if we marked ERROR) or not be in dict?
-    # Our ensure_price_cache_batch implementation returns {unique_input_ids: valid_id_or_input}
-    id_mapping = ensure_price_cache_batch(raw_ids)
+    import traceback
+    try:
+        id_mapping = ensure_price_cache_batch(raw_ids)
+    except Exception as e:
+        print(f"[Race] Batch Cache Error: {e}")
+        traceback.print_exc()
+        id_mapping = {rid: rid for rid in raw_ids} # Fallback
     
     # Assign valid IDs back to targets
     for input_id, valid_id in id_mapping.items():
@@ -1825,7 +1829,8 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
              
              try:
                  # Generate continuous range - Quarter End (Mar, Jun, Sep, Dec)
-                 months = pd.date_range(start=min_date, end=max_date, freq='QE').strftime('%Y-%m').tolist()
+                 # Changed 'QE' to '3ME' for broader compatibility
+                 months = pd.date_range(start=min_date, end=max_date, freq='3ME').strftime('%Y-%m').tolist()
                  
                  # ALWAYS ensure the current month/today is included as the final frame
                  current_month = datetime.now().strftime('%Y-%m')
@@ -1848,6 +1853,7 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
             
     # 3. Build Race Data
     race_data = []
+
     
     # We need to fill gaps in prices. If a month is missing, use previous month's price.
     # Pre-process prices per stock

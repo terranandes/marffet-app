@@ -1385,20 +1385,32 @@ def update_price_cache(stock_id: str):
     """
     Fetch monthly historical data for a stock and update cache.
     Optimized to only fetch if no data exists.
+    Returns the ACTUAL stock_id used in cache (e.g. '00937B.TWO') or None if failed.
     """
     with get_db() as conn:
         cursor = conn.cursor()
-        # Check if we have any data
-        cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (stock_id,))
-        count = cursor.fetchone()[0]
         
-        # Simple policy: If we have data, we assume it's good enough for demo. 
-        # For production, we should check max(month) and update if stale.
-        # But grabbing MAX history is fast enough for 1 call.
-        if count > 0:
-            return
+        # 1. Check Exact Match
+        cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (stock_id,))
+        if cursor.fetchone()[0] > 0:
+            return stock_id
 
-    # Return the valid stock_id (possibly with new suffix) or None
+        # 2. Check Alternates in DB (Prevent re-fetching if we already found the right suffix)
+        alternates = []
+        if stock_id.endswith('.TW'): alternates.append(stock_id.replace('.TW', '.TWO'))
+        elif stock_id.endswith('.TWO'): alternates.append(stock_id.replace('.TWO', '.TW'))
+        else:
+            # If no suffix, check .TW and .TWO
+            alternates.append(f"{stock_id}.TW")
+            alternates.append(f"{stock_id}.TWO")
+            
+        for alt in alternates:
+            cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (alt,))
+            if cursor.fetchone()[0] > 0:
+                print(f"[Race Cache] Found alternate in DB: {alt}")
+                return alt
+
+    # 3. Fetch from YFinance (if not in DB)
     try:
         import yfinance as yf
         import pandas as pd
@@ -1431,6 +1443,7 @@ def update_price_cache(stock_id: str):
             print(f"[Race Cache] No data found for {stock_id} (or alternates)")
             return None
 
+        # Insert Data
         data_to_insert = []
         for date, row in hist.iterrows():
             month_str = date.strftime('%Y-%m')
@@ -1446,6 +1459,7 @@ def update_price_cache(stock_id: str):
             """, data_to_insert)
             conn.commit()
             
+        print(f"[Race Cache] Updated {final_id} ({len(data_to_insert)} rows)")
         return final_id
             
     except Exception as e:

@@ -116,7 +116,11 @@ async def api_portfolio_race_data(user: dict = Depends(get_current_user)):
     
     # Import locally to avoid circular import if needed, assuming it's available in portfolio_db
     from app.portfolio_db import get_portfolio_race_data
-    return get_portfolio_race_data(user['id'])
+    from fastapi.concurrency import run_in_threadpool
+    
+    # CRITICAL: get_portfolio_race_data is blocking (DB+Network). 
+    # Must run in threadpool to avoid blocking Async Event Loop!
+    return await run_in_threadpool(get_portfolio_race_data, user['id'])
 
 
 @router.get("/by-type")

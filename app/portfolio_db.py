@@ -1390,23 +1390,30 @@ def update_price_cache(stock_id: str):
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # 1. Check Exact Match
-        cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (stock_id,))
-        if cursor.fetchone()[0] > 0:
+        # 1. Check Exact Match (Valid Data or Error Marker)
+        cursor.execute("SELECT month FROM race_cache WHERE stock_id = ? LIMIT 1", (stock_id,))
+        row = cursor.fetchone()
+        if row:
+            if row[0] == 'ERROR':
+                return None # Negative Cache Hit
             return stock_id
 
-        # 2. Check Alternates in DB (Prevent re-fetching if we already found the right suffix)
+        # 2. Check Alternates in DB
         alternates = []
         if stock_id.endswith('.TW'): alternates.append(stock_id.replace('.TW', '.TWO'))
         elif stock_id.endswith('.TWO'): alternates.append(stock_id.replace('.TWO', '.TW'))
         else:
-            # If no suffix, check .TW and .TWO
             alternates.append(f"{stock_id}.TW")
             alternates.append(f"{stock_id}.TWO")
             
         for alt in alternates:
-            cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (alt,))
-            if cursor.fetchone()[0] > 0:
+            cursor.execute("SELECT month FROM race_cache WHERE stock_id = ? LIMIT 1", (alt,))
+            row = cursor.fetchone()
+            if row:
+                if row[0] == 'ERROR':
+                     # If alternate is error, keep searching or fail? 
+                     # If we found an error record for an alternate, it implies we tried that alternate and it failed.
+                     continue 
                 print(f"[Race Cache] Found alternate in DB: {alt}")
                 return alt
 
@@ -1417,9 +1424,13 @@ def update_price_cache(stock_id: str):
         
         # Helper to fetch
         def try_fetch(sid):
-            t = yf.Ticker(sid)
-            h = t.history(period="max", interval="1mo")
-            return h
+            try:
+                t = yf.Ticker(sid)
+                h = t.history(period="max", interval="1mo")
+                return h
+            except Exception as e:
+                print(f"[Race Cache] YF Fetch Error for {sid}: {e}")
+                return pd.DataFrame()
 
         hist = try_fetch(stock_id)
         
@@ -1440,7 +1451,10 @@ def update_price_cache(stock_id: str):
                     final_id = alt_id
         
         if hist.empty:
-            print(f"[Race Cache] No data found for {stock_id} (or alternates)")
+            print(f"[Race Cache] No data found for {stock_id} (or alternates). CACHING FAILURE.")
+            with get_db() as conn:
+                conn.execute("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", (stock_id,))
+                conn.commit()
             return None
 
         # Insert Data
@@ -1464,6 +1478,13 @@ def update_price_cache(stock_id: str):
             
     except Exception as e:
         print(f"[Race Cache] Error updating {stock_id}: {e}")
+        # Logic Error? Don't cache failure if it's a code crash?
+        # Safe to cache 'ERROR' to prevent DoS loop? Yes.
+        try:
+            with get_db() as conn:
+                conn.execute("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", (stock_id,))
+                conn.commit()
+        except: pass
         return None
 
 

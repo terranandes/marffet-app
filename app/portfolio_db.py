@@ -1586,6 +1586,7 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
     # --- BATCH FETCH ---
     import yfinance as yf
     import pandas as pd
+    import gc
     
     # We will process `real_missing` in 2 rounds.
     # Round 1: Try .TW (or default)
@@ -1605,7 +1606,8 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
     if tickers1:
         print(f"[Race Batch] Fetching Round 1 (.TW preferred): {len(tickers1)} tickers")
         try:
-            data1 = yf.download(tickers1, period="max", interval="1mo", progress=False)['Close']
+            # HOTFIX 5: Optimize Memory. Disable threads, limit history to 10y (enough for race).
+            data1 = yf.download(tickers1, period="10y", interval="1mo", progress=False, threads=False)['Close']
             
             # Process Results
             # If single ticker, result is Series
@@ -1638,24 +1640,17 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
                     conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, ?, ?)", to_insert)
                     conn.commit()
             
+            # Cleanup Memory Immediately
+            del data1
+            del to_insert
+            gc.collect()
+            
             # Identify Failures (Leftovers)
-            # Failures = original IDs that didn't get a valid mapping update (still equal to default or missing from data)
-            # Wait, `mapping` was initialized to `sid`. If we updated it to `col_ticker` (with suffix), it's success.
-            # If `col_ticker` was same as `sid` (already had suffix), it's success.
-            # Better check: Did we extract data?
-            
-            success_tickers = set(data1.columns[data1.notna().any()])
-            # Add partial success?
-            
-            # Leftovers for Round 2 are `real_missing` items that didn't get found
-            # But wait, `batch1_map` keys match `data1` columns? usually.
+            # Strategy: If `original_id` is NOT in `mapping`, it failed Round 1.
             
             leftovers = []
             for ticker, orig in batch1_map.items():
-                if ticker not in success_tickers and ticker not in data1.columns:
-                     # YF didn't return column -> Invalid?
-                     leftovers.append(orig)
-                elif ticker in data1.columns and data1[ticker].dropna().empty:
+                if orig not in mapping:
                      leftovers.append(orig)
                      
         except Exception as e:
@@ -1675,7 +1670,8 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
             print(f"[Race Batch] Fetching Round 2 (.TWO): {len(tickers2)} tickers")
             
             try:
-                data2 = yf.download(tickers2, period="max", interval="1mo", progress=False)['Close']
+                # HOTFIX 5: Optimize Memory
+                data2 = yf.download(tickers2, period="10y", interval="1mo", progress=False, threads=False)['Close']
                 if len(tickers2) == 1 and isinstance(data2, pd.Series):
                     data2 = data2.to_frame(name=tickers2[0])
                     

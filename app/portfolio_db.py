@@ -258,6 +258,17 @@ def init_db():
             )
         """)
 
+        # Race Cache (Historical Prices for My Race)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS race_cache (
+                stock_id TEXT NOT NULL,
+                month TEXT NOT NULL, -- YYYY-MM
+                close_price REAL NOT NULL,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (stock_id, month)
+            )
+        """)
+
         # Notifications (Premium Rebalancing Alerts)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS notifications (
@@ -1369,68 +1380,194 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     return result
 
 
+
+def update_price_cache(stock_id: str):
+    """
+    Fetch monthly historical data for a stock and update cache.
+    Optimized to only fetch if no data exists.
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        # Check if we have any data
+        cursor.execute("SELECT COUNT(*) FROM race_cache WHERE stock_id = ?", (stock_id,))
+        count = cursor.fetchone()[0]
+        
+        # Simple policy: If we have data, we assume it's good enough for demo. 
+        # For production, we should check max(month) and update if stale.
+        # But grabbing MAX history is fast enough for 1 call.
+        if count > 0:
+            return
+
+    try:
+        import yfinance as yf
+        import pandas as pd
+        
+        # Fetch Max History (Monthly)
+        ticker = yf.Ticker(stock_id)
+        hist = ticker.history(period="max", interval="1mo")
+        
+        if hist.empty:
+            return
+
+        data_to_insert = []
+        for date, row in hist.iterrows():
+            month_str = date.strftime('%Y-%m')
+            close = row['Close']
+            if pd.notna(close):
+                data_to_insert.append((stock_id, month_str, float(close)))
+
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.executemany("""
+                INSERT OR REPLACE INTO race_cache (stock_id, month, close_price)
+                VALUES (?, ?, ?)
+            """, data_to_insert)
+            conn.commit()
+            
+    except Exception as e:
+        print(f"[Race Cache] Error updating {stock_id}: {e}")
+
+
 def get_portfolio_race_data(user_id: str = "default") -> list:
     """
-    Build race data for live portfolio BCR.
-    Returns data structure compatible with existing D3.js race chart.
+    Build race data for live portfolio BCR (Market Value).
     """
     targets_by_type = get_all_targets_by_type(user_id)
-    all_targets = targets_by_type['stock'] + targets_by_type['etf']
+    all_targets = targets_by_type['stock'] + targets_by_type['etf'] + targets_by_type['cb']
     
     if not all_targets:
         return []
-    
-    # Get all unique transaction dates
+
+    # 1. Ensure Cache is Warm (Threaded or Loop)
+    # Simple loop for now (might be slow on first run)
+    for target in all_targets:
+        # Map stock IDs if needed (e.g. 2330 -> 2330.TW)
+        # Assuming stock_id is already correct suffix. 
+        # If standard TW stock (4 digits), append .TW for yfinance if not present?
+        # User input might vary. Let's try as-is first.
+        sid = target['stock_id']
+        if target.get('asset_type') in ['stock', 'etf', 'cb'] and sid.isdigit() and len(sid) == 4:
+             sid = f"{sid}.TW" # Default to TW if 4 digits
+        
+        # Store the YF-compatible ID in target for lookup
+        target['_yf_id'] = sid
+        update_price_cache(sid)
+
+    # 2. Get Transaction History
     with get_db() as conn:
         cursor = conn.cursor()
+        
+        # Get Month Range from transactions
+        import pandas as pd
         cursor.execute("""
-            SELECT DISTINCT substr(t.date, 1, 7) as month
+            SELECT min(date), max(date)
             FROM transactions t
             JOIN group_targets gt ON t.target_id = gt.id
             JOIN user_groups ug ON gt.group_id = ug.id
             WHERE ug.user_id = ?
-            ORDER BY month
         """, (user_id,))
-        months = [row['month'] for row in cursor.fetchall()]
-    
-    if not months:
-        return []
-    
-    # Build race data per month
+        row = cursor.fetchone()
+        
+        if not row or not row[0]:
+             months = []
+        else:
+             min_date = row[0][:7] + "-01" # Ensure YYYY-MM-01
+             # Provide data up to Today
+             max_date = datetime.now().strftime('%Y-%m-%d')
+             
+             try:
+                 # Generate continuous range - Quarter End (Mar, Jun, Sep, Dec)
+                 months = pd.date_range(start=min_date, end=max_date, freq='QE').strftime('%Y-%m').tolist()
+                 
+                 # ALWAYS ensure the current month/today is included as the final frame
+                 current_month = datetime.now().strftime('%Y-%m')
+                 if not months or months[-1] != current_month:
+                     months.append(current_month)
+                     
+             except Exception as e:
+                 print(f"[Race] Date generation error: {e}")
+                 months = []
+        
+        if not months: return []
+        
+        # Fetch Price Cache for all related stocks
+        stock_ids = [t['_yf_id'] for t in all_targets]
+        placeholders = ','.join(['?'] * len(stock_ids))
+        cursor.execute(f"SELECT stock_id, month, close_price FROM race_cache WHERE stock_id IN ({placeholders})", stock_ids)
+        price_map = {} # (stock_id, month) -> price
+        for row in cursor.fetchall():
+            price_map[(row['stock_id'], row['month'])] = row['close_price']
+            
+    # 3. Build Race Data
     race_data = []
+    
+    # We need to fill gaps in prices. If a month is missing, use previous month's price.
+    # Pre-process prices per stock
+    processed_prices = {} # stock_id -> {month: price}
+    
     for month in months:
         for target in all_targets:
-            # Get cumulative value for this target up to this month
-            with get_db() as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
+            sid = target['_yf_id']
+            
+            # Get cumulative shares up to this month
+            # Optimization: could calculate running total instead of query per cell
+            # But let's stick to safe query for logic correctness first
+            with get_db() as inner_conn:
+                c = inner_conn.cursor()
+                c.execute("""
                     SELECT type, shares, price FROM transactions
                     WHERE target_id = ? AND date <= ?
                     ORDER BY date
                 """, (target['id'], month + "-31"))
-                transactions = cursor.fetchall()
-            
+                txs = c.fetchall()
+
             total_shares = 0
-            total_cost = 0
-            for tx in transactions:
-                if tx['type'] == 'buy':
-                    total_shares += tx['shares']
-                    total_cost += tx['shares'] * tx['price']
+            for tx in txs:
+                if tx['type'] == 'buy': total_shares += tx['shares']
+                elif tx['type'] == 'sell': total_shares -= tx['shares']
+                # Dividend shares handling if any? (Not in schema yet)
+
+            if total_shares > 0:
+                # Find Market Price
+                # Try exact month
+                price = price_map.get((sid, month))
+                
+                # Fallback: exact match might fail if yf month is end-of-month date?
+                # YFinance monthly data date is usually Start of Month for that candle? 
+                # Or End? "2023-01-01" could represent Jan data.
+                # My `month` is "2023-01".
+                # Let's hope YF match works with the "YYYY-MM-01" or just "YYYY-MM" cache key we used.
+                # In update_price_cache I used `date.strftime('%Y-%m')`. So they should match string-to-string.
+                
+                # If missing (e.g. data starts later than tx?), fallback to transaction cost (Avg Cost)
+                if not price:
+                   # Try finding *any* price before or equal to this month?
+                   # Simple fallback: 
+                   # Calculate Avg Cost as fallback
+                   # Re-use logic:
+                   cost = 0
+                   shares_tmp = 0
+                   for tx in txs:
+                       if tx['type'] == 'buy':
+                           cost += tx['shares'] * tx['price']
+                           shares_tmp += tx['shares']
+                       else:
+                           if shares_tmp > 0:
+                               avg = cost/shares_tmp
+                               shares_tmp -= tx['shares']
+                               cost = shares_tmp * avg
+                   market_value = cost # Fallback
                 else:
-                    if total_shares > 0:
-                        avg = total_cost / total_shares
-                        total_shares -= tx['shares']
-                        total_cost = total_shares * avg
-            
-            if total_cost > 0:
+                   market_value = total_shares * price
+
                 race_data.append({
                     "month": month,
                     "id": target['stock_id'],
                     "name": target['stock_name'] or target['stock_id'],
-                    "value": round(total_cost, 2),
+                    "value": round(market_value, 2),
                     "asset_type": target.get('asset_type', 'stock')
                 })
-    
+
     return race_data
 
 

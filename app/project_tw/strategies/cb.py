@@ -158,8 +158,10 @@ class CBStrategy:
             
             # 3. Fetch Market Data
             cb_price, st_price, success = await self.crawler.get_market_data(cb_code, stock)
+            print(f"[CB STRATEGY DEBUG] {cb_code}: Price={cb_price}, Stock={st_price}, Success={success}")
             
             if not success or cb_price == 0 or st_price == 0:
+                 print(f"[CB STRATEGY DEBUG] Dropping {cb_code} due to missing data")
                  continue
                  
             # 4. Determine Conversion Price (Repetitive logic - could be refactored)

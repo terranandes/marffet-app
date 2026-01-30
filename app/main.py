@@ -950,12 +950,16 @@ async def analyze_cb(code: str):
         return {"error": str(e)}
 
 @app.get("/api/cb/portfolio")
-async def analyze_portfolio_cb():
+async def analyze_portfolio_cb(user: dict = Depends(get_current_user)):
     """Analyze all CBs in user's portfolio"""
     try:
-        # 1. Get all CB targets from portfolio (user_id="default")
-        portfolio_data = get_all_targets_by_type()
+        # 1. Get all CB targets from portfolio
+        user_id = user['id'] if user else "default"
+        print(f"[CB DEBUG] Analyzing for User: {user_id}")
+        
+        portfolio_data = get_all_targets_by_type(user_id)
         cb_targets = portfolio_data.get("cb", [])
+        print(f"[CB DEBUG] Found CB Targets: {len(cb_targets)} -> {[t['stock_id'] for t in cb_targets]}")
         
         if not cb_targets:
             return []

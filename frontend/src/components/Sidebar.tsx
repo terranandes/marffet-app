@@ -294,6 +294,17 @@ export default function Sidebar() {
                                 </svg>
                             }
                         />
+                        {/* My Race */}
+                        <SidebarItem
+                            href="/myrace"
+                            label="My Race"
+                            icon={
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 6v6l4 2" />
+                                </svg>
+                            }
+                        />
                         {/* Cash Ladder */}
                         <SidebarItem
                             href="/ladder"
@@ -305,17 +316,6 @@ export default function Sidebar() {
                                     <path d="M6 8h12" />
                                     <path d="M6 12h12" />
                                     <path d="M6 16h12" />
-                                </svg>
-                            }
-                        />
-                        {/* My Race */}
-                        <SidebarItem
-                            href="/myrace"
-                            label="My Race"
-                            icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 6v6l4 2" />
                                 </svg>
                             }
                         />

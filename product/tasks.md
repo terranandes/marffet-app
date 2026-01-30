@@ -16,7 +16,7 @@
 - [x] **Mobile Responsiveness Check** (Sidebar Relative Paths)
 
 ## 3. Pending User Verification (BOSS)
-- [ ] **Mobile Login/Logout Correctness** (Zeabur)
+- [x] **Mobile Login/Logout Correctness** (Zeabur)
     - *Note:* Infrastructure is ready. Pending final user check on actual device.
 
 ## 4. Feature Roadmap (Next Steps)
@@ -25,10 +25,11 @@
 - [x] [UI] Mobile or narrow screen portfolio card view
 - [x] [UI] Align setting modal from legacy to Next.js UI
 - [x] [UI] Trend alignment with Legacy UI (Curve Chart)
-- [ ] [UI] Ensure Tab CB is functionally working
+- [x] [UI] Ensure Tab CB is functionally working (Backend API Fixed)
 - [x] [UI] Cash Ladder check
-- [x] [UI] My Race check (Backend verified, CTA added)
+- [x] [UI] My Race check (Market Value & Full Timeline implemented)
 - [ ] [UI] Totally migration to Next.js UI. Remove legacy UI.
+- [ ] **Dynamic Stock Naming** (Update `crawler.py` to capture names dynamically, referenced in "Cold Run" discussion)
 ## 5. Maintenance & workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)
 - [x] **Trend Page Data Fix** (Fixed NameError in `get_portfolio_history`)

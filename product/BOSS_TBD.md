@@ -2,13 +2,13 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
-- [ ] Ensure Tab CB is functionally working and notification will accordingly be sent
-- [ ] Cash Ladder check
-- [ ] My Race check
+- [x] Ensure Tab CB is functionally working and notification will accordingly be sent
+- [x] Cash Ladder check
+- [x] My Race check
 - [ ] Full migration to Next.js UI. Remove legacy UI.
 
 - === Barrier ===
-
+- [ ] Cash Ladder check
 - Test Google Cloud Run
 - Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
 - Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?

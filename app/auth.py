@@ -354,3 +354,5 @@ async def guest_login(request: Request):
     }
     print("[AUTH] Guest mode activated")
     return {"status": "ok", "message": "Guest mode activated"}
+
+

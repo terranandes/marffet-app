@@ -107,3 +107,20 @@ async def api_target_dividends(target_id: str, user: dict = Depends(get_current_
     """Get dividend history for a specific target."""
     if not user: raise HTTPException(status_code=401)
     return get_dividend_history(target_id)
+
+
+@router.get("/race-data")
+async def api_portfolio_race_data(user: dict = Depends(get_current_user)):
+    """Get Race Bar Chart data for user portfolio."""
+    if not user: return []
+    
+    # Import locally to avoid circular import if needed, assuming it's available in portfolio_db
+    from app.portfolio_db import get_portfolio_race_data
+    return get_portfolio_race_data(user['id'])
+
+
+@router.get("/by-type")
+async def api_portfolio_by_type(user: dict = Depends(get_current_user)):
+    """Get all targets grouped by type (stock, etf, cb)."""
+    if not user: return {"stock": [], "etf": [], "cb": []}
+    return get_all_targets_by_type(user['id'])

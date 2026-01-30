@@ -1,76 +1,77 @@
-from playwright.sync_api import sync_playwright
-import time
 
-def run():
-    with sync_playwright() as p:
-        print("🚀 Launching Chromium...")
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1280, "height": 720})
-        page = context.new_page()
+import asyncio
+from playwright.async_api import async_playwright
 
-        print("🌐 Navigating to Home Page...")
-        page.goto("http://localhost:8000")
-        time.sleep(2) # Wait for Vue hydration
+async def run():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(ignore_https_errors=True)
+        page = await context.new_page()
+
+        print("Navigating to Login (Dev Mode)...")
+        # Use the dev_login endpoint to set session cookie
+        await page.goto("http://localhost:3000/auth/dev/login")
         
-        # Verify Title/Content
-        title = page.title()
-        print(f"📄 Page Title: {title}")
+        # Wait for Portfolio to load (look for "Portfolio" in the sidebar or main area)
+        # The new UI shows "Mars Strategy System" on home, but sidebar has "Portfolio"
+        print("Waiting for Dashboard...")
+        await page.wait_for_selector("text=Mars Strategy System", timeout=10000)
         
-        # Take Home Screenshot
-        page.screenshot(path="verification_home.png")
-        print("📸 Screenshot saved: verification_home.png")
-
-        # Click Leaderboard Tab
-        print("👆 Clicking Leaderboard Tab...")
-        # Assuming the tab has text "Leaderboard" or specific class. 
-        # Based on index.html: <button ... @click="activeTab = 'leaderboard'">
-        page.get_by_text("Leaderboard").click()
-        time.sleep(1)
+        # Debug Cookies
+        cookies = await context.cookies()
+        print(f"DEBUG: Cookies after login: {cookies}")
         
-        # Take Leaderboard Screenshot
-        page.screenshot(path="verification_leaderboard.png")
-        print("📸 Screenshot saved: verification_leaderboard.png")
+        print("✅ Login Successful (Admin Session Set).")
+        await page.screenshot(path="tests/screenshots/login_success.png")
 
-        # Find a Profile Link (any row in leaderboard)
-        # Detailed selector based on previous edits: .leaderboard-row or similar
-        print("🔍 Searching for a profile to click...")
-        # Try to click the first user in the list (rank #1 usually)
-        # The list items call openProfile(user.id)
-        # We look for a clickable element inside the leaderboard list
-        try:
-            # Try specific text or class if known. 
-            # Or just click a random high-rank user if they have a name.
-            # Let's target the "podium" or "list". 
-            # Click the second item (Rank 2) since Rank 1 might be special
-            # page.locator(".leaderboard-item").first.click() 
-            # Wait, let's just dump the html if needed, but 'get_by_role' might work.
-            # Let's try to click on the text "Guest" or "User" if visible, or a generic selector.
+        # 2. Check Trend Page
+        print("Checking Trend Page...")
+        await page.click("text=Trend")
+        await page.wait_for_timeout(2000) # Wait for chart
+        trend_content = await page.content()
+        if "No Transaction History" not in trend_content:
+            print("✅ Trend Page Loaded Data.")
+        else:
+            print("❌ Trend Page Empty.")
+        await page.screenshot(path="tests/screenshots/trend_page.png")
+
+        # 3. Check AI Copilot
+        print("Checking AI Copilot...")
+        # Reload to ensure context is injected
+        await page.reload()
+        await page.wait_for_timeout(2000)
+        
+        # Click FAB
+        fab = page.locator("button[title='Open AI Copilot']")
+        if await fab.count() > 0:
+            await fab.click()
+            await page.wait_for_timeout(1000)
             
-            # Using a CSS selector for the list items
-            rows = page.locator("li.p-4.rounded-xl") # Based on common tailwind classes seen, but risky.
-            # Best to use text if possible. Let's assume there's at least one user.
+            # Send Message
+            await page.get_by_placeholder("Ask Mars AI...").fill("Can you see my portfolio?")
+            await page.get_by_role("button", name="➤").click()
             
-            # Alternative: Access the global function directly? No, E2E should use UI.
-            # Let's click the first list item that looks clickable.
-            page.locator(".cursor-pointer").first.click()
+            # Wait for response
+            await page.wait_for_timeout(5000)
+            ai_response = await page.locator(".bg-zinc-700").last.text_content()
+            print(f"AI Response: {ai_response}")
             
-            time.sleep(1)
-            print("👤 Profile Modal Opened (hopefully)")
-            page.screenshot(path="verification_profile.png")
-            print("📸 Screenshot saved: verification_profile.png")
-            
-            # Verify Share Button
-            share_btn = page.get_by_text("Share Public Link")
-            if share_btn.is_visible():
-                print("✅ Share Button Found!")
+            if "DATA VOID" not in ai_response and "portfolio" in ai_response.lower():
+                 print("✅ AI Copilot Context Working.")
             else:
-                print("❌ Share Button NOT Visible")
+                 print("⚠️ AI Copilot Response inconclusive.")
+            await page.screenshot(path="tests/screenshots/ai_chat.png")
+        else:
+            print("❌ AI Copilot FAB not found.")
 
-        except Exception as e:
-            print(f"⚠️ Error interacting with Leaderboard/Profile: {e}")
+        # 4. Check Admin Dashboard
+        print("Checking Admin Dashboard...")
+        await page.goto("http://localhost:3000/admin")
+        await page.wait_for_selector("text=GM Dashboard", timeout=5000)
+        print("✅ Admin Dashboard Loaded.")
+        await page.screenshot(path="tests/screenshots/admin_page.png")
 
-        browser.close()
-        print("✅ Verification Complete")
+        await browser.close()
 
 if __name__ == "__main__":
-    run()
+    asyncio.run(run())

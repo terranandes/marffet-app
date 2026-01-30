@@ -1658,9 +1658,32 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
             leftovers = list(batch1_map.values()) # Assume all failed
             
         # Round 2: Try .TWO for leftovers
-        if leftovers:
+        # Optimization: Don't try .TWO for ETFs (00xxx) as they are TWSE-only usually.
+        # This prevents Timeout/Hang on futile fetches.
+        
+        real_leftovers = []
+        dead_on_arrival = []
+        
+        for sid in leftovers:
+            # ETF Check (Starts with 0 - e.g. 0050, 00937B)
+            # Most 0xxx are ETFs listed on TWSE (.TW). 
+            # If Round 1 (.TW) failed, .TWO is unlikely.
+            # Only Stocks (1xxx-9xxx) might be on TPEx (.TWO).
+            if sid.startswith('0'): 
+                dead_on_arrival.append(sid)
+            else:
+                real_leftovers.append(sid)
+                
+        # Mark dead ones immediately (Skip Round 2)
+        if dead_on_arrival:
+             print(f"[Race Batch] Skipping Round 2 for {len(dead_on_arrival)} ETFs (Marking ERROR): {dead_on_arrival}")
+             with get_db() as conn:
+                 conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", [(fid,) for fid in dead_on_arrival])
+                 conn.commit()
+
+        if real_leftovers:
             batch2_map = {}
-            for sid in leftovers:
+            for sid in real_leftovers:
                 # remove .TW if we added it, swap to .TWO
                 base = sid.replace('.TW', '').replace('.TWO', '')
                 ticker = f"{base}.TWO"

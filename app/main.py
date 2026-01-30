@@ -9,6 +9,8 @@ import pandas as pd
 import asyncio
 import os
 import sys
+import traceback
+import numpy as np
 from pathlib import Path
 
 # Get absolute path to project root (parent of app/)
@@ -349,7 +351,8 @@ async def chat_with_mars(req: ChatRequest):
 
                 client = genai.Client(api_key=api_key)
                 for m in client.models.list():
-                    if hasattr(m, 'supported_generation_methods') and 'generateContent' in m.supported_generation_methods:
+                    methods = getattr(m, 'supported_generation_methods', []) or getattr(m, 'supported_actions', []) or []
+                    if 'generateContent' in methods:
                         available_models.append(m.name)
             except Exception as e:
                 print(f"List models failed: {e}")
@@ -518,6 +521,7 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
 
     except Exception as e:
         print(f"Error in get_race_data: {e}")
+        traceback.print_exc()
         return []
 
 from io import BytesIO

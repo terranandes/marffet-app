@@ -71,23 +71,25 @@ export default function RacePage() {
     // Fetch race data
     const fetchRaceData = useCallback(async () => {
         setLoading(true);
-        const cacheKey = `race_data_${sim.startYear}_${sim.principal}_${sim.contribution}`;
+        const cacheKey = `race_data_v2_${sim.startYear}_${sim.principal}_${sim.contribution}`;
 
         // Try cache first
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             try {
                 const data = JSON.parse(cached);
-                setFrames(data);
-                if (data.length > 0) {
-                    // Only set year if we are initializing (e.g. at 2015 default)
-                    // But actually we want to reset to start logic? 
-                    // Let's safe-guard: if currentYear is default/empty, set it.
-                    // Actually, setting it every time we load data is fine as "Reset".
-                    setCurrentYear(data[0].year);
+                // Validate data is not empty before using cache
+                if (Array.isArray(data) && data.length > 0) {
+                    setFrames(data);
+                    if (data.length > 0) {
+                        setCurrentYear(data[0].year);
+                    }
+                    setLoading(false);
+                    return;
+                } else {
+                    // Invalid/Empty cache - clear it
+                    sessionStorage.removeItem(cacheKey);
                 }
-                setLoading(false);
-                return;
             } catch (e) {
                 sessionStorage.removeItem(cacheKey);
             }
@@ -102,12 +104,13 @@ export default function RacePage() {
                 setFrames(data);
                 if (data.length > 0) {
                     setCurrentYear(data[0].year);
-                }
-                // Save to cache
-                try {
-                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
-                } catch (e) {
-                    console.warn("Quota exceeded for sessionStorage");
+
+                    // Save to cache ONLY if we have data
+                    try {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                    } catch (e) {
+                        console.warn("Quota exceeded for sessionStorage");
+                    }
                 }
             }
         } catch (err) {

@@ -30,4 +30,9 @@
 - [x] [UI] My Race check (Backend verified, CTA added)
 - [ ] [UI] Totally migration to Next.js UI. Remove legacy UI.
 ## 5. Maintenance & workflows
+- [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)
+- [x] **Trend Page Data Fix** (Fixed NameError in `get_portfolio_history`)
+- [x] **Bar Chart Race Local Fix** (Added missing numpy import)
+- [x] **Full System Verification** (Verified all API endpoints locally)
+- [x] **Admin "Rebuild & Push" Feedback Improvement**
 - [ ] **Full Test Suite (Automated)** - `tests/e2e_suite.py` (Passing locally, verify on generic CI eventually)

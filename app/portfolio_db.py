@@ -1133,7 +1133,7 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
         
     # --- REFACTORED LOGIC FOR MULTI-ASSET + MARKET VALUE + REALIZED/DIVIDENDS ---
     
-    import dividend_cache
+    from app import dividend_cache
     from datetime import datetime
     
     # 1. Fetch ALL transactions sorted by date
@@ -1203,15 +1203,12 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
     # Sort events by date
     events.sort(key=lambda x: x['date'])
 
-    # 2. Identify all unique stocks and fetch historical prices (for Market Value)
-    stock_ids = list(set([tx['stock_id'] for tx in transactions] + [d['stock_id'] for d in dividends]))
-    
-    # Helper to fetch history
-    import yfinance as yf
-    import pandas as pd
-    
+    # 4. Fetch Historical Prices (for Market Value)
     # Cache for price history: { "TSMC": pd.Series(index=Date, data=Close) }
     price_history = {}
+    
+    import yfinance as yf
+    import pandas as pd
     
     # Optimization: Only fetch history if we actually need it
     try:
@@ -1227,32 +1224,31 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> list:
             
             # Handle single ticker vs multi ticker result structure
             if len(stock_ids) == 1:
+                 # If only one stock_id, data is a Series, not a DataFrame with columns
+                 # Need to ensure 'data' is treated consistently
+                 if isinstance(data, pd.Series):
+                     # The stock_ids list contains the original ID, e.g., '2330'
+                     # The Series name might be '2330.TW'
+                     original_id = stock_ids[0]
+                     price_history[original_id] = data
+                     # Also store under the ticker name if it's different
+                     if data.name and data.name != original_id:
+                         price_history[data.name] = data
+                 else: # Should be a DataFrame with one column
+                     for col in data.columns:
+                         clean_id = col.replace(".TW", "").replace(".TWO", "")
+                         price_history[clean_id] = data[col]
+                         price_history[col] = data[col] # Fallback for direct ticker lookup
+            else: # Multiple stock_ids, data is a DataFrame
                  for col in data.columns:
                      clean_id = col.replace(".TW", "").replace(".TWO", "")
                      price_history[clean_id] = data[col]
-                     price_history[col] = data[col] # Fallback
-            else:
-                 for col in data.columns:
-                     clean_id = col.replace(".TW", "").replace(".TWO", "")
-                     price_history[clean_id] = data[col]
-                     price_history[col] = data[col]
+                     price_history[col] = data[col] # Fallback for direct ticker lookup
     except Exception as e:
         print(f"Failed to fetch history for trend: {e}")
         pass
 
-    # 3. Merged Event Timeline
-    # We need to process events in order.
-    # Events: 'tx' (buy/sell), 'div' (dividend)
-    events = []
-    for tx in transactions:
-        events.append({'date': tx['date'], 'type': 'tx', 'data': tx})
-    for div in dividends:
-        events.append({'date': div['date'], 'type': 'div', 'data': div})
-    
-    # Sort events by date
-    events.sort(key=lambda x: x['date'])
-
-    # 4. Simulate Portfolio State Month-by-Month
+    # 5. Simulate Portfolio State Month-by-Month
     monthly_data = {}
     
     # State tracking

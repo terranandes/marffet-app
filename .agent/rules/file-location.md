@@ -26,7 +26,7 @@ trigger: always_on
 ## 3. Technical Specifications & Architecture
 **Owner:** `[SPEC]` (AntiGravity) or `[OSPEC]` (Opencode CLI)
 
-> **Directive:** These files form the "Law" of the project. `[CODE]` must strictly follow these.
+> **Directive:** These files form the "Law" of the project. `[CODE]` and `[UI]` must strictly follow these.
 
 - `./product/specification.md` (Master Logic Document)
 - `./product/backup_restore.md`
@@ -78,7 +78,6 @@ trigger: always_on
 > **Directive:** When filing a ticket, the filename must explicitly identify the reporter.
 
 - **Path:** `./jira/*`
-- **Naming Convention:** `ticket_{AGENT_ID}_{ISSUE_TYPE}_{TIMESTAMP}.md`
-- **Naming Convention:** `BUG-{SERIAL_ID}-{REPORTER}_{BUG_DESCRIPTION}.md`
+- **Naming Convention:** `{ISSUE_TYPE}-{SERIAL_ID}-{REPORTER_AGENT_ID}_{BUG_BRIEF_DESCRIPTION}.md`
     - Example: `BUG-110-GCV_mobile_google_login.md`
 - **Content Requirement:** The file content must strictly state *which agent* discovered the bug.

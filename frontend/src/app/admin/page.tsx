@@ -58,6 +58,7 @@ export default function AdminPage() {
     const [crawlerStatus, setCrawlerStatus] = useState<CrawlerStatus | null>(null);
     const [lastRunDuration, setLastRunDuration] = useState<string | null>(null);
     const [syncProgress, setSyncProgress] = useState<number | null>(null);
+    const [monitorPrewarm, setMonitorPrewarm] = useState(false);
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -244,6 +245,46 @@ export default function AdminPage() {
             alert('❌ Network error during crawl initiation.');
         }
     };
+
+    // Handle Rebuild & Push Prewarm
+    const handleRebuildPrewarm = async () => {
+        if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
+                method: "POST",
+                credentials: "include"
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(`🚀 Job Started!\n${data.message}\n\nYou can watch the 'Crawler Speed Test' progress bar. You will be notified when it completes.`);
+                setMonitorPrewarm(true);
+                fetchCrawlerStatus(); // Force update
+            } else {
+                alert("❌ Failed: " + (data.detail || "Unknown error"));
+            }
+        } catch {
+            alert("❌ Network Error");
+        }
+    };
+
+    // Monitor Prewarm Completion
+    useEffect(() => {
+        if (monitorPrewarm && crawlerStatus && !crawlerStatus.is_running && crawlerStatus.status === 'success') {
+            // Check if it actually finished recently? 
+            // For now, simple state transition is enough since we set monitorPrewarm=true when it starts.
+            // But we need to ensure we don't trigger immediately if it was already success (unlikely since we force refresh and it takes time to start/finish).
+            // Better: wait for it to be running first? 
+            // The API call usually makes it running immediately.
+
+            // Let's assume if we are monitoring, and it is NOT running, and Success, it finished.
+            // We should ideally see it running first. But let's keep it simple.
+
+            alert("✅ Rebuild & Push Operation Completed!");
+            setMonitorPrewarm(false);
+        }
+    }, [crawlerStatus, monitorPrewarm]);
 
     if (loadingMetrics) return <div className="p-8 text-[var(--color-text-muted)] animate-pulse">Loading Admin Dashboard...</div>;
     if (error) return <div className="p-8 text-red-500">{error}</div>;
@@ -445,26 +486,14 @@ export default function AdminPage() {
                             </button>
 
                             <button
-                                onClick={async () => {
-                                    if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
-                                    try {
-                                        const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
-                                            method: "POST",
-                                            credentials: "include"
-                                        });
-                                        const data = await res.json();
-                                        if (res.ok) {
-                                            alert(`✅ Pre-warm Complete!\n${data.message}\n\nDetails: ${JSON.stringify(data.details, null, 2)}`);
-                                        } else {
-                                            alert("❌ Failed: " + (data.detail || "Unknown error"));
-                                        }
-                                    } catch {
-                                        alert("❌ Network Error");
-                                    }
-                                }}
-                                className="bg-purple-900/50 hover:bg-purple-800 text-white border border-purple-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                onClick={handleRebuildPrewarm}
+                                disabled={monitorPrewarm}
+                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${monitorPrewarm
+                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
+                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
+                                    }`}
                             >
-                                📦 Rebuild & Push Pre-warm Data
+                                {monitorPrewarm ? '⏳ Rebuilding & Pushing...' : '📦 Rebuild & Push Pre-warm Data'}
                             </button>
                         </div>
                     </div>

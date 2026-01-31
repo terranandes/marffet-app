@@ -57,7 +57,10 @@ class CrawlerService:
             print("[CrawlerService] Updating Stock List from TWSE/TPEX...")
             try:
                 from app.services.stock_info_service import StockInfoService
-                StockInfoService.update_cache()
+                from starlette.concurrency import run_in_threadpool
+                
+                # Run sync request in threadpool to avoid blocking status polling
+                await run_in_threadpool(StockInfoService.update_cache)
             except Exception as ex:
                 print(f"[CrawlerService] Failed to update stock list: {ex}")
 
@@ -79,16 +82,20 @@ class CrawlerService:
                         f"{data_dir}/TWSE_Dividends_{current_year}.json",
                     ]
                     
-                    count = 0
-                    for p in patterns:
-                        for f in glob.glob(p):
-                            try:
-                                os.remove(f)
-                                count += 1
-                            except: pass
+                    def clear_cache_files():
+                        count = 0
+                        for p in patterns:
+                            for f in glob.glob(p):
+                                try:
+                                    os.remove(f)
+                                    count += 1
+                                except: pass
+                        return count
+
+                    # Run file deletion in threadpool
+                    count = await run_in_threadpool(clear_cache_files)
                     print(f"[CrawlerService] Cleared {count} cache files for {current_year}")
 
-            # Run Analysis
             # Run Analysis
             cls._progress_pct = 10
             def update_status(msg, pct=None):

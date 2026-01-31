@@ -16,7 +16,7 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - process for feedback by end-user
 - update of product related files that agents owns at ./product
 - review the mobile Web layout, which shall be elegant and feacible
-- [CV] hold a detailed code review
+- [CV] hold a detailed code review. If found defect and something to improve, assert it.
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
 And save the meeting note at "./meeting" and code-review note at "./code_review". We always trace the notes.

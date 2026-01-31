@@ -62,7 +62,11 @@ trigger: always_on
 **Owner:** `[CV]`
 **Access:** `[GCV]` is **FORBIDDEN** from modifying these files.
 - `./product/test_plan.md` (Master Test Strategy)
-- `./tests/*` (Unit & Integration tests code)
+- `./tests/unit/*` (Unit Tests)
+- `./tests/e2e/*` (e2e_suite.py & UI Tests)
+- `./tests/integration/*` (Verification scripts)
+- `./tests/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
+- `./tests/ops_scripts/*` (Admin/Ops scripts)
 
 ### Gemini Advanced Verification (Gemini CLI)
 **Owner:** `[GCV]`

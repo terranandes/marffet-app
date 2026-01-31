@@ -33,25 +33,6 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-14 | CB Support | Data Fetch | Can search/add Convertible Bonds (e.g., 11011) |
 | TC-15 | Admin Sync | Smart Update | "Smart Update" refreshes Stock List (O(1)) |
 
-### 1.3 Execution via Standard Suites
-We have standardized Python test suites for CI/CD and local verification.
-
-#### A. Full E2E Suite (Playwright)
-```bash
-uv run tests/e2e_suite.py
-```
-*   **Scope**: Guest Mode, Group/Stock CRUD, Mobile Layout, Transactions.
-*   **Platform**: Desktop + Mobile viewports.
-
-#### B. Backend Data Verification
-```bash
-uv run scripts/test_fetch_names.py
-```
-*   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and Dynamic Naming.
-
-#### C. Mobile Specifics
-```bash
-uv run tests/test_mobile_portfolio.py
 ```
 
 

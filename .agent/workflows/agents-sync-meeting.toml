@@ -13,11 +13,10 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
 - update of product related files that agents owns at ./product
-- migration status from legacy UI https://martian-api.zeabur.app/ to Next.js UI https://martian-app.zeabur.app/
 - review the mobile Web layout, which shall be elegant and feacible
-- hold a detailed code review
+- [CV] hold a detailed code review. If found defect and something to improve, assert it.
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
-And save the meeting note at "./meeting" and code-review result at "./code_review". We always trace the note.
+And save the meeting note at "./meeting" and code-review note at "./code_review". We always trace the notes.
 Show me how to run the APP, I will check it when avaiable.
 """

@@ -117,7 +117,7 @@ class StockInfoService:
         return pd.DataFrame(data)
 
     @staticmethod
-    def update_cache(output_path="project_tw/stock_list.csv"):
+    def update_cache(output_path="app/project_tw/stock_list.csv"):
         """
         Fetch and save to CSV.
         """

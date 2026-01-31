@@ -146,10 +146,14 @@ if __name__ == "__main__":
     # Run Mobile Verification
     print("\n📱 Running Mobile Verification...")
     try:
-        from tests import test_mobile_portfolio
-        test_mobile_portfolio.run_mobile_test()
-    except ImportError:
-        # If running from root
-        import test_mobile_portfolio
-        test_mobile_portfolio.run_mobile_test()
+        # Try importing relatively first
+        try:
+            from tests import test_mobile_portfolio
+            test_mobile_portfolio.run_mobile_test()
+        except ImportError:
+            # Try importing from local directory (if run from tests/)
+            import test_mobile_portfolio
+            test_mobile_portfolio.run_mobile_test()
+    except Exception as e:
+        print(f"❌ Mobile Test Failed to Load/Run: {e}")
 

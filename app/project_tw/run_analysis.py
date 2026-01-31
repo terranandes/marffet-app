@@ -42,9 +42,10 @@ async def main(status_callback=None):
     # That is acceptable for now.
     
     if os.path.exists(stock_list_path):
-         df_list = pd.read_csv(stock_list_path)
-         df_list['code'] = df_list['code'].astype(str)
+         print(f"[RunAnalysis] Loading Stock Names from {stock_list_path}...")
+         df_list = pd.read_csv(stock_list_path, dtype={'code': str, 'name': str}) # Force string types
          name_map = dict(zip(df_list['code'], df_list['name']))
+         print(f"[RunAnalysis] Loaded {len(name_map)} stock names.")
          
     # else:
     #     pass

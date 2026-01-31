@@ -57,7 +57,7 @@ class CrawlerService:
             print("[CrawlerService] Updating Stock List from TWSE/TPEX...")
             try:
                 from app.services.stock_info_service import StockInfoService
-                StockInfoService.update_cache("project_tw/stock_list.csv")
+                StockInfoService.update_cache()
             except Exception as ex:
                 print(f"[CrawlerService] Failed to update stock list: {ex}")
 

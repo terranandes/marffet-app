@@ -52,6 +52,15 @@ class CrawlerService:
         try:
             print("[CrawlerService] Starting Market Analysis...")
             
+            # Always Update Stock List Cache (O(1) Fetch)
+            # This ensures we catch new IPOs even in "Smart Update" mode
+            print("[CrawlerService] Updating Stock List from TWSE/TPEX...")
+            try:
+                from app.services.stock_info_service import StockInfoService
+                StockInfoService.update_cache("project_tw/stock_list.csv")
+            except Exception as ex:
+                print(f"[CrawlerService] Failed to update stock list: {ex}")
+
             if force_cold_run:
                 print("[CrawlerService] FORCE COLD RUN: Clearing current year cache...")
                 cls._last_message = "Clearing Cache..."

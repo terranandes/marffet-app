@@ -2,22 +2,19 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
-- [x] My Race check
-- [ ] Full migration to Next.js UI. Remove legacy UI.
-
-- === Barrier ===
 - [ ] Cash Ladder check
 - [ ] Correlate ~/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx with our crawler output
 
-- Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
-- Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
+- === Barrier ===
 
-- Multi-language
-- Test Google Cloud Run
-- AICopilot enhancement
-- Clarigy locally cached files ia storeed in Server or local browser?
-- DB/Warm Staic files/locally cached files optimization
-- Email support
+- [ ] Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
+- [ ] Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
+- [ ] Multi-language
+- [ ] Test Google Cloud Run
+- [ ] AICopilot enhancement
+- [ ] Clarigy locally cached files ia storeed in Server or local browser?
+- [ ] DB/Warm Staic files/locally cached files optimization
+- [ ] Email support
 
 ## BOSS TBD
 - Study workflows suitable for AntiGravity

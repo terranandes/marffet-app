@@ -210,11 +210,21 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
         dividends.sort(key=lambda x: x["date"], reverse=True)
         
         # Get stock name from yfinance if not provided
+        # Get stock name from yfinance if not provided
         if not stock_name:
+            # Priority 1: Check Global Cache (Official TWSE Name)
             try:
-                stock_name = ticker.info.get("shortName", clean_id)
-            except:
-                stock_name = clean_id
+                from app.portfolio_db import STOCK_NAME_CACHE
+                stock_name = STOCK_NAME_CACHE.get(clean_id)
+            except ImportError:
+                pass
+
+            # Priority 2: YFinance Shortname (Fallback)
+            if not stock_name:
+                try:
+                    stock_name = ticker.info.get("shortName", clean_id)
+                except:
+                    stock_name = clean_id
         
         # WRITE TO BOTH: File + DB
         _save_to_file(clean_id, stock_name, dividends)

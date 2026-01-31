@@ -2552,12 +2552,24 @@ def get_portfolio_race_data_calculated(user_id: str = "default") -> list:
     # Portfolio State: { "2330": { "shares": 1000, "total_cost": 500000 } }
     portfolio = {sid: {'shares': 0, 'total_cost': 0} for sid in stock_ids}
     
-    current_iter_date = start_date
+    # Align Start Date to next Quarter End (3, 6, 9, 12) to match standard financial reporting
+    # e.g. If Jan, move to Mar. If Dec, kept as Dec? No, move to next Mar? 
+    # Let's include the immediate quarter end if we are in it? 
+    # Simpler: Just ensure we hit 3, 6, 9, 12.
+    current_month = start_date.month
+    if current_month % 3 != 0:
+        # 1 -> 3 (+2), 2 -> 3 (+1), 4 -> 6 (+2)...
+        months_to_add = 3 - (current_month % 3)
+        current_iter_date = start_date + relativedelta(months=months_to_add)
+    else:
+        current_iter_date = start_date # Already on quarter end month (though maybe start of it)
+
+    # Ensure we use end of month for semantic correctness? 
+    # `relativedelta(days=1)` logic below handles "Month End Date" for price lookup.
+    # So `current_iter_date` just needs to be the 1st of the Quarter-End Month (Mar 1, Jun 1...)
+    
     event_idx = 0
     total_events = len(transactions)
-    
-    # Helper: Convert transaction dicts to unified event list? 
-    # Actually transactions list is sufficient since we don't track dividends for Race (only Market Value).
     
     while current_iter_date <= end_date:
         month_key = current_iter_date.strftime("%Y-%m")
@@ -2625,6 +2637,6 @@ def get_portfolio_race_data_calculated(user_id: str = "default") -> list:
                 "image": "/images/stock.png" # Placeholder, frontend handles images
             })
             
-        current_iter_date += relativedelta(months=1)
+        current_iter_date += relativedelta(months=3)
         
     return race_results

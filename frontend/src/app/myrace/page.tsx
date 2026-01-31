@@ -23,6 +23,8 @@ export default function MyRacePage() {
     const [currentMonth, setCurrentMonth] = useState<string>("");
     const [currentFrame, setCurrentFrame] = useState<RaceDataPoint[]>([]);
 
+    const [sliderIndex, setSliderIndex] = useState(0);
+
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const frameIndexRef = useRef(0);
 
@@ -56,12 +58,30 @@ export default function MyRacePage() {
     // Get months from data
     const months = [...new Set(raceData.map((d) => d.month))].sort();
 
+    // Update frame when slider/index changes manually
+    const updateFrame = useCallback((index: number) => {
+        if (index >= months.length) return;
+        const month = months[index];
+        setCurrentMonth(month);
+        const frameData = raceData
+            .filter((d) => d.month === month)
+            .sort((a, b) => b.value - a.value)
+            .slice(0, TOP_N);
+        setCurrentFrame(frameData);
+    }, [months, raceData]);
+
+    // Initial load frame
+    useEffect(() => {
+        if (months.length > 0 && currentFrame.length === 0) {
+            updateFrame(0);
+        }
+    }, [months, currentFrame.length, updateFrame]);
+
+
     // Play animation
     const playRace = () => {
         if (isPlaying || months.length === 0) return;
         setIsPlaying(true);
-
-        frameIndexRef.current = 0;
 
         const animate = () => {
             if (frameIndexRef.current >= months.length) {
@@ -69,17 +89,12 @@ export default function MyRacePage() {
                 return;
             }
 
-            const month = months[frameIndexRef.current];
-            setCurrentMonth(month);
-
-            const frameData = raceData
-                .filter((d) => d.month === month)
-                .sort((a, b) => b.value - a.value)
-                .slice(0, TOP_N);
-            setCurrentFrame(frameData);
+            // Update UI State
+            setSliderIndex(frameIndexRef.current);
+            updateFrame(frameIndexRef.current);
 
             frameIndexRef.current++;
-            animationRef.current = setTimeout(animate, 600);
+            animationRef.current = setTimeout(animate, 600); // 600ms per quarter
         };
 
         animate();
@@ -92,6 +107,14 @@ export default function MyRacePage() {
             clearTimeout(animationRef.current);
             animationRef.current = null;
         }
+    };
+
+    const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = parseInt(e.target.value);
+        pauseRace();
+        frameIndexRef.current = val;
+        setSliderIndex(val);
+        updateFrame(val);
     };
 
     const formatCurrency = (val: number) => {
@@ -116,43 +139,80 @@ export default function MyRacePage() {
         return colors[index % colors.length];
     };
 
+    // Calculate progress years for labels
+    // We assume data is sorted chronologically
+    // If granularity is year, we might want to show years below slider?
+
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-pink-600 bg-clip-text text-transparent">
-                        🏎️ My Race
-                    </h1>
-                    <p className="text-[var(--color-text-muted)]">
-                        Watch your portfolio holdings compete over time
-                    </p>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-pink-600 bg-clip-text text-transparent">
+                            🏎️ My Race
+                        </h1>
+                        <p className="text-[var(--color-text-muted)]">
+                            Watch your portfolio holdings compete over time
+                        </p>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 mr-4">
+                            <button
+                                onClick={playRace}
+                                disabled={isPlaying || raceData.length === 0}
+                                className="bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)] px-4 py-2 rounded hover:bg-[var(--color-success)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
+                            >
+                                ▶ Play
+                            </button>
+                            <button
+                                onClick={pauseRace}
+                                disabled={!isPlaying}
+                                className="bg-[var(--color-warning)]/20 border border-[var(--color-warning)] text-[var(--color-warning)] px-4 py-2 rounded hover:bg-[var(--color-warning)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
+                            >
+                                ⏸ Pause
+                            </button>
+                            <button
+                                onClick={fetchRaceData}
+                                className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
+                            >
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Controls */}
-                <div className="flex gap-2">
-                    <button
-                        onClick={playRace}
-                        disabled={isPlaying || raceData.length === 0}
-                        className="bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)] px-4 py-2 rounded hover:bg-[var(--color-success)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
-                    >
-                        ▶ Play
-                    </button>
-                    <button
-                        onClick={pauseRace}
-                        disabled={!isPlaying}
-                        className="bg-[var(--color-warning)]/20 border border-[var(--color-warning)] text-[var(--color-warning)] px-4 py-2 rounded hover:bg-[var(--color-warning)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
-                    >
-                        ⏸ Pause
-                    </button>
-                    <button
-                        onClick={fetchRaceData}
-                        className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
-                    >
-                        🔄 Refresh
-                    </button>
-                </div>
+                {/* Playback Slider */}
+                {months.length > 0 && (
+                    <div className="w-full bg-[var(--color-surface)] p-4 rounded-xl border border-[var(--color-border)]">
+                        <div className="flex items-center gap-4 mb-2">
+                            <span className="font-mono font-bold text-[var(--color-cta)] min-w-[80px]">
+                                {currentMonth}
+                            </span>
+                            <input
+                                type="range"
+                                min="0"
+                                max={months.length - 1}
+                                value={sliderIndex}
+                                onChange={handleSliderChange}
+                                className="w-full accent-[var(--color-cta)] h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                            />
+                            <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">
+                                {months.length} Qtrs
+                            </span>
+                        </div>
+                        {/* Year Ticks (Optional Logic) */}
+                        <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] px-2">
+                            <span>{months[0]?.split('-')[0]}</span>
+                            <span>{months[Math.floor(months.length / 2)]?.split('-')[0]}</span>
+                            <span>{months[months.length - 1]?.split('-')[0]}</span>
+                        </div>
+                    </div>
+                )}
             </div>
+
 
             {/* Race Chart */}
             <div className="glass-card rounded-xl p-6 min-h-[400px]">

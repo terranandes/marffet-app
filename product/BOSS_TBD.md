@@ -2,8 +2,6 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
-- [x] Ensure Tab CB is functionally working and notification will accordingly be sent
-- [x] Cash Ladder check
 - [x] My Race check
 - [ ] Full migration to Next.js UI. Remove legacy UI.
 
@@ -17,6 +15,8 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - Multi-language
 - Test Google Cloud Run
 - AICopilot enhancement
+- Clarigy locally cached files ia storeed in Server or local browser?
+- DB/Warm Staic files/locally cached files optimization
 - Email support
 
 ## BOSS TBD

@@ -1382,15 +1382,13 @@ async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict
     return update_feedback(feedback_id, data.status, data.agent_notes)
 
 # ---------------- Static Files ----------------
-# Must come LAST to avoid capturing API routes
-# Create dir if not exists
-os.makedirs("app/static", exist_ok=True)
-
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Legacy UI has been removed. Root endpoint reserved for API docs or Health Check.
+# os.makedirs("app/static", exist_ok=True)
+# app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/")
-async def read_index():
-    return FileResponse("app/static/index.html")
+async def root():
+    return JSONResponse({"status": "ok", "service": "Martian API", "docs": "/docs"})
 
 if __name__ == "__main__":
     import uvicorn

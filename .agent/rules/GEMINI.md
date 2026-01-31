@@ -139,7 +139,7 @@ When user's prompt is NOT in English:
 
 **Before coding, answer:**
 
-1. What is the GOAL of this agent/skill?
+1. What is the GOAL of this agent skill ?
 2. What PRINCIPLES must I apply?
 3. How does this DIFFER from generic output?
 

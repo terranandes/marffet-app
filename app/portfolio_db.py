@@ -2459,7 +2459,23 @@ def get_portfolio_race_data_calculated(user_id: str = "default") -> list:
     import pandas as pd
     import yfinance as yf
     
-    end_date = datetime.now()
+    # Calculate End Date (Current Quarter End)
+    # Goal: Always show the full quarter frame even if we are in the middle of it.
+    now = datetime.now()
+    # Get month of current quarter end (3, 6, 9, 12)
+    quarter_end_month = ((now.month - 1) // 3 + 1) * 3
+    
+    # Set to 1st of the quarter-end month, then add 1 month and subtract 1 day to get last day
+    # Or simpler: Just set to a date that is definitely >= the iteration date for that quarter.
+    # Iteration dates are 1st of month (e.g. 2026-03-01).
+    # So if we set end_date = 2026-03-31, loop runs.
+    
+    # Let's handle year crossover if needed (unlikely for quarters within same year except Q4)
+    # If quarter_end_month is 12, it is still this year.
+    
+    import calendar
+    last_day = calendar.monthrange(now.year, quarter_end_month)[1]
+    end_date = datetime(now.year, quarter_end_month, last_day)
     
     # 1. Fetch ALL transactions AND Stock Names sorted by date
     # JOIN with group_targets to get stock_name

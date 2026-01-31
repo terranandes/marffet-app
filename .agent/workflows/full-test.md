@@ -6,4 +6,4 @@ description: Full coverage tests on local and remote Zeabur.
 2. According to the latest test plan go 
 - Full headlessly exhausted bug-hunting with automated Playwright Suite on local and remote Zeabur. File the new bug found at "./jira" .
 - Full alignment checks between legacy and Next.js UI with automated Playwright Suite. File the new bug found at "./jira". You must emphaseize which agent is firing tickets.
-- Take screenshots of evidences with Playwright
+- Take screenshots of evidences with Playwright. Don't push unneccessary screenshots.

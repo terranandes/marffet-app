@@ -15,7 +15,6 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
 - update of product related files that agents owns at ./product
-- migration status from legacy UI https://martian-api.zeabur.app/ to Next.js UI https://martian-app.zeabur.app/
 - review the mobile Web layout, which shall be elegant and feacible
 - [CV] hold a detailed code review
 

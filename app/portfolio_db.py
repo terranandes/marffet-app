@@ -1510,7 +1510,7 @@ def update_price_cache(stock_id: str):
         except: pass
         return None
 
-def ensure_price_cache_batch(stock_ids: list) -> dict:
+def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
     """
     Batch update price cache for multiple stock IDs.
     Returns a dict mapping {input_id: valid_yf_id}
@@ -1621,8 +1621,11 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
             print(f"  > Processing Chunk {i//CHUNK_SIZE + 1}: {chunk_tickers}")
             
             try:
-                # Optimized Fetch
-                data1 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
+                # Optimized Fetch: Use start_date if provided
+                if start_date:
+                    data1 = yf.download(chunk_tickers, start=start_date, interval="1mo", progress=False, threads=False)['Close']
+                else:
+                    data1 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
                 
                 # Single ticker handling
                 if len(chunk_tickers) == 1:
@@ -1706,7 +1709,11 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
                 print(f"  > Processing Round 2 Chunk {i//CHUNK_SIZE + 1}: {chunk_tickers}")
                 
                 try:
-                    data2 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
+                    if start_date:
+                        data2 = yf.download(chunk_tickers, start=start_date, interval="1mo", progress=False, threads=False)['Close']
+                    else:
+                        data2 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
+
                     if len(chunk_tickers) == 1 and isinstance(data2, pd.Series):
                         data2 = data2.to_frame(name=chunk_tickers[0])
                         
@@ -1732,7 +1739,7 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
                             
                     del data2
                     del to_insert2
-                    gc.collect()
+                    gc.collect() # Per Chunk!
                 
                 except Exception as e:
                      print(f"  > Round 2 Chunk Error: {e}")
@@ -1788,12 +1795,37 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
 def get_portfolio_race_data(user_id: str = "default") -> list:
     """
     Build race data for live portfolio BCR (Market Value).
+    RESTORED YFinance with Start Date Optimization (Trend-like Stability).
     """
     targets_by_type = get_all_targets_by_type(user_id)
     all_targets = targets_by_type['stock'] + targets_by_type['etf'] + targets_by_type['cb']
     
     if not all_targets:
         return []
+
+    # 0. PRE-STEP: Find Earliest Transaction Date for Optimization
+    # We need this BEFORE ensuring cache to avoid fetching 10y of data.
+    # Logic copied from `get_portfolio_history`
+    min_date_str = None
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT MIN(t.date) as earliest
+            FROM transactions t
+            JOIN group_targets gt ON t.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+        """, (user_id,))
+        row = cursor.fetchone()
+        if row and row['earliest']:
+             # Use First of that month
+             min_date_str = row['earliest'][:7] + "-01"
+    
+    # Default to 3 years if no transactions found (shouldn't happen if targets exist?)
+    if not min_date_str:
+        min_date_str = "2023-01-01"
+
+    print(f"[Race] Optimized Start Date: {min_date_str}")
 
     # 1. Ensure Cache is Warm (Batch Optimization)
     # Collect all IDs first
@@ -1817,11 +1849,11 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
             target_map[sid] = []
         target_map[sid].append(target)
         
-    # Batch Update
-    # mapping returns {input_id: valid_yf_id}
+    # Batch Update with Optimization
     import traceback
     try:
-        id_mapping = ensure_price_cache_batch(raw_ids)
+        # PASS min_date_str to optimize fetch volume!
+        id_mapping = ensure_price_cache_batch(raw_ids, start_date=min_date_str)
     except Exception as e:
         print(f"[Race] Batch Cache Error: {e}")
         traceback.print_exc()
@@ -1833,7 +1865,7 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
             for t in target_map[input_id]:
                 t['_yf_id'] = valid_id
                 
-    # Fallback for any IDs not in mapping (shouldn't happen if function is correct, but safe)
+    # Fallback for any IDs not in mapping
     for target in all_targets:
         if '_yf_id' not in target:
             target['_yf_id'] = target['stock_id'] # Fallback to original
@@ -1859,11 +1891,10 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
         else:
              min_date = row[0][:7] + "-01" # Ensure YYYY-MM-01
              # Provide data up to Today
+             from datetime import datetime
              max_date = datetime.now().strftime('%Y-%m-%d')
              
              try:
-                 # Generate continuous range - Quarter End (Mar, Jun, Sep, Dec)
-                 # Changed 'QE' to '3ME' for broader compatibility
                  months = pd.date_range(start=min_date, end=max_date, freq='3ME').strftime('%Y-%m').tolist()
                  
                  # ALWAYS ensure the current month/today is included as the final frame
@@ -1888,11 +1919,7 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
     # 3. Build Race Data
     race_data = []
 
-    
-    # We need to fill gaps in prices. If a month is missing, use previous month's price.
-    # Pre-process prices per stock
-    processed_prices = {} # stock_id -> {month: price}
-    
+    # Iterate Months
     for month in months:
         for target in all_targets:
             sid = target['_yf_id']
@@ -1919,13 +1946,6 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
                 # Find Market Price
                 # Try exact month
                 price = price_map.get((sid, month))
-                
-                # Fallback: exact match might fail if yf month is end-of-month date?
-                # YFinance monthly data date is usually Start of Month for that candle? 
-                # Or End? "2023-01-01" could represent Jan data.
-                # My `month` is "2023-01".
-                # Let's hope YF match works with the "YYYY-MM-01" or just "YYYY-MM" cache key we used.
-                # In update_price_cache I used `date.strftime('%Y-%m')`. So they should match string-to-string.
                 
                 # If missing (e.g. data starts later than tx?), fallback to transaction cost (Avg Cost)
                 if not price:

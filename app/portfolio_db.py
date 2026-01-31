@@ -1603,12 +1603,47 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
         batch1_map[ticker] = sid
         
     all_tickers1 = list(batch1_map.keys())
-    # HOTFIX 7 revised: Strictly Chunk Batch to Avoid OOM (Socket Hangup)
-    # Even with threads=False, a large batch can spike RAM during DF construction.
-    # Chunk size of 3 is ultra-safe for Zeabur.
-    CHUNK_SIZE = 3
-    import time
+    # HOTFIX 4 (v4): Optimization for Speed & Stability
+    # 1. Chunk Size = 5 (Proven stable previously, 3 was too slow)
+    # 2. No Sleep (Causes timeouts on serverless)
+    # 3. Bad Ticker Filter (prevents YF hang on 65331)
+    CHUNK_SIZE = 5
+    import gc
     
+    # Pre-filter Bad Tickers to avoid Hangs
+    # 65331 is a known bad ticker causing 404/Hang.
+    # General rule: TW stocks should be 4 digits. 6-digit is new board?
+    # 5-digit starting with 6 might be valid but if it fails repeatedly, kill it.
+    valid_missing = []
+    bad_tickers = []
+    
+    for sid in real_missing:
+        # Known bad patterns
+        if len(sid) == 5 and sid.isdigit(): # e.g. 65331
+             bad_tickers.append(sid)
+        else:
+             valid_missing.append(sid)
+             
+    if bad_tickers:
+        print(f"[Race Batch] Skipping Potential Bad Tickers: {bad_tickers}")
+        with get_db() as conn:
+             conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", [(fid,) for fid in bad_tickers])
+             conn.commit()
+             
+    # Prepare batch 1 tickers
+    batch1_map = {} # ticker -> original_id
+    for sid in valid_missing:
+        if sid.endswith('.TW') or sid.endswith('.TWO'):
+            # Trust existing suffix
+            ticker = sid
+        elif len(sid) == 4 and sid.isdigit():
+             ticker = f"{sid}.TW"
+        else: # ETFs etc
+             ticker = f"{sid}.TW" # Try TW first
+        batch1_map[ticker] = sid
+        
+    all_tickers1 = list(batch1_map.keys())
+
     if all_tickers1:
         print(f"[Race Batch] Fetching Round 1 (.TW preferred): {len(all_tickers1)} tickers (Chunked by {CHUNK_SIZE})")
         
@@ -1655,7 +1690,6 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                 del data1
                 del to_insert
                 gc.collect()
-                time.sleep(1.0) # Breathe between chunks
                 
             except Exception as e:
                 print(f"  > Chunk Error: {e}")
@@ -1668,9 +1702,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                  leftovers.append(orig)
             
         # Round 2: Try .TWO for leftovers
-        # Removed "Skip for ETFs" logic (Bond ETFs are 00xxx and on .TWO)
-        
-        real_leftovers = leftovers # All leftovers deserve a second chance
+        real_leftovers = leftovers 
 
         if real_leftovers:
             batch2_map = {}
@@ -1721,7 +1753,6 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                     del data2
                     del to_insert2
                     gc.collect() # Per Chunk!
-                    time.sleep(1.0) # Breathe
                 
                 except Exception as e:
                      print(f"  > Round 2 Chunk Error: {e}")

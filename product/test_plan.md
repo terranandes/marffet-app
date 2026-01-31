@@ -30,21 +30,30 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-11 | Backup | Scheduler & Manual | Startup Log verifies UTC Next Run |
 | TC-12 | Mobile UI | Card View | Verify Cards replace Table on <md screens |
 | TC-13 | Login Overlay | Intersection Check | Verify Overlay doesn't block mobile interaction |
+| TC-14 | CB Support | Data Fetch | Can search/add Convertible Bonds (e.g., 11011) |
+| TC-15 | Admin Sync | Smart Update | "Smart Update" refreshes Stock List (O(1)) |
 
-### 1.3 Execution via Playwright MCP
+### 1.3 Execution via Standard Suites
+We have standardized Python test suites for CI/CD and local verification.
 
+#### A. Full E2E Suite (Playwright)
 ```bash
-# Using Playwright MCP server for browser automation
-# Test New Frontend
-mcp_playwright_browser_navigate(url="http://localhost:3000/mars")
-mcp_playwright_browser_wait_for(time=5)
-mcp_playwright_browser_take_screenshot(filename="test_mars.png")
-
-# Test AI Copilot (FAB)
-mcp_playwright_browser_click(element="Robot FAB")
-mcp_playwright_browser_fill_form(fields=[{"name": "Ask Mars AI...", "value": "Hi", "ref": "input"}])
-mcp_playwright_browser_click(element="Send button")
+uv run tests/e2e_suite.py
 ```
+*   **Scope**: Guest Mode, Group/Stock CRUD, Mobile Layout, Transactions.
+*   **Platform**: Desktop + Mobile viewports.
+
+#### B. Backend Data Verification
+```bash
+uv run scripts/test_fetch_names.py
+```
+*   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and Dynamic Naming.
+
+#### C. Mobile Specifics
+```bash
+uv run tests/test_mobile_portfolio.py
+```
+
 
 ## 2. Manual Verification Checklist
 

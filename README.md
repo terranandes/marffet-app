@@ -11,8 +11,9 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 -   **Mars Strategy**: Automatic filtering of low-volatility, high-CAGR stocks (Gaussian Filter).
 -   **CB Arbitrage**: Real-time evaluation of Convertible Bond conversion premium signals.
 -   **Market Visualization**: Interactive **Bar Chart Race** of stock performance over time.
--   **Modern UI**: Built with React, Vite, and TailwindCSS for a premium experience.
+-   **Modern UI**: Built with Next.js and TailwindCSS for a premium experience.
 -   **Robust Backend**: Powered by FastAPI and AsyncIO for efficient data crawling.
+-   **Dynamic Naming**: Real-time synchronization with official TWSE/TPEX stock names.
 
 ---
 
@@ -81,6 +82,6 @@ A: We recommend using a service that supports Docker or Python/Node apps, such a
 
 ## 🛠 Tech Stack
 
--   **Frontend**: React, TypeScript, TailwindCSS, Framer Motion, Plotly.js, TanStack Table.
+-   **Frontend**: Next.js 16 (React 18), TailwindCSS, ECharts, Framer Motion.
 -   **Backend**: FastAPI, Uvicorn, Python 3.12.
 -   **Data**: AsyncIO Crawler (TWSE), Pandas (Analysis).

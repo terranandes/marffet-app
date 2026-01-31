@@ -13,7 +13,7 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
     -   Filters stocks via Low Volatility & High Efficiency (Gaussian Filter).
     -   Simulates annual contributions ($60k/year) + Dividend Reinvestment (DRIP) from **2006 to Present**.
     -   **Dynamic Start Year**: Users can benchmark performance starting from any year (e.g., 2024).
--   **Data Coverage**: Supports TWSE (Mainboard), TPEx (OTC), and **Bond ETFs** (e.g., 00679B).
+-   **Data Coverage**: Supports TWSE (Mainboard), TPEx (OTC), **Bond ETFs** (e.g., 00679B), and **Convertible Bonds** (e.g., 11011).
 
 ### 2. Social Leaderboard (Community)
 -   **Rankings**: See how your portfolio ROI stacks up against other "Martians".

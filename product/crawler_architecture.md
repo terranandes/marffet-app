@@ -2,12 +2,13 @@
 
 **Status**: [CODE] Implementation Review
 **Date**: 2026-01-16
-**Module**: `project_tw/crawler.py`, `project_tw/strategies/mars.py`
+**Module**: `app/project_tw/crawler.py`, `app/project_tw/strategies/mars.py`
 
 ## 1. Overview
 The Martian Crawler is designed for **Market-Wide Batch Analysis** rather than single-stock fetching. Instead of making 20 years x 12 months x 1000 stocks (240,000 requests) to fetch history, it primarily uses **Market Daily Quotes (MI_INDEX)** to snapshot the entire market at the start and end of each year.
 
 ### Key Components
+- **`StockInfoService`**: **[NEW]** O(1) Fetcher for official TWSE/TPEX stock list & names (Dynamic Naming).
 - **`TWSECrawler`**: Handles TWSE (Exchange) interactions.
 - **`TPEXCrawler`**: Handles TPEx (OTC) interactions.
 - **`MarsStrategy`**: Orchestrates the "Market-Wide" data fetching and in-memory association.

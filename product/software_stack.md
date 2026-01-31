@@ -1,6 +1,6 @@
 # Martian Investment System - Software Stack
-**Version**: 2.2  
-**Date**: 2026-01-18  
+**Version**: 2.3
+**Date**: 2026-01-31
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer (New)
@@ -21,6 +21,7 @@
 | Category | Technology | Notes |
 |----------|------------|-------|
 | Framework | FastAPI (Python 3.12) | Async, Auto-Swagger |
+| Package Manager | **uv** | Ultra-fast Python package installer |
 | Data Processing | Pandas | Simulation, Excel I/O |
 | Authentication | Authlib + Starlette | OAuth 2.0 (Google) + Guest Mode |
 | Database | SQLite + JSON | Zero-maintenance, **Auto-Backup to GitHub** |

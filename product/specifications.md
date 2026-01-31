@@ -1,6 +1,6 @@
 # Martian Investment System - Technical Specifications
-**Version**: 2.1  
-**Date**: 2026-01-16  
+**Version**: 2.3
+**Date**: 2026-01-31
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
@@ -11,7 +11,6 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 |-----------|------|------|-----|
 | Backend | FastAPI (Python 3.12) | REST API, Auth, Simulation Engine | `martian-api.zeabur.app` |
 | Frontend | Next.js 14+ | UI, Visualization (ECharts), SSR | `martian-app.zeabur.app` |
-| Legacy UI | Vue.js (embedded) | Static HTML served by backend | Same as Backend |
 
 ### 1.2 Authentication
 - **Protocol**: OAuth 2.0 (Google)
@@ -81,8 +80,9 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 | `NEXT_PUBLIC_API_URL` | Frontend | `https://martian-api.zeabur.app` |
 | `SECRET_KEY` | Backend | `long_random_string` |
 
-## 5. Changelog (v2.1)
-- Fixed race-data format: nested → flat
-- Added year 2006 as initial investment point
-- Fixed dividend field in race-data response
-- Modal now uses pre-computed backend data
+## 5. Changelog (v2.3)
+- **Dynamic Stock Naming**: Real-time alignment with TWSE/TPEX data (No more hardcoded maps).
+- **Convertible Bond (CB) Support**: Full support for CB tickers (e.g., 11011).
+- **Admin Sync Ops**: Enhanced "Smart Update" to always refresh stock list.
+- **Directory Consolidation**: Unified python logic in `app/project_tw`.
+

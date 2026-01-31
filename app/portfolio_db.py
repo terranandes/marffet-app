@@ -1602,60 +1602,67 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
              ticker = f"{sid}.TW" # Try TW first
         batch1_map[ticker] = sid
         
-    tickers1 = list(batch1_map.keys())
-    if tickers1:
-        print(f"[Race Batch] Fetching Round 1 (.TW preferred): {len(tickers1)} tickers")
-        try:
-            # HOTFIX 5: Optimize Memory. Disable threads, limit history to 10y (enough for race).
-            data1 = yf.download(tickers1, period="10y", interval="1mo", progress=False, threads=False)['Close']
+    all_tickers1 = list(batch1_map.keys())
+    # HOTFIX 7: Strictly Chunk Batch to Avoid OOM (Socket Hangup)
+    # Even with threads=False, a large batch can spike RAM during DF construction.
+    # Chunk size of 5 is ultra-safe for Zeabur.
+    CHUNK_SIZE = 5 
+    
+    if all_tickers1:
+        print(f"[Race Batch] Fetching Round 1 (.TW preferred): {len(all_tickers1)} tickers (Chunked by {CHUNK_SIZE})")
+        
+        # We need to track leftovers across all chunks
+        # Initialize leftovers with EVERYTHING, then remove successes
+        # Actually, simpler: accumulate successes, then compute leftovers at end.
+        successful_orig_ids = set()
+        
+        for i in range(0, len(all_tickers1), CHUNK_SIZE):
+            chunk_tickers = all_tickers1[i:i+CHUNK_SIZE]
+            print(f"  > Processing Chunk {i//CHUNK_SIZE + 1}: {chunk_tickers}")
             
-            # Process Results
-            # If single ticker, result is Series
-            if len(tickers1) == 1:
-                # Convert to DF for uniform handling
-                if isinstance(data1, pd.Series):
-                    data1 = data1.to_frame(name=tickers1[0])
-            
-            # Prepare Insert
-            to_insert = []
-            
-            # Check which cols have data
-            if not data1.empty:
-                for col_ticker in data1.columns:
-                    # Check if valid (not all NaNs)
-                    series = data1[col_ticker]
-                    if series.dropna().empty: continue
-                    
-                    original_id = batch1_map.get(col_ticker, col_ticker)
-                    # Use the ticker (e.g. 00937B.TW) as the final ID
-                    mapping[original_id] = col_ticker 
-                    
-                    for date, price in series.items():
-                        if pd.notna(price):
-                            to_insert.append((col_ticker, date.strftime('%Y-%m'), float(price)))
-                            
-            # Insert Valid Data
-            if to_insert:
-                with get_db() as conn:
-                    conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, ?, ?)", to_insert)
-                    conn.commit()
-            
-            # Cleanup Memory Immediately
-            del data1
-            del to_insert
-            gc.collect()
-            
-            # Identify Failures (Leftovers)
-            # Strategy: If `original_id` is NOT in `mapping`, it failed Round 1.
-            
-            leftovers = []
-            for ticker, orig in batch1_map.items():
-                if orig not in mapping:
-                     leftovers.append(orig)
-                     
-        except Exception as e:
-            print(f"[Race Batch] Round 1 Error: {e}")
-            leftovers = list(batch1_map.values()) # Assume all failed
+            try:
+                # Optimized Fetch
+                data1 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
+                
+                # Single ticker handling
+                if len(chunk_tickers) == 1:
+                    if isinstance(data1, pd.Series):
+                        data1 = data1.to_frame(name=chunk_tickers[0])
+                
+                to_insert = []
+                if not data1.empty:
+                    for col_ticker in data1.columns:
+                        series = data1[col_ticker]
+                        if series.dropna().empty: continue
+                        
+                        original_id = batch1_map.get(col_ticker, col_ticker)
+                        # Mark success
+                        mapping[original_id] = col_ticker
+                        successful_orig_ids.add(original_id) 
+                        
+                        for date, price in series.items():
+                            if pd.notna(price):
+                                to_insert.append((col_ticker, date.strftime('%Y-%m'), float(price)))
+                
+                if to_insert:
+                    with get_db() as conn:
+                        conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, ?, ?)", to_insert)
+                        conn.commit()
+                
+                # Aggressive Cleanup per Chunk
+                del data1
+                del to_insert
+                gc.collect()
+                
+            except Exception as e:
+                print(f"  > Chunk Error: {e}")
+                # Don't abort other chunks
+                
+        # Identify Leftovers after ALL chunks
+        leftovers = []
+        for ticker, orig in batch1_map.items():
+             if orig not in successful_orig_ids:
+                 leftovers.append(orig)
             
         # Round 2: Try .TWO for leftovers
         # Optimization: Don't try .TWO for ETFs (00xxx) as they are TWSE-only usually.
@@ -1689,52 +1696,60 @@ def ensure_price_cache_batch(stock_ids: list) -> dict:
                 ticker = f"{base}.TWO"
                 batch2_map[ticker] = sid
             
-            tickers2 = list(batch2_map.keys())
-            print(f"[Race Batch] Fetching Round 2 (.TWO): {len(tickers2)} tickers")
+            all_tickers2 = list(batch2_map.keys())
+            print(f"[Race Batch] Fetching Round 2 (.TWO): {len(all_tickers2)} tickers (Chunked)")
             
-            try:
-                # HOTFIX 5: Optimize Memory
-                data2 = yf.download(tickers2, period="10y", interval="1mo", progress=False, threads=False)['Close']
-                if len(tickers2) == 1 and isinstance(data2, pd.Series):
-                    data2 = data2.to_frame(name=tickers2[0])
-                    
-                to_insert2 = []
-                success_tickers2 = set()
+            successful_orig_ids_2 = set()
+            
+            for i in range(0, len(all_tickers2), CHUNK_SIZE):
+                chunk_tickers = all_tickers2[i:i+CHUNK_SIZE]
+                print(f"  > Processing Round 2 Chunk {i//CHUNK_SIZE + 1}: {chunk_tickers}")
                 
-                if not data2.empty:
-                    for col_ticker in data2.columns:
-                         series = data2[col_ticker]
-                         if series.dropna().empty: continue
-                         
-                         original_id = batch2_map.get(col_ticker, col_ticker)
-                         mapping[original_id] = col_ticker
-                         success_tickers2.add(col_ticker)
-                         
-                         for date, price in series.items():
-                            if pd.notna(price):
-                                to_insert2.append((col_ticker, date.strftime('%Y-%m'), float(price)))
-                                
-                if to_insert2:
-                    with get_db() as conn:
-                        conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, ?, ?)", to_insert2)
-                        conn.commit()
-                
-                # Round 3: Mark ERRORS
-                # Anything in leftovers that wasn't in success_tickers2 is DEAD.
-                
-                final_failures = []
-                for ticker, orig in batch2_map.items():
-                     if ticker not in success_tickers2: # Failed
-                         final_failures.append(orig)
-                
-                if final_failures:
-                    print(f"[Race Batch] Marking {len(final_failures)} IDs as ERROR: {final_failures}")
-                    with get_db() as conn:
-                        conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", [(fid,) for fid in final_failures])
-                        conn.commit()
+                try:
+                    data2 = yf.download(chunk_tickers, period="10y", interval="1mo", progress=False, threads=False)['Close']
+                    if len(chunk_tickers) == 1 and isinstance(data2, pd.Series):
+                        data2 = data2.to_frame(name=chunk_tickers[0])
                         
-            except Exception as e:
-                print(f"[Race Batch] Round 2 Error: {e}")
+                    to_insert2 = []
+                    
+                    if not data2.empty:
+                        for col_ticker in data2.columns:
+                             series = data2[col_ticker]
+                             if series.dropna().empty: continue
+                             
+                             original_id = batch2_map.get(col_ticker, col_ticker)
+                             mapping[original_id] = col_ticker
+                             successful_orig_ids_2.add(original_id)
+                             
+                             for date, price in series.items():
+                                if pd.notna(price):
+                                    to_insert2.append((col_ticker, date.strftime('%Y-%m'), float(price)))
+                                    
+                    if to_insert2:
+                        with get_db() as conn:
+                            conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, ?, ?)", to_insert2)
+                            conn.commit()
+                            
+                    del data2
+                    del to_insert2
+                    gc.collect()
+                
+                except Exception as e:
+                     print(f"  > Round 2 Chunk Error: {e}")
+
+            # Round 3: Mark ERRORS
+            # Anything in leftovers (Round 1 failures) that wasn't in successful_orig_ids_2 is DEAD.
+            
+            final_failures = []
+            for ticker, orig in batch2_map.items():
+                 if orig not in successful_orig_ids_2: # Failed
+                     final_failures.append(orig)
+            
+            if final_failures:
+                print(f"[Race Batch] Marking {len(final_failures)} IDs as ERROR: {final_failures}")
+                with get_db() as conn:
+                    conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", [(fid,) for fid in final_failures])
+                    conn.commit()
 
     # Final Pass: Update mapping for existing cached items (Alternates)
     # If we didn't fetch because it wasn't "missing", we still need to know the valid suffix.

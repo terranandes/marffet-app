@@ -59,6 +59,7 @@ export default function AdminPage() {
     const [lastRunDuration, setLastRunDuration] = useState<string | null>(null);
     const [syncProgress, setSyncProgress] = useState<number | null>(null);
     const [monitorPrewarm, setMonitorPrewarm] = useState(false);
+    const [hasStartedRunning, setHasStartedRunning] = useState(false);
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -258,8 +259,11 @@ export default function AdminPage() {
             const data = await res.json();
 
             if (res.ok) {
-                alert(`🚀 Job Started!\n${data.message}\n\nYou can watch the 'Crawler Speed Test' progress bar. You will be notified when it completes.`);
+                // Reset states to ensure we don't trigger "Success" based on old status
+                setHasStartedRunning(false);
                 setMonitorPrewarm(true);
+                
+                alert(`🚀 Job Started!\n${data.message}\n\nYou can watch the 'Crawler Speed Test' progress bar. You will be notified when it completes.`);
                 fetchCrawlerStatus(); // Force update
             } else {
                 alert("❌ Failed: " + (data.detail || "Unknown error"));
@@ -271,20 +275,20 @@ export default function AdminPage() {
 
     // Monitor Prewarm Completion
     useEffect(() => {
-        if (monitorPrewarm && crawlerStatus && !crawlerStatus.is_running && crawlerStatus.status === 'success') {
-            // Check if it actually finished recently? 
-            // For now, simple state transition is enough since we set monitorPrewarm=true when it starts.
-            // But we need to ensure we don't trigger immediately if it was already success (unlikely since we force refresh and it takes time to start/finish).
-            // Better: wait for it to be running first? 
-            // The API call usually makes it running immediately.
+        if (!monitorPrewarm || !crawlerStatus) return;
 
-            // Let's assume if we are monitoring, and it is NOT running, and Success, it finished.
-            // We should ideally see it running first. But let's keep it simple.
+        // 1. Detect Start (Transition to Running)
+        if (crawlerStatus.is_running) {
+            setHasStartedRunning(true);
+        }
 
+        // 2. Detect Completion (Only if we saw it running previously)
+        if (hasStartedRunning && !crawlerStatus.is_running && crawlerStatus.status === 'success') {
             alert("✅ Rebuild & Push Operation Completed!");
             setMonitorPrewarm(false);
+            setHasStartedRunning(false);
         }
-    }, [crawlerStatus, monitorPrewarm]);
+    }, [crawlerStatus, monitorPrewarm, hasStartedRunning]);
 
     if (loadingMetrics) return <div className="p-8 text-[var(--color-text-muted)] animate-pulse">Loading Admin Dashboard...</div>;
     if (error) return <div className="p-8 text-red-500">{error}</div>;

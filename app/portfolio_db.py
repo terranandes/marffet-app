@@ -1603,17 +1603,16 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
         batch1_map[ticker] = sid
         
     all_tickers1 = list(batch1_map.keys())
-    # HOTFIX 7: Strictly Chunk Batch to Avoid OOM (Socket Hangup)
+    # HOTFIX 7 revised: Strictly Chunk Batch to Avoid OOM (Socket Hangup)
     # Even with threads=False, a large batch can spike RAM during DF construction.
-    # Chunk size of 5 is ultra-safe for Zeabur.
-    CHUNK_SIZE = 5 
+    # Chunk size of 3 is ultra-safe for Zeabur.
+    CHUNK_SIZE = 3
+    import time
     
     if all_tickers1:
         print(f"[Race Batch] Fetching Round 1 (.TW preferred): {len(all_tickers1)} tickers (Chunked by {CHUNK_SIZE})")
         
         # We need to track leftovers across all chunks
-        # Initialize leftovers with EVERYTHING, then remove successes
-        # Actually, simpler: accumulate successes, then compute leftovers at end.
         successful_orig_ids = set()
         
         for i in range(0, len(all_tickers1), CHUNK_SIZE):
@@ -1656,6 +1655,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                 del data1
                 del to_insert
                 gc.collect()
+                time.sleep(1.0) # Breathe between chunks
                 
             except Exception as e:
                 print(f"  > Chunk Error: {e}")
@@ -1668,28 +1668,9 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                  leftovers.append(orig)
             
         # Round 2: Try .TWO for leftovers
-        # Optimization: Don't try .TWO for ETFs (00xxx) as they are TWSE-only usually.
-        # This prevents Timeout/Hang on futile fetches.
+        # Removed "Skip for ETFs" logic (Bond ETFs are 00xxx and on .TWO)
         
-        real_leftovers = []
-        dead_on_arrival = []
-        
-        for sid in leftovers:
-            # ETF Check (Starts with 0 - e.g. 0050, 00937B)
-            # Most 0xxx are ETFs listed on TWSE (.TW). 
-            # If Round 1 (.TW) failed, .TWO is unlikely.
-            # Only Stocks (1xxx-9xxx) might be on TPEx (.TWO).
-            if sid.startswith('0'): 
-                dead_on_arrival.append(sid)
-            else:
-                real_leftovers.append(sid)
-                
-        # Mark dead ones immediately (Skip Round 2)
-        if dead_on_arrival:
-             print(f"[Race Batch] Skipping Round 2 for {len(dead_on_arrival)} ETFs (Marking ERROR): {dead_on_arrival}")
-             with get_db() as conn:
-                 conn.executemany("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", [(fid,) for fid in dead_on_arrival])
-                 conn.commit()
+        real_leftovers = leftovers # All leftovers deserve a second chance
 
         if real_leftovers:
             batch2_map = {}
@@ -1740,9 +1721,11 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                     del data2
                     del to_insert2
                     gc.collect() # Per Chunk!
+                    time.sleep(1.0) # Breathe
                 
                 except Exception as e:
                      print(f"  > Round 2 Chunk Error: {e}")
+
 
             # Round 3: Mark ERRORS
             # Anything in leftovers (Round 1 failures) that wasn't in successful_orig_ids_2 is DEAD.
@@ -1895,7 +1878,7 @@ def get_portfolio_race_data(user_id: str = "default") -> list:
              max_date = datetime.now().strftime('%Y-%m-%d')
              
              try:
-                 months = pd.date_range(start=min_date, end=max_date, freq='3ME').strftime('%Y-%m').tolist()
+                 months = pd.date_range(start=min_date, end=max_date, freq='MS').strftime('%Y-%m').tolist()
                  
                  # ALWAYS ensure the current month/today is included as the final frame
                  current_month = datetime.now().strftime('%Y-%m')

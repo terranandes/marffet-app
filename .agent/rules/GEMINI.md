@@ -128,7 +128,7 @@ When user's prompt is NOT in English:
 
 - Agents: `.agent/` (Project)
 - Skills: `.agent/skills/` (Project) or `~/.gemini/antigravity/global_skills/` (Global)
-- Runtime Scripts: `.agent/skills/<skill>/scripts/`
+- Runtime Scripts: `.agent/skills/<skill>/scripts/` (Project) or `~/.gemini/antigravity/global_skills/<skill>/scripts/` (Global)
 
 ### 🧠 Read → Understand → Apply
 

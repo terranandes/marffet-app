@@ -9,10 +9,13 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 
 - === Barrier ===
 - [ ] Cash Ladder check
-- Test Google Cloud Run
+- [ ] Correlate ~/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx with our crawler output
+
 - Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
 - Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
+
 - Multi-language
+- Test Google Cloud Run
 - AICopilot enhancement
 - Email support
 

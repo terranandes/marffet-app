@@ -1809,188 +1809,9 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
 def get_portfolio_race_data(user_id: str = "default") -> list:
     """
     Build race data for live portfolio BCR (Market Value).
-    RESTORED YFinance with Start Date Optimization (Trend-like Stability).
+    Redirects to the new Trend-based Algorithm (In-Memory Calc) for stability.
     """
-    targets_by_type = get_all_targets_by_type(user_id)
-    all_targets = targets_by_type['stock'] + targets_by_type['etf'] + targets_by_type['cb']
-    
-    if not all_targets:
-        return []
-
-    # 0. PRE-STEP: Find Earliest Transaction Date for Optimization
-    # We need this BEFORE ensuring cache to avoid fetching 10y of data.
-    # Logic copied from `get_portfolio_history`
-    min_date_str = None
-    with get_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT MIN(t.date) as earliest
-            FROM transactions t
-            JOIN group_targets gt ON t.target_id = gt.id
-            JOIN user_groups ug ON gt.group_id = ug.id
-            WHERE ug.user_id = ?
-        """, (user_id,))
-        row = cursor.fetchone()
-        if row and row['earliest']:
-             # Use First of that month
-             min_date_str = row['earliest'][:7] + "-01"
-    
-    # Default to 3 years if no transactions found (shouldn't happen if targets exist?)
-    if not min_date_str:
-        min_date_str = "2023-01-01"
-
-    print(f"[Race] Optimized Start Date: {min_date_str}")
-
-    # 1. Ensure Cache is Warm (Batch Optimization)
-    # Collect all IDs first
-    raw_ids = []
-    target_map = {} # stock_id -> list of target objects
-    
-    for target in all_targets:
-        sid = target['stock_id']
-        
-        # Apply standard suffix logic to prepare for batch fetch
-        if target.get('asset_type') in ['stock', 'etf', 'cb']:
-            if sid.endswith('.TW') or sid.endswith('.TWO'):
-                pass
-            elif sid.isdigit() and len(sid) == 4:
-                sid = f"{sid}.TW"
-            elif len(sid) >= 4 and sid[0].isdigit():
-                sid = f"{sid}.TW"
-        
-        raw_ids.append(sid)
-        if sid not in target_map:
-            target_map[sid] = []
-        target_map[sid].append(target)
-        
-    # Batch Update with Optimization
-    import traceback
-    try:
-        # PASS min_date_str to optimize fetch volume!
-        id_mapping = ensure_price_cache_batch(raw_ids, start_date=min_date_str)
-    except Exception as e:
-        print(f"[Race] Batch Cache Error: {e}")
-        traceback.print_exc()
-        id_mapping = {rid: rid for rid in raw_ids} # Fallback
-    
-    # Assign valid IDs back to targets
-    for input_id, valid_id in id_mapping.items():
-        if input_id in target_map:
-            for t in target_map[input_id]:
-                t['_yf_id'] = valid_id
-                
-    # Fallback for any IDs not in mapping
-    for target in all_targets:
-        if '_yf_id' not in target:
-            target['_yf_id'] = target['stock_id'] # Fallback to original
-
-
-    # 2. Get Transaction History
-    with get_db() as conn:
-        cursor = conn.cursor()
-        
-        # Get Month Range from transactions
-        import pandas as pd
-        cursor.execute("""
-            SELECT min(date), max(date)
-            FROM transactions t
-            JOIN group_targets gt ON t.target_id = gt.id
-            JOIN user_groups ug ON gt.group_id = ug.id
-            WHERE ug.user_id = ?
-        """, (user_id,))
-        row = cursor.fetchone()
-        
-        if not row or not row[0]:
-             months = []
-        else:
-             min_date = row[0][:7] + "-01" # Ensure YYYY-MM-01
-             # Provide data up to Today
-             from datetime import datetime
-             max_date = datetime.now().strftime('%Y-%m-%d')
-             
-             try:
-                 months = pd.date_range(start=min_date, end=max_date, freq='MS').strftime('%Y-%m').tolist()
-                 
-                 # ALWAYS ensure the current month/today is included as the final frame
-                 current_month = datetime.now().strftime('%Y-%m')
-                 if not months or months[-1] != current_month:
-                     months.append(current_month)
-                     
-             except Exception as e:
-                 print(f"[Race] Date generation error: {e}")
-                 months = []
-        
-        if not months: return []
-        
-        # Fetch Price Cache for all related stocks
-        stock_ids = [t['_yf_id'] for t in all_targets]
-        placeholders = ','.join(['?'] * len(stock_ids))
-        cursor.execute(f"SELECT stock_id, month, close_price FROM race_cache WHERE stock_id IN ({placeholders})", stock_ids)
-        price_map = {} # (stock_id, month) -> price
-        for row in cursor.fetchall():
-            price_map[(row['stock_id'], row['month'])] = row['close_price']
-            
-    # 3. Build Race Data
-    race_data = []
-
-    # Iterate Months
-    for month in months:
-        for target in all_targets:
-            sid = target['_yf_id']
-            
-            # Get cumulative shares up to this month
-            # Optimization: could calculate running total instead of query per cell
-            # But let's stick to safe query for logic correctness first
-            with get_db() as inner_conn:
-                c = inner_conn.cursor()
-                c.execute("""
-                    SELECT type, shares, price FROM transactions
-                    WHERE target_id = ? AND date <= ?
-                    ORDER BY date
-                """, (target['id'], month + "-31"))
-                txs = c.fetchall()
-
-            total_shares = 0
-            for tx in txs:
-                if tx['type'] == 'buy': total_shares += tx['shares']
-                elif tx['type'] == 'sell': total_shares -= tx['shares']
-                # Dividend shares handling if any? (Not in schema yet)
-
-            if total_shares > 0:
-                # Find Market Price
-                # Try exact month
-                price = price_map.get((sid, month))
-                
-                # If missing (e.g. data starts later than tx?), fallback to transaction cost (Avg Cost)
-                if not price:
-                   # Try finding *any* price before or equal to this month?
-                   # Simple fallback: 
-                   # Calculate Avg Cost as fallback
-                   # Re-use logic:
-                   cost = 0
-                   shares_tmp = 0
-                   for tx in txs:
-                       if tx['type'] == 'buy':
-                           cost += tx['shares'] * tx['price']
-                           shares_tmp += tx['shares']
-                       else:
-                           if shares_tmp > 0:
-                               avg = cost/shares_tmp
-                               shares_tmp -= tx['shares']
-                               cost = shares_tmp * avg
-                   market_value = cost # Fallback
-                else:
-                   market_value = total_shares * price
-
-                race_data.append({
-                    "month": month,
-                    "id": target['stock_id'],
-                    "name": target['stock_name'] or target['stock_id'],
-                    "value": round(market_value, 2),
-                    "asset_type": target.get('asset_type', 'stock')
-                })
-
-    return race_data
+    return get_portfolio_race_data_calculated(user_id)
 
 
 # ============== DIVIDEND TRACKING ==============
@@ -2627,3 +2448,183 @@ def mark_notification_read(notification_id: str, user_id: str) -> bool:
         return cursor.rowcount > 0
 
 
+
+def get_portfolio_race_data_calculated(user_id: str = "default") -> list:
+    """
+    Get monthly race data using "Trend Strategy" (In-Memory Calc).
+    Replaces the unstable iterative SQL cache approach.
+    """
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    import pandas as pd
+    import yfinance as yf
+    
+    end_date = datetime.now()
+    
+    # 1. Fetch ALL transactions AND Stock Names sorted by date
+    # JOIN with group_targets to get stock_name
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT t.date, t.type, t.shares, t.price, gt.stock_id, gt.stock_name, gt.asset_type
+            FROM transactions t
+            JOIN group_targets gt ON t.target_id = gt.id
+            JOIN user_groups ug ON gt.group_id = ug.id
+            WHERE ug.user_id = ?
+            ORDER BY t.date ASC
+        """, (user_id,))
+        transactions = [dict(row) for row in cursor.fetchall()]
+
+    if not transactions:
+        return []
+
+    # 2. Identify Unique Stocks & Metadata
+    stock_metadata = {}
+    for tx in transactions:
+        sid = tx['stock_id']
+        if sid not in stock_metadata:
+            stock_metadata[sid] = {
+                'name': tx['stock_name'] or sid, 
+                'type': tx['asset_type'] or 'stock'
+            }
+        # Update name if we find a better one later? No, first is fine or last.
+        if tx['stock_name']:
+            stock_metadata[sid]['name'] = tx['stock_name']
+            
+    stock_ids = list(stock_metadata.keys())
+    
+    # 3. Determine Start Date (Earliest Transaction)
+    earliest_date_str = transactions[0]['date']
+    start_date = datetime.strptime(earliest_date_str[:7] + "-01", "%Y-%m-%d")
+    
+    # 4. Fetch Historical Prices (Vectorized - ONE CALL)
+    price_history = {}
+    try:
+        # Filter bad tickers (65331) locally before fetching
+        valid_fetch_ids = []
+        for s in stock_ids:
+            if len(s) == 5 and s.isdigit(): continue # Skip bad
+            valid_fetch_ids.append(s)
+
+        if valid_fetch_ids:
+            # Prepare tickers (add .TW suffix logic)
+            yf_tickers = []
+            clean_to_yf_map = {}
+            for s in valid_fetch_ids:
+                if s.endswith('.TW') or s.endswith('.TWO'):
+                    yf_t = s
+                elif len(s) == 4 and s.isdigit():
+                    yf_t = f"{s}.TW"
+                else: 
+                    yf_t = f"{s}.TW"
+                yf_tickers.append(yf_t)
+                clean_to_yf_map[s] = yf_t
+
+            data = yf.download(
+                yf_tickers, 
+                start=start_date.strftime("%Y-%m-%d"), 
+                end=end_date.strftime("%Y-%m-%d"),
+                interval="1mo",
+                progress=False,
+                threads=False # Safety for Zeabur
+            )['Close']
+            
+            # Map back to clean_id
+            if len(yf_tickers) == 1:
+                 if isinstance(data, pd.Series):
+                     sid = valid_fetch_ids[0]
+                     price_history[sid] = data
+            else:
+                 for clean_id in valid_fetch_ids:
+                     yf_id = clean_to_yf_map.get(clean_id)
+                     if yf_id in data.columns:
+                         price_history[clean_id] = data[yf_id]
+                     elif clean_id in data.columns:
+                         price_history[clean_id] = data[clean_id]
+
+    except Exception as e:
+        print(f"[Race Calc] YF Download failed: {e}")
+        # Continue, will use cost basis fallback
+        
+    # 5. Simulate Portfolio State Month-by-Month
+    race_results = []
+    
+    # Portfolio State: { "2330": { "shares": 1000, "total_cost": 500000 } }
+    portfolio = {sid: {'shares': 0, 'total_cost': 0} for sid in stock_ids}
+    
+    current_iter_date = start_date
+    event_idx = 0
+    total_events = len(transactions)
+    
+    # Helper: Convert transaction dicts to unified event list? 
+    # Actually transactions list is sufficient since we don't track dividends for Race (only Market Value).
+    
+    while current_iter_date <= end_date:
+        month_key = current_iter_date.strftime("%Y-%m")
+        month_end_date = (current_iter_date + relativedelta(months=1)) - relativedelta(days=1)
+        month_end_str = month_end_date.strftime("%Y-%m-%d")
+        
+        # Apply transactions up to this month end
+        while event_idx < total_events:
+            tx = transactions[event_idx]
+            if tx['date'] > month_end_str:
+                break
+            
+            sid = tx['stock_id']
+            if tx['type'] == 'buy':
+                portfolio[sid]['shares'] += tx['shares']
+                portfolio[sid]['total_cost'] += tx['shares'] * tx['price']
+            else:
+                # Sell
+                if portfolio[sid]['shares'] > 0:
+                    avg_cost = portfolio[sid]['total_cost'] / portfolio[sid]['shares']
+                    cost_of_sold = tx['shares'] * avg_cost
+                    portfolio[sid]['shares'] -= tx['shares']
+                    portfolio[sid]['total_cost'] -= cost_of_sold
+                    if portfolio[sid]['shares'] <= 0:
+                        portfolio[sid]['shares'] = 0
+                        portfolio[sid]['total_cost'] = 0
+            
+            event_idx += 1
+            
+        # Calculate Market Value for this month
+        for sid, data in portfolio.items():
+            shares = data['shares']
+            # Only include if holding shares OR if we want to show it dropped to 0 this month? 
+            # Race charts usually remove 0 lines, but keeping 0 entries ensures smooth exit.
+            # Let's skip if 0 to reduce payload.
+            if shares <= 0: continue
+            
+            market_val = 0
+            # Try price history
+            ph = price_history.get(sid)
+            price_found = False
+            
+            if ph is not None and not ph.empty:
+                try:
+                    # Find nearest price for this month
+                    idx = ph.index.get_indexer([month_end_date], method='nearest')[0]
+                    if idx != -1:
+                        price = ph.iloc[idx]
+                        if pd.notna(price):
+                            market_val = shares * float(price)
+                            price_found = True
+                except: pass
+            
+            if not price_found:
+                 # Fallback to Cost Basis
+                 market_val = data['total_cost'] # Or shares * avg_cost (same)
+            
+            # Add to Results
+            race_results.append({
+                "id": sid,
+                "name": stock_metadata.get(sid, {}).get('name', sid),
+                "value": round(market_val, 2),
+                "month": month_key,
+                "asset_type": stock_metadata.get(sid, {}).get('type', 'stock'),
+                "image": "/images/stock.png" # Placeholder, frontend handles images
+            })
+            
+        current_iter_date += relativedelta(months=1)
+        
+    return race_results

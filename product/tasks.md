@@ -29,6 +29,7 @@
 - [x] [UI] Cash Ladder check
 - [x] [UI] My Race check (Market Value & Full Timeline implemented)
     - *Fix:* Added robust suffix resolution (e.g. `00937B` -> `.TWO`) for ETFs.
+    - *Fix:* **Refactored to "Trend Architecture"** (In-Memory Calc) to eliminate "Socket Hang Up" and OOM crashes on Zeabur.
 - [ ] [UI] Totally migration to Next.js UI. Remove legacy UI.
 - [ ] **Dynamic Stock Naming** (Update `crawler.py` to capture names dynamically, referenced in "Cold Run" discussion)
 ## 5. Maintenance & workflows

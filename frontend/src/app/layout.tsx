@@ -17,6 +17,28 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Martian Investment System",
   description: "Advanced Low-Volatility Stock Analysis",
+  openGraph: {
+    title: "Martian Investment System",
+    description: "Advanced Low-Volatility Stock Analysis & Portfolio Tracking",
+    url: "https://martian-app.zeabur.app",
+    siteName: "Martian",
+    images: [
+      {
+        url: "/martian_banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Martian Investment System Dashboard",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Martian Investment System",
+    description: "Compare your portfolio against the Mars Strategy.",
+    images: ["/martian_banner.png"],
+  },
 };
 
 export default function RootLayout({

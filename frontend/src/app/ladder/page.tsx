@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import ShareButton from "@/components/ShareButton";
 
 interface LeaderboardEntry {
     id: string;
@@ -10,6 +11,7 @@ interface LeaderboardEntry {
     roi: number;
     total_cost: number;
     rank?: number;
+    holdings_count?: number;
 }
 
 export default function LadderPage() {
@@ -18,6 +20,7 @@ export default function LadderPage() {
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileData, setProfileData] = useState<{
         nickname: string;
+        roi?: number;
         holdings?: { stock_id: string; stock_name: string; shares: number }[];
         allocation?: { name: string; pct: number }[];
     } | null>(null);
@@ -95,7 +98,7 @@ export default function LadderPage() {
             <div className="glass-card rounded-xl overflow-hidden">
                 {loading ? (
                     <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                        Loading leaderboard...
+                        Loading rankings...
                     </div>
                 ) : leaderboard.length === 0 ? (
                     <div className="text-center py-20 text-[var(--color-text-muted)]">
@@ -139,15 +142,12 @@ export default function LadderPage() {
                                             {user.nickname || `User ${user.id.substring(0, 8)}`}
                                         </div>
                                         <div className="text-xs text-[var(--color-text-muted)]">
-                                            Invested: ${formatCurrency(user.total_cost || 0)}
+                                            Invested: {user.holdings_count || "?"} Assets
                                         </div>
                                     </div>
 
                                     {/* Stats */}
                                     <div className="text-right flex-shrink-0">
-                                        <div className="font-mono font-bold text-lg text-[var(--color-primary)]">
-                                            {formatCurrency(user.market_value || 0)}
-                                        </div>
                                         <div
                                             className={`text-sm font-mono font-bold ${(user.roi || 0) >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
                                                 }`}
@@ -189,68 +189,87 @@ export default function LadderPage() {
                 </button>
             </div>
 
+            {/* Share Button (Fixed Bottom-Right for Mobile or Header) */}
+            <div className="fixed bottom-6 right-6 z-40 md:static md:text-center md:mt-4">
+                <ShareButton
+                    text="Check out the Martian Investment Leaderboard! 🏆"
+                    label="📤 Share Rankings"
+                />
+            </div>
+
             {/* Profile Modal */}
-            {showProfileModal && profileData && (
-                <div
-                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-                    onClick={() => setShowProfileModal(false)}
-                >
+            {
+                showProfileModal && profileData && (
                     <div
-                        className="glass-card rounded-xl p-6 max-w-md w-full"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+                        onClick={() => setShowProfileModal(false)}
                     >
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-xl font-bold">{profileData.nickname || "Anonymous"}</h2>
-                            <button
-                                onClick={() => setShowProfileModal(false)}
-                                className="text-[var(--color-text-muted)] hover:text-white"
-                            >
-                                ✕
-                            </button>
+                        <div
+                            className="glass-card rounded-xl p-6 max-w-md w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-xl font-bold">{profileData.nickname || "Anonymous"}</h2>
+                                <div className="flex gap-2">
+                                    <ShareButton
+                                        title={`${profileData.nickname}'s Portfolio`}
+                                        text={`Check out ${profileData.nickname}'s performance on Martian! ROI: ${profileData.roi || 0}%`}
+                                        label="Share"
+                                    />
+                                    <button
+                                        onClick={() => setShowProfileModal(false)}
+                                        className="text-[var(--color-text-muted)] hover:text-white"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Holdings */}
+                            {profileData.holdings && profileData.holdings.length > 0 && (
+                                <div className="mb-4">
+                                    <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
+                                        Top Holdings
+                                    </h3>
+                                    <div className="space-y-1">
+                                        {profileData.holdings.slice(0, 5).map((h) => (
+                                            <div key={h.stock_id} className="flex justify-between text-sm">
+                                                <span>{h.stock_name || h.stock_id}</span>
+                                                {/* Privacy: Hide exact shares */}
+                                                {/* <span className="font-mono">{h.shares} shares</span> */}
+                                                <span className="text-xs bg-white/10 px-2 py-0.5 rounded">Holding</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Allocation */}
+                            {profileData.allocation && profileData.allocation.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
+                                        Allocation
+                                    </h3>
+                                    <div className="h-4 rounded-full overflow-hidden flex">
+                                        {profileData.allocation.map((a, i) => (
+                                            <div
+                                                key={i}
+                                                style={{ width: `${a.pct}%` }}
+                                                className={`h-full ${i === 0 ? "bg-[var(--color-cta)]" :
+                                                    i === 1 ? "bg-[var(--color-primary)]" :
+                                                        i === 2 ? "bg-[var(--color-success)]" :
+                                                            "bg-[var(--color-warning)]"
+                                                    }`}
+                                                title={`${a.name}: ${a.pct}%`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-
-                        {/* Holdings */}
-                        {profileData.holdings && profileData.holdings.length > 0 && (
-                            <div className="mb-4">
-                                <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
-                                    Top Holdings
-                                </h3>
-                                <div className="space-y-1">
-                                    {profileData.holdings.slice(0, 5).map((h) => (
-                                        <div key={h.stock_id} className="flex justify-between text-sm">
-                                            <span>{h.stock_name || h.stock_id}</span>
-                                            <span className="font-mono">{h.shares} shares</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Allocation */}
-                        {profileData.allocation && profileData.allocation.length > 0 && (
-                            <div>
-                                <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
-                                    Allocation
-                                </h3>
-                                <div className="h-4 rounded-full overflow-hidden flex">
-                                    {profileData.allocation.map((a, i) => (
-                                        <div
-                                            key={i}
-                                            style={{ width: `${a.pct}%` }}
-                                            className={`h-full ${i === 0 ? "bg-[var(--color-cta)]" :
-                                                i === 1 ? "bg-[var(--color-primary)]" :
-                                                    i === 2 ? "bg-[var(--color-success)]" :
-                                                        "bg-[var(--color-warning)]"
-                                                }`}
-                                            title={`${a.name}: ${a.pct}%`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

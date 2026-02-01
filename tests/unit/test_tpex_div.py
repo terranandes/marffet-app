@@ -8,7 +8,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 import pytest
-from project_tw.crawler_tpex import TPEXCrawler
+from app.project_tw.crawler_tpex import TPEXCrawler
 
 @pytest.mark.asyncio
 async def test_fetch_ex_rights_history():

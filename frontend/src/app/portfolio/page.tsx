@@ -337,13 +337,13 @@ export default function PortfolioPage() {
                     </div>
                 )}
 
-                {/* Group Tabs */}
-                <div className="flex gap-2 flex-wrap">
+                {/* Group Tabs - Horizontal Scroll on Mobile, Wrap on Desktop */}
+                <div className="flex gap-2 overflow-x-auto pb-2 flex-nowrap lg:flex-wrap no-scrollbar">
                     {groups.map((group) => (
                         <button
                             key={group.id}
                             onClick={() => setSelectedGroupId(group.id)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${selectedGroupId === group.id
+                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer whitespace-nowrap shrink-0 ${selectedGroupId === group.id
                                 ? "bg-[var(--color-cta)] text-black border-[var(--color-cta)]"
                                 : "border-[var(--color-border)] hover:border-[var(--color-cta)]"
                                 }`}

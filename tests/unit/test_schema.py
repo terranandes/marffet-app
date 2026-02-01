@@ -11,9 +11,9 @@ import pytest
 import pandas as pd
 import os
 import pandera as pa
-from tests.schemas import StockListSchema
+from tests.unit.schemas import StockListSchema
 
-OUTPUT_PATH = "project_tw/output/stock_list_s2006e2025_unfiltered.xlsx"
+OUTPUT_PATH = "app/project_tw/output/stock_list_s2006e2025_unfiltered.xlsx"
 
 def test_output_schema_validity():
     """

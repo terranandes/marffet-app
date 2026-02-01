@@ -84,4 +84,5 @@ trigger: always_on
 - **Path:** `./jira/*`
 - **Naming Convention:** `{ISSUE_TYPE}-{SERIAL_ID}-{REPORTER_AGENT_ID}_{BUG_BRIEF_DESCRIPTION}.md`
     - Example: `BUG-110-GCV_mobile_google_login.md`
+    - {SERIAL_ID} must be Decimally-Incremetal
 - **Content Requirement:** The file content must strictly state *which agent* discovered the bug.

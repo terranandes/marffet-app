@@ -30,6 +30,22 @@ The move from a flat `scripts/` + `tests/` mess to a structured hierarchy is a m
 **Rating: ⭐⭐ (Fragile)**
 
 -   **Critical Flaw**: `test_cb_api.py` and others seem to make **real network calls**.
+    ### Update (Session 2): Audit & Quarterly Sync
+
+    **Reviewed Items:**
+    1.  **Agent Rules Audit**:
+        *   `GEMINI.md`: Fixed broken paths and removed strict mandate for `intelligent-routing` skill (verified fixed).
+        *   `agent-assignment.md`: Added exception clause for role flexibility.
+        *   *Verdict*: **PASSED**. Complies with project governance.
+
+    2.  **Quarterly Sync Feature** (`app/services/backup.py`):
+        *   **Logic**: `run_quarterly_dividend_sync` correctly chains `sync_all_caches` and `backup_dividend_cache`.
+        *   **Scheduling**: APScheduler cron expression `0 0 1 1,4,7,10 *` is correct (Quarterly on 1st @ 00:00 system / 03:00 UTC implied).
+        *   **Security**: Uses `GITHUB_TOKEN` safely.
+        *   *Verdict*: **PASSED**.
+
+    **Final Recommendation:**
+    The release `c72d72b` is stable and ready for production use.
     -   *Evidence*: The test session hung for >60s.
     -   *Violation*: Unit tests must be fast and isolated.
     -   *Fix*: **Mandatory Mocking**. Use `unittest.mock` or `pytest-mock` to stub `yfinance` and `requests`.

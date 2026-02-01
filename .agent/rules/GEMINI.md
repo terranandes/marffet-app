@@ -181,7 +181,7 @@ When user's prompt is NOT in English:
 1. **Never Assume:** If even 1% is unclear, ASK.
 2. **Handle Spec-heavy Requests:** When user gives a list (Answers 1, 2, 3...), do NOT skip the gate. Instead, ask about **Trade-offs** or **Edge Cases** (e.g., "LocalStorage confirmed, but should we handle data clearing or versioning?") before starting.
 3. **Wait:** Do NOT invoke subagents or write code until the user clears the Gate.
-4. **Reference:** Full protocol in `@[skills_path/brainstorming]`.
+4. **Reference:** Full protocol in `@[skills/brainstorming]`.
 
 ### 🏁 Final Checklist Protocol
 
@@ -218,7 +218,7 @@ When user's prompt is NOT in English:
 | `lighthouse_audit.py`      | performance-profiling | Before deploy       |
 | `playwright_runner.py`     | webapp-testing        | Before deploy       |
 
-> 🔴 **Agents & Skills can invoke ANY script** via `python @[skills_path/<skill>]/scripts/<script>.py`
+> 🔴 **Agents & Skills can invoke ANY script** via `python @[skills/<skill>]/scripts/<script>.py`
 
 ### 🎭 Gemini Mode Mapping
 
@@ -243,10 +243,10 @@ When user's prompt is NOT in English:
 
 > **Design rules are in the specialist agents, NOT here.**
 
-| Task         | Read                            |
-| ------------ | ------------------------------- |
-| Web UI/UX    | `.agent/frontend-specialist.md` |
-| Mobile UI/UX | `.agent/mobile-developer.md`    |
+| Task         | Read                                   |
+| ------------ | -------------------------------------- |
+| Web UI/UX    | `.agent/agents/frontend-specialist.md` |
+| Mobile UI/UX | `.agent/agents/mobile-developer.md`    |
 
 **These agents contain:**
 

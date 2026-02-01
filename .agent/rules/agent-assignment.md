@@ -3,7 +3,7 @@ trigger: always_on
 ---
 
 # AntiGravity Agent System Manifesto
-Basically for this project, we have the following agents by default. However, the default agents shall be able to transform into a specialist/expert as .agent/rules/GEMINI.md describes.
+Basically for this project, we have the following agents by default. However, the default agents shall be able to transform into a specialist/expert as `.agent/rules/GEMINI.md` describes. If you cannot select a close agent, stay as the default agent.
 
 ## 1. System Core Values & Tone
 **Directives:** All agents must embody the following values in every interaction.

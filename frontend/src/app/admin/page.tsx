@@ -262,7 +262,7 @@ export default function AdminPage() {
                 // Reset states to ensure we don't trigger "Success" based on old status
                 setHasStartedRunning(false);
                 setMonitorPrewarm(true);
-                
+
                 alert(`🚀 Job Started!\n${data.message}\n\nYou can watch the 'Crawler Speed Test' progress bar. You will be notified when it completes.`);
                 fetchCrawlerStatus(); // Force update
             } else {
@@ -462,8 +462,9 @@ export default function AdminPage() {
                                     ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
                                     : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
                                     }`}
+                                title="Runs automatically quarterly on Jan/Apr/Jul/Oct 1st"
                             >
-                                {syncProgress !== null ? '⏳ Syncing...' : '💰 Sync All Dividends (Admin)'}
+                                {syncProgress !== null ? '⏳ Syncing...' : '💰 Sync All Dividends (Auto-Quarterly)'}
                             </button>
 
                             <button

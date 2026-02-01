@@ -72,6 +72,16 @@ async def lifespan(app: FastAPI):
         # Schedule annual pre-warm refresh on Jan 1st at 02:00 UTC (10:00 Taipei)
         # This runs Cold Run first, then pushes to GitHub
         scheduler.add_job(run_annual_prewarm, 'cron', month=1, day=1, hour=2, minute=0, id='annual_prewarm', misfire_grace_time=86400)
+        
+        # Wrapper for async quarterly sync
+        def run_quarterly_sync():
+            import asyncio
+            asyncio.run(BackupService.run_quarterly_dividend_sync())
+
+        # Schedule quarterly dividend sync on Jan/Apr/Jul/Oct 1st at 03:00 UTC (11:00 Taipei)
+        # This syncs all dividends and pushes cache to GitHub
+        scheduler.add_job(run_quarterly_sync, 'cron', month='1,4,7,10', day=1, hour=3, minute=0, id='quarterly_div_sync', misfire_grace_time=86400)
+
         scheduler.start()
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup + Annual Pre-warm)")

@@ -10,7 +10,7 @@ trigger: always_on
 
 ## CRITICAL: AGENT & SKILL PROTOCOL (START HERE)
 
-> **MANDATORY:** You MUST read the appropriate agent file and its skills BEFORE performing any implementation. This is the highest priority rule.
+> **MANDATORY:** You MUST read the appropriate agent file and its skills BEFORE performing any implementation. This is the highest priority rule except for `.agent/rules/agent-assignment.md`.
 
 ### 1. Modular Skill Loading Protocol
 
@@ -122,13 +122,16 @@ When user's prompt is NOT in English:
 
 ### 🗺️ System Map Read
 
-> 🔴 **MANDATORY:** Read `ARCHITECTURE.md` at session start to understand Agents, Skills, and Scripts.
+> 🔴 **MANDATORY:** Read `.agent/ARCHITECTURE.md` at session start to understand Agents, Skills, and Scripts.
 
 **Path Awareness:**
 
 - Agents: `.agent/` (Project)
-- Skills: `.agent/skills/` (Project)or `~/.gemini/antigravity/global_skills/` (Global)
-- Runtime Scripts: `.agent/skills/<skill>/scripts/` (Project) or `~/.gemini/antigravity/global_skills/<skill>/scripts/` (Global)
+- Skills:
+    - `.agent/skills/` (Project)
+        - Runtime Scripts: `.agent/skills/<skill>/scripts/`
+    - `~/.gemini/antigravity/global_skills/` (Global)
+        - Runtime Scripts: `~/.gemini/antigravity/global_skills/<skill>/scripts/`
 
 ### 🧠 Read → Understand → Apply
 
@@ -178,7 +181,7 @@ When user's prompt is NOT in English:
 1. **Never Assume:** If even 1% is unclear, ASK.
 2. **Handle Spec-heavy Requests:** When user gives a list (Answers 1, 2, 3...), do NOT skip the gate. Instead, ask about **Trade-offs** or **Edge Cases** (e.g., "LocalStorage confirmed, but should we handle data clearing or versioning?") before starting.
 3. **Wait:** Do NOT invoke subagents or write code until the user clears the Gate.
-4. **Reference:** Full protocol in `@[skills/brainstorming]`.
+4. **Reference:** Full protocol in `@[skills_path/brainstorming]`.
 
 ### 🏁 Final Checklist Protocol
 
@@ -215,7 +218,7 @@ When user's prompt is NOT in English:
 | `lighthouse_audit.py`      | performance-profiling | Before deploy       |
 | `playwright_runner.py`     | webapp-testing        | Before deploy       |
 
-> 🔴 **Agents & Skills can invoke ANY script** via `python .agent/skills/<skill>/scripts/<script>.py`
+> 🔴 **Agents & Skills can invoke ANY script** via `python @[skills_path/<skill>]/scripts/<script>.py`
 
 ### 🎭 Gemini Mode Mapping
 

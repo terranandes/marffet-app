@@ -407,3 +407,40 @@ class BackupService:
             logger.exception(f"[DividendBackup] Failed: {e}")
             return {"status": "error", "reason": str(e)}
 
+
+    @staticmethod
+    async def run_quarterly_dividend_sync():
+        """
+        Quarterly scheduled job: Sync ALL dividend data for all users, then backup to GitHub.
+        Scheduled for Jan/Apr/Jul/Oct 1st at 03:00 UTC.
+        """
+        from app import dividend_cache
+        from app.portfolio_db import get_all_unique_stock_ids
+        
+        logger.info("[Quarterly Sync] Starting Dividend Sync...")
+        
+        try:
+            # 1. Get all stocks
+            stock_ids = get_all_unique_stock_ids()
+            if not stock_ids:
+                logger.info("[Quarterly Sync] No stocks to sync.")
+                return
+            
+            # 2. Sync All
+            # This operations updates the local JSON files in data/dividends/*.json
+            result = dividend_cache.sync_all_caches(stock_ids)
+            logger.info(f"[Quarterly Sync] Local Sync Result: {result}")
+            
+            # 3. Backup to GitHub
+            backup_result = BackupService.backup_dividend_cache()
+            
+            logger.info(f"[Quarterly Sync] Complete. Backup Status: {backup_result.get('status')}")
+            return {
+                "status": "success",
+                "sync_result": result,
+                "backup_result": backup_result
+            }
+            
+        except Exception as e:
+            logger.exception(f"[Quarterly Sync] Failed: {e}")
+            return {"status": "error", "reason": str(e)}

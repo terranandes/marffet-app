@@ -2663,3 +2663,12 @@ def get_portfolio_race_data_calculated(user_id: str = "default") -> list:
         current_iter_date += relativedelta(months=3)
         
     return race_results
+
+# ============== BACKUP / SYNC HELPERS ==============
+
+def get_all_unique_stock_ids() -> list:
+    """Get list of all unique stock IDs tracked by any user in group_targets."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT stock_id FROM group_targets")
+        return [row['stock_id'] for row in cursor.fetchall()]

@@ -282,59 +282,61 @@ export default function MarsPage() {
                     </div>
                 ) : (
                     <div className="glass-card rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-black/30 uppercase text-xs text-[var(--color-text-muted)] tracking-wider">
-                                <tr>
-                                    <th className="px-4 py-3">Rank</th>
-                                    <th className="px-4 py-3">ID</th>
-                                    <th className="px-4 py-3">
-                                        <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-white transition cursor-pointer">
-                                            Name <span className={getSortIcon("name")}>▼</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-right">
-                                        <button onClick={() => handleSort("finalValue")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
-                                            Simulated Final <span className={getSortIcon("finalValue")}>▼</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-right">
-                                        <button onClick={() => handleSort("cagr_pct")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
-                                            CAGR % <span className={getSortIcon("cagr_pct")}>▼</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-right">
-                                        <span className="text-gray-400">Volatility %</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[var(--color-border)]">
-                                {sortedStocks.map((stock, idx) => (
-                                    <tr
-                                        key={stock.id}
-                                        onClick={() => setSelectedStock(stock)}
-                                        className="hover:bg-white/5 transition-colors duration-150 cursor-pointer"
-                                    >
-                                        <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono">{idx + 1}</td>
-                                        <td className="px-4 py-3 font-mono text-[var(--color-cta)]">{stock.id}</td>
-                                        <td className="px-4 py-3 font-medium text-white">{stock.name}</td>
-                                        <td className="px-4 py-3 text-right font-bold text-[var(--color-primary)]">
-                                            {formatCurrency(stock.finalValue || 0)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <span className={`font-bold ${stock.cagr_pct > 20 ? "text-[var(--color-success)]" :
-                                                stock.cagr_pct > 10 ? "text-[var(--color-warning)]" :
-                                                    "text-[var(--color-text-muted)]"
-                                                }`}>
-                                                {stock.cagr_pct?.toFixed(2)}%
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-right font-mono text-[var(--color-text-muted)]">
-                                            {stock.volatility_pct?.toFixed(2)}%
-                                        </td>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[700px]">
+                                <thead className="bg-black/30 uppercase text-xs text-[var(--color-text-muted)] tracking-wider">
+                                    <tr>
+                                        <th className="px-4 py-3">Rank</th>
+                                        <th className="px-4 py-3">ID</th>
+                                        <th className="px-4 py-3">
+                                            <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-white transition cursor-pointer">
+                                                Name <span className={getSortIcon("name")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <button onClick={() => handleSort("finalValue")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
+                                                Simulated Final <span className={getSortIcon("finalValue")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <button onClick={() => handleSort("cagr_pct")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
+                                                CAGR % <span className={getSortIcon("cagr_pct")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <span className="text-gray-400">Volatility %</span>
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    {sortedStocks.map((stock, idx) => (
+                                        <tr
+                                            key={stock.id}
+                                            onClick={() => setSelectedStock(stock)}
+                                            className="hover:bg-white/5 transition-colors duration-150 cursor-pointer"
+                                        >
+                                            <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono">{idx + 1}</td>
+                                            <td className="px-4 py-3 font-mono text-[var(--color-cta)]">{stock.id}</td>
+                                            <td className="px-4 py-3 font-medium text-white">{stock.name}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-[var(--color-primary)]">
+                                                {formatCurrency(stock.finalValue || 0)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className={`font-bold ${stock.cagr_pct > 20 ? "text-[var(--color-success)]" :
+                                                    stock.cagr_pct > 10 ? "text-[var(--color-warning)]" :
+                                                        "text-[var(--color-text-muted)]"
+                                                    }`}>
+                                                    {stock.cagr_pct?.toFixed(2)}%
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-mono text-[var(--color-text-muted)]">
+                                                {stock.volatility_pct?.toFixed(2)}%
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                         <div className="p-4 text-center text-xs text-[var(--color-text-muted)] border-t border-[var(--color-border)]">
                             Showing top {sortedStocks.length} of {stocks.length} filtered results
                         </div>

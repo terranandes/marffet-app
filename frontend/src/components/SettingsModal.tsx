@@ -188,9 +188,9 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                 </div>
 
                 {/* Body */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                     {/* Sidebar Tabs */}
-                    <div className="w-52 border-r border-white/10 bg-black/20 p-4 flex flex-col gap-2">
+                    <div className="w-full md:w-52 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible shrink-0">
                         {[
                             { id: 'profile', label: 'Profile', icon: '👤' },
                             { id: 'preferences', label: 'Preferences', icon: '🌍' },

@@ -92,6 +92,12 @@ CREATE TABLE IF NOT EXISTS dividend_cache (
   3. **Git Push** → Commits cache files to `app/data/dividends/` via GitHub API.
 - **Endpoint**: `POST /api/sync/all-users-dividends`
 
+### 3.3 Scheduled Quarterly Sync (Automated)
+- **Trigger**: Time-based (APScheduler).
+- **Schedule**: 1st of Jan, Apr, Jul, Oct @ 03:00 UTC.
+- **Scope**: Same as Admin Sync (Global).
+- **Action**: Automates the "Admin Sync" workflow to ensure long-term data freshness and backup without manual intervention.
+
 ```mermaid
 sequenceDiagram
     participant Admin
@@ -194,10 +200,11 @@ On container restart:
 
 ## 8. Future Enhancements
 
-### 8.1 Scheduled Auto-Sync
-Add APScheduler job to run Admin sync monthly (e.g., 1st of each month at 02:00 UTC).
-
-### 8.2 Incremental Git Push
+### 8.1 Scheduled Auto-Sync (Implemented)
+- **Status**: ✅ Active
+- **Schedule**: Quarterly (Jan/Apr/Jul/Oct 1st at 03:00 UTC).
+- **Mechanism**: APScheduler calls `BackupService.run_quarterly_dividend_sync()`.
+- **Logic**: Performs full "Admin Sync" (fetch all + git push).
 Instead of pushing ALL files, detect changed files only via file hash comparison.
 
 ### 8.3 Multi-Market Support

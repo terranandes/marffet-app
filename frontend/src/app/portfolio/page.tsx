@@ -712,58 +712,60 @@ export default function PortfolioPage() {
                                 No transactions yet. Add one above!
                             </p>
                         ) : (
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="text-left text-[var(--color-text-muted)] text-xs uppercase border-b border-white/10">
-                                        <th className="p-2">Date</th>
-                                        <th className="p-2">Type</th>
-                                        <th className="p-2 text-right">Shares</th>
-                                        <th className="p-2 text-right">Price</th>
-                                        <th className="p-2 text-right">Total</th>
-                                        <th className="p-2 text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {txHistory.map((tx) => (
-                                        <tr key={tx.id} className="hover:bg-white/5">
-                                            <td className="p-2 font-mono text-xs">{tx.date}</td>
-                                            <td className={`p-2 font-bold ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
-                                                {tx.type.toUpperCase()}
-                                            </td>
-                                            <td className="p-2 font-mono text-right">{tx.shares}</td>
-                                            <td className="p-2 font-mono text-right">${tx.price}</td>
-                                            <td className="p-2 font-mono text-right font-bold">
-                                                ${(tx.shares * tx.price).toLocaleString()}
-                                            </td>
-                                            <td className="p-2 text-center">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingTxId(tx.id);
-                                                        setNewTx({
-                                                            type: tx.type,
-                                                            shares: tx.shares,
-                                                            price: tx.price,
-                                                            date: tx.date
-                                                        });
-                                                        setShowTxForm(tx.target_id);
-                                                    }}
-                                                    className="text-[var(--color-cta)] hover:text-white hover:bg-[var(--color-cta)]/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
-                                                    title="Edit transaction"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteTransaction(tx.id)}
-                                                    className="text-red-400 hover:text-white hover:bg-red-500/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
-                                                    title="Delete transaction"
-                                                >
-                                                    🗑
-                                                </button>
-                                            </td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm min-w-[500px]">
+                                    <thead>
+                                        <tr className="text-left text-[var(--color-text-muted)] text-xs uppercase border-b border-white/10">
+                                            <th className="p-2">Date</th>
+                                            <th className="p-2">Type</th>
+                                            <th className="p-2 text-right">Shares</th>
+                                            <th className="p-2 text-right">Price</th>
+                                            <th className="p-2 text-right">Total</th>
+                                            <th className="p-2 text-center">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {txHistory.map((tx) => (
+                                            <tr key={tx.id} className="hover:bg-white/5">
+                                                <td className="p-2 font-mono text-xs">{tx.date}</td>
+                                                <td className={`p-2 font-bold ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
+                                                    {tx.type.toUpperCase()}
+                                                </td>
+                                                <td className="p-2 font-mono text-right">{tx.shares}</td>
+                                                <td className="p-2 font-mono text-right">${tx.price}</td>
+                                                <td className="p-2 font-mono text-right font-bold">
+                                                    ${(tx.shares * tx.price).toLocaleString()}
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingTxId(tx.id);
+                                                            setNewTx({
+                                                                type: tx.type,
+                                                                shares: tx.shares,
+                                                                price: tx.price,
+                                                                date: tx.date
+                                                            });
+                                                            setShowTxForm(tx.target_id);
+                                                        }}
+                                                        className="text-[var(--color-cta)] hover:text-white hover:bg-[var(--color-cta)]/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
+                                                        title="Edit transaction"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTransaction(tx.id)}
+                                                        className="text-red-400 hover:text-white hover:bg-red-500/30 px-2 py-1 rounded transition-all duration-150 cursor-pointer hover:scale-110"
+                                                        title="Delete transaction"
+                                                    >
+                                                        🗑
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
                         <div className="mt-4 flex justify-end">
                             <button

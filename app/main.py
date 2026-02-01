@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks
 from contextlib import asynccontextmanager
-from fastapi.staticfiles import StaticFiles
+
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -1391,10 +1391,6 @@ async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict
         raise HTTPException(status_code=403, detail="Admin access required")
     return update_feedback(feedback_id, data.status, data.agent_notes)
 
-# ---------------- Static Files ----------------
-# Legacy UI has been removed. Root endpoint reserved for API docs or Health Check.
-# os.makedirs("app/static", exist_ok=True)
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/")
 async def root():

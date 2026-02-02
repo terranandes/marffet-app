@@ -21,7 +21,7 @@
 
 ## 4. Feature Roadmap (Next Steps)
 - [ ] **Tab: MoneyCome Compound Interest** (`stkCode=2330`)
-- [ ] **Tab: MoneyCome Comparison** (Merge or New Tab?)
+- [x] **Tab: MoneyCome Comparison** (Implemented via Modal in Mars Strategy)
 - [x] [UI] Mobile or narrow screen portfolio card view
 - [x] [UI] Align setting modal from legacy to Next.js UI
 - [x] [UI] Trend alignment with Legacy UI (Curve Chart)
@@ -39,3 +39,4 @@
 - [x] **Full System Verification** (Verified all API endpoints locally)
 - [x] **Admin "Rebuild & Push" Feedback Improvement**
 - [ ] **Full Test Suite (Automated)** - `tests/e2e_suite.py` (Passing locally, verify on generic CI eventually)
+- [x] **Sidebar Reordering** (Compound Interest moved)

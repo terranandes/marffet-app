@@ -8,12 +8,17 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 
 - [ ] Cash Ladder check
 
+- [x] Review Engine of Tab 'Mars Strategy' (Done)
+    - [Technical Spec](file:///home/terwu01/github/martian/product/spec_mars_revamp.md) created.
+    - Architecture: Dual-DB (Portfolio DB + Universal Market Data Lake).
+    - Status: Implementation Started.
+
 - [ ] Correlate ~/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx with our crawler output
     - conceive prompts and constrains for AI agents
 
 - === Barrier ===
 
-
+- [x] Move Compund interest after BCR and before CB Strategy
 - [ ] Multi-language
 - [ ] Test Google Cloud Run
 - [ ] AICopilot enhancement

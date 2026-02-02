@@ -94,22 +94,50 @@ class ROICalculator:
             "history": portfolio_history
         }
 
-    def calculate_complex_simulation(self, df: pd.DataFrame, start_year: int, principal: float = 1_000_000, annual_investment: float = 60_000, dividend_data: dict = None, stock_code: str = ""):
+    def calculate_complex_simulation(self, df: pd.DataFrame, start_year: int, principal: float = 1_000_000, 
+                                     annual_investment: float = 60_000, dividend_data: dict = None, stock_code: str = "",
+                                     buy_logic: str = 'FIRST_CLOSE'):
         """
         Simulate Mars Strategy: 
-        1. Principal 1M (Buy at Year 1 First Close).
-        2. Yearly Extra 60k (Buy at Year X First Close).
+        1. Principal 1M (Buy at Year 1).
+        2. Yearly Extra 60k (Buy at Year X).
         3. Dividends:
            - Cash: Reinvest at Annual Avg Price.
            - Stock: Add to shares (Par $10 base).
+        
+        Args:
+            buy_logic (str): 'FIRST_CLOSE' | 'YEAR_HIGH' | 'YEAR_LOW' | 'FIRST_OPEN'
         """
         if df.empty:
             return {}
 
-        df['year'] = df.index.year
+        # Safe Year Extraction
+        if 'year' not in df.columns:
+            if isinstance(df.index, pd.DatetimeIndex):
+                df['year'] = df.index.year
+            else:
+                # If no year column and no DatetimeIndex, we can't process
+                print("ROICalculator Error: DataFrame missing 'year' column and index is not Datetime")
+                return {}
+                
         years = df['year'].unique()
         yearly_avg_prices = df.groupby('year')['close'].mean()
-        yearly_first_prices = df.groupby('year')['open'].first() # User: "Buy at Yearly Opening" (Screenshot) - Use OPEN
+        
+        # Calculate Yearly Action Price based on Logic
+        if buy_logic == 'YEAR_HIGH':
+            yearly_action_prices = df.groupby('year')['high'].max() # Use HIGH column
+            # Fallback if 'high' is missing or 0 
+            if yearly_action_prices.max() == 0:
+                 yearly_action_prices = df.groupby('year')['close'].max()
+        elif buy_logic == 'YEAR_LOW':
+            yearly_action_prices = df.groupby('year')['low'].min() # Use LOW column
+            if yearly_action_prices.min() == 0:
+                 yearly_action_prices = df.groupby('year')['close'].min()
+        elif buy_logic == 'FIRST_OPEN':
+            yearly_action_prices = df.groupby('year')['open'].first()
+        else: # FIRST_CLOSE (Default)
+            yearly_action_prices = df.groupby('year')['close'].first()
+
         yearly_end_prices = df.groupby('year')['close'].last()
         
         sorted_years = sorted([y for y in years if y >= start_year])
@@ -120,51 +148,34 @@ class ROICalculator:
         total_invested_cash = 0
         
         results = {}
+        history = []
+        
+        # Initial Point
+        history.append({
+            "year": start_year,
+            "value": round(principal, 0),
+            "dividend": 0
+        })
         
         for i, year in enumerate(sorted_years):
             # Price Data
-            p_first = yearly_first_prices.get(year, 0)
+            p_action = yearly_action_prices.get(year, 0) # The price we buy at
             p_end = yearly_end_prices.get(year, 0)
             p_avg = yearly_avg_prices.get(year, 0)
             
-            # CORRELATION OVERRIDE: TSMC 2006-2007 (Match User Screenshot Prices)
-            # User Year 1 (2006): Start ~61.3, End ~67.5. (My 64.0, 59.7)
-            # User Year 2 (2007): End ~62.0. (My 63.8)
-            if stock_code == '2330':
-                if year == 2006:
-                    p_first = 61.3  # Derived from Inv 1.06M -> Qty 18559
-                    p_end = 67.5    # Derived from Val 1.25M
-                elif year == 2007:
-                    # p_first for 2007 buy? User 2007 Inv 60k -> Qty increase ~1836 ($32/share? No.)
-                    # Let's see: Qty 1 (18559) -> Qty 2 (20395). Delta 1836.
-                    # Divs: Cash 3.0, Stock 0.05.
-                    # Stock Div: 18559 * 0.005 = 92 shares.
-                    # Cash Reinvest: (18559 * 3.0) / P_avg. 55677 / P_avg.
-                    # Extra Buy: 60000 / P_first_2007.
-                    # Total Delta = 92 + (55677/P_avg) + (60000/P_first).
-                    # Target Delta 1836.
-                    # 1744 = 55677/P_avg + 60000/P_first.
-                    # If P_avg ~ 66 (My data), P_first ~ 67.
-                    # 55677/66 = 843.
-                    # 60000/67 = 895.
-                    # 843+895 = 1738. Close to 1744.
-                    # So P_first 67, P_avg 66 seems fine.
-                    # Overriding End Price to 62.0 for Value Sync.
-                    p_end = 62.0
-            
-            if p_first == 0: continue
+            if p_action == 0: continue
             
             # 1. Invest Capital
             if i == 0:
-                # Initial Principal + Extra Input (Screenshot shows 1.12M for 2 years => 1M + 60k + 60k)
-                amt = principal + annual_investment # Principal AND Extra in Year 1
-                shares_bought = amt / p_first
+                # Initial Principal + Extra Input
+                amt = principal + annual_investment 
+                shares_bought = amt / p_action
                 current_shares += shares_bought
                 total_invested_cash += amt
             else:
                 # Yearly Extra Input
                 amt = annual_investment
-                shares_bought = amt / p_first
+                shares_bought = amt / p_action
                 current_shares += shares_bought
                 total_invested_cash += amt
             
@@ -172,11 +183,13 @@ class ROICalculator:
             # Default from passed data or 0
             div_info = {'cash': 0.0, 'stock': 0.0}
             
-            if dividend_data and year in dividend_data:
-                data_y = dividend_data.get(year)
-                div_info.update(data_y)
+            if dividend_data:
+                # Handle string/int key mismatch
+                data_y = dividend_data.get(year) or dividend_data.get(str(year))
+                if data_y:
+                    div_info.update(data_y)
             
-            # Calculate
+            # Calculate dividends
             cash_div_per_share = div_info.get('cash', 0)
             stock_div_dollar = div_info.get('stock', 0)
             
@@ -193,14 +206,6 @@ class ROICalculator:
                 shares_add = total_cash_div / p_avg
                 current_shares += shares_add
 
-            if stock_code == '2330':
-                print(f"--- Year {year} ---")
-                print(f"  Price First: {p_first}, End: {p_end}, Avg: {p_avg}")
-                print(f"  Div Info: {div_info}")
-                print(f"  Total Cash Inv: {total_invested_cash}")
-                print(f"  Current Shares: {current_shares}")
-                print(f"  Total Value: {current_shares * p_end}")
-                
             # Metric Calculation
             total_asset_value = current_shares * p_end
             
@@ -214,7 +219,20 @@ class ROICalculator:
             else:
                 results[f"s{start_year}e{year}bao"] = 0.0
                 
+            # History Tracking
+            history.append({
+                "year": year,
+                "value": round(total_asset_value, 0),
+                "dividend": round(total_cash_div, 0)
+            })
+
+            # Check for final year to populate Final Value
+            if year == sorted_years[-1]:
+                results["finalValue"] = round(total_asset_value, 0)
+                results["totalCost"] = round(total_invested_cash, 0)
+                
         results[f"s{start_year}e{sorted_years[-1]}yrs"] = len(sorted_years)
+        results["history"] = history
         return results
 
     def calculate_yearly_cumulative_cagr(self, df: pd.DataFrame, start_year: int):

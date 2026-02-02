@@ -34,6 +34,10 @@ export default function MarsPage() {
 
     // Selected Stock for Modal
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+    const [detailResult, setDetailResult] = useState<any>(null); // Store BAO/BAH/BAL
+    const [detailLoading, setDetailLoading] = useState(false);
+
+
 
     // Simulation settings
     const [sim, setSim] = useState<SimSettings>({
@@ -41,6 +45,28 @@ export default function MarsPage() {
         principal: 1000000,
         contribution: 60000,
     });
+
+    // Fetch Detail Logic (Moved here to access 'sim')
+    useEffect(() => {
+        if (!selectedStock) {
+            setDetailResult(null);
+            return;
+        }
+        const fetchDetail = async () => {
+            setDetailLoading(true);
+            try {
+                const res = await fetch(
+                    `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
+                );
+                const data = await res.json();
+                setDetailResult(data);
+            } catch (e) {
+                console.error("Detail Fetch Error", e);
+            }
+            setDetailLoading(false);
+        };
+        fetchDetail();
+    }, [selectedStock, sim]);
 
     // Mobile Settings Toggle
     const [showSettings, setShowSettings] = useState(false);
@@ -390,25 +416,54 @@ export default function MarsPage() {
                                 <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-sm py-3 px-4">
                                     <div>Strategy</div>
                                     <div className="text-center">Buy At Yearly Opening</div>
-                                    <div className="text-center opacity-50">Buy At Yearly Highest (N/A)</div>
-                                    <div className="text-center opacity-50">Buy At Yearly Lowest (N/A)</div>
+                                    <div className="text-center">Buy At Yearly Highest</div>
+                                    <div className="text-center">Buy At Yearly Lowest</div>
                                 </div>
                                 <div className="divide-y divide-[var(--color-border)]">
+                                    {/* Final Value Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
                                         <div className="font-bold text-white">Final Value</div>
+
+                                        {/* BAO */}
                                         <div className="text-center font-bold text-[var(--color-cta)] text-xl">
-                                            {formatCurrency(selectedStock.finalValue || 0)}
+                                            {detailLoading ? "Loading..." :
+                                                detailResult?.BAO?.finalValue ? formatCurrency(detailResult.BAO.finalValue) : "-"}
                                         </div>
-                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
-                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+
+                                        {/* BAH */}
+                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
+                                            {detailLoading ? "Loading..." :
+                                                detailResult?.BAH?.finalValue ? formatCurrency(detailResult.BAH.finalValue) : "-"}
+                                        </div>
+
+                                        {/* BAL */}
+                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
+                                            {detailLoading ? "Loading..." :
+                                                detailResult?.BAL?.finalValue ? formatCurrency(detailResult.BAL.finalValue) : "-"}
+                                        </div>
                                     </div>
+
+                                    {/* Total ROI Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
                                         <div className="font-bold text-white">Total ROI</div>
+
+                                        {/* BAO ROI */}
                                         <div className="text-center font-bold text-[var(--color-success)] text-lg">
-                                            {calculateTotalROI(selectedStock.finalValue || 0).toFixed(2)}%
+                                            {detailLoading ? "..." :
+                                                detailResult?.BAO?.finalValue ? calculateTotalROI(detailResult.BAO.finalValue).toFixed(2) + "%" : "-"}
                                         </div>
-                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
-                                        <div className="text-center text-[var(--color-text-muted)]">-</div>
+
+                                        {/* BAH ROI */}
+                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-lg">
+                                            {detailLoading ? "..." :
+                                                detailResult?.BAH?.finalValue ? calculateTotalROI(detailResult.BAH.finalValue).toFixed(2) + "%" : "-"}
+                                        </div>
+
+                                        {/* BAL ROI */}
+                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-lg">
+                                            {detailLoading ? "..." :
+                                                detailResult?.BAL?.finalValue ? calculateTotalROI(detailResult.BAL.finalValue).toFixed(2) + "%" : "-"}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

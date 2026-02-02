@@ -462,6 +462,96 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
         print(f"Error in get_results: {e}")
         return []
 
+@app.get("/api/results/detail")
+def get_simulation_detail(stock_id: str, start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+    """
+    On-Demand Simulation Detail (BAO vs BAH vs BAL)
+    Uses the Refactored ROICalculator (Clean Room Logic).
+    """
+    try:
+        from app.project_tw.calculator import ROICalculator
+        import pandas as pd
+        import json
+        
+        calc = ROICalculator()
+        
+        rows = []
+        current_max_year = 2026
+        
+        # Prepare Dataframe for ROICalculator
+        # Efficiency Note: Loading all files is slow. "Data Lake" (Phase 2) will fix this.
+        # For now, it's acceptable for a single-user detail view (~2-3s latency).
+        for year in range(start_year, current_max_year + 1):
+             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
+             
+             p_data = {}
+             if p_file.exists():
+                 with open(p_file, "r") as f: p_data.update(json.load(f))
+             if tpex_file.exists():
+                 with open(tpex_file, "r") as f: p_data.update(json.load(f))
+                 
+             if stock_id in p_data:
+                 node = p_data[stock_id]
+                 rows.append({
+                     "year": year,
+                     "open": node.get('first_open', node.get('start', 0)),
+                     "close": node.get('end', 0),
+                     "high": node.get('high', 0),
+                     "low": node.get('low', 0)
+                 })
+
+        if not rows:
+            return {"error": "No data found for stock"}
+
+        df = pd.DataFrame(rows)
+        div_data = DIVIDENDS_DB.get(stock_id, {})
+
+        # Run 3 Simulations
+        res_bao = calc.calculate_complex_simulation(
+            df, start_year, principal, contribution, div_data, stock_id, buy_logic='FIRST_OPEN'
+        )
+        res_bah = calc.calculate_complex_simulation(
+            df, start_year, principal, contribution, div_data, stock_id, buy_logic='YEAR_HIGH'
+        )
+        res_bal = calc.calculate_complex_simulation(
+            df, start_year, principal, contribution, div_data, stock_id, buy_logic='YEAR_LOW'
+        )
+        
+        return {
+            "BAO": sanitize_for_json(res_bao),
+            "BAH": sanitize_for_json(res_bah),
+            "BAL": sanitize_for_json(res_bal)
+        }
+
+    except Exception as e:
+        print(f"Error in detail sim: {e}")
+        traceback.print_exc()
+        return {"error": str(e)}
+
+def sanitize_for_json(obj):
+    """Recursively convert NaNs to None and Numpy types to Python types"""
+    import math
+    import numpy as np
+    
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return sanitize_for_json(obj.tolist())
+    elif isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(v) for v in obj]
+    return obj
+
 @app.get("/api/race-data")
 def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""

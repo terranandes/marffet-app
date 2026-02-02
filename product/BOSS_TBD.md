@@ -7,7 +7,9 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - [ ] Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
 
 - [ ] Cash Ladder check
+
 - [ ] Correlate ~/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx with our crawler output
+    - conceive prompts and constrains for AI agents
 
 - === Barrier ===
 

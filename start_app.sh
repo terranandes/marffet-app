@@ -7,7 +7,7 @@ fuser -k 3000/tcp || true
 echo "🚀 Starting Martian Investment System..."
 
 # --- 1. Backend Setup ---
-# --- 1. Backend Setup ---
+
 # Check if uv is installed
 if ! command -v uv &> /dev/null; then
     echo "❌ 'uv' is not installed. Please install it: curl -LsSf https://astral.sh/uv/install.sh | sh"
@@ -26,15 +26,21 @@ BACKEND_PID=$!
 # --- 2. Frontend Setup ---
 cd frontend
 
+# Check if bun is installed
+if ! command -v bun &> /dev/null; then
+    echo "❌ 'bun' is not installed. Please install it: curl -fsSL https://bun.sh/install | bash"
+    exit 1
+fi
+
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing Frontend Dependencies (this may take a minute)..."
-    npm install
+    bun install
 fi
 
 echo "✅ Frontend Ready"
 echo "Starting Next.js Frontend..."
 # Note: Host is bound via package.json script "dev"
-npm run dev &
+bun run --bun dev &
 FRONTEND_PID=$!
 
 # Cleanup on exit

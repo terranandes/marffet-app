@@ -9,6 +9,7 @@
 | Category | Technology | Notes |
 |----------|------------|-------|
 | Framework | Next.js 16 (React 18) | App Router, Server Actions |
+| Runtime | **Bun** | Ultra-fast JS Runtime & Bundler |
 | Styling | TailwindCSS | Cyberpunk theme (Cyan/Gold/Zinc-950) |
 | Fonts | Inter (Google) | Clean, modern |
 | Visualization | ECharts for React | Bar Chart Race, Trend Lines, Donut |

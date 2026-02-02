@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI):
         
         # Schedule daily backup at 01:00 UTC (09:00 Taipei)
         # misfire_grace_time=86400 (24h): If app sleeps and wakes up, run immediately if missed.
-        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=86400)
+        scheduler.add_job(BackupService.backup_db, 'cron', hour=1, minute=0, id='daily_backup', misfire_grace_time=3600)
         
         # 3. Smart Startup Check: If we missed the window due to sleep, check if backup is stale
         # We perform this check 30 seconds after startup to allow server to settle

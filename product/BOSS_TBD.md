@@ -2,15 +2,16 @@
 This file is owned by BOSS, prohibited from access by any AI Agent on any platform.
 
 ## Web APP Next to do
-- [x] **Dynamic Stock Naming** (Update `crawler.py` to capture names dynamically, referenced in "Cold Run" discussion). Find out O(1) method from formal sources instead of Moneycome.in referenced excel.
+
+- [ ] Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
+- [ ] Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
 
 - [ ] Cash Ladder check
 - [ ] Correlate ~/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx with our crawler output
 
 - === Barrier ===
 
-- [ ] Add https://www.moneycome.in/tool/compound_interest?stkCode=2330 TAB
-- [ ] Add https://www.moneycome.in/tool/compound_interest_comparison TAB or merge it?
+
 - [ ] Multi-language
 - [ ] Test Google Cloud Run
 - [ ] AICopilot enhancement
@@ -18,6 +19,7 @@ This file is owned by BOSS, prohibited from access by any AI Agent on any platfo
 - [ ] Email support
 
 ## BOSS TBD
+- switch to gh from git
 - Study workflows suitable for AntiGravity
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
 - Manus workflow

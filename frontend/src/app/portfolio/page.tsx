@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 
 import { PortfolioFactory, IPortfolioService, Group, Target, Transaction, Dividend } from "../../services/portfolioService";
+import StockDetailModal from "../../components/StockDetailModal";
 
 export default function PortfolioPage() {
     const [groups, setGroups] = useState<Group[]>([]);
@@ -31,7 +32,8 @@ export default function PortfolioPage() {
     const [txHistory, setTxHistory] = useState<Transaction[]>([]);
 
     // Dividend history
-    const [showDivHistory, setShowDivHistory] = useState<{ targetId: string; stockName: string } | null>(null);
+    // Dividend history
+    const [showDivHistory, setShowDivHistory] = useState<{ targetId: string; stockId: string; stockName: string } | null>(null);
     const [divHistory, setDivHistory] = useState<Dividend[]>([]);
 
     // Stats
@@ -250,11 +252,16 @@ export default function PortfolioPage() {
         setShowTxHistory(targetId);
     };
 
-    const fetchDivHistory = async (targetId: string, stockName: string) => {
+    const fetchDivHistory = async (targetId: string, stockId: string, stockName: string) => {
         if (!service) return;
-        const data = await service.getDividends(targetId);
-        setDivHistory(data);
-        setShowDivHistory({ targetId, stockName });
+        setLoading(true);
+        try {
+            const data = await service.getDividends(targetId);
+            setDivHistory(data);
+            setShowDivHistory({ targetId, stockId, stockName });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDeleteTransaction = async (txId: string) => {
@@ -518,7 +525,7 @@ export default function PortfolioPage() {
                                                             {formatCurrency(target.summary?.realized_pnl || 0)}
                                                         </div>
                                                     </div>
-                                                    <div className="text-right cursor-pointer" onClick={(e) => { e.stopPropagation(); fetchDivHistory(target.id, target.stock_name || target.id); }}>
+                                                    <div className="text-right cursor-pointer" onClick={(e) => { e.stopPropagation(); fetchDivHistory(target.id, target.stock_id, target.stock_name || target.id); }}>
                                                         <div className="text-xs text-[var(--color-warning)]">💰 Div. Receipt</div>
                                                         <div className="font-mono text-[var(--color-warning)] font-bold hover:text-white transition">
                                                             {formatCurrency(target.summary?.total_dividend_cash || 0)}
@@ -629,7 +636,7 @@ export default function PortfolioPage() {
                                                     ({(target.summary?.unrealized_pnl_pct || 0).toFixed(2)}%)
                                                 </div>
                                             </td>
-                                            <td className="p-2 text-right cursor-pointer hover:bg-white/5 transition" onClick={() => fetchDivHistory(target.id, target.stock_name)}>
+                                            <td className="p-2 text-right cursor-pointer hover:bg-white/5 transition" onClick={() => fetchDivHistory(target.id, target.stock_id, target.stock_name)}>
                                                 <div className="font-mono text-[var(--color-warning)] font-bold hover:text-white transition">
                                                     {formatCurrency(target.summary?.total_dividend_cash || 0)}
                                                 </div>
@@ -876,65 +883,17 @@ export default function PortfolioPage() {
             )}
 
             {/* Dividend History Modal */}
-            {showDivHistory && (
-                <div
-                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-                    onClick={() => setShowDivHistory(null)}
-                >
-                    <div
-                        className="bg-[#1a1a2e] p-6 rounded-xl border border-white/20 w-full max-w-2xl max-h-[80vh] overflow-auto"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">💰 Dividend Receipt - {showDivHistory.stockName}</h3>
-                        </div>
-                        {divHistory.length === 0 ? (
-                            <p className="text-[var(--color-text-muted)] text-center py-8">
-                                No dividend records found. Click "Sync Dividends" to fetch data.
-                            </p>
-                        ) : (
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-[var(--color-border)] text-[var(--color-text-muted)]">
-                                        <th className="text-left p-2">Ex-Date</th>
-                                        <th className="text-right p-2">Shares Held</th>
-                                        <th className="text-right p-2">$/Share</th>
-                                        <th className="text-right p-2">Total Cash</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-[var(--color-border)]">
-                                    {divHistory.map((div) => (
-                                        <tr key={div.id} className="hover:bg-white/5">
-                                            <td className="p-2">{div.ex_date}</td>
-                                            <td className="p-2 font-mono text-right">{div.shares_held}</td>
-                                            <td className="p-2 font-mono text-right">${div.amount_per_share?.toFixed(4)}</td>
-                                            <td className="p-2 font-mono text-right font-bold text-[var(--color-warning)]">
-                                                ${div.total_cash?.toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                                <tfoot>
-                                    <tr className="border-t border-[var(--color-border)] font-bold">
-                                        <td colSpan={3} className="p-2 text-right">Total:</td>
-                                        <td className="p-2 text-right text-[var(--color-warning)]">
-                                            ${divHistory.reduce((sum, d) => sum + (d.total_cash || 0), 0).toLocaleString()}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        )}
-                        <div className="mt-4 flex justify-end">
-                            <button
-                                onClick={() => setShowDivHistory(null)}
-                                className="px-4 py-2 border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Old Dividend History Modal Removed */}
+            {/* Stock Detail Modal (Replaces old Dividend History) */}
+            <StockDetailModal
+                isOpen={!!showDivHistory}
+                onClose={() => setShowDivHistory(null)}
+                stockId={showDivHistory?.stockId || ""}
+                stockName={showDivHistory?.stockName || ""}
+                dividends={divHistory}
+                loading={loading && !!showDivHistory}
+            />
+
         </div>
     );
 }

@@ -39,8 +39,8 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 If you prefer to run it on your own machine:
 
 ### Prerequisites
--   Python 3.10+
--   Node.js 18+
+-   Python 3.12 (Managed by `uv`)
+-   **Bun** 1.x (Frontend Runtime)
 
 ### Setup (Required: uv)
 

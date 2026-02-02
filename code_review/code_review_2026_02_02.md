@@ -1,23 +1,33 @@
-# Code Review: 2026-02-02
+# Code Review - 2026-02-02
+**Reviewer**: [CV] (Code Verification Manager)
+**Topic**: Bun Migration & Tab Refactoring
 
-**Reviewer:** [CV]
-**Focus:** Cash Ladder & App Entry Points
+## 1. Bun Migration
+### Artifacts Reviewed
+*   `frontend/Dockerfile`
+*   `start_app.sh`
+*   `frontend/package.json`
+*   `mcp_config.json`
 
-## Critical Findings
-### 1. Blocking I/O in Async Endpoint
-*   **File:** `app/main.py` (Line 1043)
-*   **Function:** `fetch_leaderboard`
-*   **Issue:** The endpoint is defined as `async def`, which runs on the main event loop. However, it calls `get_leaderboard()`, which performs synchronous database operations (Blocking I/O).
-*   **Impact:** During the database query, the entire application will pause, blocking other requests.
-*   **Recommendation:** 
-    *   **Option A (Quick):** Remove `async` keyword to use FastAPI's threadpool automatically.
-    *   **Option B (Explicit):** Use `run_in_threadpool(get_leaderboard, limit)`.
+### Findings
+*   **[CRITICAL] Redundant Lock File**: `frontend/package-lock.json` exists alongside `bun.lock`.
+    *   **Risk**: Potential for dependency drift if `npm` is inadvertently used.
+    *   **Recommendation**: `git rm frontend/package-lock.json`.
+*   **[PASS] Dockerfile**: Correctly switched to `oven/bun:1`. `bun install --frozen-lockfile` is best practice.
+*   **[PASS] Start Script**: `start_app.sh` properly checks for `bun` binary and uses `bun run --bun dev`.
 
-## Improvements
-### 1. Frontend Error Handling (User Experience)
-*   **File:** `frontend/src/app/ladder/page.tsx`
-*   **Observation:** Error logging relies on `console.error`. 
-*   **Suggestion:** Add a visible toast notification for API failures (sync stats, fetch leaderboard) to improve user feedback.
+## 2. Refactoring (StockDetailModal)
+*   **[PASS] Logic**: Tab state management (`activeTab`, `compoundSubTab`) is clean.
+*   **[PASS] URLs**: MoneyCome URLs are correctly formatted.
+*   **[NOTE] Iframe**: Ensure `allow-scripts` and `same-origin` policies are safe (current implementation is standard).
 
-## Verification
-*   **Cash Ladder Logic:** Verified correct. Scripts `tests/integration/verify_ladder_backend.py` passed.
+## 3. Backup Logic
+*   **[PASS] Scheduler**: Misfire grace time reduced to `3600` (1h). This is a correct fix for the "duplicate backup after restart" issue.
+
+## 4. Testing
+*   **[WARN] Hardcoded Paths**: `e2e_suite.py` had a hardcoded absolute path.
+    *   **Fix**: [PL] already corrected this to `os.path.join`.
+*   **[WARN] Timeouts**: 30s timeout on remote E2E indicates performance bottlenecks or cold start issues.
+
+## Verdict
+**Migration Status**: **APPROVED** (Subject to `package-lock.json` removal).

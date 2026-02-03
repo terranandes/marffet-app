@@ -431,22 +431,9 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0)
         
-        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
-        PRICES_DB = {}
-        import json
-        current_max_year = 2026
-        for year in range(start_year, current_max_year + 1):
-             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-             if p_file.exists():
-                 try:
-                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
-                 except: PRICES_DB[year] = {}
-             # TPEx
-             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-             if tpex_file.exists():
-                 try:
-                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
-                 except: pass
+        # Load Prices (Optimized via MarketCache)
+        from app.services.market_cache import MarketCache
+        PRICES_DB = MarketCache.get_prices_db()
 
     # Run Simulation
         results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
@@ -479,27 +466,14 @@ def get_simulation_detail(stock_id: str, start_year: int = 2006, principal: floa
         current_max_year = 2026
         
         # Prepare Dataframe for ROICalculator
-        # Efficiency Note: Loading all files is slow. "Data Lake" (Phase 2) will fix this.
-        # For now, it's acceptable for a single-user detail view (~2-3s latency).
-        for year in range(start_year, current_max_year + 1):
-             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-             
-             p_data = {}
-             if p_file.exists():
-                 with open(p_file, "r") as f: p_data.update(json.load(f))
-             if tpex_file.exists():
-                 with open(tpex_file, "r") as f: p_data.update(json.load(f))
-                 
-             if stock_id in p_data:
-                 node = p_data[stock_id]
-                 rows.append({
-                     "year": year,
-                     "open": node.get('first_open', node.get('start', 0)),
-                     "close": node.get('end', 0),
-                     "high": node.get('high', 0),
-                     "low": node.get('low', 0)
-                 })
+        # Prepare Dataframe for ROICalculator (Optimized)
+        from app.services.market_cache import MarketCache
+        history = MarketCache.get_stock_history_fast(stock_id)
+        
+        # Filter by Start Year (simulating the loop logic)
+        for h in history:
+            if h['year'] >= start_year:
+                rows.append(h)
 
         if not rows:
             return {"error": "No data found for stock"}
@@ -572,22 +546,9 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
             df = pd.read_excel(SOURCE_FILE)
             df = df.fillna(0) # Ensure no NaNs
             
-            # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
-            PRICES_DB = {}
-            import json
-            current_max_year = 2026
-            for year in range(start_year, current_max_year + 1):
-                p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-                if p_file.exists():
-                    try:
-                        with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
-                    except: PRICES_DB[year] = {}
-                # TPEx
-                tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-                if tpex_file.exists():
-                    try:
-                        with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
-                    except: pass
+            # Load Prices (Optimized via MarketCache)
+            from app.services.market_cache import MarketCache
+            PRICES_DB = MarketCache.get_prices_db()
     
             # Run Simulation
             results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
@@ -873,7 +834,11 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
         
         # Initial Purchase at USER SELECTED Start Year
         # Try to get start price of start_year
-        start_price_initial = prices_db.get(start_year, {}).get(stock_id, {}).get('start', 0)
+        initial_node = prices_db.get(start_year, {}).get(stock_id, {})
+        # V2 Schema Compatibility
+        if 'summary' in initial_node: initial_node = initial_node['summary']
+            
+        start_price_initial = initial_node.get('start', 0)
         
         # Always initialize base wealth tracking
         cost = principal
@@ -910,6 +875,9 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                 
                 # Fetch Price Data
                 y_data = prices_db.get(year, {}).get(stock_id, {})
+                # V2 Schema Compatibility
+                if 'summary' in y_data: y_data = y_data['summary']
+
                 start_price = y_data.get('start', 0)
                 end_price = y_data.get('end', 0)
                 

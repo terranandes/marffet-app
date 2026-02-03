@@ -47752,6 +47752,7 @@
 5530,龍巖,其他業,OTC
 5536,聖暉*,其他電子業,OTC
 5543,桓鼎-KY,建材營造業,OTC
+5547,久舜,建材營造業,OTC
 5548,安倉,建材營造業,OTC
 5601,台聯櫃,航運業,OTC
 5603,陸海,航運業,OTC
@@ -48452,6 +48453,7 @@
 66642,群翊二,nan,Bond
 66702,復盛應用二,nan,Bond
 66721,騰輝電子一KY,nan,Bond
+66722,騰輝電子二KY,nan,Bond
 66801,鑫創電子一,nan,Bond
 67062,惠特二,nan,Bond
 67152,嘉基二,nan,Bond
@@ -48502,6 +48504,7 @@
 81714,天宇四,nan,Bond
 81715,天宇五,nan,Bond
 82102,勤誠二,nan,Bond
+82103,勤誠三,nan,Bond
 82551,朋程一,nan,Bond
 83742,羅昇二,nan,Bond
 84041,百和興業一KY,nan,Bond
@@ -49772,7 +49775,6 @@ HF1403,114桃建債3,nan,Bond
 HF1404,114桃建債4,nan,Bond
 F012DJ,S26CTBC3,nan,Bond
 F02642,P21CACIB8,nan,Bond
-F07416,S26TCB2,nan,Bond
 F14618,P22JPMCB2,nan,Bond
 F14622,P24JPMCB3,nan,Bond
 F14802,13慧洋KY1,nan,Bond
@@ -50418,6 +50420,7 @@ F07412,S25TCB1B,nan,Bond
 F07413,S25TCB2,nan,Bond
 F07414,S25TCB3,nan,Bond
 F07415,S26TCB1,nan,Bond
+F07416,S26TCB2,nan,Bond
 F07502,P16ISBI1,nan,Bond
 F07701,P15LBOT1,nan,Bond
 F07702,P15LBOT2,nan,Bond
@@ -50745,6 +50748,7 @@ F13772,P25MSF1,nan,Bond
 F13773,P25MSF2,nan,Bond
 F13774,P25MSF3,nan,Bond
 F13775,P26MSF1,nan,Bond
+F13776,P26MSF2,nan,Bond
 F13801,P18QATAR1,nan,Bond
 F13802,P19QATAR1,nan,Bond
 F13803,P20QATAR1,nan,Bond

@@ -1,0 +1,7 @@
+Loading Excel: /home/terwu01/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx
+Expected Stocks (Excel): 2969
+Actual Stocks (Data Lake): 2550
+Missing Stocks: 658
+Sample Missing: ['6652', '2056', '6930', '9971', '6036', '00794B', '1269', '00854B', '5297', '8945']
+Extra Stocks (in Lake but not Excel): 239
+Coverage: 77.84%

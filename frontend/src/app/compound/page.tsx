@@ -40,10 +40,10 @@ export default function CompoundPage() {
     // Mobile Settings Toggle
     const [showSettings, setShowSettings] = useState(false);
 
-    // Initial Load
-    useEffect(() => {
-        updateUrl();
-    }, []);
+    // Initial Load - REMOVED to show placeholder first
+    // useEffect(() => {
+    //     updateUrl();
+    // }, []);
 
     // Update URL based on settings
     const updateUrl = () => {
@@ -235,18 +235,35 @@ export default function CompoundPage() {
                         )}
                     </h1>
                     <div className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
-                        Powered by <span className="font-bold text-white">MoneyCome</span>
+                        {/* Powered by text removed */}
                     </div>
                 </header>
 
                 <div className="flex-1 bg-white relative">
-                    <iframe
-                        key={iframeUrl} // Force reload on URL change
-                        src={iframeUrl}
-                        className="w-full h-full border-0 absolute inset-0"
-                        title="MoneyCome Compound Interest"
-                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    />
+                    {iframeUrl ? (
+                        <iframe
+                            key={iframeUrl} // Force reload on URL change
+                            src={iframeUrl}
+                            className="w-full h-full border-0 absolute inset-0 z-10"
+                            title="Compound Interest Calculator"
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                        />
+                    ) : (
+                        /* Placeholder State */
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-bg-secondary)]/10 text-[var(--color-text)]">
+                            <div className="text-6xl mb-4 opacity-20">📊</div>
+                            <h2 className="text-xl font-bold mb-2 text-[var(--color-text)] opacity-60">Ready to Visualize?</h2>
+                            <p className="text-sm text-[var(--color-text-muted)] max-w-xs text-center mb-8">
+                                Configure your parameters in the sidebar and click <span className="text-[var(--color-cta)] font-bold">Calculate</span> to generate your wealth projection.
+                            </p>
+                            <div className="flex gap-4 opacity-40">
+                                <div className="h-32 w-4 bg-zinc-700/20 rounded-t-lg"></div>
+                                <div className="h-48 w-4 bg-zinc-700/20 rounded-t-lg"></div>
+                                <div className="h-40 w-4 bg-zinc-700/20 rounded-t-lg"></div>
+                                <div className="h-64 w-4 bg-[var(--color-cta)]/30 rounded-t-lg"></div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

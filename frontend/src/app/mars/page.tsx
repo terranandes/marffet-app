@@ -1,3 +1,4 @@
+gdf
 "use client";
 
 import dynamic from 'next/dynamic';
@@ -118,12 +119,8 @@ export default function MarsPage() {
     useEffect(() => {
         fetchStocks();
 
-        // Auto-warm: Trigger smart market data update in background (silent)
-        // This ensures data is fresh when user enters Mars Strategy tab
-        fetch(`/api/admin/crawl?key=secret&force=false`, {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(() => { }); // Silent - ignore errors
+        // Auto-warm removed: Triggers heavy CPU load on backend
+
     }, []); // Initial load
 
     // Sorted stocks
@@ -422,7 +419,7 @@ export default function MarsPage() {
                                 <div className="divide-y divide-[var(--color-border)]">
                                     {/* Final Value Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">Final Value</div>
+                                        <div className="font-bold text-white">Final Value {console.log("[MARS_DEBUG] Render. Loading:", detailLoading)}</div>
 
                                         {/* BAO */}
                                         <div className="text-center font-bold text-[var(--color-cta)] text-xl">

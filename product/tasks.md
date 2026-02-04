@@ -55,3 +55,5 @@
 - [x] **Admin "Rebuild & Push" Feedback Improvement**
 - [ ] **Full Test Suite (Automated)** - `tests/e2e_suite.py` (Passing locally, verify on generic CI eventually)
 - [x] **Sidebar Reordering** (Compound Interest moved)
+- [x] **Mars Strategy Modal Performance Fix** (Removed Auto-Crawl triggering backend analysis on load)
+- [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)

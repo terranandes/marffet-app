@@ -32,6 +32,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-13 | Login Overlay | Intersection Check | Verify Overlay doesn't block mobile interaction |
 | TC-14 | CB Support | Data Fetch | Can search/add Convertible Bonds (e.g., 11011) |
 | TC-15 | Admin Sync | Smart Update | "Smart Update" refreshes Stock List (O(1)) |
+| TC-16 | Daily Data | High Res Data | Verify 2330 has Daily Data (200+ rows/year) |
+| TC-20 | Cache Singleton | Performance | Verify All Tabs load in <0.5s via Shared RAM |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
@@ -46,8 +48,9 @@ uv run tests/e2e/e2e_suite.py
 #### B. Backend Data Verification
 ```bash
 uv run tests/integration/test_fetch_names.py
+uv run scripts/verify_daily.py
 ```
-*   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and Dynamic Naming.
+*   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and **Daily Data (Phase 4)** integrity.
 
 #### C. Mobile Specifics
 ```bash

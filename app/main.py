@@ -41,6 +41,12 @@ async def lifespan(app: FastAPI):
         # 1. Initialize DB
         init_db()
         print("[Startup] Portfolio Database Initialized")
+
+        # 1.5 Pre-warm MarketCache (Critical for Speed)
+        from app.services.market_cache import MarketCache
+        print("[Startup] Warming Market Cache (Loading 20 years of JSON)...")
+        MarketCache.get_prices_db(force_reload=True)
+        print("[Startup] Market Cache Ready (RAM Hot)")
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -454,8 +460,15 @@ def get_simulation_detail(stock_id: str, start_year: int = 2006, principal: floa
     """
     On-Demand Simulation Detail (BAO vs BAH vs BAL)
     Uses the Refactored ROICalculator (Clean Room Logic).
+    CACHE ENABLED: Uses SIM_CACHE if available.
     """
     try:
+        print(f"[Detail API] Request for {stock_id} ({start_year})")
+        # Check Cache (Reuse if exact match)
+        cache_key = f"DETAIL_{stock_id}_{start_year}_{principal}_{contribution}"
+        if cache_key in SIM_CACHE:
+            print(f"[Detail] Cache Hit for {stock_id}")
+            return SIM_CACHE[cache_key]
         from app.project_tw.calculator import ROICalculator
         import pandas as pd
         import json
@@ -492,11 +505,15 @@ def get_simulation_detail(stock_id: str, start_year: int = 2006, principal: floa
             df, start_year, principal, contribution, div_data, stock_id, buy_logic='YEAR_LOW'
         )
         
-        return {
+        result = {
             "BAO": sanitize_for_json(res_bao),
             "BAH": sanitize_for_json(res_bah),
             "BAL": sanitize_for_json(res_bal)
         }
+        
+        # Write to Cache
+        SIM_CACHE[cache_key] = result
+        return result
 
     except Exception as e:
         print(f"Error in detail sim: {e}")
@@ -508,11 +525,7 @@ def sanitize_for_json(obj):
     import math
     import numpy as np
     
-    if isinstance(obj, float):
-        if math.isnan(obj) or math.isinf(obj):
-            return None
-        return obj
-    elif isinstance(obj, np.integer):
+    if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
         if np.isnan(obj) or np.isinf(obj):
@@ -520,6 +533,10 @@ def sanitize_for_json(obj):
         return float(obj)
     elif isinstance(obj, np.ndarray):
         return sanitize_for_json(obj.tolist())
+    elif isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
     elif isinstance(obj, dict):
         return {k: sanitize_for_json(v) for k, v in obj.items()}
     elif isinstance(obj, list):
@@ -942,16 +959,16 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                     prev_wealth = wealth # Update for next loop
 
                 else:
-                    # Fallback to Excel Data if no detailed price JSON
-                    # SYNTHETIC MODE: approximate tracking
-                    final_roi = excel_roi
+                    # Fallback Logic: Stock likely not listed yet (or data missing)
+                    # Treat as CASH HELD (0% ROI). Do NOT trust Excel ROI for unlisted years.
+                    final_roi = 0
                     div_yield = 0
                     
-                    # Apply ROI + Contribution
-                    # wealth = prev * (1+r) + contrib
-                    wealth = prev_wealth * (1 + final_roi/100) + contribution
+                    # Just add contribution to wealth (Money piling up)
+                    wealth = prev_wealth + contribution
                     prev_wealth = wealth
                     cost += contribution
+
 
                 # Store history for frontend chart
                 sim_cagr = 0

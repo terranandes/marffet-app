@@ -1,69 +1,51 @@
 
-import sys
-import os
-from pathlib import Path
-import json
+import time
 import pandas as pd
-import numpy as np
-
-# Mock Backend Environment
-BASE_DIR = Path("/home/terwu01/github/martian")
-sys.path.insert(0, str(BASE_DIR))
-
+from app.services.market_cache import MarketCache
 from app.project_tw.calculator import ROICalculator
+from app.main import DIVIDENDS_DB, init_db
 
-def test_detail_logic(stock_id="2330", start_year=2006):
-    print(f"Testing Simulation for {stock_id} from {start_year}...")
+def benchmark_calc():
+    print("--- 1. Warming Up ---")
+    t0 = time.time()
+    init_db() # Should be fast
+    MarketCache.get_prices_db(force_reload=True) # Heavy Lift
+    print(f"Warmup Time: {time.time()-t0:.4f}s")
     
-    rows = []
-    current_max_year = 2026
+    stock_id = "2330"
+    start_year = 2006
+    principal = 1000000
+    contribution = 60000
     
-    for year in range(start_year, current_max_year + 1):
-         p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-         tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-         
-         p_data = {}
-         if p_file.exists():
-             with open(p_file, "r") as f: p_data.update(json.load(f))
-         if tpex_file.exists():
-             with open(tpex_file, "r") as f: p_data.update(json.load(f))
-             
-         if stock_id in p_data:
-             node = p_data[stock_id]
-             rows.append({
-                 "year": year,
-                 "open": node.get('first_open', node.get('start', 0)),
-                 "close": node.get('end', 0),
-                 "high": node.get('high', 0),
-                 "low": node.get('low', 0)
-             })
-
-    if not rows:
-        print("Error: No data rows found.")
-        return
-
-    df = pd.DataFrame(rows)
-    print(f"Loaded DataFrame with {len(df)} rows.")
-    # print(df.tail())
-
+    print(f"\n--- 2. Fetching History ---")
+    t0 = time.time()
+    history = MarketCache.get_stock_history_fast(stock_id)
+    fetch_time = time.time() - t0
+    print(f"History Fetch: {fetch_time:.6f}s (Rows: {len(history)})")
+    
     calc = ROICalculator()
-    try:
-        res = calc.calculate_complex_simulation(
-            df, start_year, 1_000_000, 60_000, {}, stock_id, buy_logic='FIRST_OPEN'
-        )
-        print("Calculation Success!")
-        print("Result Keys:", list(res.keys()))
+    
+    # Simulate API logic
+    rows = [h for h in history if h['year'] >= start_year]
+    df = pd.DataFrame(rows)
+    div_data = DIVIDENDS_DB.get(stock_id, {})
+    
+    print(f"\n--- 3. Running Calculations (3 Strategies) ---")
+    t0 = time.time()
+    
+    strategies = ['FIRST_OPEN', 'YEAR_HIGH', 'YEAR_LOW']
+    for strat in strategies:
+        t_strat = time.time()
+        res = calc.calculate_complex_simulation(df, start_year, principal, contribution, div_data, stock_id, buy_logic=strat)
+        print(f"  > {strat}: {time.time()-t_strat:.6f}s")
         
-        # Test Serialization
-        print("Testing JSON Serialization...")
-        dump = json.dumps(res, default=str) # Allow str conversion if needed
-        print("Serialization Success!")
-        # print("Dump:", dump[:100])
-        
-    except Exception as e:
-        print(f"CRITICAL FAULT: {e}")
-        import traceback
-        traceback.print_exc()
+    total_calc_time = time.time() - t0
+    print(f"Total Calc Time: {total_calc_time:.6f}s")
+    
+    if total_calc_time > 1.0:
+        print("\n[FAIL] Calculation is Slow (>1s).")
+    else:
+        print("\n[PASS] Calculation is Fast.")
 
 if __name__ == "__main__":
-    test_detail_logic()
+    benchmark_calc()

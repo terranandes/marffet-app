@@ -464,11 +464,11 @@ export default function MarsPage() {
                                 </div>
                             </div>
 
-                            {/* Chart Section */}
+                            {/* Chart Section - TRIPLE CURVE (BAO/BAH/BAL) */}
                             <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-white">
-                                        {vizMode === 'wealth' ? 'Stock Market Value (Wealth Path) - BAO Only' : 'Dividend History'}
+                                        {vizMode === 'wealth' ? 'Wealth Path (Comparison)' : 'Dividend History'}
                                     </h3>
                                     <div className="flex gap-2">
                                         <button
@@ -486,25 +486,39 @@ export default function MarsPage() {
                                     </div>
                                 </div>
 
-                                {selectedStock.history && selectedStock.history.length > 0 ? (
+                                {detailResult && detailResult.BAO?.history ? (
                                     <ReactECharts
                                         option={{
                                             backgroundColor: 'transparent',
                                             tooltip: {
                                                 trigger: 'axis',
-                                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                                backgroundColor: 'rgba(0,0,0,0.9)',
                                                 borderColor: '#333',
                                                 textStyle: { color: '#fff' },
                                                 formatter: (params: any) => {
-                                                    const p = params[0];
-                                                    return `${p.name}<br/>${vizMode === 'wealth' ? 'Value' : 'Dividend'}: $${Number(p.value).toLocaleString()}`;
+                                                    let res = `<div style="margin-bottom:5px;font-weight:bold">${params[0].name}</div>`;
+                                                    params.forEach((p: any) => {
+                                                        const color = p.color;
+                                                        const seriesName = p.seriesName;
+                                                        const val = `$${Number(p.value).toLocaleString()}`;
+                                                        res += `<div style="display:flex;justify-content:space-between;gap:15px;font-size:12px">
+                                                                    <span style="color:${color}">● ${seriesName}</span>
+                                                                    <span style="font-weight:bold">${val}</span>
+                                                                </div>`;
+                                                    });
+                                                    return res;
                                                 }
                                             },
-                                            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                                            legend: {
+                                                data: ['BAO (Open)', 'BAH (High)', 'BAL (Low)'],
+                                                top: 0,
+                                                textStyle: { color: '#ccc' }
+                                            },
+                                            grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
                                             xAxis: {
                                                 type: 'category',
                                                 boundaryGap: false,
-                                                data: selectedStock.history.map(d => d.year),
+                                                data: detailResult.BAO.history.map((d: any) => d.year),
                                                 axisLine: { lineStyle: { color: '#666' } },
                                                 axisLabel: { color: '#888' }
                                             },
@@ -513,31 +527,47 @@ export default function MarsPage() {
                                                 splitLine: { lineStyle: { color: '#333' } },
                                                 axisLabel: { color: '#888', formatter: (val: number) => `$${(val / 1000000).toFixed(1)}M` }
                                             },
-                                            series: [{
-                                                data: selectedStock.history.map(d => vizMode === 'wealth' ? d.value : d.dividend),
-                                                type: 'line',
-                                                smooth: true,
-                                                lineStyle: { color: vizMode === 'wealth' ? '#00eeee' : '#ffaa00', width: 3 },
-                                                areaStyle: {
-                                                    color: {
-                                                        type: 'linear',
-                                                        x: 0, y: 0, x2: 0, y2: 1,
-                                                        colorStops: [
-                                                            { offset: 0, color: vizMode === 'wealth' ? 'rgba(0, 238, 238, 0.5)' : 'rgba(255, 170, 0, 0.5)' },
-                                                            { offset: 1, color: vizMode === 'wealth' ? 'rgba(0, 238, 238, 0)' : 'rgba(255, 170, 0, 0)' }
-                                                        ]
-                                                    }
+                                            series: [
+                                                // BAO - Cyan (Primary)
+                                                {
+                                                    name: 'BAO (Open)',
+                                                    data: detailResult.BAO.history.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend),
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#00eeee', width: 3 },
+                                                    itemStyle: { color: '#00eeee' },
+                                                    z: 3
                                                 },
-                                                symbol: 'circle',
-                                                symbolSize: 6,
-                                                itemStyle: { color: vizMode === 'wealth' ? '#00eeee' : '#ffaa00', borderColor: '#fff', borderWidth: 2 }
-                                            }]
+                                                // BAL - Green (Best Case usually)
+                                                {
+                                                    name: 'BAL (Low)',
+                                                    data: detailResult.BAL?.history?.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend) || [],
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#4ade80', width: 2, type: 'dashed' },
+                                                    itemStyle: { color: '#4ade80' },
+                                                    z: 2
+                                                },
+                                                // BAH - Red/Orange (Worst Case usually)
+                                                {
+                                                    name: 'BAH (High)',
+                                                    data: detailResult.BAH?.history?.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend) || [],
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#f87171', width: 2, type: 'dashed' },
+                                                    itemStyle: { color: '#f87171' },
+                                                    z: 1
+                                                }
+                                            ]
                                         }}
                                         style={{ height: '400px', width: '100%' }}
                                     />
                                 ) : (
                                     <div className="h-[400px] flex items-center justify-center text-[var(--color-text-muted)]">
-                                        No historical data available {selectedStock.history ? `(length: ${selectedStock.history.length})` : '(null)'}
+                                        {detailLoading ? "Loading chart data..." : "Select a stock to view comparison"}
                                     </div>
                                 )}
                             </div>

@@ -10,4 +10,4 @@ $ARGUMENTS
 
 ## Purpose
 
-To user skill multi-agent-brainstorming to explore options before implementation with $ARGUMENTS.
+To use skill multi-agent-brainstorming to explore options before implementation with $ARGUMENTS.

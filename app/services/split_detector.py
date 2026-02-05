@@ -33,10 +33,16 @@ class SplitEvent:
 #       (shares held at start of that year get multiplied)
 # IMPORTANT: Only add splits that are NOT automatically detectable from price data
 #            The detector will auto-detect splits from >40% overnight price drops
+#
+# DATA SOURCE NOTE (yfinance):
+# - 2014 split: Shows in raw data (2013-12-31 $58.70 -> 2014-01-02 $14.68) = AUTO-DETECTED
+# - 2025 split: yfinance provides PRE-ADJUSTED prices (~$48 not ~$189) = NOT NEEDED
+#   (Adding it would double-count since prices are already adjusted)
 KNOWN_SPLITS = {
     "0050": [
-        # 2014 split is auto-detected from daily data (2013-12-31 $58.70 -> 2014-01-02 $14.68)
-        # 2025 split (if any) will be auto-detected when data reflects it
+        # Both splits for 0050 are handled correctly:
+        # - 2014: auto-detected from price data
+        # - 2025: yfinance already adjusts prices, no manual entry needed
     ],
     "2330": [
         # TSMC had no splits in 2006-2026 period

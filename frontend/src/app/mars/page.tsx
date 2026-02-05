@@ -418,7 +418,7 @@ export default function MarsPage() {
                                 <div className="divide-y divide-[var(--color-border)]">
                                     {/* Final Value Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">Final Value {console.log("[MARS_DEBUG] Render. Loading:", detailLoading)}</div>
+                                        <div className="font-bold text-white">Final Value</div>
 
                                         {/* BAO */}
                                         <div className="text-center font-bold text-[var(--color-cta)] text-xl">

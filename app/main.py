@@ -45,8 +45,14 @@ async def lifespan(app: FastAPI):
         # 1.5 Pre-warm MarketCache (Critical for Speed)
         from app.services.market_cache import MarketCache
         print("[Startup] Warming Market Cache (Loading 20 years of JSON)...")
-        MarketCache.get_prices_db(force_reload=True)
-        print("[Startup] Market Cache Ready (RAM Hot)")
+        try:
+            MarketCache.get_prices_db(force_reload=True)
+            print("[Startup] Market Cache Ready (RAM Hot)")
+        except Exception as cache_err:
+            import traceback
+            print(f"[Startup] CRITICAL: MarketCache failed: {cache_err}")
+            traceback.print_exc()
+            # Continue startup - cache will be empty but app won't crash
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler

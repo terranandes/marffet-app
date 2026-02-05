@@ -2,6 +2,20 @@
 import pandas as pd
 import numpy as np
 
+# Split Detector for handling stock splits
+try:
+    from app.services.split_detector import get_split_detector
+    _SPLIT_DETECTOR = None
+    
+    def _get_detector():
+        global _SPLIT_DETECTOR
+        if _SPLIT_DETECTOR is None:
+            _SPLIT_DETECTOR = get_split_detector()
+        return _SPLIT_DETECTOR
+except ImportError:
+    def _get_detector():
+        return None
+
 class ROICalculator:
     def __init__(self):
         pass
@@ -209,8 +223,18 @@ class ROICalculator:
                 shares_add = total_cash_div / p_avg
                 current_shares += shares_add
 
-            # Metric Calculation
-            total_asset_value = current_shares * p_end
+            # 3. Apply Split Adjustment for this year
+            # If a split occurred this year, multiply share count by split ratio
+            detector = _get_detector()
+            if detector and stock_code:
+                # Get splits that happened UP TO this year
+                split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
+            else:
+                split_ratio = 1.0
+            
+            # Metric Calculation (shares adjusted for splits)
+            adjusted_shares = current_shares * split_ratio
+            total_asset_value = adjusted_shares * p_end
             
             # Use actual investment duration, not global start year
             effective_start_year = sorted_years[0]

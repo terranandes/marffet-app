@@ -42,17 +42,9 @@ async def lifespan(app: FastAPI):
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 Pre-warm MarketCache (Critical for Speed)
-        from app.services.market_cache import MarketCache
-        print("[Startup] Warming Market Cache (Loading 20 years of JSON)...")
-        try:
-            MarketCache.get_prices_db(force_reload=True)
-            print("[Startup] Market Cache Ready (RAM Hot)")
-        except Exception as cache_err:
-            import traceback
-            print(f"[Startup] CRITICAL: MarketCache failed: {cache_err}")
-            traceback.print_exc()
-            # Continue startup - cache will be empty but app won't crash
+        # 1.5 MarketCache - LAZY LOAD (Skip pre-warming to prevent Zeabur startup timeout)
+        # The cache will be loaded on first API request instead
+        print("[Startup] MarketCache will load lazily on first request (Zeabur timeout fix)")
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler

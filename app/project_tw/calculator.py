@@ -154,7 +154,10 @@ class ROICalculator:
         history.append({
             "year": start_year,
             "value": round(principal, 0),
-            "dividend": 0
+            "dividend": 0,
+            "invested": round(principal, 0),
+            "roi": 0,
+            "cagr": 0
         })
         
         for i, year in enumerate(sorted_years):
@@ -213,9 +216,19 @@ class ROICalculator:
             effective_start_year = sorted_years[0]
             n_yrs = year - effective_start_year + 1
             
+            cagr_val = 0.0
+            roi_val = 0.0
+            
             if total_invested_cash > 0:
-                cagr = (total_asset_value / total_invested_cash) ** (1 / n_yrs) - 1
-                results[f"s{start_year}e{year}bao"] = round(cagr * 100, 1)
+                # CAGR
+                cagr_raw = (total_asset_value / total_invested_cash) ** (1 / n_yrs) - 1
+                cagr_val = round(cagr_raw * 100, 1)
+                
+                # ROI
+                roi_raw = (total_asset_value - total_invested_cash) / total_invested_cash
+                roi_val = round(roi_raw * 100, 1)
+
+                results[f"s{start_year}e{year}bao"] = cagr_val
             else:
                 results[f"s{start_year}e{year}bao"] = 0.0
                 
@@ -223,7 +236,10 @@ class ROICalculator:
             history.append({
                 "year": year,
                 "value": round(total_asset_value, 0),
-                "dividend": round(total_cash_div, 0)
+                "dividend": round(total_cash_div, 0),
+                "invested": round(total_invested_cash, 0),
+                "roi": roi_val,
+                "cagr": cagr_val
             })
 
             # Check for final year to populate Final Value

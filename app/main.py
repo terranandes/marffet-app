@@ -593,7 +593,7 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
                     "div_yield": 0
                 })
 
-        return flat_race_data
+        return sanitize_for_json(flat_race_data)
 
     except Exception as e:
         print(f"Error in get_race_data: {e}")
@@ -831,193 +831,80 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
     """
     Reusable Mars Strategy Simulation Logic.
     Returns a list of result dictionaries for each stock.
+    REFACTORED: Now uses the detailed ROICalculator for precision alignment.
     """
+    import pandas as pd
+    import time
+    from app.project_tw.calculator import ROICalculator
+    from app.services.market_cache import MarketCache
+    
+    print(f"[run_mars_simulation] Starting Precision Engine for {len(df)} stocks...")
+    t_start = time.time()
+    
+    calc = ROICalculator()
     results = []
-    # Identify year_cols - assuming standard format 'bao{year}e'
-    # Or rely on dynamic extraction like before
-    year_cols = [c for c in df.columns if 'bao' in c]
     
     for _, row in df.iterrows():
         stock_id = str(row['id'])
         
-        # Simulation State for this Stock
-        shares = 0
-        cost = 0
-        wealth = 0
-        prev_wealth = 0
-        wealth_trend = []
-        
-        # Initial Purchase at USER SELECTED Start Year
-        # Try to get start price of start_year
-        initial_node = prices_db.get(start_year, {}).get(stock_id, {})
-        # V2 Schema Compatibility
-        if 'summary' in initial_node: initial_node = initial_node['summary']
+        # 1. Fetch History using the Smart Cache Logic (Handles Daily/Summary V2/V1)
+        # This ensures we use Daily data if available, matching the Detail API exactly.
+        history_rows = MarketCache.get_stock_history_fast(stock_id)
             
-        start_price_initial = initial_node.get('start', 0)
+        if not history_rows:
+            continue
+            
+        stock_df = pd.DataFrame(history_rows)
+        if 'year' not in stock_df.columns:
+            stock_df['year'] = stock_df['year'].astype(int) # Safety
+            
+        # 2. Run Precision Calculation (BAO - Buy At Open)
+        div_data = dividends_db.get(stock_id, {})
         
-        # Always initialize base wealth tracking
-        cost = principal
-        prev_wealth = principal
-        shares = 0
+        sim_res = calc.calculate_complex_simulation(
+            stock_df, 
+            start_year, 
+            principal, 
+            contribution, 
+            div_data, 
+            stock_id, 
+            buy_logic='FIRST_OPEN'
+        )
         
-        if start_price_initial > 0:
-            shares = principal / start_price_initial
+        if not sim_res:
+            continue
+            
+        # 3. Format Output
+        final_val = sim_res.get('finalValue', 0)
+        total_cost = sim_res.get('totalCost', 0)
+        hist_list = sim_res.get('history', [])
         
-        # Add start_year (2006) as initial investment point in wealth_trend
-        # This ensures X-axis shows 2006-2026 (21 years)
-        wealth_trend.append({
-            "year": start_year,
-            "value": round(principal, 0),  # Initial investment value
-            "dividend": 0,
-            "cagr": 0
-        })
+        res_entry = {
+            "id": stock_id,
+            "name": row['name'],
+            "finalValue": final_val,
+            "totalCost": total_cost,
+            "cagr_pct": 0,
+            "history": hist_list
+        }
         
-        # To calculate CAGR/ROI properly for the final export row
-        final_valid_stats = {} 
-
-        for col in year_cols:
-            try:
-                year_str = col.split('e')[1][:4]
-                year = int(year_str)
+        # Copy simulated CAGR keys
+        for k, v in sim_res.items():
+            if k.startswith('s') and 'bao' in k:
+                res_entry[k] = v
                 
-                # SKIP years before start_year
-                
-                # SKIP years before start_year
-                if year < start_year:
-                    continue
-                    
-                excel_roi = row[col] # Price ROI %
-                
-                # Fetch Price Data
-                y_data = prices_db.get(year, {}).get(stock_id, {})
-                # V2 Schema Compatibility
-                if 'summary' in y_data: y_data = y_data['summary']
+        # Fill global CAGR for sorting
+        if hist_list:
+             # Try to find last available cagr in history if present (from our modified ROICalculator)
+             last = hist_list[-1]
+             if 'cagr' in last:
+                 res_entry['cagr_pct'] = last['cagr']
+            
+        results.append(res_entry)
 
-                start_price = y_data.get('start', 0)
-                end_price = y_data.get('end', 0)
-                
-                if start_price > 0:
-                    # If we have valid price data, use Share Accumulation Logic
-                    
-                    # 1. Transition from Synthetic to Real Shares if needed
-                    if shares == 0:
-                        shares = prev_wealth / start_price
-
-                    # 2. Get Dividend (Cash + Stock)
-                    div_info = dividends_db.get(stock_id, {}).get(str(year)) or dividends_db.get(stock_id, {}).get(year, {})
-                    
-                    div_cash = 0
-                    stock_split = 1.0
-                    
-                    if isinstance(div_info, dict):
-                        div_cash = div_info.get('cash', 0)
-                        stock_split = div_info.get('stock_split', 1.0)
-                    elif isinstance(div_info, (int, float)):
-                        div_cash = div_info
-
-                    # 3. Process Year
-                    
-                    # A. Stock Dividend (Ex-Rights) - Happens usually mid-year, but we apply to held shares
-                    # Shares increase by factor
-                    # In TW, 1.05 means 5% stock dividend.
-                    if stock_split > 1.0:
-                            shares = shares * stock_split
-
-                    # B. Cash Dividend Reinvestment
-                    cash_received = shares * div_cash
-                    
-                    # Reinvest Dividend + Contribution at Avg Price
-                    if end_price == 0:
-                            end_price = start_price * (1 + excel_roi/100)
-                    
-                    avg_price = (start_price + end_price) / 2
-                    
-                    total_cash_in = cash_received + contribution
-                    new_shares_bought = total_cash_in / avg_price
-                    
-                    shares += new_shares_bought
-                    cost += contribution
-                    
-                    wealth = shares * end_price
-                    
-                    # 4. Calculate Effective ROI for Frontend
-                    # Formula: ROI = ((Wealth_End - Contrib) / Wealth_Start) - 1
-                    # Wealth_Start here is 'prev_wealth' (End of last year)
-                    
-                    if prev_wealth > 0:
-                        effective_roi = ((wealth - contribution) / prev_wealth - 1) * 100
-                    else:
-                        effective_roi = excel_roi 
-
-                    final_roi = effective_roi
-                    
-                    # Yield for reference
-                    div_yield = (div_cash / start_price * 100)
-                    
-                    prev_wealth = wealth # Update for next loop
-
-                else:
-                    # Fallback Logic: Stock likely not listed yet (or data missing)
-                    # Treat as CASH HELD (0% ROI). Do NOT trust Excel ROI for unlisted years.
-                    final_roi = 0
-                    div_yield = 0
-                    
-                    # Just add contribution to wealth (Money piling up)
-                    wealth = prev_wealth + contribution
-                    prev_wealth = wealth
-                    cost += contribution
-
-
-                # Store history for frontend chart
-                sim_cagr = 0
-                if cost > 0 and wealth > 0:
-                    years_elapsed = year - start_year + 1
-                    if years_elapsed > 0:
-                        sim_cagr = ((wealth / cost) ** (1 / years_elapsed) - 1) * 100
-
-                wealth_trend.append({
-                    "year": year,
-                    "value": round(wealth, 0),
-                    "dividend": round(div_cash * shares, 0),
-                    "cagr": round(sim_cagr, 2)
-                })
-
-                if pd.notnull(final_roi) and final_roi != 0:
-                    # Calculate cumulative CAGR from start_year to this year
-                    years_elapsed = year - start_year + 1
-                    if years_elapsed > 0:
-                        cagr = ((wealth / principal) ** (1 / years_elapsed) - 1) * 100
-                    else:
-                        cagr = 0
-                        
-                    # Store stats for this year
-                    stats_node = {
-                        "value": round(wealth, 0),
-                        "cagr": round(cagr, 2),
-                    }
-                    
-        # End of Years Loop
-        
-        # Final Stats Construction
-            except Exception as loop_e:
-                pass
-
-        # Final Stats Construction
-        if wealth > 0:
-             years_held = 2026 - start_year + 1 
-             
-             results.append({
-                "id": stock_id,
-                "name": str(row['name']),
-                "finalValue": round(wealth, 0),
-                "cagr_pct": round(row[f's2006e2026bao'], 2) if f's2006e2026bao' in row else 0,
-                "volatility_pct": round(row['volatility'], 2) if 'volatility' in row else 0,
-                "valid_years": years_held,
-                "totalCost": cost,
-                "history": wealth_trend
-             })
+    t_end = time.time()
+    print(f"[run_mars_simulation] Completed in {t_end - t_start:.2f}s. Processed {len(results)} stocks.")
     return results
-
 
 
 @app.get("/api/cb/analyze")

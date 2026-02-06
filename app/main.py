@@ -442,6 +442,9 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
     # Run Simulation
         results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         
+        # Sanitize numpy types for JSON serialization
+        results = sanitize_for_json(results)
+        
         # Save to Cache
         SIM_CACHE[cache_key] = {
             "timestamp": time.time(),

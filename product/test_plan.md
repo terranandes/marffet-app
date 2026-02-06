@@ -33,6 +33,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-14 | CB Support | Data Fetch | Can search/add Convertible Bonds (e.g., 11011) |
 | TC-15 | Admin Sync | Smart Update | "Smart Update" refreshes Stock List (O(1)) |
 | TC-16 | Daily Data | High Res Data | Verify 2330 has Daily Data (200+ rows/year) |
+| TC-17 | Mars Strategy | Split Detector | 0050 CAGR > 12% (Split Adjusted) |
+| TC-18 | Mars Strategy | Logic Compliance | Buy Logic = First Close |
 | TC-20 | Cache Singleton | Performance | Verify All Tabs load in <0.5s via Shared RAM |
 
 ### 1.3 Execution via Standard Suites

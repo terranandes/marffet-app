@@ -65,6 +65,10 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 - **Fields**: `year`, `value` (wealth), `dividend`
 - Year 2006 added as initial investment point (v2.1 fix)
 
+### 3.3 Corporate Actions
+- **Split Detection**: Auto-detects splits via >40% overnight price drops.
+- **Adjustment**: Adjusts share count cumulatively. Handles mixed data sources (yfinance adjusted vs unadjusted).
+
 ## 4. Deployment Strategy
 
 ### 4.1 Services

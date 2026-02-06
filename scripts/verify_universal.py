@@ -85,7 +85,7 @@ def run_universal_verification(top_n: int = None, filter_pattern: str = None):
                 annual_investment=60_000,
                 dividend_data=div_data,
                 stock_code=stock_id,
-                buy_logic='FIRST_OPEN'
+                buy_logic='FIRST_CLOSE'
             )
             
             # Extract metrics

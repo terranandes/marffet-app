@@ -865,10 +865,10 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
             stock_df, 
             start_year, 
             principal, 
-            contribution, 
+            annual_investment=contribution, 
             div_data, 
             stock_id, 
-            buy_logic='FIRST_OPEN'
+            buy_logic='FIRST_CLOSE'
         )
         
         if not sim_res:

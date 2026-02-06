@@ -41,12 +41,15 @@
 - [x] **Mars Strategy: Correlation (Phase 3)** (App Integration & Caching) <!-- id: 24 -->
     - [x] Integrated `MarketCache` for 0-latency daily price lookups.
     - [x] Verified `ROICalculator` uses Unadjusted Prices (TSMC ~60).
-    - [x] **CAGR Verification**: TSMC 18.8% (Realistic) vs previous halluncination. Correlation PROVEN.
+    - [x] **Split Detection Implemented**: Auto-detects >40% drops. 0050 CAGR fixed (12.1%).
+    - [x] **CAGR Verification**: TSMC 19.0% (Realistic) vs previous halluncination. Correlation PROVEN.
 - [ ] **Phase 4: Universal Data Lake (Daily Data)** <!-- id: 30 -->
-    - [/] Upgrade Scraper to Store Daily OHLCV (Running...) <!-- id: 31 -->
+    - [/] Upgrade Scraper to Store Daily OHLCV (Parquet/DuckDB) - *Deferred per consensus* <!-- id: 31 -->
     - [x] Update `MarketCache` to support Nested Schema (V2).
     - [x] Update App Logic to support Nested Schema (V2).
     - [ ] Update `Trend` and `Race` endpoints to use Daily Data.
+    - [ ] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`.
+
 ## 5. Maintenance & workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)
 - [x] **Trend Page Data Fix** (Fixed NameError in `get_portfolio_history`)

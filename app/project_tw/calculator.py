@@ -161,6 +161,14 @@ class ROICalculator:
         current_shares = 0
         total_invested_cash = 0
         
+        # Pre-detect splits using full history if available
+        # This ensures get_cumulative_ratio has cached data to work with
+        detector = _get_detector()
+        if detector and stock_code and not df.empty:
+            # Convert DF to records for the detector (it expects List[Dict])
+            # We only need 'date', 'open', 'close' columns really, but full dict is fine
+            detector.detect_splits(stock_code, df.to_dict('records'))
+        
         results = {}
         history = []
         

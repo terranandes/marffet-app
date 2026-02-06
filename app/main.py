@@ -866,8 +866,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
             start_year, 
             principal, 
             annual_investment=contribution, 
-            div_data, 
-            stock_id, 
+            dividend_data=div_data, 
+            stock_code=stock_id, 
             buy_logic='FIRST_CLOSE'
         )
         

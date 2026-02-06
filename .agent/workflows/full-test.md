@@ -4,7 +4,7 @@ description: Full coverage tests on local and remote Zeabur.
 
 Use skill `using-git-worktrees` to do
 1. Create a worktree with current/specified commit and branch. <br>
-   Notice un-tracked git files but neccessary, for exemple: `./.env`, please copy it as well into the worktree
+   Notice git-igonred files but neccessary, for exemple: `./.env`, should be copied as well into the worktree
 2. Update rigorous test-plan (./product/test_plan.md) according to current SPEC.
 3. According to the latest test plan do:
 - Adjust/Add testing programs to verify

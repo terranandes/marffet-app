@@ -1,6 +1,6 @@
 # Martian Investment System - Technical Specifications
-**Version**: 2.3
-**Date**: 2026-01-31
+**Version**: 3.0
+**Date**: 2026-02-07
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
@@ -84,7 +84,16 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 | `NEXT_PUBLIC_API_URL` | Frontend | `https://martian-api.zeabur.app` |
 | `SECRET_KEY` | Backend | `long_random_string` |
 
-## 5. Changelog (v2.3)
+## 5. Changelog
+
+### v3.0 (2026-02-07) - Phase 3 Verification Complete
+- **Split Detector Implementation**: Auto-detects >40% overnight drops, verified 0050 CAGR >12%.
+- **MarketCache Singleton**: Zero-latency price lookups across all tabs (O(1) performance).
+- **First Close Buy Logic**: Verified compliance with MoneyCome comparison mode.
+- **Comprehensive E2E Testing**: 15 integration tests + Playwright suite (Desktop/Mobile) - 100% pass rate.
+- **numpy JSON Serialization Fix**: Resolved 500 errors in `/api/results` endpoint.
+
+### v2.3 (2026-01-31)
 - **Dynamic Stock Naming**: Real-time alignment with TWSE/TPEX data (No more hardcoded maps).
 - **Convertible Bond (CB) Support**: Full support for CB tickers (e.g., 11011).
 - **Admin Sync Ops**: Enhanced "Smart Update" to always refresh stock list.

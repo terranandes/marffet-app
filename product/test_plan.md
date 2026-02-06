@@ -1,6 +1,6 @@
 # Martian Investment System - Test Plan
-**Version**: 2.3  
-**Date**: 2026-01-24  
+**Version**: 3.0
+**Date**: 2026-02-07
 **Owner**: [CV] Agent
 
 ## 1. Automated Testing Strategy
@@ -40,14 +40,23 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
 
-#### A. Full E2E Suite (Playwright)
+#### A. Integration Test Suite (pytest)
 ```bash
-uv run tests/e2e/e2e_suite.py
+uv run pytest tests/integration/test_all_tabs.py -v
 ```
-*   **Scope**: Guest Mode, Group/Stock CRUD, Mobile Layout, Transactions.
-*   **Platform**: Desktop + Mobile viewports.
+*   **Scope**: All 8 sidebar tabs (Mars Strategy, Bar Chart Race, Compound, CB Strategy, Portfolio, Trend, My Race, Cash Ladder).
+*   **Coverage**: API endpoints + frontend page accessibility.
+*   **Last Run**: 2026-02-07, **15/15 PASSED** in 56.70s.
 
-#### B. Backend Data Verification
+#### B. Full E2E Suite (Playwright)
+```bash
+uv run python tests/e2e/e2e_suite.py
+```
+*   **Scope**: Guest Mode, Group/Stock CRUD, Add Transactions, Mobile Layout verification.
+*   **Platform**: Desktop (1280x800) + Mobile (iPhone 12 viewport).
+*   **Last Run**: 2026-02-07, **PASSED** (0 regressions).
+
+#### C. Backend Data Verification
 ```bash
 uv run tests/integration/test_fetch_names.py
 uv run scripts/verify_daily.py
@@ -85,8 +94,20 @@ uv run tests/unit/test_mobile_portfolio.py
 - [x] Chat works without client-side key (if server key set)
 - [x] "Missing API Key" error properly handled
 
-## 3. Regression Tests (v2.3)
+## 3. Regression Tests
 
+### v3.0 (2026-02-07) - Phase 3 Verification
+| Test | Expected | Status |
+|------|----------|--------|
+| Split Detector | 0050 CAGR > 12% | ✅ Verified |
+| First Close Buy Logic | Matches MoneyCome | ✅ Verified |
+| MarketCache Performance | All tabs < 0.5s load | ✅ Verified |
+| Integration Suite | 15/15 tests pass | ✅ PASSED |
+| E2E Desktop | Guest + CRUD flow | ✅ PASSED |
+| E2E Mobile | Card layout + Actions | ✅ PASSED |
+| numpy JSON Fix | /api/results no 500 | ✅ PASSED |
+
+### v2.3 (Prior Verification)
 | Test | Expected | Status |
 |------|----------|--------|
 | Guest mode button | Visible in Sidebar | ✅ |
@@ -100,5 +121,6 @@ uv run tests/unit/test_mobile_portfolio.py
 
 | Issue | Severity | Status |
 |-------|----------|--------|
+| BUG-011 (Transaction Edit) | Medium | Fixed in master, verification deferred |
 | Zeabur frontend 404 | High | Resolved (Port Fix) |
 | Favicon 404 on legacy | Low | Cosmetic |

@@ -1,6 +1,6 @@
 # Martian Investment System - Software Stack
-**Version**: 2.3
-**Date**: 2026-01-31
+**Version**: 3.0
+**Date**: 2026-02-07
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer (New)

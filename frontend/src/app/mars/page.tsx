@@ -468,7 +468,7 @@ export default function MarsPage() {
                             <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-white">
-                                        {vizMode === 'wealth' ? 'Wealth Path (Comparison)' : 'Dividend History'}
+                                        {vizMode === 'wealth' ? 'Wealth Path (Comparison)' : 'Dividend History (Comparison)'}
                                     </h3>
                                     <div className="flex gap-2">
                                         <button

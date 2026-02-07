@@ -467,6 +467,21 @@ export default function CompoundPage() {
                             <div className="bg-black/20 rounded-xl p-4 border border-[var(--color-border)]">
                                 <ReactECharts option={dividendChartOption} style={{ height: "350px" }} notMerge={true} />
                             </div>
+
+                            {/* Formula Hints */}
+                            <div className="mt-2 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-1">
+                                {settings.mode === "single" ? (
+                                    <>
+                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Simulate buying shares at Opening/Highest/Lowest price each year</p>
+                                        <p className="text-center opacity-50">ROI = (Final Value - Total Invested) / Total Invested × 100% • CAGR = (Final / Initial)^(1/Years) - 1</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Compare multiple stocks using Buy-At-Opening strategy</p>
+                                        <p className="text-center opacity-50">Each stock is evaluated with the same initial capital and annual contribution over the same period</p>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

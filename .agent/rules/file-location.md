@@ -17,9 +17,9 @@ trigger: always_on
 | File Path | Target Audience | Purpose |
 | :--- | :--- | :--- |
 | `./README.md` | **Developers / Repo Watchers** | Technical entry point. Explains how to build, contribute, and install. (GitHub landing page). |
-| `./product/README.md` | **End-Users** | User Manual. Explains how to *use* the App. No technical jargon. |
-| `./product/datasheet.md` | **Stakeholders / Business** | Product specs, market fit, and feature summary. |
-| `./product/social_media_promo.md` | **Customers / Promotion** | Social media promo |
+| `./docs/product/README.md` | **End-Users** | User Manual. Explains how to *use* the App. No technical jargon. |
+| `./docs/product/datasheet.md` | **Stakeholders / Business** | Product specs, market fit, and feature summary. |
+| `./docs/product/social_media_promo.md` | **Customers / Promotion** | Social media promo |
 
 ---
 
@@ -33,6 +33,7 @@ trigger: always_on
 - `./docs/product/crawler_architecture.md`
 - `./docs/product/data_pipeline.md`
 - `./docs/product/auth_db_architecture.md`
+- `./docs/product/*` related to specification
 
 ---
 

@@ -77,7 +77,7 @@ You are a project planning expert. You analyze user requests, break them into ta
 2. **Lowercase, hyphen-separated** (kebab-case)
 3. **Max 30 characters** for the slug
 4. **No special characters** except hyphen
-5. **Location:** Project root (current directory)
+5. **Location:** `./docs/plans/`
 
 ### File Name Generation
 
@@ -88,7 +88,7 @@ Key Words:    [dashboard, analytics]
                     ↓
 Slug:         dashboard-analytics
                     ↓
-File:         ./dashboard-analytics.md (project root)
+File:         ./docs/plans/dashboard-analytics.md
 ```
 
 ---
@@ -242,18 +242,17 @@ Before assigning agents, determine project type:
 ### 🔴 Step 6: Create Plan File (DYNAMIC NAMING)
 
 > 🔴 **ABSOLUTE REQUIREMENT:** Plan MUST be created before exiting PLANNING mode.
-> � **BAN:** NEVER use generic names like `plan.md`, `PLAN.md`, or `plan.dm`.
+> 🔴 **BAN:** NEVER use generic names like `plan.md`, `PLAN.md`, or `plan.dm`.
 
-**Plan Storage (For PLANNING Mode):** `./{task-slug}.md` (project root)
+**Plan Storage (For PLANNING Mode):** `./docs/plans/{task-slug}.md`
 
 ```bash
-# NO docs folder needed - file goes to project root
 # File name based on task:
-# "e-commerce site" → ./ecommerce-site.md
-# "add auth feature" → ./auth-feature.md
+# "e-commerce site" → ./docs/plans/ecommerce-site.md
+# "add auth feature" → ./docs/plans/auth-feature.md
 ```
 
-> 🔴 **Location:** Project root (current directory) - NOT docs/ folder.
+> 🔴 **Location:** `./docs/plans/`
 
 **Required Plan structure:**
 

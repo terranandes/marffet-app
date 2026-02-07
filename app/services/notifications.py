@@ -9,11 +9,6 @@ class NotificationEngine:
 
     async def fetch_history(self, ticker: str, period="2y") -> pd.DataFrame:
         """Fetch historical data for SMA calculation"""
-        def __init__(self):
-        pass
-
-    async def fetch_history(self, ticker: str, period="2y") -> pd.DataFrame:
-        """Fetch historical data for SMA calculation"""
         # Clean Code: Use MarketDataService
         return await asyncio.to_thread(market_data_service.fetch_history_series, ticker, period)
 

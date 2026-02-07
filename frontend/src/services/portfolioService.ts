@@ -40,10 +40,12 @@ export interface Transaction {
 export interface Dividend {
     id: string;
     target_id: string;
-    ex_date: string;
-    shares_held: number;
-    amount_per_share: number;
-    total_cash: number;
+    date: string; // Ex-date
+    payment_date?: string;
+    stock_dividend: number;
+    cash_dividend: number;
+    held_shares: number;
+    amount: number; // Total cash
 }
 
 // Interface
@@ -66,7 +68,7 @@ export interface IPortfolioService {
     syncDividends(): Promise<boolean>;
 
     // New granular update method
-    getTargetSummary(targetId: string, currentPrice?: number): Promise<any>;
+    getTargetSummary(targetId: string, currentPrice?: number): Promise<Target['summary']>;
 }
 
 const API_BASE = "";
@@ -115,7 +117,7 @@ class ApiPortfolioService implements IPortfolioService {
     }
 
     // Explicitly fetch summary for one target (updates main view without full reload)
-    async getTargetSummary(targetId: string, currentPrice?: number): Promise<any> {
+    async getTargetSummary(targetId: string, currentPrice?: number): Promise<Target['summary']> {
         try {
             const url = currentPrice
                 ? `${API_BASE}/api/portfolio/targets/${targetId}/summary?current_price=${currentPrice}`
@@ -124,7 +126,7 @@ class ApiPortfolioService implements IPortfolioService {
             const res = await fetch(url, { credentials: "include" });
             if (res.ok) return await res.json();
         } catch { }
-        return null;
+        return undefined;
     }
 
     async getTargets(groupId: string): Promise<Target[]> {
@@ -339,7 +341,7 @@ class GuestPortfolioService implements IPortfolioService {
 
         // Fetch Live Prices (Public API)
         const stockIds = targets.map(t => t.stock_id).join(',');
-        let livePrices: any = {};
+        let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
         if (stockIds) {
             try {
                 // Use Public endpoint if possible, or same endpoint?
@@ -366,8 +368,7 @@ class GuestPortfolioService implements IPortfolioService {
             // Simple AVG Cost Logic
             for (const tx of txs) {
                 if (tx.type === 'buy') {
-                    const totalCost = (shares * (cost / Math.max(1, shares) || 0)) + (tx.shares * tx.price); // Rough approx
-                    // Better: track total invested
+                    // avgCost_unit logic is simplified here for Guest Mode
                     cost += tx.shares * tx.price;
                     shares += tx.shares;
                 } else {
@@ -477,7 +478,7 @@ class GuestPortfolioService implements IPortfolioService {
     }
 
     // New granular update method (Local Calculation)
-    async getTargetSummary(targetId: string, currentPrice?: number): Promise<any> {
+    async getTargetSummary(targetId: string, currentPrice?: number): Promise<Target['summary']> {
         const data = this.loadData();
         const txs = data.transactions.filter(t => t.target_id === targetId);
         const price = currentPrice || 0;

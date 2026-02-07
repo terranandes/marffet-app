@@ -47,8 +47,8 @@
     - [/] Upgrade Scraper to Store Daily OHLCV (Parquet/DuckDB) - *Deferred per consensus* <!-- id: 31 -->
     - [x] Update `MarketCache` to support Nested Schema (V2).
     - [x] Update App Logic to support Nested Schema (V2).
-    - [ ] Update `Trend` and `Race` endpoints to use Daily Data.
-    - [ ] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`.
+    - [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
+    - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** (\"Verify Everywhere\"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
 
 ## 5. Maintenance & workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)

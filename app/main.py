@@ -22,13 +22,13 @@ from app.project_tw.strategies.cb import CBStrategy
 from app.project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
 from app.auth import router as auth_router, get_current_user
-from app.portfolio_db import (
+from app.database import get_db, init_db
+from app.services.portfolio_service import (
     get_all_targets_by_type, 
     update_user_stats, 
-    get_leaderboard, 
-    get_public_portfolio,
-    init_db
+    get_public_portfolio
 )
+from app.repositories import user_repo
 
 # Import New Router
 from app.routers.portfolio import router as portfolio_router
@@ -217,7 +217,6 @@ async def health_check():
 
 # ---------------- Notification Engine (Premium) ----------------
 from app.engines import RuthlessManager
-from app.portfolio_db import get_unread_notifications, mark_notification_read
 
 @app.get("/api/notifications")
 async def api_get_notifications(user: dict = Depends(get_current_user)):
@@ -242,7 +241,8 @@ async def api_get_notifications(user: dict = Depends(get_current_user)):
         print(f"[RuthlessManager] Error running checks: {e}")
 
     # 2. Return DB Notifications
-    return get_unread_notifications(user_id)
+    with get_db() as conn:
+        return user_repo.get_unread_notifications(conn, user_id)
 
 @app.post("/api/notifications/{id}/read")
 async def api_mark_read(id: str, user: dict = Depends(get_current_user)):
@@ -250,7 +250,10 @@ async def api_mark_read(id: str, user: dict = Depends(get_current_user)):
     if not user:
         return {"error": "Unauthorized"}
     user_id = user['id']
-    success = mark_notification_read(id, user_id)
+    
+    with get_db() as conn:
+        success = user_repo.mark_notification_read(conn, id, user_id)
+        
     return {"success": success}
 
 
@@ -421,8 +424,11 @@ async def chat_with_mars(req: ChatRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")
-def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+def get_results(start_year: int = 2010, principal: float = 1_000_000, contribution: float = 60_000):
     """Return filtered results with Mars Simulation (Cached)"""
+    # Validate start_year (TWSE API only supports 2010+)
+    if start_year < 2010:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
     try:
         # Check Cache
         cache_key = (start_year, principal, contribution)
@@ -457,12 +463,15 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
         return []
 
 @app.get("/api/results/detail")
-def get_simulation_detail(stock_id: str, start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: float = 1_000_000, contribution: float = 60_000):
     """
     On-Demand Simulation Detail (BAO vs BAH vs BAL)
     Uses the Refactored ROICalculator (Clean Room Logic).
     CACHE ENABLED: Uses SIM_CACHE if available.
     """
+    # Validate start_year (TWSE API only supports 2010+)
+    if start_year < 2010:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
     try:
         print(f"[Detail API] Request for {stock_id} ({start_year})")
         # Check Cache (Reuse if exact match)
@@ -545,8 +554,11 @@ def sanitize_for_json(obj):
     return obj
 
 @app.get("/api/race-data")
-def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+def get_race_data(start_year: int = 2010, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
+    # Validate start_year (TWSE API only supports 2010+)
+    if start_year < 2010:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
     try:
         # Check Cache first (reuse Mars Strategy result)
         cache_key = (start_year, principal, contribution)
@@ -630,21 +642,9 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
         current_max_year = 2026
 
         # 2. Run Simulation (to get Final Wealth / Stats aligned with UI)
-        # Load Prices (Optimization: Could be global, but strictly adhering to safe local load)
-        PRICES_DB = {}
-        import json
-        for year in range(start_year, current_max_year + 1):
-             p_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
-             if p_file.exists():
-                 try:
-                     with open(p_file, "r") as f: PRICES_DB[year] = json.load(f)
-                 except: PRICES_DB[year] = {}
-             # TPEx
-             tpex_file = BASE_DIR / f"data/raw/TPEx_Market_{year}_Prices.json"
-             if tpex_file.exists():
-                 try:
-                     with open(tpex_file, "r") as f: PRICES_DB[year].update(json.load(f))
-                 except: pass
+        # Load Prices via MarketCache (Single Source of Truth)
+        from app.services.market_cache import MarketCache
+        PRICES_DB = MarketCache.get_prices_db()
 
         race_results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
         
@@ -780,26 +780,33 @@ if DIVIDENDS_FILE.exists():
 @app.get("/api/stock/{stock_id}/history")
 def get_stock_history(stock_id: str):
     """Return detailed yearly history for simulation (Prices + Dividends)"""
-    import json, os
+    from app.services.market_cache import MarketCache
     history = []
     
     try:
         # Convert Stock ID to string key
         sid = str(stock_id)
         
-        for year in range(2006, 2026):
-            year_str = str(year) # Keys in JSON might be strings or ints depending on saving?
-            # Start/End price logic...
-            price_file = BASE_DIR / f"data/raw/Market_{year}_Prices.json"
+        # Load prices from MarketCache (Single Source of Truth)
+        PRICES_DB = MarketCache.get_prices_db()
+        
+        for year in range(2006, 2027):
+            year_str = str(year)
+            # Get price data from cache
+            pdata = PRICES_DB.get(year, {})
             start_price = 0
             end_price = 0
             
-            if price_file.exists():
-                with open(price_file, "r") as f:
-                    pdata = json.load(f)
-                    if sid in pdata:
-                        start_price = pdata[sid].get('start', 0)
-                        end_price = pdata[sid].get('end', 0)
+            if sid in pdata:
+                node = pdata[sid]
+                # Handle V2 schema (with 'summary') vs V1 schema (flat)
+                if isinstance(node, dict):
+                    if 'summary' in node:
+                        start_price = node['summary'].get('start', 0)
+                        end_price = node['summary'].get('end', 0)
+                    else:
+                        start_price = node.get('start', node.get('first_open', 0))
+                        end_price = node.get('end', 0)
             
             # Get Dividend using Generalized DB
             # DB Structure might be: { "2330": { "2020": { "cash": 10.0, "stock_split": 1.0 } } }
@@ -950,14 +957,8 @@ async def analyze_portfolio_cb(user: dict = Depends(get_current_user)):
 
 
 # ---------------- Portfolio API ----------------
-from app.portfolio_db import (
-    init_db, create_group, list_groups, delete_group,
-    add_target, list_targets, delete_target,
-    add_transaction, list_transactions, delete_transaction,
-    get_target_summary, fetch_live_prices,
-    get_all_targets_by_type, get_portfolio_history, get_portfolio_race_data,
-    sync_all_dividends, get_dividend_history, get_total_dividends
-)
+# NOTE: Portfolio DB refactored. Imports now from services/repositories.
+# Legacy import block removed. Functions imported at top of file or inline.
 from pydantic import BaseModel
 from typing import Optional
 
@@ -973,9 +974,11 @@ class ProfileUpdate(BaseModel):
 @app.post("/api/auth/profile")
 async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401, detail="Unauthorized")
-    from app.portfolio_db import update_user_nickname
+    from app.database import get_db
+    from app.repositories import user_repo
     
-    success = update_user_nickname(user['id'], data.nickname)
+    with get_db() as conn:
+        success = user_repo.update_user_nickname(conn, user['id'], data.nickname)
     if success:
         return {"status": "ok", "nickname": data.nickname}
     return {"status": "error"}
@@ -983,7 +986,7 @@ async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_u
 @app.get("/api/public/profile/{user_id}")
 async def get_public_profile_api(user_id: str):
     """Get sanitized public profile data for any user"""
-    from app.portfolio_db import get_public_portfolio
+    from app.services.portfolio_service import get_public_portfolio
     try:
         data = get_public_portfolio(user_id)
         if not data:
@@ -997,7 +1000,7 @@ async def sync_stats(user: dict = Depends(get_current_user)):
     """Trigger update of cached wealth/ROI stats for leaderboard"""
     if not user: return JSONResponse(status_code=401, content={"error": "Unauthorized"})
     
-    from app.portfolio_db import update_user_stats
+    from app.services.portfolio_service import update_user_stats
     result = update_user_stats(user['id'])
     if not result:
         return JSONResponse(status_code=500, content={"error": "Failed to sync stats"})
@@ -1006,8 +1009,10 @@ async def sync_stats(user: dict = Depends(get_current_user)):
 @app.get("/api/leaderboard")
 async def fetch_leaderboard(limit: int = 50):
     """Get public leaderboard from cached stats"""
-    from app.portfolio_db import get_leaderboard
-    return get_leaderboard(limit)
+    from app.database import get_db
+    from app.repositories import user_repo
+    with get_db() as conn:
+        return user_repo.get_leaderboard(conn, limit)
 
 class GroupCreate(BaseModel):
     name: str
@@ -1107,7 +1112,7 @@ def api_add_transaction(target_id: str, data: TransactionCreate):
 def api_update_transaction(tx_id: str, data: TransactionCreate):
     """Update a transaction"""
     try:
-        from app.portfolio_db import update_transaction
+        from app.services.portfolio_service import update_transaction
         success = update_transaction(tx_id, data.type, data.shares, data.price, data.date)
         return {"updated": success}
     except Exception as e:
@@ -1240,7 +1245,8 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
     Protected: Only accessible by GM emails configured in .env
     """
     from app.auth import get_admin_user, GM_EMAILS
-    from app.portfolio_db import get_admin_metrics
+    from app.database import get_db
+    from app.repositories import user_repo
     
     # Check admin access
     if not user:
@@ -1250,7 +1256,8 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
         return JSONResponse(status_code=403, content={"error": "Admin access required"})
     
     try:
-        metrics = get_admin_metrics()
+        with get_db() as conn:
+            metrics = user_repo.get_admin_metrics(conn)
         return metrics
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

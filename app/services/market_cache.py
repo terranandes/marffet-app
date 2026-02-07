@@ -13,7 +13,7 @@ class MarketCache:
     """
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     DATA_DIR = BASE_DIR / "data/raw"
-    START_YEAR = 2006
+    START_YEAR = 2010  # TWSE API only supports 2010+ (ROC Year 99+)
     END_YEAR = 2026
 
     @classmethod

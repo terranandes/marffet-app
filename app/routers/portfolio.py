@@ -2,14 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List, Optional
 from pydantic import BaseModel
 from app.auth import get_current_user
-from app.portfolio_db import (
-    create_group, list_groups, delete_group,
-    add_target, list_targets, delete_target,
-    add_transaction, list_transactions, delete_transaction, update_transaction,
-    sync_all_dividends, get_total_dividends, get_dividend_history,
-    get_all_targets_by_type,
-    initialize_default_portfolio
-)
+from app.services import portfolio_service
 
 router = APIRouter()
 
@@ -35,46 +28,46 @@ class TransactionCreate(BaseModel):
 async def api_create_group(group: GroupCreate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
     # Note: list_groups() handles initialization internally if needed
-    return create_group(group.name, user['id'])
+    return portfolio_service.create_group(user['id'], group.name)
 
 @router.get("/groups")
 async def api_list_groups(user: dict = Depends(get_current_user)):
     if not user: return []
     # list_groups() handles initialization internally with is_initialized flag
-    return list_groups(user['id'])
+    return portfolio_service.list_groups(user['id'])
 
 @router.delete("/groups/{group_id}")
 async def api_delete_group(group_id: str, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
     # TODO: Verify ownership? (Skipped for MVP)
-    return {"success": delete_group(group_id)}
+    return {"success": portfolio_service.delete_group(group_id)}
 
 # --- Targets ---
 @router.post("/targets")
 async def api_add_target(target: TargetCreate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return add_target(target.group_id, target.stock_id, target.stock_name, target.asset_type)
+    return portfolio_service.add_target(target.group_id, target.stock_id, target.stock_name, target.asset_type)
 
 @router.get("/targets")
 async def api_list_targets(group_id: str, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return list_targets(group_id)
+    return portfolio_service.list_targets(group_id)
 
 @router.delete("/targets/{target_id}")
 async def api_delete_target(target_id: str, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return {"success": delete_target(target_id)}
+    return {"success": portfolio_service.delete_target(target_id)}
 
 # --- Transactions ---
 @router.post("/transactions")
 async def api_add_transaction(tx: TransactionCreate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return add_transaction(tx.target_id, tx.type, tx.shares, tx.price, tx.date)
+    return portfolio_service.add_transaction(tx.target_id, tx.type, tx.shares, tx.price, tx.date)
 
 @router.get("/targets/{target_id}/transactions")
 async def api_list_transactions(target_id: str, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return list_transactions(target_id)
+    return portfolio_service.list_transactions(target_id)
 
 class TransactionUpdate(BaseModel):
     type: str
@@ -85,28 +78,28 @@ class TransactionUpdate(BaseModel):
 @router.put("/transactions/{tx_id}")
 async def api_update_transaction(tx_id: str, tx: TransactionUpdate, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return {"success": update_transaction(tx_id, tx.type, tx.shares, tx.price, tx.date)}
+    return {"success": portfolio_service.update_transaction(tx_id, tx.type, tx.shares, tx.price, tx.date)}
 
 @router.delete("/transactions/{tx_id}")
 async def api_delete_transaction(tx_id: str, user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return {"success": delete_transaction(tx_id)}
+    return {"success": portfolio_service.delete_transaction(tx_id)}
 
 @router.get("/dividends/total")
 async def api_dividends_total(user: dict = Depends(get_current_user)):
     if not user: return {"total_cash": 0, "dividend_count": 0}
-    return get_total_dividends(user['id'])
+    return portfolio_service.get_total_dividends(user['id'])
 
 @router.post("/dividends/sync")
 async def api_sync_dividends(user: dict = Depends(get_current_user)):
     if not user: raise HTTPException(status_code=401)
-    return sync_all_dividends(user['id'])
+    return portfolio_service.sync_all_dividends(user['id'])
 
 @router.get("/targets/{target_id}/dividends")
 async def api_target_dividends(target_id: str, user: dict = Depends(get_current_user)):
     """Get dividend history for a specific target."""
     if not user: raise HTTPException(status_code=401)
-    return get_dividend_history(target_id)
+    return portfolio_service.get_dividend_history(target_id)
 
 
 @router.get("/race-data")
@@ -114,17 +107,13 @@ async def api_portfolio_race_data(user: dict = Depends(get_current_user)):
     """Get Race Bar Chart data for user portfolio."""
     if not user: return []
     
-    # Import locally to avoid circular import if needed, assuming it's available in portfolio_db
-    from app.portfolio_db import get_portfolio_race_data
+    # Run in threadpool
     from fastapi.concurrency import run_in_threadpool
-    
-    # CRITICAL: get_portfolio_race_data is blocking (DB+Network). 
-    # Must run in threadpool to avoid blocking Async Event Loop!
-    return await run_in_threadpool(get_portfolio_race_data, user['id'])
+    return await run_in_threadpool(portfolio_service.get_portfolio_race_data, user['id'])
 
 
 @router.get("/by-type")
 async def api_portfolio_by_type(user: dict = Depends(get_current_user)):
     """Get all targets grouped by type (stock, etf, cb)."""
     if not user: return {"stock": [], "etf": [], "cb": []}
-    return get_all_targets_by_type(user['id'])
+    return portfolio_service.get_all_targets_by_type(user['id'])

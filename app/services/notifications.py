@@ -1,4 +1,4 @@
-import yfinance as yf
+from app.services import market_data_service
 import pandas as pd
 import asyncio
 from typing import List, Dict, Any
@@ -9,24 +9,13 @@ class NotificationEngine:
 
     async def fetch_history(self, ticker: str, period="2y") -> pd.DataFrame:
         """Fetch historical data for SMA calculation"""
-        try:
-            # Handle TWSE/TPEx suffixes if needed (simple logic for now)
-            # Assuming inputs already have .TW or .TWO or can be inferred
-            if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
-                # Try inferring based on length
-                if len(ticker) == 4:
-                    ticker += '.TW' # Most Stocks/ETFs
-                elif len(ticker) >= 5:
-                    ticker += '.TWO' # CBs commonly on TPEx
-                else:
-                    ticker += '.TW' # Fallback 
-            
-            stock = yf.Ticker(ticker)
-            hist = await asyncio.to_thread(stock.history, period=period)
-            return hist
-        except Exception as e:
-            print(f"Error fetching {ticker}: {e}")
-            return pd.DataFrame()
+        def __init__(self):
+        pass
+
+    async def fetch_history(self, ticker: str, period="2y") -> pd.DataFrame:
+        """Fetch historical data for SMA calculation"""
+        # Clean Code: Use MarketDataService
+        return await asyncio.to_thread(market_data_service.fetch_history_series, ticker, period)
 
     async def check_sma_divergence(self, targets: List[Dict]) -> List[Dict]:
         """
@@ -105,13 +94,10 @@ class NotificationEngine:
             try:
                 # Optimized: Fetch history once for price? Or use Yahoo info?
                 # info endpoint is slow. Let's assume price is fetched elsewhere?
-                # For now using yf.Ticker
-                ticker = yf.Ticker(symbol)
-                # info = await asyncio.to_thread(lambda: ticker.info) # Slow
-                # fast_info is better
-                fast_info = ticker.fast_info
-                mcap = fast_info.market_cap
-                price = fast_info.last_price
+                # Clean Code: Use MarketDataService
+                info = await asyncio.to_thread(market_data_service.fetch_stock_info, symbol)
+                mcap = info.get('marketCap')
+                price = info.get('lastPrice')
                 
                 if mcap:
                     caps[target['id']] = {'cap': mcap, 'price': price, 'shares': target.get('shares', 0), 'name': target['name']}

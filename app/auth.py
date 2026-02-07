@@ -255,66 +255,22 @@ async def auth_callback(request: Request):
             print("[AUTH] Session 'user' set.")
             
             # Sync user to DB using new helper
-            from .portfolio_db import update_user_login
-            update_user_login(user['sub'], user['email'], user['name'], user['picture'])
-
-            # Log login activity
-            from .portfolio_db import log_activity
-            log_activity(user['sub'], 'web', 'login')
+            from app.database import get_db
+            from app.repositories import user_repo
+            with get_db() as conn:
+                user_repo.update_user_login(conn, user['sub'], user['email'], user['name'], user['picture'])
+                # Log login activity
+                user_repo.log_activity(conn, user['sub'], 'web', 'login')
         
         # RESTORE REDIRECT
         target = request.session.pop('auth_redirect_uri', FRONTEND_URL)
         print(f"[AUTH] Redirecting to: {target}")
         return RedirectResponse(url=target)
-
     except Exception as e:
+        print(f"[AUTH] Callback Error: {e}")
         import traceback
-        error_details = f"{type(e).__name__}: {e}"
-        print(f"[AUTH] Callback Error: {error_details}")
-        print(f"[AUTH] Exception traceback:\n{traceback.format_exc()}")
-        # Return generic error with actual exception info
-        return JSONResponse(status_code=400, content={"error": "Authentication failed", "details": error_details})
-
-
-@router.get("/logout")
-async def logout(request: Request):
-    # CRITICAL: Use clear() instead of pop() to ensure session is fully cleared
-    request.session.clear()
-    
-    # helper to add delete headers
-    def nuke_cookies(resp):
-        # Import the exact domain used to set the cookie
-        try:
-            from .main import COOKIE_DOMAIN
-        except ImportError:
-            COOKIE_DOMAIN = None
-            
-        # 1. Clear Host-Only (domain=None) - covers generic cases
-        resp.delete_cookie("session", domain=None)
-        
-        # 2. Clear Explicit Domain (if set) - covers localhost/production cases
-        if COOKIE_DOMAIN:
-            resp.delete_cookie("session", domain=COOKIE_DOMAIN)
-            
-        print(f"[AUTH] Logout - Nuking cookies on domains: None, {COOKIE_DOMAIN}")
-        return resp
-
-    # Detect if this is an API call (fetch) or direct browser navigation
-    # API calls will have Accept: application/json or similar
-    accept_header = request.headers.get("accept", "")
-    is_api_call = "application/json" in accept_header or "fetch" in request.headers.get("sec-fetch-mode", "")
-    
-    if is_api_call:
-        # Return JSON for API calls (from frontend fetch)
-        response = JSONResponse({"status": "ok", "message": "Logged out successfully"})
-        return nuke_cookies(response)
-    
-    # Smart Logout Redirect for direct browser access
-    # Fix: Do not force FRONTEND_URL. Redirect to root ('/') which keeps the user on the current host.
-    # If they are on localhost:8000, they go to localhost:8000/
-    # If they are on localhost:3000, they go to localhost:3000/ (via Next.js rewrite handling)
-    response = RedirectResponse(url="/")
-    return nuke_cookies(response)
+        traceback.print_exc()
+        return RedirectResponse(url=f"{FRONTEND_URL}?error=auth_failed")
 
 @router.get("/me")
 async def get_me(request: Request): 
@@ -327,9 +283,13 @@ async def get_me(request: Request):
     user = request.session.get('user')
     if not user: return {"id": None}
     
-    from .portfolio_db import get_user_public_profile
     # Fetch fresh DB data (e.g. nickname)
-    db_profile = get_user_public_profile(user['id'])
+    from app.database import get_db
+    from app.repositories import user_repo
+    with get_db() as conn:
+        db_profile = user_repo.get_user_public_profile(conn, user['id'])
+
+        
     # Check if user is admin
     is_admin = user.get('email', '').strip().lower() in GM_EMAILS
     
@@ -339,6 +299,8 @@ async def get_me(request: Request):
     print(f"[AUTH] Gemini Key Check: Loaded? {bool(gemini_key)}. Valid? {has_gemini_key}")
     
     # Merge DB data into session data for response
+    # Handle None profile
+    if not db_profile: db_profile = {}
     return {**user, **db_profile, "is_admin": is_admin, "has_gemini_key": has_gemini_key}
 
 

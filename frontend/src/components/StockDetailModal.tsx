@@ -82,11 +82,13 @@ export default function StockDetailModal({
                                 <tbody className="divide-y divide-[var(--color-border)]">
                                     {dividends.map((div) => (
                                         <tr key={div.id} className="hover:bg-zinc-800/50 transition-colors">
-                                            <td className="px-4 py-3 font-mono text-zinc-300">{div.ex_date}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-300 text-right">{div.shares_held}</td>
-                                            <td className="px-4 py-3 font-mono text-zinc-500 text-right">${div.amount_per_share?.toFixed(4)}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-300">{div.date}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-300 text-right">{div.held_shares}</td>
+                                            <td className="px-4 py-3 font-mono text-zinc-500 text-right">
+                                                ${(div.amount / (div.held_shares || 1)).toFixed(4)}
+                                            </td>
                                             <td className="px-4 py-3 font-mono text-[var(--color-warning)] font-bold text-right">
-                                                ${div.total_cash?.toLocaleString()}
+                                                ${div.amount?.toLocaleString()}
                                             </td>
                                         </tr>
                                     ))}
@@ -94,8 +96,8 @@ export default function StockDetailModal({
                                 <tfoot className="bg-zinc-900 sticky bottom-0 border-t border-[var(--color-border)]">
                                     <tr>
                                         <td colSpan={3} className="px-4 py-3 text-right font-bold text-zinc-400">Total Received:</td>
-                                        <td className="px-4 py-3 text-right font-bold text-[var(--color-warning)]">
-                                            ${dividends.reduce((sum, d) => sum + (d.total_cash || 0), 0).toLocaleString()}
+                                        <td className="px-4 py-3 font-mono font-bold text-[var(--color-warning)] text-lg text-right">
+                                            ${dividends.reduce((acc, curr) => acc + (curr.amount || 0), 0).toLocaleString()}
                                         </td>
                                     </tr>
                                 </tfoot>

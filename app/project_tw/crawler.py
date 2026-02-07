@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 
 class TWSECrawler:
     def __init__(self, data_dir="data/raw"):
-        self.base_url = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
+        # UPDATED: Use new RWD endpoint which supports data back to 2010
+        self.base_url = "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
         self.data_dir = data_dir
         os.makedirs(data_dir, exist_ok=True)
         # TWSE has strict rate limits (suggestion: 3s delay)

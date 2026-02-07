@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app import dividend_cache
 from app.auth import get_current_user
-from app.portfolio_db import get_db
+from app.database import get_db
 
 router = APIRouter()
 

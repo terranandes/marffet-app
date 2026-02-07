@@ -35,7 +35,7 @@ def _normalize_stock_id(stock_id: str) -> str:
 
 def _init_db_table():
     """Ensure dividend_cache table exists."""
-    from app.portfolio_db import get_db
+    from app.database import get_db
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -51,7 +51,7 @@ def _init_db_table():
 
 def _get_from_db(stock_id: str) -> Optional[list[dict]]:
     """Get dividends from DB table."""
-    from app.portfolio_db import get_db
+    from app.database import get_db
     clean_id = _normalize_stock_id(stock_id)
     
     try:
@@ -71,7 +71,7 @@ def _get_from_db(stock_id: str) -> Optional[list[dict]]:
 
 def _save_to_db(stock_id: str, stock_name: str, dividends: list[dict]):
     """Save dividends to DB table."""
-    from app.portfolio_db import get_db
+    from app.database import get_db
     clean_id = _normalize_stock_id(stock_id)
     
     try:
@@ -214,7 +214,7 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
         if not stock_name:
             # Priority 1: Check Global Cache (Official TWSE Name)
             try:
-                from app.portfolio_db import STOCK_NAME_CACHE
+                from app.config import STOCK_NAME_CACHE
                 stock_name = STOCK_NAME_CACHE.get(clean_id)
             except ImportError:
                 pass

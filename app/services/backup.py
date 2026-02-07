@@ -4,7 +4,8 @@ import base64
 import requests
 import logging
 from datetime import datetime
-from app.portfolio_db import DB_PATH
+from app.database import get_db, DB_PATH
+from app.repositories import target_repo
 
 logger = logging.getLogger(__name__)
 
@@ -415,13 +416,14 @@ class BackupService:
         Scheduled for Jan/Apr/Jul/Oct 1st at 03:00 UTC.
         """
         from app import dividend_cache
-        from app.portfolio_db import get_all_unique_stock_ids
         
         logger.info("[Quarterly Sync] Starting Dividend Sync...")
         
         try:
             # 1. Get all stocks
-            stock_ids = get_all_unique_stock_ids()
+            with get_db() as conn:
+                stock_ids = target_repo.get_all_unique_stock_ids(conn)
+                
             if not stock_ids:
                 logger.info("[Quarterly Sync] No stocks to sync.")
                 return

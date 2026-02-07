@@ -424,11 +424,11 @@ async def chat_with_mars(req: ChatRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")
-def get_results(start_year: int = 2010, principal: float = 1_000_000, contribution: float = 60_000):
+def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return filtered results with Mars Simulation (Cached)"""
-    # Validate start_year (TWSE API only supports 2010+)
-    if start_year < 2010:
-        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
+    # Validate start_year (yfinance supports 2000+)
+    if start_year < 2000:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2000"})
     try:
         # Check Cache
         cache_key = (start_year, principal, contribution)
@@ -470,8 +470,8 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
     CACHE ENABLED: Uses SIM_CACHE if available.
     """
     # Validate start_year (TWSE API only supports 2010+)
-    if start_year < 2010:
-        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
+    if start_year < 2000:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2000"})
     try:
         print(f"[Detail API] Request for {stock_id} ({start_year})")
         # Check Cache (Reuse if exact match)
@@ -554,11 +554,11 @@ def sanitize_for_json(obj):
     return obj
 
 @app.get("/api/race-data")
-def get_race_data(start_year: int = 2010, principal: float = 1_000_000, contribution: float = 60_000):
+def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
-    # Validate start_year (TWSE API only supports 2010+)
-    if start_year < 2010:
-        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2010 (TWSE API limitation)"})
+    # Validate start_year (yfinance supports 2000+)
+    if start_year < 2000:
+        return JSONResponse(status_code=400, content={"error": "start_year must be >= 2000"})
     try:
         # Check Cache first (reuse Mars Strategy result)
         cache_key = (start_year, principal, contribution)

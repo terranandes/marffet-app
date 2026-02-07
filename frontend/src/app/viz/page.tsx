@@ -30,7 +30,7 @@ export default function VisualizationPage() {
                     params = `?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`;
                 } else {
                     // Default fallback if no settings found
-                    params = "?start_year=2010&principal=1000000&contribution=60000";
+                    params = "?start_year=2006&principal=1000000&contribution=60000";
                 }
 
                 const res = await fetch(`/api/race-data${params}`);

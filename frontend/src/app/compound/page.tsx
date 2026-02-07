@@ -378,6 +378,8 @@ export default function CompoundPage() {
                                             <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>
                                             <li><strong>ROI</strong> = (Final Value - Total Invested) / Total Invested × 100%</li>
                                             <li><strong>CAGR</strong> = (Final Value / Initial)^(1/Years) - 1</li>
+                                            <li><strong>Cash Dividends</strong> = Based on held shares from previous year</li>
+                                            <li><strong>Dividend Reinvestment</strong> = Reinvested at yearly average price</li>
                                         </ul>
                                     </>
                                 ) : (
@@ -386,7 +388,8 @@ export default function CompoundPage() {
                                         <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
                                             <li>All stocks use <strong>BAO (Buy At Opening)</strong> strategy for fair comparison</li>
                                             <li>Same initial capital and annual contribution applied to each stock</li>
-                                            <li>Results show final value after reinvesting dividends</li>
+                                            <li><strong>Cash Dividends</strong> = Based on held shares from previous year</li>
+                                            <li><strong>Dividend Reinvestment</strong> = Reinvested at yearly average price</li>
                                         </ul>
                                     </>
                                 )}
@@ -491,6 +494,8 @@ export default function CompoundPage() {
                                             <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>
                                             <li><strong>ROI</strong> = (Final Value - Total Invested) / Total Invested × 100%</li>
                                             <li><strong>CAGR</strong> = (Final Value / Initial)^(1/Years) - 1</li>
+                                            <li><strong>Cash Dividends</strong> = Based on held shares from previous year</li>
+                                            <li><strong>Dividend Reinvestment</strong> = Reinvested at yearly average price</li>
                                         </ul>
                                     </>
                                 ) : (
@@ -499,7 +504,8 @@ export default function CompoundPage() {
                                         <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
                                             <li>All stocks use <strong>BAO (Buy At Opening)</strong> strategy for fair comparison</li>
                                             <li>Same initial capital and annual contribution applied to each stock</li>
-                                            <li>Results show final value after reinvesting dividends</li>
+                                            <li><strong>Cash Dividends</strong> = Based on held shares from previous year</li>
+                                            <li><strong>Dividend Reinvestment</strong> = Reinvested at yearly average price</li>
                                         </ul>
                                     </>
                                 )}

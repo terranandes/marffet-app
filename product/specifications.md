@@ -99,3 +99,27 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 - **Admin Sync Ops**: Enhanced "Smart Update" to always refresh stock list.
 - **Directory Consolidation**: Unified python logic in `app/project_tw`.
 
+
+### v3.1 (2026-02-07) - Compound Interest Refinement
+- **Compound Page Native Implementation**: Replaced iframe with full native Next.js + ECharts implementation.
+- **MoneyCome Correlation**: Validated engine logic against MoneyCome.in rules.
+- **Total Investment Fix**: Corrected formula to `Principal + ((EndYear - StartYear + 1) * Contribution)` (Inclusive counting).
+- **Dividend Logic**: Verified cash dividends based on held shares and reinvestment at yearly average price.
+
+## 6. Compound Interest Logic
+
+### 6.1 Core Formulas
+- **Total Investment**: `Principal + ((End_Year - Start_Year + 1) × Annual_Contribution)`
+  - *Note:* Contribution is applied on the *Start Year* as well (Inclusive).
+- **ROI**: `(Final_Value - Total_Investment) / Total_Investment × 100%`
+- **CAGR**: `(Final_Value / Initial_Principal)^(1 / Years) - 1`
+
+### 6.2 Dividend Reinvestment Rules (MoneyCome Standard)
+- **Cash Dividends**: Calculated based on *held shares from the previous year* (留倉部位).
+- **Reinvestment Price**: Cash dividends are reinvested at the *average price of the current year* (當年均價).
+- **Stock Dividends**: Added directly to share count (Par $10 base).
+
+### 6.3 Buying Strategies
+- **BAO (Buy At Opening)**: Buy at yearly opening price (Jan 1st). Used for Comparison Mode.
+- **BAH (Buy At Highest)**: Buy at yearly highest price (Worst case).
+- **BAL (Buy At Lowest)**: Buy at yearly lowest price (Best case).

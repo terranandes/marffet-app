@@ -6,7 +6,7 @@ trigger: always_on
 
 ## 1. Governance Principles
 - **Exclusivity:** Agents must strictly adhere to write permissions. Do not modify files owned by other agents unless explicitly instructed by `[PL]`.
-- **Root Directory:** All product-related documentation resides in `./product/` or the root `./`.
+- **Root Directory:** All product-related documentation resides in `./docs/product/` or the root `./`.
 - **Traceability:** All generated files must reflect the authoring agent's identity in the content or metadata.
 
 ---
@@ -28,11 +28,11 @@ trigger: always_on
 
 > **Directive:** These files form the "Law" of the project. `[CODE]` and `[UI]` must strictly follow these.
 
-- `./product/specification.md` (Master Logic Document)
-- `./product/backup_restore.md`
-- `./product/crawler_architecture.md`
-- `./product/data_pipeline.md`
-- `./product/auth_db_architecture.md`
+- `./docs/product/specification.md` (Master Logic Document)
+- `./docs/product/backup_restore.md`
+- `./docs/product/crawler_architecture.md`
+- `./docs/product/data_pipeline.md`
+- `./docs/product/auth_db_architecture.md`
 
 ---
 
@@ -40,16 +40,16 @@ trigger: always_on
 **Owner:** `[PL]` (Project Leader)
 
 ### Task Tracking
-- `./product/tasks.md`
+- `./docs/product/tasks.md`
     - **Rule:** Must be updated dynamically. `[PL]` ensures this reflects the live status of all agents.
 
 ### Meeting Records
-- `./meeting/meeting_notes_YYYY_MM_DD_v{version}.md`
+- `./docs/meeting/meeting_notes_YYYY_MM_DD_v{version}.md`
     - **Format:** Strict ISO date format.
     - **Trigger:** Auto-generated after any multi-agent synchronization session.
 
 ### Technical Stack (Shared Ownership)
-- `./product/software_stack.md`
+- `./docs/product/software_stack.md`
     - **Primary Owner:** `[PL]` (Maintains structure)
     - **Contributors:** `[CODE]`, `[UI]` (Provide library details)
 
@@ -61,7 +61,7 @@ trigger: always_on
 ### Standard Verification (AntiGravity)
 **Owner:** `[CV]`
 **Access:** `[GCV]` is **FORBIDDEN** from modifying these files.
-- `./product/test_plan.md` (Master Test Strategy)
+- `./docs/product/test_plan.md` (Master Test Strategy)
 - `./tests/unit/*` (Unit Tests)
 - `./tests/e2e/*` (e2e_suite.py & UI Tests)
 - `./tests/integration/*` (Verification scripts)
@@ -71,7 +71,7 @@ trigger: always_on
 ### Gemini Advanced Verification (Gemini CLI)
 **Owner:** `[GCV]`
 **Access:** `[CV]` is **FORBIDDEN** from modifying these files.
-- `./product/test_plan_gemini.md` (Complex reasoning test plans)
+- `./docs/product/test_plan_gemini.md` (Complex reasoning test plans)
 - `./tests_gemini/*` (Tests requiring multimodal or advanced reasoning)
 
 ---

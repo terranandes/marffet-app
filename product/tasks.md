@@ -20,8 +20,8 @@
     - *Note:* Infrastructure is ready. Pending final user check on actual device.
 
 ## 4. Feature Roadmap (Next Steps)
-- [x] **Tab: Compound Interest** (Implemented via Iframe Wrapper)
-- [x] **Tab: MoneyCome Comparison** (Implemented via Modal in Mars Strategy)
+- [x] **Tab: Compound Interest** (Native Implementation with ECharts & MoneyCome Rules)
+- [x] **Tab: MoneyCome Comparison** (Implemented via Native Calculation Engine)
 - [x] [UI] Mobile or narrow screen portfolio card view
 - [x] [UI] Align setting modal from legacy to Next.js UI
 - [x] [UI] Trend alignment with Legacy UI (Curve Chart)

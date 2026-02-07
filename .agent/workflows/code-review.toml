@@ -11,5 +11,5 @@ Based on $ARGUMENTS,
 [CV] hold a detailed code review using
 skill `requesting-code-review` to execute the code-review.
 Other agents [CODE]/[CV], use skill 'receiving-code-review' to respond the feedbacks from [CV].
-[PL] use skill `code-review-checklist` to conclude the code-review, and conclude the review at `./code_review`.
+[PL] use skill `code-review-checklist` to conclude the code-review, and conclude the review at `./docs/code_review`.
 """

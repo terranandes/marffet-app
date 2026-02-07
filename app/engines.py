@@ -97,7 +97,6 @@ class RuthlessManager:
         """Separate method to handle the specific YF call for SMA."""
         # Clean Code: Use MarketDataService
         try:
-        try:
             sid = target['stock_id']
             # Suffix handled by service
             info = market_data_service.fetch_stock_info(sid)

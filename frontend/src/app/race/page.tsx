@@ -27,7 +27,7 @@ export default function RacePage() {
     const [user, setUser] = useState<any>(null);
 
     const [sim, setSim] = useState<SimSettings>({
-        startYear: 2006,
+        startYear: 2010,
         principal: 1000000,
         contribution: 60000,
     });
@@ -42,7 +42,7 @@ export default function RacePage() {
             try {
                 const parsed = JSON.parse(saved);
                 setSim({
-                    startYear: parsed.startYear || 2006,
+                    startYear: parsed.startYear || 2010,
                     principal: parsed.principal || 1000000,
                     contribution: parsed.contribution || 60000
                 });

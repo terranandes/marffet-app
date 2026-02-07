@@ -50,7 +50,7 @@ export default function CompoundPage() {
         stock1: "0050",
         stock2: "2330",
         stock3: "2383",
-        startYear: 2006,
+        startYear: 2010,
         endYear: currentYear,
         principal: 1000000,
         contribution: 60000

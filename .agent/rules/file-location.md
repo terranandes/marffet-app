@@ -61,6 +61,10 @@ trigger: always_on
 
 ### Standard Verification (AntiGravity)
 **Owner:** `[CV]`/`[PL]`
+
+> **Directive:** When start a verification, you shall check any existing files at `./docs/product/test_plan.md` or `./tests/`. <br>
+If any new files are needed to created, always create them at `./tests` and follow the rules below.
+
 **Access:** `[GCV]` is **FORBIDDEN** from modifying these files.
 - `./docs/product/test_plan.md` (Master Test Strategy)
 - `./tests/unit/*` (Unit Tests)
@@ -69,9 +73,14 @@ trigger: always_on
 - `./tests/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
 - `./tests/ops_scripts/*` (Admin/Ops scripts)
 - `./tests/analysis/*` (Quantitative correlation logic)
+- `./tests/log/*` (Output log to verify)
 
 ### Gemini Advanced Verification (Gemini CLI)
 **Owner:** `[GCV]`
+
+> **Directive:** When start a verification, you shall check any existing files at `./docs/product/test_plan_gemini.md` or `./tests_gemini/`. <br>
+If any new files are needed to created, always create them at `./tests_gemini` and follow the rules below.
+
 **Access:** `[CV]` is **FORBIDDEN** from modifying these files.
 - `./docs/product/test_plan_gemini.md` (Complex reasoning test plans)
 - `./tests_gemini/unit/*` (Unit Tests)
@@ -80,6 +89,7 @@ trigger: always_on
 - `./tests_gemini/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
 - `./tests_gemini/ops_scripts/*` (Admin/Ops scripts)
 - `./tests_gemini/analysis/*` (Quantitative correlation logic)
+- `./tests_gemini/log/*` (Output log to verify)
 
 ---
 

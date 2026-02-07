@@ -60,3 +60,4 @@
 - [x] **Sidebar Reordering** (Compound Interest moved)
 - [x] **Mars Strategy Modal Performance Fix** (Removed Auto-Crawl triggering backend analysis on load)
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
+- [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)

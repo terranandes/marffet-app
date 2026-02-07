@@ -10,6 +10,7 @@ Please prepare/update tinied-up SPEC files formally as following files :
 - ./product/backup_restore.md
 - ./product/crawler_architecture.md
 - ./product/data_pipeline.md
+- other ./prodect/ files not owened by other agents
 
 ## [PM] owns
 Please prepare/update tinied-up product datasheet and README for the end-users who use the APP (not ME/Terran/BOSS/Agents) as following files

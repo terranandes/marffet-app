@@ -366,17 +366,28 @@ export default function CompoundPage() {
                                 👆 Click <span className={settings.mode === "single" ? "text-[var(--color-cta)] font-bold" : "text-purple-400 font-bold"}>{settings.mode === "single" ? "Calculate" : "Compare"}</span> to generate your wealth projection
                             </p>
 
-                            {/* Formula Hints */}
-                            <div className="mt-6 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-1">
+                            {/* Formula Hints - MoneyCome Rules */}
+                            <div className="mt-6 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-2">
                                 {settings.mode === "single" ? (
                                     <>
-                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Simulate buying shares at Opening/Highest/Lowest price each year</p>
-                                        <p className="text-center opacity-50">ROI = (Final Value - Total Invested) / Total Invested × 100% • CAGR = (Final / Initial)^(1/Years) - 1</p>
+                                        <p className="opacity-70">📐 <strong>Simulation Rules:</strong></p>
+                                        <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
+                                            <li><strong>Total Investment</strong> = Initial Capital + (Years × Annual Contribution)</li>
+                                            <li><strong>BAO (Buy At Opening)</strong>: Buy shares at yearly opening price on Jan 1st</li>
+                                            <li><strong>BAH (Buy At Highest)</strong>: Buy at worst timing (yearly highest price) - worst case</li>
+                                            <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>
+                                            <li><strong>ROI</strong> = (Final Value - Total Invested) / Total Invested × 100%</li>
+                                            <li><strong>CAGR</strong> = (Final Value / Initial)^(1/Years) - 1</li>
+                                        </ul>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Compare multiple stocks using Buy-At-Opening strategy</p>
-                                        <p className="text-center opacity-50">Each stock is evaluated with the same initial capital and annual contribution over the same period</p>
+                                        <p className="opacity-70">📐 <strong>Comparison Rules:</strong></p>
+                                        <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
+                                            <li>All stocks use <strong>BAO (Buy At Opening)</strong> strategy for fair comparison</li>
+                                            <li>Same initial capital and annual contribution applied to each stock</li>
+                                            <li>Results show final value after reinvesting dividends</li>
+                                        </ul>
                                     </>
                                 )}
                             </div>
@@ -394,7 +405,7 @@ export default function CompoundPage() {
                                     <div className="space-y-4">
                                         <div className="text-sm text-[var(--color-text-muted)] space-y-1 mb-4">
                                             <p>• Stock Name: <strong className="text-[var(--color-text)]">{results[0].name}({results[0].code})</strong></p>
-                                            <p>• Amount of Inv.: <strong className="text-[var(--color-text)]">${settings.principal.toLocaleString()}</strong></p>
+                                            <p>• Total Inv.: <strong className="text-[var(--color-text)]">${(settings.principal + (settings.endYear - settings.startYear) * settings.contribution).toLocaleString()}</strong></p>
                                             <p>• Year: <strong className="text-[var(--color-text)]">{settings.startYear} ~ {settings.endYear}</strong></p>
                                         </div>
                                         <div className="overflow-x-auto">
@@ -468,17 +479,28 @@ export default function CompoundPage() {
                                 <ReactECharts option={dividendChartOption} style={{ height: "350px" }} notMerge={true} />
                             </div>
 
-                            {/* Formula Hints */}
-                            <div className="mt-2 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-1">
+                            {/* Formula Hints - MoneyCome Rules */}
+                            <div className="mt-2 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-2">
                                 {settings.mode === "single" ? (
                                     <>
-                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Simulate buying shares at Opening/Highest/Lowest price each year</p>
-                                        <p className="text-center opacity-50">ROI = (Final Value - Total Invested) / Total Invested × 100% • CAGR = (Final / Initial)^(1/Years) - 1</p>
+                                        <p className="opacity-70">📐 <strong>Simulation Rules:</strong></p>
+                                        <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
+                                            <li><strong>Total Investment</strong> = Initial Capital + (Years × Annual Contribution)</li>
+                                            <li><strong>BAO (Buy At Opening)</strong>: Buy shares at yearly opening price on Jan 1st</li>
+                                            <li><strong>BAH (Buy At Highest)</strong>: Buy at worst timing (yearly highest price) - worst case</li>
+                                            <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>
+                                            <li><strong>ROI</strong> = (Final Value - Total Invested) / Total Invested × 100%</li>
+                                            <li><strong>CAGR</strong> = (Final Value / Initial)^(1/Years) - 1</li>
+                                        </ul>
                                     </>
                                 ) : (
                                     <>
-                                        <p className="text-center opacity-70">📐 <strong>Formula:</strong> Compare multiple stocks using Buy-At-Opening strategy</p>
-                                        <p className="text-center opacity-50">Each stock is evaluated with the same initial capital and annual contribution over the same period</p>
+                                        <p className="opacity-70">📐 <strong>Comparison Rules:</strong></p>
+                                        <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
+                                            <li>All stocks use <strong>BAO (Buy At Opening)</strong> strategy for fair comparison</li>
+                                            <li>Same initial capital and annual contribution applied to each stock</li>
+                                            <li>Results show final value after reinvesting dividends</li>
+                                        </ul>
                                     </>
                                 )}
                             </div>

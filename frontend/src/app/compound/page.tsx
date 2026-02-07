@@ -372,7 +372,7 @@ export default function CompoundPage() {
                                     <>
                                         <p className="opacity-70">📐 <strong>Simulation Rules:</strong></p>
                                         <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
-                                            <li><strong>Total Investment</strong> = Initial Capital + (Years × Annual Contribution)</li>
+                                            <li><strong>Total Investment</strong> = Initial Capital + ((Years + 1) × Annual Contribution)</li>
                                             <li><strong>BAO (Buy At Opening)</strong>: Buy shares at yearly opening price on Jan 1st</li>
                                             <li><strong>BAH (Buy At Highest)</strong>: Buy at worst timing (yearly highest price) - worst case</li>
                                             <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>
@@ -408,7 +408,7 @@ export default function CompoundPage() {
                                     <div className="space-y-4">
                                         <div className="text-sm text-[var(--color-text-muted)] space-y-1 mb-4">
                                             <p>• Stock Name: <strong className="text-[var(--color-text)]">{results[0].name}({results[0].code})</strong></p>
-                                            <p>• Total Inv.: <strong className="text-[var(--color-text)]">${(settings.principal + (settings.endYear - settings.startYear) * settings.contribution).toLocaleString()}</strong></p>
+                                            <p>• Total Inv.: <strong className="text-[var(--color-text)]">${(settings.principal + (settings.endYear - settings.startYear + 1) * settings.contribution).toLocaleString()}</strong></p>
                                             <p>• Year: <strong className="text-[var(--color-text)]">{settings.startYear} ~ {settings.endYear}</strong></p>
                                         </div>
                                         <div className="overflow-x-auto">
@@ -488,7 +488,7 @@ export default function CompoundPage() {
                                     <>
                                         <p className="opacity-70">📐 <strong>Simulation Rules:</strong></p>
                                         <ul className="list-disc list-inside opacity-60 space-y-0.5 pl-2">
-                                            <li><strong>Total Investment</strong> = Initial Capital + (Years × Annual Contribution)</li>
+                                            <li><strong>Total Investment</strong> = Initial Capital + ((Years + 1) × Annual Contribution)</li>
                                             <li><strong>BAO (Buy At Opening)</strong>: Buy shares at yearly opening price on Jan 1st</li>
                                             <li><strong>BAH (Buy At Highest)</strong>: Buy at worst timing (yearly highest price) - worst case</li>
                                             <li><strong>BAL (Buy At Lowest)</strong>: Buy at best timing (yearly lowest price) - best case</li>

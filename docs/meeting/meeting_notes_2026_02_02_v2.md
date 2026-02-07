@@ -41,7 +41,7 @@
 ## 4. 📝 Action Items
 
 1.  **[CODE]**: Reverse Engineer TWSE Legacy API (FMT8) or HTML parsing for 2006-2026 history.
-2.  **[CODE]**: Build `scripts/crawl_official.py`.
+2.  **[CODE]**: Build `tests/ops_scripts/crawl_official.py`.
 3.  **[CV]**: Define "Data Quality Checks" (e.g., Warning if 2006 price < 40 for TSMC).
 4.  **[PL]**: Update `tasks.md` to reflect P0 Scraper.
 

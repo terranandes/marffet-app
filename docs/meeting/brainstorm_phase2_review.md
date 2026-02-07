@@ -40,7 +40,7 @@
     -   *Arbiter Decision*: **REVISE**. JSON is kept for debugging visibility, but **Application Layer MUST implement Caching** (Load Once, Read Memory) to mask this IO cost.
 
 -   **Objection 4 (Reusability)**:
-    -   *Critique*: Logic resides in `scripts/crawl_official.py`. It cannot be imported by `app/main.py`. This violates **DRY**.
+    -   *Critique*: Logic resides in `tests/ops_scripts/crawl_official.py`. It cannot be imported by `app/main.py`. This violates **DRY**.
     -   *Arbiter Decision*: **REVISE**. Logic must be refactored into `app/project_tw/crawler.py`.
 
 ### 👤 User Advocate ([UI] Agent)

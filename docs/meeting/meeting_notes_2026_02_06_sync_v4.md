@@ -19,8 +19,8 @@
 
 **[CODE] Backend**:
 - Patched `app/main.py` line 868 to use correct keyword argument.
-- Updated `scripts/verify_universal.py` to use `FIRST_CLOSE`.
-- Created `scripts/analyze_split_impact.py` to audit split coverage (41 stocks / 1.5%).
+- Updated `tests/integration/verify_universal.py` to use `FIRST_CLOSE`.
+- Created `tests/debug_tools/analyze_split_impact.py` to audit split coverage (41 stocks / 1.5%).
 
 ---
 
@@ -38,8 +38,8 @@
 **Uncommitted Changes** (need commit/push):
 - `app/main.py` (FIRST_CLOSE + arg fix)
 - `app/project_tw/calculator.py` (Split Detector integration)
-- `scripts/verify_universal.py`, `scripts/compare_verification_v2.py`
-- `scripts/analyze_split_impact.py`, `scripts/investigate_buy_logic.py`
+- `tests/integration/verify_universal.py`, `tests/integration/compare_verification_v2.py`
+- `tests/debug_tools/analyze_split_impact.py`, `tests/debug_tools/investigate_buy_logic.py`
 - `product/tasks.md`, `product/specifications.md`
 - `output/universal_verification.json`
 - Meeting notes: `v2.md`, `v3.md` (this file will be `v4.md`)

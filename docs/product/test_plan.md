@@ -59,7 +59,7 @@ uv run python tests/e2e/e2e_suite.py
 #### C. Backend Data Verification
 ```bash
 uv run tests/integration/test_fetch_names.py
-uv run scripts/verify_daily.py
+uv run tests/integration/verify_daily.py
 ```
 *   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and **Daily Data (Phase 4)** integrity.
 

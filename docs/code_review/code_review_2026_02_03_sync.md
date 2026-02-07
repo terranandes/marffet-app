@@ -12,7 +12,7 @@
 -   **Safety**: Explicitly handles keys. The fallback logic for V1 vs V2 schema (`if "daily" in node`) is robust.
 -   **Risk**: Thread safety on *write*? Currently Read-Only after startup. Safe.
 
-## 2. `scripts/crawl_official.py` (V2 Upgrade)
+## 2. `tests/ops_scripts/crawl_official.py` (V2 Upgrade)
 **Rating**: ⭐⭐⭐⭐ (Good)
 -   **Improvement**: Fetching `daily` data preserves the "Physics" of the market (Volatility).
 -   **Minification**: Using keys `d, o, h, l, c, v` saves ~40% space vs `date, open...`. Good choice for JSON.

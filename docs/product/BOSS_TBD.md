@@ -26,7 +26,7 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 - [ ] **Phase 2 Scraper**: Fetch UNADJUSTED prices from TWSE/TPEx (Fix Wealth Bug).
     - [ ] Probe TWSE API (Verify 2006 price ~60).
-    - [ ] Build `scripts/crawl_official.py`.
+    - [ ] Build `tests/ops_scripts/crawl_official.py`.
     - [ ] Re-ingest Data Lake.
 - [ ] Multi-language (Deferred).
 - [ ] AICopilot enhancement

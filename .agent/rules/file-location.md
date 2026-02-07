@@ -59,7 +59,7 @@ trigger: always_on
 **Warning:** `[CV]` and `[GCV]` possess distinct memory and logic streams. **Cross-contamination is prohibited.**
 
 ### Standard Verification (AntiGravity)
-**Owner:** `[CV]`
+**Owner:** `[CV]`/`[PL]`
 **Access:** `[GCV]` is **FORBIDDEN** from modifying these files.
 - `./docs/product/test_plan.md` (Master Test Strategy)
 - `./tests/unit/*` (Unit Tests)
@@ -67,12 +67,18 @@ trigger: always_on
 - `./tests/integration/*` (Verification scripts)
 - `./tests/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
 - `./tests/ops_scripts/*` (Admin/Ops scripts)
+- `./tests/analysis/*` (Quantitative correlation logic)
 
 ### Gemini Advanced Verification (Gemini CLI)
 **Owner:** `[GCV]`
 **Access:** `[CV]` is **FORBIDDEN** from modifying these files.
 - `./docs/product/test_plan_gemini.md` (Complex reasoning test plans)
-- `./tests_gemini/*` (Tests requiring multimodal or advanced reasoning)
+- `./tests_gemini/unit/*` (Unit Tests)
+- `./tests_gemini/e2e/*` (e2e_suite.py & UI Tests)
+- `./tests_gemini/integration/*` (Verification scripts)
+- `./tests_gemini/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
+- `./tests_gemini/ops_scripts/*` (Admin/Ops scripts)
+- `./tests_gemini/analysis/*` (Quantitative correlation logic)
 
 ---
 
@@ -81,7 +87,7 @@ trigger: always_on
 
 > **Directive:** When filing a ticket, the filename must explicitly identify the reporter.
 
-- **Path:** `./jira/*`
+- **Path:** `./docs/jira/*`
 - **Naming Convention:** `{ISSUE_TYPE}-{SERIAL_ID}-{REPORTER_AGENT_ID}_{BUG_BRIEF_DESCRIPTION}.md`
     - Example: `BUG-110-GCV_mobile_google_login.md`
     - {SERIAL_ID} must be Decimally-Incremetal

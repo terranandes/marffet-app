@@ -11,7 +11,7 @@
 |------|---------------|---------|
 | `app/main.py` | Fixed `contribution` → `annual_investment=contribution` | ✅ APPROVED |
 | `app/project_tw/calculator.py` | Added pre-detection call `detector.detect_splits()` | ✅ APPROVED |
-| `scripts/verify_universal.py` | Changed `FIRST_OPEN` → `FIRST_CLOSE` | ✅ APPROVED |
+| `tests/integration/verify_universal.py` | Changed `FIRST_OPEN` → `FIRST_CLOSE` | ✅ APPROVED |
 
 ---
 

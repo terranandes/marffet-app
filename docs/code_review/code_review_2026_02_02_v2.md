@@ -26,7 +26,7 @@
 - **Implication**: `yfinance` *can* provide the correct data. The current Data Lake was effectively "poisoned" by default settings.
 - **Action**: Future ingestion *must* strictly use `auto_adjust=False`.
 
-## 3. 📉 Coverage Review: `scripts/correlate_stocks.py`
+## 3. 📉 Coverage Review: `tests/analysis/correlate_stocks.py`
 - **Result**: 98.92% on Filtered List.
 - **Verdict**: The "Coverage" is excellent. The "Gap" in the Unfiltered list is acceptable (Delisted/Emerging). The real issue is **Data Definition** (Price Adjustment), not Coverage.
 

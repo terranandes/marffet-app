@@ -12,7 +12,7 @@ We have moved away from fragmented data sources (Excel, disparate APIs) to a **U
 ---
 
 ## 2. Ingestion Policy (The "Clean Room")
--   **Sole Source**: `scripts/crawl_official.py`
+-   **Sole Source**: `tests/ops_scripts/crawl_official.py`
     -   **Source**: Official TWSE ISIN Registry (`isin.twse.com.tw`).
     -   **Price Source**: `yfinance(auto_adjust=False)` (Verified against physical dividends).
     -   **Frequency**: Once per day (at night).

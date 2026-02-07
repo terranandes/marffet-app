@@ -43,7 +43,6 @@ interface StockResult {
 
 export default function CompoundPage() {
     const currentYear = new Date().getFullYear();
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     const [settings, setSettings] = useState<CompoundSettings>({
         mode: "single",
@@ -73,12 +72,12 @@ export default function CompoundPage() {
                 : [settings.stock1, settings.stock2, settings.stock3].filter(s => s.trim() !== "");
 
             const fetchPromises = stockCodes.map(async (code) => {
-                const url = `${API_BASE}/api/results/detail?stock_id=${code}&start_year=${settings.startYear}&principal=${settings.principal}&contribution=${settings.contribution}`;
+                const url = `/api/results/detail?stock_id=${code}&start_year=${settings.startYear}&principal=${settings.principal}&contribution=${settings.contribution}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`Failed to fetch ${code}`);
                 const data = await res.json();
 
-                const nameRes = await fetch(`${API_BASE}/api/results?start_year=${settings.startYear}&principal=${settings.principal}&contribution=${settings.contribution}`);
+                const nameRes = await fetch(`/api/results?start_year=${settings.startYear}&principal=${settings.principal}&contribution=${settings.contribution}`);
                 const nameData = await nameRes.json();
                 const stockInfo = nameData?.stocks?.find((s: { id: string }) => s.id === code);
 

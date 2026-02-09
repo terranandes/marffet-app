@@ -67,6 +67,8 @@ async def lifespan(app: FastAPI):
             'date', 
             run_date=datetime.now(timezone.utc) + timedelta(seconds=10),
             id='startup_backup_check'
+        )
+        
         # NOTE: Heavy jobs (annual prewarm, quarterly sync) are now handled by
         # external cron scripts in scripts/cron/ to avoid blocking the web process.
         # See: scripts/cron/annual_prewarm.sh, scripts/cron/quarterly_dividend_sync.sh

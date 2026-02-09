@@ -68,7 +68,8 @@ Run verification to confirm data correctness.
 
 **Acceptance:**
 - TSMC (2330) 2006 Open price: ~59 (unadjusted)
-- Each year has 1500+ stocks
+- Recent years (2020+): 2,000+ stocks
+- Historical years (2000+): 1,000+ stocks
 - No empty files
 
 ---
@@ -76,7 +77,7 @@ Run verification to confirm data correctness.
 ## Success Metrics
 - **Time**: < 15 minutes for full 2000-2026 crawl
 - **Correctness**: TSMC 2006 Open = ~59 (unadjusted, not ~7 adjusted)
-- **Coverage**: 1,500+ stocks per year
+- **Coverage**: >2,000 stocks (Recent), >1,000 stocks (Historical)
 
 ## Out of Scope
 - Real-time streaming data

@@ -11,4 +11,5 @@ Steps:
 2. Use skill `writing-plans` to plan $ARGUMENTS according to previous brainstorming result
 3. Use skill `multi-agent-brainstorming` to reivew preciously created plan
 4. Transform the plan into {plan}_PRD.md for Ralph Loop
+5. Write down the plan/{plan}_PRD.md at `./docs/plan` and core_review at `./docs/code_review`.
 """

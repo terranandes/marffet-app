@@ -12,3 +12,4 @@ Steps:
 1. Use skill `brainstorming` to conceive how/what to acheive $ARGUMENTS
 2. Use skill `writing-plans` to plan $ARGUMENTS according to previous brainstorming result
 3. Use skill `multi-agent-brainstorming` to reivew preciously created plan
+4. Write down the plan at `./docs/plan` and code_review `./docs/code_review`.

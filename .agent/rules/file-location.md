@@ -58,7 +58,27 @@ Keep clean room.
 
 ---
 
-## 5. Quality Assurance & Verification (Strict Separation)
+## 6. Production Scripts & Cron Jobs
+**Owner:** `[PL]` / `[CODE]`
+
+> **Directive:** Production-grade scripts live in `./scripts/`. Test/debug scripts remain in `./tests/`.
+
+### Cron Jobs (External Schedulers)
+- `./scripts/cron/refresh_current_year.sh` - **Nightly** (22:00 HKT) - Crawl current year
+- `./scripts/cron/annual_prewarm.sh` - **Annual** (Jan 1, 02:00 UTC) - Full crawl all years
+- `./scripts/cron/quarterly_dividend_sync.sh` - **Quarterly** (Jan/Apr/Jul/Oct) - Dividend sync
+
+### Ops Scripts (Production)
+- `./scripts/ops/crawl_fast.py` - Ultra-fast async crawler
+- `./scripts/ops/run_crawler_prod.sh` - Production crawler runner
+
+### Debug/Analysis Scripts (Testing Only)
+- `./tests/ops_scripts/*` - Debug tools, probes, verifiers (NOT for production)
+- `./tests/debug_tools/*` - Inspection utilities
+
+---
+
+## 7. Quality Assurance & Verification (Strict Separation)
 **Warning:** `[CV]` and `[GCV]` possess distinct memory and logic streams. **Cross-contamination is prohibited.**
 
 ### Standard Verification (AntiGravity)
@@ -73,7 +93,7 @@ If any new files are needed to created, always create them at `./tests` and foll
 - `./tests/e2e/*` (e2e_suite.py & UI Tests)
 - `./tests/integration/*` (Verification scripts)
 - `./tests/debug_tools/*` (debug_*.py, inspect_*.py, probe_*.py)
-- `./tests/ops_scripts/*` (Admin/Ops scripts)
+- `./tests/ops_scripts/*` (Debug/Analysis scripts - NOT production)
 - `./tests/analysis/*` (Quantitative correlation logic)
 - `./tests/log/*` (Output log to verify)
 
@@ -95,7 +115,7 @@ If any new files are needed to created, always create them at `./tests_gemini` a
 
 ---
 
-## 6. Issue Tracking (Jira Simulation)
+## 8. Issue Tracking (Jira Simulation)
 **Shared Owners:** `[CV]` & `[GCV]`
 
 > **Directive:** When filing a ticket, the filename must explicitly identify the reporter.

@@ -10,7 +10,7 @@ echo "📂 Working Directory: $(pwd)"
 # 1. Run Crawler for current year (2026) in foreground
 # Using the production runner updated to support --foreground
 echo "🕷️  Running Crawler for 2026..."
-./tests/ops_scripts/run_crawler_prod.sh --foreground 2026 2026
+./scripts/ops/run_crawler_prod.sh --foreground 2026 2026
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then

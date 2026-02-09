@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import SettingsModal from "./SettingsModal";
+import DataTimestamp from "./DataTimestamp";
 
 interface User {
     id: string | null;
@@ -472,8 +473,11 @@ export default function Sidebar() {
                     </div>
                 )}
 
-                <div className="p-2 text-xs text-zinc-600 text-center">
-                    v0.2.1 • Martian System
+                <div className="p-4 border-t border-zinc-800/50">
+                    <DataTimestamp />
+                    <div className="text-[10px] text-zinc-600 text-center mt-2">
+                        v0.2.1 • Martian System
+                    </div>
                 </div>
             </aside >
 

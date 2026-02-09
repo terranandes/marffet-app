@@ -44,11 +44,15 @@
     - [x] **Split Detection Implemented**: Auto-detects >40% drops. 0050 CAGR fixed (12.1%).
     - [x] **CAGR Verification**: TSMC 19.0% (Realistic) vs previous halluncination. Correlation PROVEN.
 - [ ] **Phase 4: Universal Data Lake (Daily Data)** <!-- id: 30 -->
+    - [/] **Ultra-Fast Crawler** (`crawl_fast.py`) - *In Verification*
+        - [x] Asyncio + Batch Implementation
+        - [ ] Verify < 15 min runtime
+        - [ ] Verify Data Correctness (TSMC 2006)
     - [/] Upgrade Scraper to Store Daily OHLCV (Parquet/DuckDB) - *Deferred per consensus* <!-- id: 31 -->
     - [x] Update `MarketCache` to support Nested Schema (V2).
     - [x] Update App Logic to support Nested Schema (V2).
     - [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
-    - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** (\"Verify Everywhere\"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
+    - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
 
 ## 5. Maintenance & workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)
@@ -61,3 +65,4 @@
 - [x] **Mars Strategy Modal Performance Fix** (Removed Auto-Crawl triggering backend analysis on load)
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
+

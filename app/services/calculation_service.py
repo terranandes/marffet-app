@@ -12,6 +12,7 @@ from app.config import STOCK_NAME_CACHE
 from app.repositories import transaction_repo, target_repo, group_repo
 from app.services import market_data_service
 from app import dividend_cache
+from app.services.market_cache import MarketCache
 
 def get_target_summary(target_id: str, current_price: float = None) -> Dict[str, Any]:
     """
@@ -220,22 +221,11 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     price_history = {}
     if stock_ids:
         try:
-             # Clean Code: Use MarketDataService Cache
-             # 1. Ensure Cache (Offline support)
-             s_date_str = start_date.strftime("%Y-%m-%d")
-             mapping = market_data_service.ensure_price_cache_batch(stock_ids, start_date=s_date_str)
-             
-             # 2. Fetch from DB
-             # Need to pass mapped IDs
-             mapped_ids = list(mapping.values())
-             cached_data = market_data_service.get_cached_prices_batch(mapped_ids, start_date=s_date_str)
-             
-             # 3. Map back to original IDs
-             for original_id, cache_key in mapping.items():
-                 if cache_key in cached_data:
-                     price_history[original_id] = cached_data[cache_key]
+            # Clean Code: Use MarketCache (Single Source of Truth)
+            s_date_str = start_date.strftime("%Y-%m-%d")
+            price_history = _fetch_prices_from_market_cache(stock_ids)
 
-        except Exception as e: 
+        except Exception as e:
             print(f"[History] Price Fetch Error: {e}")
 
     # Simulation
@@ -320,45 +310,7 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
 
     return list(monthly_data.values())
 
-def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
-    """Calculated race data."""
-    # Logic simplified: Use get_portfolio_history logic but formatted for race chart?
-    # Original get_portfolio_race_data_calculated used similar logic to history but with race_cache
-    # I should check if I missed something specific in get_portfolio_race_data_calculated
-    # It returned: [{"date": "2024-01", "2330": 100, "0050": 200}, ...]
-    
-    # Re-implement using race_cache logic (ensure_price_cache_batch)
-    with get_db() as conn:
-        txs = transaction_repo.get_user_transactions(conn, user_id)
-        
-    if not txs: return []
-    
-    stock_ids = list(set(t['stock_id'] for t in txs))
-    
-    # Ensure cache
-    if txs:
-        earliest = min(t['date'] for t in txs)
-        # market_data_service.ensure_price_cache_batch(stock_ids, start_date=earliest)
-        # Actually, let's just use the service
-        market_data_service.ensure_price_cache_batch(stock_ids, start_date=earliest)
-        
-    # Build timeline
-    # Similar to history but per-stock value tracking
-    # ... (Omitted full re-implementation of 300 lines of race logic to keep it DRY if possible)
-    # But race data structure is specific.
-    # Let's assume for now we use a simplified version or I need to copy the full logic if I want exact parity.
-    # The user wants NO logic improvement, just refactor.
-    # So I should copy the logic.
-    
-    # ... Copying full logic ...
-    # For brevity in this tool call, I will generate the structure.
-    # Note: Using get_portfolio_history might be enough if the frontend accepts it?
-    # No, race chart needs per-stock.
-    
-    # I will rely on reading the original file again if I need exact 1:1 match.
-    # But the logic is: Monthly iteration -> Portfolio holding -> Price from Cache -> Value -> Append to row.
-    
-    return list(monthly_data.values())
+
 
 def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     """Calculated race data using Trend Strategy."""
@@ -403,16 +355,9 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     # Fetch Prices
     price_history = {}
     try:
-        # Clean Code: Use MarketDataService Cache
+        # Clean Code: Use MarketCache (Single Source of Truth)
         s_date_str = start_date.strftime("%Y-%m-%d")
-        mapping = market_data_service.ensure_price_cache_batch(stock_ids, start_date=s_date_str)
-        
-        mapped_ids = list(mapping.values())
-        cached_data = market_data_service.get_cached_prices_batch(mapped_ids, start_date=s_date_str)
-        
-        for original_id, cache_key in mapping.items():
-             if cache_key in cached_data:
-                 price_history[original_id] = cached_data[cache_key]
+        price_history = _fetch_prices_from_market_cache(stock_ids)
 
     except Exception as e:
         print(f"[Race] Price Fetch Error: {e}")
@@ -541,3 +486,39 @@ def get_portfolio_snapshot(user_id: str) -> Dict[str, Any]:
         "total_roi": total_roi,
         "holdings": holdings
     }
+
+def _fetch_prices_from_market_cache(stock_ids: List[str]) -> Dict[str, pd.Series]:
+    """Helper to fetch prices from MarketCache as pd.Series"""
+    results = {}
+    for sid in stock_ids:
+        # Use fast history (Daily V2 or Yearly V1)
+        history = MarketCache.get_stock_history_fast(sid)
+        if not history: continue
+        
+        dates = []
+        prices = []
+        
+        for h in history:
+            if 'date' in h:
+                # V2 Daily
+                dates.append(pd.to_datetime(str(h['date'])))
+                prices.append(float(h['close']))
+            else:
+                # V1 Yearly - Approximate
+                # Use Year start/end
+                year = h['year']
+                # Start
+                dates.append(pd.to_datetime(f"{year}-01-01"))
+                prices.append(float(h.get('open', 0)))
+                # End
+                dates.append(pd.to_datetime(f"{year}-12-31"))
+                prices.append(float(h.get('close', 0)))
+                
+        if dates:
+            s = pd.Series(data=prices, index=dates)
+            s = s.sort_index()
+            # Dedupe indices if needed
+            s = s.groupby(s.index).last()
+            results[sid] = s
+            
+    return results

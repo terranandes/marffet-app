@@ -2,7 +2,8 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-
+- [ ] Ultra-fast Crawler done, but a little slower than expected.
+- [ ] Ultra-fast Crawler with accuracy Integration
 - [ ] Check every main tabs and sub-tabs can reuse the data lake, expecting a instant response or short time response.
 - [ ] check compound interest tab
 - [ ] check Cash Ladder tab
@@ -15,7 +16,6 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 ## === Barrier === (DONT-TOUCH AREA)
 
-
 - [ ] Multi-language (Deferred).
 - [ ] AICopilot enhancement
 - [ ] Test Google Cloud Run
@@ -25,10 +25,22 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 ---
 
 ## BOSS TBD (DONT-TOUCH AREA)
-
-- switch to gh from git
-- Study workflows suitable for AntiGravity
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
+- adopt Ralph extention
+    - Ralph Loop (currently testing)
+    - Ralph.sh
+    - Ralphban
+
+Skill to transfrom plan to PRD.md
+https://github.com/snarktank/ralph
+https://skills.sh/?q=ralph
+
+MCP related MCP or skill
+https://skills.sh/?q=memory
+
+- Low priority
+
+- Study workflows suitable for AntiGravity
 - Manus workflow
 - study and integrate GEMINI CLI into AntiGravity
 - study and integrate opencode into AntiGravity

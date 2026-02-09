@@ -1,11 +1,14 @@
 ---
-description: Create project plan using project-planner agent. No code writing - only plan file generation.
+description: Create project plan using project-planner agent.
 ---
 
-# /plan - Project Planning Mode
+# /plan - Project Planning Mode <br>
+No code writing - only plan file generation.
 
 $ARGUMENTS
 
 ---
-
-Use skill `writing-plans` to plan $ARGUMENTS
+Steps:
+1. Use skill `brainstorming` to conceive how/what to acheive $ARGUMENTS
+2. Use skill `writing-plans` to plan $ARGUMENTS according to previous brainstorming result
+3. Use skill `multi-agent-brainstorming` to reivew preciously created plan

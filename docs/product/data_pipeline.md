@@ -55,3 +55,66 @@ For the Mars Strategy, the "Start Price" is typically the price on the first tra
     3.  If Listing Date is within the current year, make **one single targeted request** to the Daily Quotes (MI_INDEX) API for that specific date.
 *   **Cost**: ~1 extra request per IPO stock (negligible).
 *   **Impact**: Captures IPO ROI accurately without the performance penalty of the Legacy method.
+
+---
+
+## 4. Hybrid Data Strategy (Live + Cached)
+
+> **Policy**: Live API calls for real-time needs; Cached JSON for historical analysis.
+
+### Data Freshness by Feature
+
+| Feature | Data Source | Freshness | Implementation |
+|---------|-------------|-----------|----------------|
+| **Portfolio Tab** | `fetch_live_prices()` | ~30 seconds | On-demand yfinance API |
+| **Analysis Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
+| **History Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
+| **Compare Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
+
+### Live Price Fetching
+
+**Function**: `app/services/market_data_service.py::fetch_live_prices()`
+
+```python
+# Usage Example
+from app.services.market_data_service import fetch_live_prices
+
+# Fetch live prices for user's portfolio stocks
+prices = fetch_live_prices(["2330", "2317", "2454"])
+# Returns: {"2330": {"price": 1050.0, "change_pct": 1.5}, ...}
+```
+
+**Constraints**:
+- **Rate Limit**: Yahoo Finance has undocumented rate limits (~2000 req/hour).
+- **Scope**: Only portfolio stocks (typically 5-30 per user).
+- **Latency**: ~1-2 seconds for 20 stocks.
+
+### Cached Data Loading
+
+**Path**: `data/raw/Market_{Year}_Prices.json`
+
+**Refresh Schedule**:
+- **Historical Years (2000-2025)**: Static. Loaded once at server startup.
+- **Current Year (2026)**: Nightly cron job runs `run_crawler_prod.sh 2026 2026`.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       User Request                          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+            ┌──────────────┴──────────────┐
+            │        Router Layer         │
+            └──────────────┬──────────────┘
+                           │
+     ┌─────────────────────┼─────────────────────┐
+     ▼                     ▼                     ▼
+ /portfolio            /analysis             /history
+ (LIVE API)           (JSON Cache)         (JSON Cache)
+     │                     │                     │
+     ▼                     ▼                     ▼
+fetch_live_prices()   RAM Cache            RAM Cache
+  (yfinance)          (Market_*)           (Market_*)
+```
+

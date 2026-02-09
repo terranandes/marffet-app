@@ -173,71 +173,83 @@ def fetch_live_prices(stock_ids: list) -> dict:
     """
     Fetch live prices for a list of stock IDs.
     Returns: { "2330": { "price": 1000, "change_pct": 2.5, "name": "TSMC" } }
+    
+    Used by Portfolio Tab for real-time (~30s delayed) price display.
     """
     if not stock_ids: return {}
     
-    # Use YFinance for now (Optimization: Batch fetch)
-    # Map input IDs to YF tickers (try TW first, fallback logic later)
     unique_ids = list(set(stock_ids))
+    
+    # Build YF tickers (try .TW first, then .TWO for OTC)
     yf_tickers = []
-    id_map = {} # YF Ticker -> Input ID
+    id_map = {}  # YF Ticker -> Input ID
     
     for sid in unique_ids:
-        # Heuristic for TW stocks
         if sid.isdigit():
+            # Primary: TWSE (.TW)
+            t_tw = f"{sid}.TW"
+            yf_tickers.append(t_tw)
+            id_map[t_tw] = sid
+            # Fallback: TPEx (.TWO) for OTC stocks
+            t_two = f"{sid}.TWO"
+            yf_tickers.append(t_two)
+            id_map[t_two] = sid
+        elif '.' in sid:
+            # Already has suffix
+            yf_tickers.append(sid)
+            id_map[sid] = sid.split('.')[0]
+        else:
             t = f"{sid}.TW"
             yf_tickers.append(t)
             id_map[t] = sid
-            # Also try .TWO? 
-            # YF Batch download allows multiple. We can deduce which one worked.
-            # But let's stick to .TW for simplicity or assume user provided correct suffix if needed.
-            # Actually, `portfolio_db` assumes input is 2330.
-        else:
-            # ETF or explicit suffix
-            if '.' in sid:
-                yf_tickers.append(sid)
-                id_map[sid] = sid
-            else:
-                t = f"{sid}.TW"
-                yf_tickers.append(t)
-                id_map[t] = sid
                 
     if not yf_tickers: return {}
     
     result = {}
     try:
-        # Download batch current data
-        # 'price' often needs 'history(period="1d")' or 'fast_info'?
-        # Tickers object is better for batch info? No, Tickers.tickers is loop.
-        # download() gives historical data. 'last_price' is Close of last row.
-        # This is efficient for "Live-ish" (EndOfDay or 15min delayed).
+        # Download 2 days to calculate change_pct
+        data = yf.download(yf_tickers, period="2d", progress=False)
         
-        data = yf.download(yf_tickers, period="1d", progress=False)['Close']
+        if data.empty:
+            return {}
         
-        # Parse result
-        # If single ticker, it's a Series or DataFrame?
-        # If multiple, DataFrame with columns as Tickers.
+        close_data = data['Close']
         
-        is_multi = len(yf_tickers) > 1
-        
-        if not is_multi:
-             # Single ticker
-             val = data.iloc[-1] if not data.empty else None
-             if isinstance(data, pd.DataFrame):
-                 val = data.iloc[-1, 0] # First col
-             
-             if val and pd.notna(val):
-                 sid = id_map[yf_tickers[0]]
-                 result[sid] = {"price": float(val), "change_pct": 0} # TODO: calculate change
+        # Handle single vs multi ticker
+        if isinstance(close_data, pd.Series):
+            # Single ticker case
+            if len(close_data) >= 2:
+                prev_close = close_data.iloc[-2]
+                curr_close = close_data.iloc[-1]
+                if pd.notna(curr_close) and pd.notna(prev_close) and prev_close != 0:
+                    change_pct = ((curr_close - prev_close) / prev_close) * 100
+                    sid = id_map.get(yf_tickers[0], yf_tickers[0])
+                    result[sid] = {"price": round(float(curr_close), 2), "change_pct": round(change_pct, 2)}
+            elif len(close_data) == 1:
+                curr_close = close_data.iloc[-1]
+                if pd.notna(curr_close):
+                    sid = id_map.get(yf_tickers[0], yf_tickers[0])
+                    result[sid] = {"price": round(float(curr_close), 2), "change_pct": 0.0}
         else:
-            if not data.empty:
-                last_row = data.iloc[-1]
-                for tick in yf_tickers:
-                    if tick in last_row.index:
-                        price = last_row[tick]
-                        if pd.notna(price):
-                            sid = id_map[tick]
-                            result[sid] = {"price": float(price), "change_pct": 0}
+            # Multi ticker DataFrame
+            for tick in yf_tickers:
+                if tick not in close_data.columns:
+                    continue
+                    
+                sid = id_map.get(tick, tick)
+                if sid in result:
+                    continue  # Skip if already found via .TW
+                    
+                col = close_data[tick].dropna()
+                if len(col) >= 2:
+                    prev_close = col.iloc[-2]
+                    curr_close = col.iloc[-1]
+                    if prev_close != 0:
+                        change_pct = ((curr_close - prev_close) / prev_close) * 100
+                        result[sid] = {"price": round(float(curr_close), 2), "change_pct": round(change_pct, 2)}
+                elif len(col) == 1:
+                    curr_close = col.iloc[-1]
+                    result[sid] = {"price": round(float(curr_close), 2), "change_pct": 0.0}
                             
     except Exception as e:
         print(f"[Price Fetch] Batch Error: {e}")

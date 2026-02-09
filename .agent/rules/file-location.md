@@ -3,6 +3,8 @@ trigger: always_on
 ---
 
 # File System Authority & Ownership Protocols
+> **Directive:** `Don't copy (MUST)` answer from gloden excel of `MoneyCome` at ~/github/martian/app/project_tw/references.
+Keep clean room.
 
 ## 1. Governance Principles
 - **Exclusivity:** Agents must strictly adhere to write permissions. Do not modify files owned by other agents unless explicitly instructed by `[PL]`.

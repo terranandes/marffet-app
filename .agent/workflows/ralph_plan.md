@@ -1,6 +1,8 @@
-description = "Create project plan using project-planner agent."
-prompt = """
-# /plan - Project Planning Mode <br>
+---
+description: Create project plan, reiview the plan and generate Ralph loop PRD
+---
+
+# /ralph_plan - Project Planning Mode with a long-series/comprehensive coverage <br>
 No code writing - only plan file generation.
 
 $ARGUMENTS
@@ -10,4 +12,4 @@ Steps:
 1. Use skill `brainstorming` to conceive how/what to acheive $ARGUMENTS
 2. Use skill `writing-plans` to plan $ARGUMENTS according to previous brainstorming result
 3. Use skill `multi-agent-brainstorming` to reivew preciously created plan
-"""
+4. Transform the plan into {plan}_PRD.md for Ralph Loop

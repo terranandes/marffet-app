@@ -8,7 +8,6 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 - [ ] check Cash Ladder tab
 
 - [ ] **Phase 2 Scraper**: Fetch UNADJUSTED prices from TWSE/TPEx (Fix Wealth Bug).
-    - [ ] Probe TWSE API (Verify 2006 price ~60).
     - [ ] Build `tests/ops_scripts/crawl_official.py`.
     - [ ] Re-ingest Data Lake.
 

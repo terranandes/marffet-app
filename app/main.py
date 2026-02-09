@@ -217,6 +217,24 @@ async def health_check():
         "version": "1.0.0"
     }
 
+@app.get("/api/health/cache")
+async def health_cache():
+    """Check status of MarketCache (loaded years)."""
+    # Import inside to get latest state of the module global
+    import app.services.market_cache as mc
+    cache = mc._PRICES_CACHE
+    
+    if not cache:
+        return {"ready": False, "years": 0}
+        
+    years = sorted(cache.keys())
+    return {
+        "ready": True, 
+        "years": len(years),
+        "oldest": str(years[0]) if years else None,
+        "newest": str(years[-1]) if years else None
+    }
+
 # ---------------- Notification Engine (Premium) ----------------
 from app.engines import RuthlessManager
 

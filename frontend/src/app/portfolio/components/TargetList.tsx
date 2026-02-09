@@ -88,8 +88,19 @@ export function TargetList({
                                         <div className="text-xs text-[var(--color-text-muted)]">{target.stock_id}</div>
                                     </td>
                                     <td className="p-2 text-right">
-                                        <div className="font-mono font-bold">
-                                            {target.livePrice?.price?.toLocaleString() || "---"}
+                                        <div className="flex items-center justify-end gap-1.5 font-mono font-bold">
+                                            {target.livePrice?.price ? (
+                                                <>
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                    </span>
+                                                    <span className="text-[10px] text-green-500 font-bold uppercase tracking-tighter">Live</span>
+                                                    <span>{target.livePrice.price.toLocaleString()}</span>
+                                                </>
+                                            ) : (
+                                                "---"
+                                            )}
                                         </div>
                                         {target.livePrice && (
                                             <div className={`text-xs font-mono ${(target.livePrice.change || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>

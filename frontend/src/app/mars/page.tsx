@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
+import DataTimestamp from "@/components/DataTimestamp";
 
 // Dynamic import for ECharts to avoid SSR issues
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
@@ -278,7 +279,7 @@ export default function MarsPage() {
 
             {/* Main Content */}
             <div className="flex-1">
-                <header className="mb-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
                             Mars Strategy
@@ -293,10 +294,13 @@ export default function MarsPage() {
                             </div>
                         )}
                     </div>
-                    <p className="text-[var(--color-text-muted)]">
-                        Top 50 Survivors ({sim.startYear} - {currentYear})
-                    </p>
-                </header>
+                    <div className="bg-black/20 px-3 py-1.5 rounded-lg border border-white/5 backdrop-blur-sm self-start md:self-auto">
+                        <DataTimestamp />
+                    </div>
+                </div>
+                <p className="text-[var(--color-text-muted)] mt-1">
+                    Top 50 Survivors ({sim.startYear} - {currentYear})
+                </p>
 
                 {loading ? (
                     <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">

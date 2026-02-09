@@ -67,9 +67,19 @@ export function TargetCardList({
                                 {/* Row 2: Price + Unrealized P/L (Compact) */}
                                 <div className="flex justify-between items-center text-sm">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-mono text-[var(--color-text-muted)]">
-                                            {target.livePrice?.price?.toLocaleString() || "-"}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 font-mono text-[var(--color-text-muted)]">
+                                            {target.livePrice?.price ? (
+                                                <>
+                                                    <span className="relative flex h-1.5 w-1.5">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                                                    </span>
+                                                    <span className="text-white font-bold">{target.livePrice.price.toLocaleString()}</span>
+                                                </>
+                                            ) : (
+                                                "-"
+                                            )}
+                                        </div>
                                         {target.livePrice && (
                                             <span className={`text-xs ${(target.livePrice.change || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
                                                 {(target.livePrice.change || 0) >= 0 ? "▲" : "▼"}

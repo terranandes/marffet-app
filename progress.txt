@@ -5,3 +5,24 @@ Task 2: Update MarketCache - Completed
 Task 3: Add Admin Tab Backup Endpoint - Completed
 - Added /backup-market-data endpoint to app/routers/admin.py
 - Verified with tests/integration/test_admin_backup.py
+Task 4: Wire Portfolio Tab - Completed
+- Verified app/services/portfolio_service.py uses fetch_live_prices
+Task 5: Wire Analysis Tab - Completed
+- Verified app/main.py uses MarketCache.get_prices_db()
+Task 6: Wire Race Bar Chart - Completed
+- Refactored app/services/calculation_service.py to use MarketCache
+- Verified with tests/integration/test_race_data.py
+Task 7: Add Nightly Cron for Current Year Refresh - Completed
+- Created scripts/cron/refresh_current_year.sh
+- Updated tests/ops_scripts/run_crawler_prod.sh to support foreground mode
+- Updated app/auth.py to support X-API-KEY header for admin access
+Task 9: Health Check Endpoint for Cache Status - Completed
+- Added /api/health/cache to app/main.py
+- Created and passed tests/integration/test_health_cache.py
+Task 8: Frontend Integration (All Tabs) - Completed
+- Added pulsing "Live" indicator to Portfolio stock prices in both table and card views.
+- Integrated DataTimestamp in Mars Strategy (Analysis) page for data freshness visibility.
+- Verified Sidebar contains centralized DataTimestamp for global status.
+
+----------
+ralph-done-vbv20

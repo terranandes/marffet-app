@@ -47,6 +47,13 @@ async def get_current_user(request: Request):
 # Dependency to require admin access (GM only)
 async def get_admin_user(request: Request):
     """Require admin access. Returns user if authorized, raises 403 otherwise."""
+    # 1. Check for API Key (Cron/System)
+    api_key = request.headers.get('X-API-KEY')
+    cron_secret = os.getenv('CRON_SECRET', 'change_me_in_prod_please')
+    if api_key and api_key == cron_secret:
+         return {"email": "cron@system", "is_admin": True}
+
+    # 2. Check for User Session
     user = request.session.get('user')
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")

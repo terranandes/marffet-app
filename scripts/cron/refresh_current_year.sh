@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Ensure we are in project root (assuming script is in scripts/cron/)
+cd "$(dirname "$0")/../.."
+
+echo "---------------------------------------------------"
+echo "🕒 Starting Nightly Refresh: $(date)"
+echo "📂 Working Directory: $(pwd)"
+
+# 1. Run Crawler for current year (2026) in foreground
+# Using the production runner updated to support --foreground
+echo "🕷️  Running Crawler for 2026..."
+./tests/ops_scripts/run_crawler_prod.sh --foreground 2026 2026
+
+CRAWL_EXIT_CODE=$?
+if [ $CRAWL_EXIT_CODE -ne 0 ]; then
+    echo "❌ Crawler failed with exit code $CRAWL_EXIT_CODE"
+    exit $CRAWL_EXIT_CODE
+fi
+
+# 2. Trigger Admin Webhook via curl
+# Validates using X-API-KEY (added to app/auth.py)
+echo "🔄 Triggering API Refresh..."
+CRON_SECRET=${CRON_SECRET:-change_me_in_prod_please}
+API_URL=${API_URL:-http://localhost:8000}
+
+RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$API_URL/api/admin/refresh-market-data" \
+     -H "X-API-KEY: $CRON_SECRET" \
+     -H "Content-Type: application/json")
+
+HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+
+echo "Response Body: $BODY"
+
+if [ "$HTTP_STATUS" -eq 200 ]; then
+    echo "✅ Success: Market Data Refreshed."
+else
+    echo "❌ API Call Failed (Status $HTTP_STATUS)."
+    exit 1
+fi
+
+echo "🎉 Nightly Refresh Complete."
+echo "---------------------------------------------------"

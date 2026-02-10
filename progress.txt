@@ -1,8 +1,4 @@
 
-
-## Task 1: Core Logic Implementation (ROICalculator)
-Standardize the calculation logic.
-- [x] Create `app/services/roi_calculator.py`.
-- [x] Port `ROICalculator` class from `project_tw/calculator.py`.
-- [x] Ensure `calculate_complex_simulation` (Mars Logic) is preserved and tested.
-- [x] Write Unit Test: `tests/unit/test_roi_calculator.py` verifying known CAGR inputs/outputs.
+Task 1: Core Logic Implementation (ROICalculator) - COMPLETED
+- Ported ROICalculator class to app/services/roi_calculator.py
+- Verified with unit tests in tests/unit/test_roi_calculator.py

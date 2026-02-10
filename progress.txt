@@ -1,28 +1,8 @@
-Task 2: Update MarketCache - Completed
-- Created app/routers/admin.py with /refresh-market-data endpoint
-- Updated app/main.py to include admin router
-- Verified with tests/integration/test_admin_refresh.py
-Task 3: Add Admin Tab Backup Endpoint - Completed
-- Added /backup-market-data endpoint to app/routers/admin.py
-- Verified with tests/integration/test_admin_backup.py
-Task 4: Wire Portfolio Tab - Completed
-- Verified app/services/portfolio_service.py uses fetch_live_prices
-Task 5: Wire Analysis Tab - Completed
-- Verified app/main.py uses MarketCache.get_prices_db()
-Task 6: Wire Race Bar Chart - Completed
-- Refactored app/services/calculation_service.py to use MarketCache
-- Verified with tests/integration/test_race_data.py
-Task 7: Add Nightly Cron for Current Year Refresh - Completed
-- Created scripts/cron/refresh_current_year.sh
-- Updated tests/ops_scripts/run_crawler_prod.sh to support foreground mode
-- Updated app/auth.py to support X-API-KEY header for admin access
-Task 9: Health Check Endpoint for Cache Status - Completed
-- Added /api/health/cache to app/main.py
-- Created and passed tests/integration/test_health_cache.py
-Task 8: Frontend Integration (All Tabs) - Completed
-- Added pulsing "Live" indicator to Portfolio stock prices in both table and card views.
-- Integrated DataTimestamp in Mars Strategy (Analysis) page for data freshness visibility.
-- Verified Sidebar contains centralized DataTimestamp for global status.
 
-----------
-ralph-done-vbv20
+
+## Task 1: Core Logic Implementation (ROICalculator)
+Standardize the calculation logic.
+- [x] Create `app/services/roi_calculator.py`.
+- [x] Port `ROICalculator` class from `project_tw/calculator.py`.
+- [x] Ensure `calculate_complex_simulation` (Mars Logic) is preserved and tested.
+- [x] Write Unit Test: `tests/unit/test_roi_calculator.py` verifying known CAGR inputs/outputs.

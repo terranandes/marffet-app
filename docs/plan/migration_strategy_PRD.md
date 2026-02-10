@@ -10,6 +10,8 @@ Migrate the entire application to use `MarketCache` (yfinance source) as the sin
 - **Ops:** Backfill, Cache Refresh, User Settings, Export Excel (Filtered).
 - **AI:** Mars AI Copilot (Context Verification).
 
+
+
 ## Task 1: Core Logic Implementation (ROICalculator)
 Standardize the calculation logic.
 - [ ] Create `app/services/roi_calculator.py`.
@@ -31,6 +33,7 @@ Implement the Mars Strategy using the new Calculator and MarketCache.
     - Runs `ROICalculator`.
     - Applies `filter_and_rank` logic from old `mars.py`.
 
+
 ## Task 3: Admin & Backfill
 Empower Admin to refresh data.
 - [ ] Update `app/routers/admin.py`.
@@ -51,12 +54,11 @@ Expose data to the Frontend.
     - **Cash Ladder**: `get_portfolio_ladder` (Asset distribution).
     - **Bar Chart Race (BCR)**: Ensure `get_race_data` uses `MarketCache` + `ROICalculator`.
 
+
 ## Task 5: Verification
 Ensure Golden Master compliance.
 - [ ] Update `tests/e2e/test_universal_data.py`.
 - [ ] Assert TSMC (2330) CAGR is 22.2% (±0.1%) for 2006-2025.
-- [ ] Assert Live Price fetching works (mocked or real).
-
 ## Task 6: User Settings & Persistence
 Support cross-device settings via Backend.
 - [ ] **Update DB Schema:** Add `settings` (JSON) or `api_key` column to `users` table.
@@ -71,3 +73,4 @@ Ensure AI Copilot has access to the Unified Data.
     - Ensure Frontend injects `MarketCache` derived data (Portfolio Snapshot) into the context.
 - [ ] **Enhance `PROMPT_PREMIUM`**:
     - (Optional) detailed Review of the prompt to ensure it aligns with MoneyCome logic.
+

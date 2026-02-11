@@ -123,5 +123,5 @@ If any new files are needed to created, always create them at `./tests_gemini` a
 - **Path:** `./docs/jira/*`
 - **Naming Convention:** `{ISSUE_TYPE}-{SERIAL_ID}-{REPORTER_AGENT_ID}_{BUG_BRIEF_DESCRIPTION}.md`
     - Example: `BUG-110-GCV_mobile_google_login.md`
-    - {SERIAL_ID} must be Decimally-Incremetal
+    - {SERIAL_ID} must be Decimally-incremental
 - **Content Requirement:** The file content must strictly state *which agent* discovered the bug.

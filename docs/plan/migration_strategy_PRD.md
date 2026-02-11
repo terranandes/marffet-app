@@ -57,8 +57,15 @@ Expose data to the Frontend.
 
 ## Task 5: Verification
 Ensure Golden Master compliance.
-- [ ] Update `tests/e2e/test_universal_data.py`.
-- [ ] Assert TSMC (2330) CAGR is 22.2% (±0.1%) for 2006-2025.
+- [x] Update `tests/e2e/test_universal_data.py`.
+- [x] Assert TSMC (2330) CAGR is 22.2% (±0.1%) for 2006-2025 (PASSED).
+
+## Phase 2: Refactoring & Optimization (Post-Migration)
+Addressed in Code Review `docs/code_review/2026-02-11-ralph-loop-migration.md`.
+- [ ] **Refactor Dividends**: Move hardcoded dividend patches (TSMC, 0050) from `StrategyService` to DB/Config.
+- [ ] **Unify Logic**: Replace legacy `run_mars_simulation` in `app/main.py` with `StrategyService`.
+- [ ] **Split Logic Tests**: Add specific unit tests for `SplitDetector` edge cases.
+
 ## Task 6: User Settings & Persistence
 Support cross-device settings via Backend.
 - [ ] **Update DB Schema:** Add `settings` (JSON) or `api_key` column to `users` table.

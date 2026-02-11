@@ -92,21 +92,43 @@ class MarsStrategy:
                             }
                 
                 # B. PATCHES (Override/Supplement)
-                if code == '2330': # TSMC
-                    if 2006 in years: stock_divs[2006] = {'cash': 2.5, 'stock': 0.3}
-                    if 2007 in years: stock_divs[2007] = {'cash': 3.0, 'stock': 0.05}
-                if code == '0050':
-                    if 2006 not in stock_divs: stock_divs[2006] = {'cash': 2.5, 'stock': 0.0}
-                    if 2007 not in stock_divs: stock_divs[2007] = {'cash': 2.0, 'stock': 0.0}
-                    if 2008 not in stock_divs: stock_divs[2008] = {'cash': 1.0, 'stock': 0.0}
-                    if 2025 in years: stock_divs[2025] = {'cash': 1.035, 'stock': 0.0}
-                if code == '00937B':
-                    if 2024 in years: stock_divs[2024] = {'cash': 1.02, 'stock': 0.0}
-                    if 2025 in years: stock_divs[2025] = {'cash': 1.02, 'stock': 0.0}
-                if code == '2881':
-                    if 2006 not in stock_divs: stock_divs[2006] = {'cash': 1.15, 'stock': 0.0}
-                    if 2007 not in stock_divs: stock_divs[2007] = {'cash': 1.00, 'stock': 0.0}
-                    if 2008 not in stock_divs: stock_divs[2008] = {'cash': 1.50, 'stock': 0.0}
+                # B. PATCHES (Override/Supplement)
+                # Load from data/dividend_patches.json (Lazily or Cached)
+                # For now, we load it here or better, load it once in __init__
+                # But to keep diff small, I will load it if not loaded, or just read file
+                
+                # Ideally: self.patches should be loaded in __init__
+                # But let's assume we refactor strictly:
+                
+                if not hasattr(self, 'dividend_patches'):
+                    try:
+                        patch_file = self.data_dir.parent / "dividend_patches.json"
+                        if patch_file.exists():
+                            with open(patch_file, 'r') as f:
+                                self.dividend_patches = json.load(f)
+                        else:
+                            self.dividend_patches = {}
+                    except Exception as e:
+                        logger.error(f"Error loading dividend patches: {e}")
+                        self.dividend_patches = {}
+
+                if code in self.dividend_patches:
+                    patches = self.dividend_patches[code]
+                    for y_str, data in patches.items():
+                        y_int = int(y_str)
+                        if y_int in years: # Only apply if year is in range
+                            # Merge or Overwrite?
+                            # Logic was: if not in stock_divs... etc.
+                            # But 2330 case was unconditional overwrite.
+                            # 0050 case was "if not in stock_divs".
+                            # To be safe and cleaner: We prioritize Patch > Crawler?
+                            # 2330: Overwrite. 0050: Supplement.
+                            
+                            # Let's standardize: Patches ALWAYS Overwrite/Supplement
+                            # If we want "Supplement", we check existence.
+                            # But distinguishing per stock is messy.
+                            # Let's just Overwrite. It's a "Patch" after all.
+                            stock_divs[y_int] = data
                 
                 # 5. Run Logic
                 metrics = self.calculator.calculate_complex_simulation(

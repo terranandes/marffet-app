@@ -13,3 +13,7 @@ Task 3: Admin & Backfill - COMPLETED
 - Implement MarketDataService.backfill_all_stocks(period='max')
 - Update app/routers/admin.py with POST /admin/market-data/backfill
 - Added unit test tests/unit/test_market_data_backfill.py to verify backfill logic
+
+Task 4: API & Integration - IN PROGRESS
+- Created app/routers/strategy.py with POST /mars/analyze and POST /export
+- Linked strategy router to app/main.py under /api/strategy

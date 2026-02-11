@@ -522,3 +522,46 @@ def _fetch_prices_from_market_cache(stock_ids: List[str]) -> Dict[str, pd.Series
             results[sid] = s
             
     return results
+
+def get_portfolio_ladder(user_id: str) -> Dict[str, Any]:
+    """
+    Get asset distribution ladder (Stock, ETF, CB, Cash).
+    Cash denotes realized dividends (uninvested) + cash balance.
+    """
+    # 1. Get Market Value of Holdings (Live)
+    snapshot = get_portfolio_snapshot(user_id)
+    holdings = snapshot['holdings']
+    
+    alloc = {"stock": 0.0, "etf": 0.0, "cb": 0.0, "cash": 0.0}
+    
+    for h in holdings:
+        val = h['value']
+        atype = h.get('asset_type', 'stock').lower()
+        if atype in alloc:
+            alloc[atype] += val
+        else:
+            alloc['stock'] += val # Fallback
+            
+    # 2. Get Realized Cash (Dividends)
+    # TODO: Add Cash Deposit/Withdrawal tracking? Currently only Dividends.
+    with get_db() as conn:
+        divs = transaction_repo.get_all_dividends_for_user(conn, user_id)
+        
+    total_div_cash = sum(d['total_cash'] for d in divs)
+    alloc['cash'] += total_div_cash
+    
+    total_wealth = sum(alloc.values())
+    
+    ladder = []
+    if total_wealth > 0:
+        for k, v in alloc.items():
+            ladder.append({
+                "type": k,
+                "value": round(v, 2),
+                "pct": round((v / total_wealth) * 100, 1)
+            })
+            
+    return {
+        "total_wealth": total_wealth,
+        "ladder": ladder
+    }

@@ -14,6 +14,12 @@ Task 3: Admin & Backfill - COMPLETED
 - Update app/routers/admin.py with POST /admin/market-data/backfill
 - Added unit test tests/unit/test_market_data_backfill.py to verify backfill logic
 
-Task 4: API & Integration - IN PROGRESS
+Task 4: API & Integration - COMPLETED
 - Created app/routers/strategy.py with POST /mars/analyze and POST /export
 - Linked strategy router to app/main.py under /api/strategy
+- Verified Live Tabs:
+    - Portfolio: Uses direct YFinance live prices (Verified)
+    - Trend: Uses MarketCache for monthly snapshots (Verified)
+    - My Race: Uses MarketCache (Verified)
+    - Cash Ladder: Implemented new endpoint /api/portfolio/ladder for Asset Distribution (Stock/Bond/ETF/Cash)
+    - BCR: Uses MarketCache + ROICalculator (Verified)

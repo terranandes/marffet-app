@@ -166,6 +166,9 @@ def get_portfolio_history(user_id: str, months: int = 12) -> List[Dict[str, Any]
 def get_portfolio_race_data(user_id: str) -> List[Dict[str, Any]]:
     return calculation_service.get_portfolio_race_data(user_id)
 
+def get_portfolio_ladder(user_id: str) -> Dict[str, Any]:
+    return calculation_service.get_portfolio_ladder(user_id)
+
 def get_public_portfolio(user_id: str) -> Dict[str, Any]:
     with get_db() as conn:
         profile = user_repo.get_user_profile(conn, user_id)

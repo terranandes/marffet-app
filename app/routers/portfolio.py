@@ -102,6 +102,13 @@ async def api_target_dividends(target_id: str, user: dict = Depends(get_current_
     return portfolio_service.get_dividend_history(target_id)
 
 
+@router.get("/ladder")
+async def api_portfolio_ladder(user: dict = Depends(get_current_user)):
+    """Get Asset Distribution Ladder (Cash vs Stock vs ETF vs CB)."""
+    if not user: return {"total_wealth": 0, "ladder": []}
+    return portfolio_service.get_portfolio_ladder(user['id'])
+
+
 @router.get("/race-data")
 async def api_portfolio_race_data(user: dict = Depends(get_current_user)):
     """Get Race Bar Chart data for user portfolio."""

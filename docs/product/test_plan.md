@@ -96,6 +96,15 @@ uv run tests/unit/test_mobile_portfolio.py
 
 ## 3. Regression Tests
 
+### v3.1 (2026-02-11) - Phase 2 Refactoring Verification
+| Test | Expected | Status |
+|------|----------|--------|
+| Strategy Unified | `run_mars_simulation` removed | ✅ |
+| Dividend Patches | `dividend_patches.json` loaded | ✅ |
+| Split Logic | Unit tests cover 2:1, reverse splits | ✅ |
+| Integration Suite | `test_main_refactor.py` passes | ✅ |
+| E2E Compliance | TSMC CAGR ~22.2% | ✅ |
+
 ### v3.0 (2026-02-07) - Phase 3 Verification
 | Test | Expected | Status |
 |------|----------|--------|

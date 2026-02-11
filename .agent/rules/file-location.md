@@ -3,7 +3,7 @@ trigger: always_on
 ---
 
 # File System Authority & Ownership Protocols
-> **Directive:** `Don't copy (MUST)` answer from gloden excel of `MoneyCome` at ~/github/martian/app/project_tw/references.
+> **Directive:** `Don't copy (MUST)` answer from golden excel of `MoneyCome` at ~/github/martian/app/project_tw/references.
 Keep clean room.
 
 ## 1. Governance Principles

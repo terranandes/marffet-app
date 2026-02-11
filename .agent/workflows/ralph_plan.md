@@ -8,9 +8,11 @@ No code writing - only plan file generation.
 $ARGUMENTS
 
 ---
-Steps:
-1. Use skill `brainstorming` to conceive how/what to acheive $ARGUMENTS
+Do Step by step:
+1. Use skill `brainstorming` to conceive how/what to achieve $ARGUMENTS
 2. Use skill `writing-plans` to plan $ARGUMENTS according to previous brainstorming result
-3. Use skill `multi-agent-brainstorming` to reivew preciously created plan
-4. Transform the plan into {plan}_PRD.md for Ralph Loop
-5. Write down the plan/{plan}_PRD.md at `./docs/plan` and core_review at `./docs/code_review`.
+3. Write down current plan at `./docs/plan`
+4. Use skill `multi-agent-brainstorming` to review preciously created plan
+5. Write down current plan-review at `./docs/plan`
+6. Transform the plan considering plan-review into {plan}_PRD.md for Ralph Loop
+7. Write down the {plan}_PRD.md at `./docs/plan`

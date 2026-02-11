@@ -7,6 +7,7 @@ import gc
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any
 from pathlib import Path
+import json
 
 from app.database import get_db
 from app.config import STOCK_NAME_CACHE, SUPPLEMENTARY_NAME_CACHE
@@ -601,3 +602,227 @@ def fetch_stock_info(ticker: str) -> dict:
     except Exception as e:
         print(f"[MarketData] Fetch Info Error for {ticker}: {e}")
         return {}
+
+def backfill_all_stocks(period: str = "max") -> dict:
+    """
+    Backfill historical data for all stocks in the cache.
+    Saves to data/raw/Market_{Year}_Prices.json and TPEx_Market_{Year}_Prices.json.
+    """
+    # 1. Load Stock List using existing logic path
+    base_dir = Path(__file__).parent.parent # app/
+    csv_path = base_dir / "project_tw/stock_list.csv"
+    
+    if not csv_path.exists():
+         # Fallback
+         csv_path = base_dir.parent / "app/project_tw/stock_list.csv"
+         
+    if not csv_path.exists():
+        return {"status": "error", "message": f"Stock list not found at {csv_path}"}
+
+    print(f"[Backfill] Reading stock list from {csv_path}")
+    try:
+        df = pd.read_csv(csv_path, dtype={'code': str, 'name': str})
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to read CSV: {e}"}
+
+    # 2. Prepare Tasks (Tuple: Ticker, Market, Code)
+    tasks = []
+    # Identify Market Type
+    # Listed -> .TW (TWSE)
+    # OTC -> .TWO (TPEx)
+    if 'market_type' not in df.columns:
+         return {"status": "error", "message": "CSV missing 'market_type' column"}
+
+    for _, row in df.iterrows():
+        code = row['code']
+        mtype = str(row.get('market_type', '')).strip()
+        
+        if mtype == 'Listed':
+            suffix = '.TW'
+            market = 'TWSE'
+        elif mtype == 'OTC':
+            suffix = '.TWO'
+            market = 'TPEx'
+        else:
+            continue # Skip others
+        
+        tasks.append((f"{code}{suffix}", market, code))
+    
+    if not tasks:
+        return {"status": "error", "message": "No valid stocks found in CSV"}
+
+    print(f"[Backfill] Found {len(tasks)} stocks to process.")
+
+    # 3. Batch Processing
+    market_map = {t[0]: t[1] for t in tasks}
+    original_code_map = {t[0]: t[2] for t in tasks}
+    all_tickers = [t[0] for t in tasks]
+    
+    CHUNK_SIZE = 50
+    results = {} # year -> 'TWSE'/'TPEx' -> stock_id -> data
+    
+    # Ensure data/raw exists
+    out_dir = base_dir.parent / "data/raw"
+    if not out_dir.exists():
+         out_dir = Path("/app/data/raw") # Docker fallback
+         if not out_dir.exists():
+             out_dir = Path("data/raw")
+             out_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[Backfill] Output directory: {out_dir}")
+
+    total_processed = 0
+
+    for i in range(0, len(all_tickers), CHUNK_SIZE):
+        chunk = all_tickers[i:i+CHUNK_SIZE]
+        print(f"[Backfill] Processing chunk {i}/{len(all_tickers)}...")
+        
+        try:
+            # Download with group_by='ticker'
+            data = yf.download(chunk, period=period, group_by='ticker', progress=False, threads=True)
+            
+            if data.empty: continue
+            
+            # Helper to extract DF for a ticker
+            def get_ticker_df(d, t):
+                try:
+                    # If MultiIndex Columns (Ticker, OHLCV)
+                    if isinstance(d.columns, pd.MultiIndex):
+                        if t in d.columns: # Top level check
+                            return d[t]
+                        # Verify levels? 
+                        # yfinance usually returns (Ticker, OHLCV) if group_by='ticker'
+                        # But if only 1 ticker in request, it might return (OHLCV) directly?
+                        # If len(chunk)==1, it returns single level.
+                    else:
+                        # Single level
+                        if len(chunk) == 1:
+                            return d
+                except: pass
+                return pd.DataFrame()
+
+            # Iterate tickers in chunk
+            for ticker in chunk:
+                df_ticker = pd.DataFrame()
+                
+                if len(chunk) == 1:
+                    df_ticker = data
+                else:
+                    if ticker in data.columns:
+                        df_ticker = data[ticker]
+                
+                # Check emptiness
+                if df_ticker.empty: continue
+                # Drop all-NaN rows
+                df_ticker = df_ticker.dropna(how='all')
+                if df_ticker.empty: continue
+                
+                # Normalize Columns (Open, High, Low, Close, Volume)
+                # Capitalized by yfinance usually
+                
+                # Process by Year
+                # Ensure DateTime Index
+                if not isinstance(df_ticker.index, pd.DatetimeIndex):
+                    continue
+                    
+                df_ticker['Year'] = df_ticker.index.year
+                grouped = df_ticker.groupby('Year')
+                
+                market = market_map.get(ticker, 'TWSE')
+                code = original_code_map.get(ticker, ticker)
+                
+                for year, group in grouped:
+                    daily_data = []
+                    
+                    for idx, row in group.iterrows():
+                        try:
+                            # OHLCV
+                            o = row['Open']
+                            h = row['High']
+                            l = row['Low']
+                            c = row['Close']
+                            v = row['Volume']
+                            
+                            if pd.isna(c): continue
+                            
+                            # Convert to standard types
+                            o = round(float(o), 2)
+                            h = round(float(h), 2)
+                            l = round(float(l), 2)
+                            c = round(float(c), 2)
+                            v = int(v)
+                            
+                            if v == 0 and o == 0 and c == 0: continue
+                            
+                            d_str = idx.strftime('%Y-%m-%d')
+                            
+                            daily_data.append({
+                                "d": d_str, "o": o, "h": h, "l": l, "c": c, "v": v
+                            })
+                        except: continue
+                        
+                    if not daily_data: continue
+                    
+                    # Summary
+                    try:
+                        first = daily_data[0]
+                        last = daily_data[-1]
+                        # Calculate High/Low from daily_data to be consistent
+                        high_val = max(d['h'] for d in daily_data)
+                        low_val = min(d['l'] for d in daily_data)
+                        
+                        summary = {
+                            "start": first['o'],
+                            "end": last['c'],
+                            "high": high_val,
+                            "low": low_val
+                        }
+                        
+                        # Init Year Dict
+                        if year not in results:
+                            results[year] = {'TWSE': {}, 'TPEx': {}}
+                            
+                        results[year][market][code] = {
+                            "daily": daily_data,
+                            "summary": summary
+                        }
+                        total_processed += 1
+                        
+                    except Exception as e:
+                        # print(f"Summary calc error {ticker}: {e}")
+                        pass
+
+        except Exception as e:
+            print(f"[Backfill] Chunk Error: {e}")
+            
+    # 4. Save to JSON
+    print(f"[Backfill] Writing files for {len(results)} years...")
+    saved_files = []
+    
+    for year, markets in results.items():
+        # TWSE
+        if markets['TWSE']:
+            fpath = out_dir / f"Market_{year}_Prices.json"
+            try:
+                with open(fpath, 'w') as f:
+                    json.dump(markets['TWSE'], f, indent=None) # Compact
+                saved_files.append(str(fpath))
+            except Exception as e:
+                print(f"Error writing {fpath}: {e}")
+                
+        # TPEx
+        if markets['TPEx']:
+            fpath = out_dir / f"TPEx_Market_{year}_Prices.json"
+            try:
+                with open(fpath, 'w') as f:
+                    json.dump(markets['TPEx'], f, indent=None)
+                saved_files.append(str(fpath))
+            except Exception as e:
+                print(f"Error writing {fpath}: {e}")
+
+    return {
+        "status": "ok", 
+        "stocks_processed": len(tasks), 
+        "years_covered": len(results),
+        "files_saved": len(saved_files)
+    }

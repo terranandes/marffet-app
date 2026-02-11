@@ -8,3 +8,8 @@ Task 2: Strategy Service (Mars & CB Logic) - COMPLETED
 - Implemented MarsStrategy using MarketCache for Price History, TWSECrawler for Dividends, and ROICalculator
 - Implemented CBStrategy using CBCrawler for Issuance/Prices and MarketCache for Underlying Price
 - Verified basic functionality via manual test script (deleted)
+
+Task 3: Admin & Backfill - COMPLETED
+- Implement MarketDataService.backfill_all_stocks(period='max')
+- Update app/routers/admin.py with POST /admin/market-data/backfill
+- Added unit test tests/unit/test_market_data_backfill.py to verify backfill logic

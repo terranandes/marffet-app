@@ -10,6 +10,9 @@ class CrawlerService:
     _last_message = ""
     _progress_pct = 0
     _start_time = None
+    
+    # Dedicated state for Backfill (Shared with Crawler UI for simplicity, or separate if requested)
+    # Using shared state but with different message prefixes to keep UI logic simple.
 
     @classmethod
     def get_status(cls):
@@ -127,6 +130,54 @@ class CrawlerService:
             print(f"[CrawlerService] Error: {e}")
             return {"status": "error", "message": str(e)}
             print(f"[CrawlerService] Error: {e}")
+            return {"status": "error", "message": str(e)}
+        finally:
+            cls._is_running = False
+
+    @classmethod
+    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False):
+        """
+        Run the Full Universe Backfill (2000-2023).
+        """
+        if cls._is_running:
+            return {"status": "skipped", "message": "Another background task is already running"}
+            
+        cls._is_running = True
+        cls._last_run_status = "running"
+        cls._last_message = "Universe Backfill initiated..."
+        cls._progress_pct = 0
+        import datetime
+        cls._start_time = datetime.datetime.now(datetime.timezone.utc)
+        
+        try:
+            from app.services.market_data_service import backfill_all_stocks
+            from starlette.concurrency import run_in_threadpool
+            
+            def progress_hook(msg, pct):
+                cls._last_message = f"[Backfill] {msg}"
+                cls._progress_pct = pct
+                print(f"[CrawlerService Backfill] ({pct}%) {msg}")
+
+            # Run the heavy sync operation in a threadpool
+            result = await run_in_threadpool(
+                backfill_all_stocks, 
+                period=period, 
+                overwrite=overwrite, 
+                progress_callback=progress_hook
+            )
+            
+            cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
+            cls._last_run_status = "success"
+            cls._last_message = "Universe Backfill completed successfully."
+            cls._progress_pct = 100
+            
+            return result
+            
+        except Exception as e:
+            cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
+            cls._last_run_status = "error"
+            cls._last_message = f"Backfill Error: {str(e)}"
+            print(f"[CrawlerService Backfill] Error: {e}")
             return {"status": "error", "message": str(e)}
         finally:
             cls._is_running = False

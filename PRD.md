@@ -1,1 +1,1 @@
-docs/plan/migration_strategy_PRD.md
+docs/plan/phase_4_maintenance_prd.md

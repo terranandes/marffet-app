@@ -603,6 +603,29 @@ def fetch_stock_info(ticker: str) -> dict:
         print(f"[MarketData] Fetch Info Error for {ticker}: {e}")
         return {}
 
+def _merge_data_dict(existing: dict, new: dict, overwrite: bool = False) -> dict:
+    """
+    Internal helper for Smart Merge.
+    If overwrite is False, existing entries take precedence.
+    """
+    if not existing:
+        return new.copy()
+    
+    result = existing.copy()
+    for key, value in new.items():
+        if overwrite or key not in result:
+            result[key] = value
+    return result
+
+def _save_json_safe(fpath: Path, data: dict):
+    """Save JSON to file, ensuring parent directory exists."""
+    try:
+        fpath.parent.mkdir(parents=True, exist_ok=True)
+        with open(fpath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=None, ensure_ascii=False)
+    except Exception as e:
+        print(f"[MarketData] Error saving {fpath.name}: {e}")
+
 def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[callable] = None) -> dict:
     """
     Backfill historical data for all stocks in the cache.
@@ -780,41 +803,43 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             import time
             time.sleep(1)
 
-    # 5. Merge and Save
     # Merge Prices
     for year, markets in results.items():
-        if year not in existing_prices: existing_prices[year] = {"TWSE": {}, "TPEx": {}}
-        for m_name, new_stocks in markets.items():
-            if m_name not in existing_prices[year]: existing_prices[year][m_name] = {}
-            for t_code, p_data in new_stocks.items():
-                if overwrite or t_code not in existing_prices[year][m_name]:
-                    existing_prices[year][m_name][t_code] = p_data
+        if year not in existing_prices: 
+            existing_prices[year] = {"TWSE": {}, "TPEx": {}}
+        
+        for m_name in ["TWSE", "TPEx"]:
+            new_stocks = markets.get(m_name, {})
+            existing_prices[year][m_name] = _merge_data_dict(
+                existing_prices[year].get(m_name, {}), 
+                new_stocks, 
+                overwrite=overwrite
+            )
 
     # Merge Dividends
     for year, new_divs in div_results.items():
-        if year not in existing_divs: existing_divs[year] = {}
-        for t_code, d_data in new_divs.items():
-            if overwrite or t_code not in existing_divs[year]:
-                existing_divs[year][t_code] = d_data
+        existing_divs[year] = _merge_data_dict(
+            existing_divs.get(year, {}), 
+            new_divs, 
+            overwrite=overwrite
+        )
 
-    print(f"[Backfill] Saving {len(existing_prices)} years of data...")
+    print(f"[Backfill] Saving merged data...")
     if progress_callback: progress_callback("Saving results...", 95)
     
     saved_count = 0
     for year, markets in existing_prices.items():
-        for m_name in ['TWSE', 'TPEx']:
-            if markets[m_name]:
+        for m_name, market_data in markets.items():
+            if market_data:
                 prefix = "TPEx_" if m_name == 'TPEx' else ""
                 fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
-                with open(fpath, 'w') as f:
-                    json.dump(markets[m_name], f, indent=None)
+                _save_json_safe(fpath, market_data)
                 saved_count += 1
                 
     for year, divs in existing_divs.items():
         if divs:
             fpath = out_dir / f"TWSE_Dividends_{year}.json"
-            with open(fpath, 'w') as f:
-                json.dump(divs, f, indent=None)
+            _save_json_safe(fpath, divs)
             saved_count += 1
 
     return {

@@ -247,6 +247,27 @@ export default function AdminPage() {
         }
     };
 
+    // Handle Universe Backfill (New Phase 4)
+    const handleBackfill = async () => {
+        if (!confirm("🚀 START UNIVERSE BACKFILL?\n\nThis will fetch missing historical data (2000-2023) for all stocks.\nIt uses an incremental approach (won't overwrite healthy data).\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.")) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=false`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`✅ Backfill initiated! ${data.message}`);
+                fetchCrawlerStatus();
+            } else {
+                alert(`❌ Backfill failed: ${data.detail || data.message}`);
+            }
+        } catch {
+            alert('❌ Network error during backfill initiation.');
+        }
+    };
+
     // Handle Rebuild & Push Prewarm
     const handleRebuildPrewarm = async () => {
         if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
@@ -445,6 +466,24 @@ export default function AdminPage() {
                                 className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
                             >
                                 🔥 Rebuild All (Cold Run)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Category: Universe Maintenance (Phase 4) */}
+                    <div className="mb-4 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
+                        <h3 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+                            🌌 Universe Maintenance
+                        </h3>
+                        <p className="text-xs text-[var(--color-text-muted)] mb-3">
+                            Repairs missing history (2000-2023) across the entire universe. Use this to populate MarketCache Single Source of Truth.
+                        </p>
+                        <div className="flex gap-3 flex-wrap">
+                            <button
+                                onClick={handleBackfill}
+                                className="bg-cyan-900 hover:bg-cyan-700 text-white border border-cyan-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                🚀 Backfill Missing History (2000-2023)
                             </button>
                         </div>
                     </div>

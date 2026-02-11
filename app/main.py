@@ -35,10 +35,12 @@ from app.routers.portfolio import router as portfolio_router
 from app.routers.sync import router as sync_router
 from app.routers.admin import router as admin_router
 from app.routers.strategy import router as strategy_router
+from app.routers.user import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup Logic
+
     try:
         # 1. Initialize DB
         init_db()
@@ -194,6 +196,7 @@ app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"]
 app.include_router(sync_router, prefix="/api", tags=["sync"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(strategy_router, prefix="/api/strategy", tags=["strategy"])
+app.include_router(user_router, prefix="/api/user", tags=["user"])
 
 # ---------------- Health Check Endpoint ----------------
 @app.get("/health")

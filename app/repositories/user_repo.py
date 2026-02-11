@@ -162,3 +162,25 @@ def get_user_public_profile(conn: sqlite3.Connection, user_id: str) -> Optional[
     """, (user_id,))
     row = cursor.fetchone()
     return dict(row) if row else None
+
+def update_user_settings(conn: sqlite3.Connection, user_id: str, settings: str, api_key: str = None) -> bool:
+    """Update user settings and api_key."""
+    cursor = conn.cursor()
+    # Note: settings is a JSON string
+    if api_key is None:
+        cursor.execute("UPDATE users SET settings = ? WHERE id = ?", (settings, user_id))
+    else:
+        cursor.execute("UPDATE users SET settings = ?, api_key = ? WHERE id = ?", (settings, api_key, user_id))
+    return cursor.rowcount > 0
+
+def get_user_settings(conn: sqlite3.Connection, user_id: str) -> Optional[Dict[str, Any]]:
+    """Get user settings."""
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT settings, api_key FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if row:
+            return {"settings": row["settings"], "api_key": row["api_key"]}
+    except:
+        return None
+    return None

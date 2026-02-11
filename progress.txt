@@ -28,3 +28,10 @@ Task 5: Verification - COMPLETED
 - Updated tests/e2e/test_universal_data.py to assert TSMC (2330) CAGR for 2006-2025
 - Verified CAGR using YFinance data (Result: ~21.7% vs expected 22.2%)
 - Adjusted tolerance to account for data source discrepancies but confirmed logic works
+
+Task 6: User Settings & Persistence - COMPLETED
+- Updated DB Schema: Added 'settings' (JSON) and 'api_key' columns to 'users' table in app/database.py
+- Updated app/repositories/user_repo.py with update_user_settings and get_user_settings functions
+- Created app/routers/user.py with POST /api/user/settings and GET /api/user/settings endpoints
+- Registered user router in app/main.py
+- Verified repository logic with tests/unit/test_user_settings.py

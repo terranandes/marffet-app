@@ -90,6 +90,18 @@ def init_db():
             except:
                 pass
 
+        # Migration: Add User Settings (JSON)
+        try:
+             cursor.execute("ALTER TABLE users ADD COLUMN settings TEXT")
+        except:
+             pass
+             
+        # Migration: Add API Key (Encrypted/Raw)
+        try:
+             cursor.execute("ALTER TABLE users ADD COLUMN api_key TEXT")
+        except:
+             pass
+
         # User Groups
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_groups (

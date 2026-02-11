@@ -43,16 +43,26 @@
     - [x] Verified `ROICalculator` uses Unadjusted Prices (TSMC ~60).
     - [x] **Split Detection Implemented**: Auto-detects >40% drops. 0050 CAGR fixed (12.1%).
     - [x] **CAGR Verification**: TSMC 19.0% (Realistic) vs previous halluncination. Correlation PROVEN.
-- [ ] **Phase 4: Universal Data Lake (Daily Data)** <!-- id: 30 -->
-    - [/] **Ultra-Fast Crawler** (`crawl_fast.py`) - *In Verification*
-        - [x] Asyncio + Batch Implementation
-        - [ ] Verify < 15 min runtime
-        - [ ] Verify Data Correctness (TSMC 2006)
+- [x] **Phase 4: Universal Data Lake (Daily Data)** <!-- id: 30 -->
+    - [x] **Universe Backfill** (yfinance Prices + Dividends, 2000-Present)
+        - [x] Smart Merge logic (`_merge_data_dict`, `overwrite=False` default)
+        - [x] Dividend extraction via `yfinance` `actions=True`
+        - [x] Stock Split → Stock Dividend rate conversion
+    - [x] **Admin Dashboard Enhancement**
+        - [x] Safe Mode toggle (default ON)
+        - [x] `POST /api/admin/market-data/backfill` API endpoint
+        - [x] Progress polling via shared `CrawlerService` state
+    - [x] **Ultra-Fast Crawler** (`crawl_fast.py`) - Asyncio + Batch Implementation
     - [/] Upgrade Scraper to Store Daily OHLCV (Parquet/DuckDB) - *Deferred per consensus* <!-- id: 31 -->
     - [x] Update `MarketCache` to support Nested Schema (V2).
     - [x] Update App Logic to support Nested Schema (V2).
     - [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
     - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
+- [ ] **Phase 5: Production Deployment & Remote Verification** <!-- id: 40 -->
+    - [ ] Deploy Phase 4 changes to Zeabur
+    - [ ] Verify Admin Backfill UI on production
+    - [ ] Deploy patched `data/raw/` files (BUG-112)
+    - [ ] Verify TSMC CAGR on Zeabur (~19%)
 
 ## 5. Maintenance & workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)

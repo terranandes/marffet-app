@@ -60,6 +60,7 @@ export default function AdminPage() {
     const [syncProgress, setSyncProgress] = useState<number | null>(null);
     const [monitorPrewarm, setMonitorPrewarm] = useState(false);
     const [hasStartedRunning, setHasStartedRunning] = useState(false);
+    const [safeMode, setSafeMode] = useState(true); // Phase 4: Safe Mode for Backfill (default ON)
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -247,12 +248,13 @@ export default function AdminPage() {
         }
     };
 
-    // Handle Universe Backfill (New Phase 4)
+    // Handle Universe Backfill (Phase 4)
     const handleBackfill = async () => {
-        if (!confirm("🚀 START UNIVERSE BACKFILL?\n\nThis will fetch missing historical data (2000-2023) for all stocks.\nIt uses an incremental approach (won't overwrite healthy data).\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.")) return;
+        const mode = safeMode ? 'SAFE (Incremental)' : '⚠️ OVERWRITE';
+        if (!confirm(`🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}\nThis will fetch historical Prices + Dividends (2000-Present) for all stocks from Yahoo Finance.\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.`)) return;
 
         try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=false`, {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}`, {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -473,17 +475,33 @@ export default function AdminPage() {
                     {/* Category: Universe Maintenance (Phase 4) */}
                     <div className="mb-4 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
                         <h3 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
-                            🌌 Universe Maintenance
+                            🌌 Universe Maintenance (Prices + Dividends)
                         </h3>
                         <p className="text-xs text-[var(--color-text-muted)] mb-3">
-                            Repairs missing history (2000-2023) across the entire universe. Use this to populate MarketCache Single Source of Truth.
+                            Backfills historical Prices and Dividends (2000-Present) from Yahoo Finance for the entire universe.
+                            Uses Smart Merge to safely populate <code>Market_*_Prices.json</code> and <code>TWSE_Dividends_*.json</code>.
                         </p>
-                        <div className="flex gap-3 flex-wrap">
+                        <div className="flex gap-3 flex-wrap items-center">
+                            {/* Safe Mode Toggle */}
+                            <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={safeMode}
+                                    onChange={(e) => setSafeMode(e.target.checked)}
+                                    className="w-4 h-4 accent-green-500 rounded"
+                                />
+                                <span className={safeMode ? 'text-green-400' : 'text-red-400 font-bold'}>
+                                    {safeMode ? '🛡️ Safe Mode (Incremental)' : '⚠️ Overwrite Mode'}
+                                </span>
+                            </label>
                             <button
                                 onClick={handleBackfill}
-                                className="bg-cyan-900 hover:bg-cyan-700 text-white border border-cyan-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${safeMode
+                                    ? 'bg-cyan-900 hover:bg-cyan-700 border-cyan-600'
+                                    : 'bg-red-900 hover:bg-red-700 border-red-600'
+                                    }`}
                             >
-                                🚀 Backfill Missing History (2000-2023)
+                                🚀 Backfill Prices + Dividends (2000-Present)
                             </button>
                         </div>
                     </div>

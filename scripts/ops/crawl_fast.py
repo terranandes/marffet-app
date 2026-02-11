@@ -230,7 +230,7 @@ def download_all_prices(
         
         # Retry config
         RETRY_BATCH_SIZE = 20
-        MAX_RETRIES = 3
+        MAX_RETRIES = 1
         
         for attempt in range(MAX_RETRIES):
             logger.info(f"🔄 Retry Attempt {attempt + 1}/{MAX_RETRIES} for {len(missing_tickers)} tickers...")

@@ -14,7 +14,7 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - process for feedback by end-user
 - update of product related files that agents owns at ./docs/product
 - review the mobile Web layout, whereas UI components shall be elegant and feacible
-- trace git-worktree status, continue?/finished?/can be cleaned-up?
+- trace worktree/branch status, continue?/finished?/can be cleaned-up?
 - do workflow `code_review`
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementaion/progress in `./docs/product`.
 - adjust plans in `./docs/plans` as neccessary

@@ -603,17 +603,22 @@ def fetch_stock_info(ticker: str) -> dict:
         print(f"[MarketData] Fetch Info Error for {ticker}: {e}")
         return {}
 
-def backfill_all_stocks(period: str = "max") -> dict:
+def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[callable] = None) -> dict:
     """
     Backfill historical data for all stocks in the cache.
     Saves to data/raw/Market_{Year}_Prices.json and TPEx_Market_{Year}_Prices.json.
+    Also fetches dividend history and saves to TWSE_Dividends_{Year}.json.
+    
+    Args:
+        period: yfinance period (max, 10y, etc)
+        overwrite: If False, skip existing ticker/year entries to preserve manual patches.
+        progress_callback: Optional function(message, percentage) for real-time tracking.
     """
-    # 1. Load Stock List using existing logic path
+    # 1. Load Stock List
     base_dir = Path(__file__).parent.parent # app/
     csv_path = base_dir / "project_tw/stock_list.csv"
     
     if not csv_path.exists():
-         # Fallback
          csv_path = base_dir.parent / "app/project_tw/stock_list.csv"
          
     if not csv_path.exists():
@@ -625,11 +630,8 @@ def backfill_all_stocks(period: str = "max") -> dict:
     except Exception as e:
         return {"status": "error", "message": f"Failed to read CSV: {e}"}
 
-    # 2. Prepare Tasks (Tuple: Ticker, Market, Code)
+    # 2. Prepare Tasks
     tasks = []
-    # Identify Market Type
-    # Listed -> .TW (TWSE)
-    # OTC -> .TWO (TPEx)
     if 'market_type' not in df.columns:
          return {"status": "error", "message": "CSV missing 'market_type' column"}
 
@@ -638,13 +640,11 @@ def backfill_all_stocks(period: str = "max") -> dict:
         mtype = str(row.get('market_type', '')).strip()
         
         if mtype == 'Listed':
-            suffix = '.TW'
-            market = 'TWSE'
+            suffix, market = '.TW', 'TWSE'
         elif mtype == 'OTC':
-            suffix = '.TWO'
-            market = 'TPEx'
+            suffix, market = '.TWO', 'TPEx'
         else:
-            continue # Skip others
+            continue
         
         tasks.append((f"{code}{suffix}", market, code))
     
@@ -653,176 +653,173 @@ def backfill_all_stocks(period: str = "max") -> dict:
 
     print(f"[Backfill] Found {len(tasks)} stocks to process.")
 
-    # 3. Batch Processing
+    # 3. Setup Paths and Pre-load Existing Data for Smart Merge
+    out_dir = base_dir.parent / "data/raw"
+    if not out_dir.exists():
+        out_dir = Path("/app/data/raw") # Docker fallback
+        if not out_dir.exists():
+            out_dir = Path("data/raw")
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[Backfill] Output directory: {out_dir}")
+    if progress_callback: progress_callback("Initializing backfill...", 5)
+
+    existing_prices = {} # year -> market -> code -> data
+    existing_divs = {}   # year -> code -> data
+    
+    # Pre-load Prices
+    for f in out_dir.glob("*_Prices.json"):
+        try:
+            name = f.name
+            year_search = [int(s) for s in name.split('_') if s.isdigit()]
+            if not year_search: continue
+            year = year_search[0]
+            market = "TPEx" if "TPEx" in name else "TWSE"
+            if year not in existing_prices: existing_prices[year] = {"TWSE": {}, "TPEx": {}}
+            with open(f, 'r') as jf:
+                existing_prices[year][market].update(json.load(jf))
+        except Exception as e:
+            print(f"[Backfill] Error loading {f.name}: {e}")
+
+    # Pre-load Dividends
+    for f in out_dir.glob("TWSE_Dividends_*.json"):
+        try:
+            parts = f.name.replace('.json', '').split('_')
+            year_search = [int(p) for p in parts if p.isdigit()]
+            if not year_search: continue
+            year = year_search[0]
+            with open(f, 'r') as jf:
+                existing_divs[year] = json.load(jf)
+        except Exception as e:
+            print(f"[Backfill] Error loading {f.name}: {e}")
+
+    # 4. Batch Processing
     market_map = {t[0]: t[1] for t in tasks}
     original_code_map = {t[0]: t[2] for t in tasks}
     all_tickers = [t[0] for t in tasks]
     
     CHUNK_SIZE = 50
-    results = {} # year -> 'TWSE'/'TPEx' -> stock_id -> data
-    
-    # Ensure data/raw exists
-    out_dir = base_dir.parent / "data/raw"
-    if not out_dir.exists():
-         out_dir = Path("/app/data/raw") # Docker fallback
-         if not out_dir.exists():
-             out_dir = Path("data/raw")
-             out_dir.mkdir(parents=True, exist_ok=True)
+    total_tickers = len(all_tickers)
+    results = {}     # year -> market -> code -> data (New prices)
+    div_results = {} # year -> code -> data (New dividends)
 
-    print(f"[Backfill] Output directory: {out_dir}")
-
-    total_processed = 0
-
-    for i in range(0, len(all_tickers), CHUNK_SIZE):
+    for i in range(0, total_tickers, CHUNK_SIZE):
         chunk = all_tickers[i:i+CHUNK_SIZE]
-        print(f"[Backfill] Processing chunk {i}/{len(all_tickers)}...")
+        print(f"[Backfill] Processing chunk {i//CHUNK_SIZE + 1}/{(total_tickers-1)//CHUNK_SIZE + 1}...")
+        
+        if progress_callback:
+            pct = 10 + int((i / total_tickers) * 80)
+            progress_callback(f"Fetching history for {len(chunk)} stocks...", pct)
         
         try:
-            # Download with group_by='ticker'
-            data = yf.download(chunk, period=period, group_by='ticker', progress=False, threads=True)
-            
+            # Download with actions=True
+            data = yf.download(chunk, period=period, group_by='ticker', actions=True, progress=False, threads=True)
             if data.empty: continue
             
-            # Helper to extract DF for a ticker
-            def get_ticker_df(d, t):
-                try:
-                    # If MultiIndex Columns (Ticker, OHLCV)
-                    if isinstance(d.columns, pd.MultiIndex):
-                        if t in d.columns: # Top level check
-                            return d[t]
-                        # Verify levels? 
-                        # yfinance usually returns (Ticker, OHLCV) if group_by='ticker'
-                        # But if only 1 ticker in request, it might return (OHLCV) directly?
-                        # If len(chunk)==1, it returns single level.
-                    else:
-                        # Single level
-                        if len(chunk) == 1:
-                            return d
-                except: pass
-                return pd.DataFrame()
-
-            # Iterate tickers in chunk
             for ticker in chunk:
-                df_ticker = pd.DataFrame()
-                
-                if len(chunk) == 1:
-                    df_ticker = data
-                else:
-                    if ticker in data.columns:
-                        df_ticker = data[ticker]
-                
-                # Check emptiness
+                df_ticker = data[ticker] if len(chunk) > 1 else data
                 if df_ticker.empty: continue
-                # Drop all-NaN rows
                 df_ticker = df_ticker.dropna(how='all')
                 if df_ticker.empty: continue
-                
-                # Normalize Columns (Open, High, Low, Close, Volume)
-                # Capitalized by yfinance usually
-                
-                # Process by Year
-                # Ensure DateTime Index
-                if not isinstance(df_ticker.index, pd.DatetimeIndex):
-                    continue
-                    
-                df_ticker['Year'] = df_ticker.index.year
-                grouped = df_ticker.groupby('Year')
                 
                 market = market_map.get(ticker, 'TWSE')
                 code = original_code_map.get(ticker, ticker)
                 
-                for year, group in grouped:
+                # 4.1. Process Dividends & Splits
+                if 'Dividends' in df_ticker.columns or 'Stock Splits' in df_ticker.columns:
+                    actions = df_ticker[(df_ticker.get('Dividends', 0) > 0) | (df_ticker.get('Stock Splits', 0) > 0)]
+                    for idx, row in actions.iterrows():
+                        y = idx.year
+                        if y not in div_results: div_results[y] = {}
+                        if code not in div_results[y]: div_results[y][code] = {'cash': 0.0, 'stock': 0.0}
+                        
+                        div_val = float(row.get('Dividends', 0))
+                        split_val = float(row.get('Stock Splits', 0))
+                        
+                        if div_val > 0: div_results[y][code]['cash'] += div_val
+                        if split_val > 0 and split_val != 1.0:
+                            # yfinance Stock Splits: 1.1 ratio means 10% stock div -> 0.1 in our format
+                            div_results[y][code]['stock'] += (split_val - 1.0)
+
+                # 4.2. Process Prices with Smart Merge logic
+                if not isinstance(df_ticker.index, pd.DatetimeIndex): continue
+                
+                df_ticker['Year'] = df_ticker.index.year
+                for year, group in df_ticker.groupby('Year'):
+                    # SKIP if not overwrite and already exists in loaded data
+                    if not overwrite and year in existing_prices and code in existing_prices[year][market]:
+                        continue
+                        
                     daily_data = []
-                    
                     for idx, row in group.iterrows():
                         try:
-                            # OHLCV
-                            o = row['Open']
-                            h = row['High']
-                            l = row['Low']
-                            c = row['Close']
-                            v = row['Volume']
-                            
-                            if pd.isna(c): continue
-                            
-                            # Convert to standard types
-                            o = round(float(o), 2)
-                            h = round(float(h), 2)
-                            l = round(float(l), 2)
-                            c = round(float(c), 2)
-                            v = int(v)
-                            
-                            if v == 0 and o == 0 and c == 0: continue
-                            
-                            d_str = idx.strftime('%Y-%m-%d')
-                            
+                            o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
+                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
                             daily_data.append({
-                                "d": d_str, "o": o, "h": h, "l": l, "c": c, "v": v
+                                "d": idx.strftime('%Y-%m-%d'), 
+                                "o": round(float(o), 2), "h": round(float(h), 2), 
+                                "l": round(float(l), 2), "c": round(float(c), 2), 
+                                "v": int(v)
                             })
                         except: continue
                         
                     if not daily_data: continue
                     
-                    # Summary
                     try:
-                        first = daily_data[0]
-                        last = daily_data[-1]
-                        # Calculate High/Low from daily_data to be consistent
-                        high_val = max(d['h'] for d in daily_data)
-                        low_val = min(d['l'] for d in daily_data)
+                        high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
+                        summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}
                         
-                        summary = {
-                            "start": first['o'],
-                            "end": last['c'],
-                            "high": high_val,
-                            "low": low_val
-                        }
-                        
-                        # Init Year Dict
-                        if year not in results:
-                            results[year] = {'TWSE': {}, 'TPEx': {}}
-                            
-                        results[year][market][code] = {
-                            "daily": daily_data,
-                            "summary": summary
-                        }
-                        total_processed += 1
-                        
-                    except Exception as e:
-                        # print(f"Summary calc error {ticker}: {e}")
-                        pass
+                        if year not in results: results[year] = {'TWSE': {}, 'TPEx': {}}
+                        results[year][market][code] = {"daily": daily_data, "summary": summary}
+                    except: pass
 
         except Exception as e:
             print(f"[Backfill] Chunk Error: {e}")
-            
-    # 4. Save to JSON
-    print(f"[Backfill] Writing files for {len(results)} years...")
-    saved_files = []
-    
+        
+        if i + CHUNK_SIZE < total_tickers:
+            import time
+            time.sleep(1)
+
+    # 5. Merge and Save
+    # Merge Prices
     for year, markets in results.items():
-        # TWSE
-        if markets['TWSE']:
-            fpath = out_dir / f"Market_{year}_Prices.json"
-            try:
+        if year not in existing_prices: existing_prices[year] = {"TWSE": {}, "TPEx": {}}
+        for m_name, new_stocks in markets.items():
+            if m_name not in existing_prices[year]: existing_prices[year][m_name] = {}
+            for t_code, p_data in new_stocks.items():
+                if overwrite or t_code not in existing_prices[year][m_name]:
+                    existing_prices[year][m_name][t_code] = p_data
+
+    # Merge Dividends
+    for year, new_divs in div_results.items():
+        if year not in existing_divs: existing_divs[year] = {}
+        for t_code, d_data in new_divs.items():
+            if overwrite or t_code not in existing_divs[year]:
+                existing_divs[year][t_code] = d_data
+
+    print(f"[Backfill] Saving {len(existing_prices)} years of data...")
+    if progress_callback: progress_callback("Saving results...", 95)
+    
+    saved_count = 0
+    for year, markets in existing_prices.items():
+        for m_name in ['TWSE', 'TPEx']:
+            if markets[m_name]:
+                prefix = "TPEx_" if m_name == 'TPEx' else ""
+                fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
                 with open(fpath, 'w') as f:
-                    json.dump(markets['TWSE'], f, indent=None) # Compact
-                saved_files.append(str(fpath))
-            except Exception as e:
-                print(f"Error writing {fpath}: {e}")
+                    json.dump(markets[m_name], f, indent=None)
+                saved_count += 1
                 
-        # TPEx
-        if markets['TPEx']:
-            fpath = out_dir / f"TPEx_Market_{year}_Prices.json"
-            try:
-                with open(fpath, 'w') as f:
-                    json.dump(markets['TPEx'], f, indent=None)
-                saved_files.append(str(fpath))
-            except Exception as e:
-                print(f"Error writing {fpath}: {e}")
+    for year, divs in existing_divs.items():
+        if divs:
+            fpath = out_dir / f"TWSE_Dividends_{year}.json"
+            with open(fpath, 'w') as f:
+                json.dump(divs, f, indent=None)
+            saved_count += 1
 
     return {
         "status": "ok", 
-        "stocks_processed": len(tasks), 
-        "years_covered": len(results),
-        "files_saved": len(saved_files)
+        "stocks_processed": total_tickers, 
+        "years": sorted(list(existing_prices.keys())),
+        "files_saved": saved_count
     }

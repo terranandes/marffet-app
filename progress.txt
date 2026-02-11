@@ -35,3 +35,10 @@ Task 6: User Settings & Persistence - COMPLETED
 - Created app/routers/user.py with POST /api/user/settings and GET /api/user/settings endpoints
 - Registered user router in app/main.py
 - Verified repository logic with tests/unit/test_user_settings.py
+
+Task 7: AIBOT Connection (Mars AI) - COMPLETED
+- Updated PROMPT_PREMIUM in app/main.py to align with MoneyCome methodology (CAGR & Volatility).
+- Verified POST /api/chat Context injection with tests/single/test_chat_context.py.
+
+----------
+ralph-done-jktpb

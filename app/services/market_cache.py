@@ -5,6 +5,7 @@ from typing import Dict, Any
 
 # Singleton Cache
 _PRICES_CACHE: Dict[int, Dict[str, Any]] = {}
+_IS_LOADED: bool = False
 
 class MarketCache:
     """
@@ -22,9 +23,9 @@ class MarketCache:
         Returns the Prices Database: { Year: { StockID: {Start, End, High, Low...} } }
         Lazy loads heavily on first call.
         """
-        global _PRICES_CACHE
+        global _PRICES_CACHE, _IS_LOADED
 
-        if _PRICES_CACHE and not force_reload:
+        if _IS_LOADED and not force_reload:
             return _PRICES_CACHE
 
         logging.info("[MarketCache] Warming up... Loading 20 years of price data into memory.")
@@ -55,6 +56,7 @@ class MarketCache:
         
         logging.info(f"[MarketCache] Loaded {len(new_cache)} years. (RAM Usage: ~100MB)")
         _PRICES_CACHE = new_cache
+        _IS_LOADED = True
         return _PRICES_CACHE
 
     @classmethod

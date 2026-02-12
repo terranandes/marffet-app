@@ -213,11 +213,12 @@ async def health_cache():
     """Check status of MarketCache (loaded years)."""
     # Import inside to get latest state of the module global
     import app.services.market_cache as mc
-    cache = mc._PRICES_CACHE
     
-    if not cache:
+    # Check if loaded, regardless of content size
+    if not mc._IS_LOADED:
         return {"ready": False, "years": 0}
         
+    cache = mc._PRICES_CACHE
     years = sorted(cache.keys())
     return {
         "ready": True, 
@@ -1379,6 +1380,21 @@ async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict
 @app.get("/")
 async def root():
     return JSONResponse({"status": "ok", "service": "Martian API", "docs": "/docs"})
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize core services on startup."""
+    import app.services.market_cache as mc
+    import logging
+    
+    # Pre-warm Market Cache (Non-blocking if possible, but for now blocking is safer to ensure readiness)
+    # On Zeabur/Cloud Run, startup time is less critical than "Ready" state correctness.
+    try:
+        logging.info("[Startup] Pre-warming MarketCache...")
+        mc.MarketCache.get_prices_db()
+        logging.info("[Startup] MarketCache Ready.")
+    except Exception as e:
+        logging.error(f"[Startup] MarketCache Init Failed: {e}")
 
 if __name__ == "__main__":
     import uvicorn

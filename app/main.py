@@ -205,7 +205,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "martian-backend",
-        "version": "1.0.0"
+        "version": "1.0.1"  # Bumped for debug
     }
 
 @app.get("/api/health/cache")
@@ -216,7 +216,11 @@ async def health_cache():
     
     # Check if loaded, regardless of content size
     if not mc._IS_LOADED:
-        return {"ready": False, "years": 0}
+        return {
+            "ready": False, 
+            "years": 0, 
+            "status": "not_loaded_yet" # Debug info
+        }
         
     cache = mc._PRICES_CACHE
     years = sorted(cache.keys())
@@ -224,7 +228,8 @@ async def health_cache():
         "ready": True, 
         "years": len(years),
         "oldest": str(years[0]) if years else None,
-        "newest": str(years[-1]) if years else None
+        "newest": str(years[-1]) if years else None,
+        "status": "loaded"
     }
 
 # ---------------- Notification Engine (Premium) ----------------

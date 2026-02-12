@@ -58,10 +58,10 @@
     - [x] Update App Logic to support Nested Schema (V2).
     - [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
     - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
-- [ ] **Phase 5: Production Deployment & Remote Verification** <!-- id: 40 -->
-    - [ ] Deploy Phase 4 changes to Zeabur
+- [/] **Phase 5: Production Deployment & Remote Verification** <!-- id: 40 -->
+    - [x] Deploy Phase 4 changes to Zeabur (Auto-deployed via Git push)
     - [ ] Verify Admin Backfill UI on production
-    - [ ] Deploy patched `data/raw/` files (BUG-112)
+    - [ ] Trigger Backfill on Zeabur (Resolves BUG-112 data gap)
     - [ ] Verify TSMC CAGR on Zeabur (~19%)
 
 ## 5. Maintenance & workflows

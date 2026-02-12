@@ -27,7 +27,8 @@ from app.database import get_db, init_db
 from app.services.portfolio_service import (
     get_all_targets_by_type, 
     update_user_stats, 
-    get_public_portfolio
+    get_public_portfolio,
+    get_total_dividends
 )
 from app.repositories import user_repo
 
@@ -1260,7 +1261,10 @@ async def get_notifications(user: dict = Depends(get_current_user)):
     try:
         user_id = user['id'] if user else "default"
         # 1. Fetch Portfolio Data
-        all_targets = get_all_targets_json(user_id)
+        targets_by_type = get_all_targets_by_type(user_id)
+        all_targets = []
+        for type_list in targets_by_type.values():
+            all_targets.extend(type_list)
         portfolio = {"targets": all_targets}
         
         # 2. Generate Alerts

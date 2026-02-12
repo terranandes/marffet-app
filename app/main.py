@@ -102,7 +102,14 @@ async def lifespan(app: FastAPI):
             print("[Shutdown] Scheduler Stopped")
     except: pass
 
+_STARTUP_RAN = False  # Flag to track lifespan startup execution
+
 app = FastAPI(title="Martian Investment System", lifespan=lifespan)
+
+# Health Check (no auth, no deps — if this responds, the app is alive)
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok", "startup_ran": _STARTUP_RAN}
 
 # Proxy Headers moved to bottom to enforce execution order
 # (Removed from here)
@@ -243,7 +250,6 @@ async def health_cache():
     }
 
 # ---------------- Debug Endpoint (Temporary) ----------------
-_STARTUP_RAN = False  # Flag to track startup_event execution
 
 @app.get("/api/debug/cache-info")
 async def debug_cache_info():

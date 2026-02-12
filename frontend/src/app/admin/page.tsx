@@ -246,6 +246,44 @@ export default function AdminPage() {
         }
     };
 
+    // Handle Smart Supplemental Refresh (Held Stocks) - New Phase 6
+    const handleSupplementalRefresh = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/supplemental`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`✅ Smart Supplemental Refresh initiated! ${data.message}`);
+                fetchCrawlerStatus();
+            } else {
+                alert(`❌ Supplemental refresh failed: ${data.detail || data.message || 'Unknown error'}`);
+            }
+        } catch {
+            alert('❌ Network error during supplemental refresh.');
+        }
+    };
+
+    // Handle Dividend Sync (Across all users)
+    const handleSyncDividends = async () => {
+        if (!confirm("🔄 Sync Dividends for ALL users' stocks?\nThis will update history and push to GitHub.")) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/sync/all-users-dividends`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`✅ Dividend Sync Success! ${data.message}`);
+            } else {
+                alert(`❌ Sync failed: ${data.detail || data.message || 'Unknown error'}`);
+            }
+        } catch {
+            alert('❌ Network error during dividend sync.');
+        }
+    };
+
     // Handle Crawl Trigger
     const handleCrawl = async (force: boolean) => {
         const endpoint = `${API_BASE}/api/admin/crawl?key=secret&force=${force}`;
@@ -313,6 +351,32 @@ export default function AdminPage() {
         } catch {
             alert("❌ Network Error");
         }
+    };
+
+    // Handle DB Backup
+    const handleDbBackup = async () => {
+        if (!confirm("Trigger manual database backup to GitHub?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/backup`, {
+                method: "POST",
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
+            } else {
+                alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
+            }
+        } catch {
+            alert("❌ Network Error during backup.");
+        }
+    };
+
+    // Handle Copy Link
+    const handleCopyMetrics = () => {
+        const url = `${API_BASE}/api/admin/metrics`;
+        navigator.clipboard.writeText(url);
+        alert("Metrics URL copied to clipboard!");
     };
 
     // Monitor Prewarm Completion
@@ -463,20 +527,56 @@ export default function AdminPage() {
                         </div>
                     )}
 
-                    {/* Category 1: Crawler Speed Test */}
-                    <div className="mb-4">
-                        <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
-                            📊 Crawler Speed Test
-                        </h3>
-                        <div className="flex gap-3 flex-wrap">
+                    {/* Section 1: Routine Operations */}
+                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-blue-500/20">
+                        <h4 className="text-sm font-semibold text-blue-400 mb-3 flex items-center gap-2">
+                            📅 Routine Operations (Daily/Weekly)
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={handleSupplementalRefresh}
+                                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-lg shadow-blue-900/20"
+                                title="Targets user portraits and top ETFs (Incremental)"
+                            >
+                                ✨ Smart Supplemental Refresh
+                            </button>
+
+                            <button
+                                onClick={handleSyncAllDividends}
+                                disabled={syncProgress !== null}
+                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${syncProgress !== null
+                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
+                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
+                                    }`}
+                                title="Syncs dividend history for ALL users' stocks"
+                            >
+                                {syncProgress !== null ? '⏳ Syncing Dividends...' : '💰 Sync All Dividends'}
+                            </button>
+
+                            <button
+                                onClick={handleDbBackup}
+                                className="bg-gray-700 hover:bg-gray-650 text-white px-4 py-2 rounded-lg transition flex items-center gap-1 border border-gray-600"
+                            >
+                                💾 GitHub Backup (DB)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Maintenance & Reconstruction */}
+                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-red-500/10">
+                        <h4 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
+                            🛠️ Maintenance & Repair
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
                             <button
                                 onClick={async () => {
-                                    if (!confirm("Trigger analysis? (Background Task)")) return;
+                                    if (!confirm("⚠️ START FULL ANALYSIS?\nThis is a standard Smart Analysis run (~2-3 min).")) return;
                                     await handleCrawl(false);
                                 }}
-                                className="bg-blue-900 hover:bg-blue-700 text-white border border-blue-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                className="bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                title="Full Crawler run (Main Loop)"
                             >
-                                ⚡ Update Market Data (Smart)
+                                🕷️ Crawler Analysis (Full)
                             </button>
 
                             <button
@@ -485,104 +585,65 @@ export default function AdminPage() {
                                     await handleCrawl(true);
                                 }}
                                 className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                title="Clears cache and rebuilds current year"
                             >
-                                🔥 Rebuild All (Cold Run)
-                            </button>
-
-                            <button
-                                onClick={handleInitializeCache}
-                                className="bg-green-900/50 hover:bg-green-800 text-white border border-green-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                            >
-                                🔋 Initialize Market Cache
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Category: Universe Maintenance (Phase 4) */}
-                    <div className="mb-4 bg-blue-900/10 p-4 rounded-lg border border-blue-500/20">
-                        <h3 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
-                            🌌 Universe Maintenance (Prices + Dividends)
-                        </h3>
-                        <p className="text-xs text-[var(--color-text-muted)] mb-3">
-                            Backfills historical Prices and Dividends (2000-Present) from Yahoo Finance for the entire universe.
-                            Uses Smart Merge to safely populate <code>Market_*_Prices.json</code> and <code>TWSE_Dividends_*.json</code>.
-                        </p>
-                        <div className="flex gap-3 flex-wrap items-center">
-                            {/* Safe Mode Toggle */}
-                            <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={safeMode}
-                                    onChange={(e) => setSafeMode(e.target.checked)}
-                                    className="w-4 h-4 accent-green-500 rounded"
-                                />
-                                <span className={safeMode ? 'text-green-400' : 'text-red-400 font-bold'}>
-                                    {safeMode ? '🛡️ Safe Mode (Incremental)' : '⚠️ Overwrite Mode'}
-                                </span>
-                            </label>
-                            <button
-                                onClick={handleBackfill}
-                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${safeMode
-                                    ? 'bg-cyan-900 hover:bg-cyan-700 border-cyan-600'
-                                    : 'bg-red-900 hover:bg-red-700 border-red-600'
-                                    }`}
-                            >
-                                🚀 Backfill Prices + Dividends (2000-Present)
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Category 2: Backup & Refresh */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2 flex items-center gap-2">
-                            💾 Backup & Refresh
-                        </h3>
-                        <div className="flex gap-3 flex-wrap">
-                            <button
-                                onClick={handleSyncAllDividends}
-                                disabled={syncProgress !== null}
-                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${syncProgress !== null
-                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
-                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
-                                    }`}
-                                title="Runs automatically quarterly on Jan/Apr/Jul/Oct 1st"
-                            >
-                                {syncProgress !== null ? '⏳ Syncing...' : '💰 Sync All Dividends (Auto-Quarterly)'}
-                            </button>
-
-                            <button
-                                onClick={async () => {
-                                    if (!confirm("Trigger manual backup to GitHub?")) return;
-                                    try {
-                                        const res = await fetch(`${API_BASE}/api/admin/backup`, {
-                                            method: "POST",
-                                            credentials: "include"
-                                        });
-                                        const data = await res.json();
-                                        if (res.ok) {
-                                            alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
-                                        } else {
-                                            alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
-                                        }
-                                    } catch {
-                                        alert("❌ Network Error");
-                                    }
-                                }}
-                                className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                            >
-                                💾 Backup Portfolio DB to GitHub
+                                🔥 Force Rebuild (Cold)
                             </button>
 
                             <button
                                 onClick={handleRebuildPrewarm}
                                 disabled={monitorPrewarm}
                                 className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${monitorPrewarm
-                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
-                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
+                                    ? 'bg-indigo-900/30 border-indigo-800 cursor-not-allowed opacity-70'
+                                    : 'bg-indigo-900/50 hover:bg-indigo-800 border-indigo-600'
                                     }`}
                             >
-                                {monitorPrewarm ? '⏳ Rebuilding & Pushing...' : '📦 Rebuild & Push Pre-warm Data'}
+                                {monitorPrewarm ? '⏳ Pushing to GitHub...' : '📦 Rebuild Pre-warm Data'}
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Low-Level System & Universe */}
+                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-gray-500/10">
+                        <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                            ⚙️ System Tools & Deep Universe
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={handleInitializeCache}
+                                className="bg-green-900/50 hover:bg-green-800 text-white border border-green-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                                title="Force reload of prices from JSON into RAM"
+                            >
+                                🔋 Reload Price Cache (Force)
+                            </button>
+
+                            <button
+                                onClick={handleCopyMetrics}
+                                className="bg-gray-700 hover:bg-gray-600 text-white border border-gray-500 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                🔗 Copy Metrics URL
+                            </button>
+
+                            {/* Backfill with Safe Mode Toggle */}
+                            <div className="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
+                                <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={safeMode}
+                                        onChange={(e) => setSafeMode(e.target.checked)}
+                                        className="w-3 h-3 accent-cyan-500 rounded"
+                                    />
+                                    <span className={safeMode ? 'text-cyan-400' : 'text-orange-400 font-bold'}>
+                                        {safeMode ? '🛡️ Safe Mode' : '⚠️ Overwrite'}
+                                    </span>
+                                </label>
+                                <button
+                                    onClick={handleBackfill}
+                                    className="text-[10px] bg-cyan-900 hover:bg-cyan-800 px-3 py-1 rounded border border-cyan-700"
+                                >
+                                    🚀 Universe Backfill (2000+)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -26,6 +26,24 @@ async def backup_market_data(user: dict = Depends(get_admin_user)):
     result = BackupService.refresh_prewarm_data()
     return result
 
+@router.post("/market-data/supplemental")
+async def supplement_market_data(background_tasks: BackgroundTasks, user: dict = Depends(get_admin_user)):
+    """
+    Trigger Smart Supplemental Refresh (Held Stocks + Top Universe).
+    Uses Background Task to run the python supplement script.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+    
+    def run_supplement():
+        script_path = Path("scripts/cron/supplement_prices.py")
+        if script_path.exists():
+            subprocess.run(["uv", "run", "python", str(script_path)], check=False)
+            
+    background_tasks.add_task(run_supplement)
+    return {"status": "accepted", "message": "Smart Supplemental Refresh started in background."}
+
 @router.post("/market-data/backfill")
 async def backfill_market_data(
     background_tasks: BackgroundTasks,

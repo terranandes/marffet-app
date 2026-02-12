@@ -538,7 +538,7 @@ export default function AdminPage() {
                             <button
                                 onClick={handleSupplementalRefresh}
                                 className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-lg shadow-blue-900/20"
-                                title="Targets user portraits and top ETFs (Incremental)"
+                                title="Updates prices for active targets & top universe (Incremental, Local only)"
                             >
                                 ✨ Smart Supplemental Refresh
                             </button>
@@ -550,7 +550,7 @@ export default function AdminPage() {
                                     ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
                                     : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
                                     }`}
-                                title="Syncs dividend history for ALL users' stocks"
+                                title="Syncs dividend history for the GLOBAL UNIVERSE (1,771 stocks) and pushes to GitHub"
                             >
                                 {syncProgress !== null ? '⏳ Syncing Dividends...' : '💰 Sync All Dividends'}
                             </button>
@@ -647,8 +647,8 @@ export default function AdminPage() {
                                             onChange={(e) => setPushToGithub(e.target.checked)}
                                             className="w-3 h-3 accent-indigo-500 rounded"
                                         />
-                                        <span className={pushToGithub ? 'text-indigo-400' : 'text-gray-500'}>
-                                            {pushToGithub ? '📤 Push to GitHub' : '🏠 Local Only'}
+                                        <span className={pushToGithub ? 'text-indigo-400 font-bold' : 'text-gray-500'}>
+                                            {pushToGithub ? '📤 Push to GitHub (Remote)' : '🏠 Zeabur Local Only'}
                                         </span>
                                     </label>
                                 </div>

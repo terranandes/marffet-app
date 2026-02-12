@@ -41,31 +41,25 @@ from app.routers.user import router as user_router
 async def lifespan(app: FastAPI):
     # Startup Logic
 
+    print("[Startup] LIFESPAN EXECUTION STARTED")
     try:
         # 1. Initialize DB
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 MarketCache - Background Pre-warm (Prevent 502 Timeout)
-        # Run in a thread so lifespan yields immediately and app starts.
+        # 1.5 MarketCache - LAZY LOAD ONLY (Safety Mode)
+        # We process start failed with threads, so we rely on manual trigger.
+        # POST /api/admin/system/initialize to warm up.
         import app.services.market_cache as mc
-        import threading
         global _STARTUP_RAN
         _STARTUP_RAN = True
+        print("[Startup] MarketCache: Skipping pre-warm. Use /api/admin/system/initialize")
+        mc._IS_LOADED = False  # Explicitly set false
         
-        def background_warmup():
-            try:
-                print("[Startup] Background: Pre-warming MarketCache...")
-                mc.MarketCache.get_prices_db()
-                print(f"[Startup] Background: MarketCache Initialized. Loaded: {mc._IS_LOADED}")
-            except BaseException as e:
-                print(f"[Startup] Background: Cache Init Warning (OOM?): {e}")
-                mc._IS_LOADED = True
-
-        # Start background thread
-        t = threading.Thread(target=background_warmup, daemon=True)
-        t.start()
-        print("[Startup] MarketCache pre-warming started in background thread.")
+        # THREAD DISABLED due to 502/Crash suspicion
+        # def background_warmup(): ...
+        # t = threading.Thread(...)
+        # t.start()
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -97,7 +91,7 @@ async def lifespan(app: FastAPI):
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup only - heavy jobs use external cron)")
         
-    except Exception as e:
+    except BaseException as e:
         print(f"[Startup] Error initializing services: {e}")
     
     yield
@@ -265,7 +259,7 @@ async def debug_cache_info():
         files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
     
     return {
-        "build": "1.0.4",
+        "build": "1.0.5",
         "startup_ran": _STARTUP_RAN,
         "base_dir": str(base_dir),
         "data_dir": str(data_dir),

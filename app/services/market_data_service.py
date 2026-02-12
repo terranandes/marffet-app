@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any, Callable
 from pathlib import Path
 import json
+import os
 
 from app.database import get_db
 from app.config import STOCK_NAME_CACHE, SUPPLEMENTARY_NAME_CACHE
@@ -685,6 +686,12 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         if not (code.isdigit() or (len(code) >= 4 and len(code) <= 8)):
              continue
              
+        # --- CLOUD SCALE FILTER ---
+        # 48,000 stocks is too much for a web-background task on 512MB RAM.
+        # We limit cloud backfills to Core Equities (4 digits) by default.
+        if IS_CLOUD and len(code) > 4:
+            continue
+             
         mtype = str(row.get('market_type', '')).strip()
         
         if mtype == 'Listed':
@@ -717,13 +724,26 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     original_code_map = {t[0]: t[2] for t in tasks}
     all_tickers = [t[0] for t in tasks]
     
-    # CRITICAL STABILITY TUNING (ULTRA-STABILITY MODE):
-    # CHUNK_SIZE=50 and 10 still caused OOM/Silent Crash on Zeabur (512MB RAM).
-    # Reducing to 1 and adding aggressive GC to ensure 100% completion.
-    CHUNK_SIZE = 1 
+    # --- ADAPTIVE STABILITY TUNING ---
+    # Detect environment to balance stability (Tank Mode) vs. performance (Fast Mode)
+    IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
+    
+    if IS_CLOUD:
+        # TANK MODE: Ultra-stable for 512MB RAM
+        CHUNK_SIZE = 1
+        SAVE_INTERVAL = 20
+        BATCH_DELAY = 0.5
+        print("[Backfill] Adaptive Mode: TANK (Cloud Detected - 512MB Safety)")
+    else:
+        # FAST MODE: Performance for local dev (8GB+ RAM)
+        CHUNK_SIZE = 50
+        SAVE_INTERVAL = 200
+        BATCH_DELAY = 0
+        print("[Backfill] Adaptive Mode: FAST (Local Environment)")
+    
     total_tickers = len(all_tickers)
-    results = {}     # year -> market -> code -> data (New prices)
-    div_results = {} # year -> code -> data (New dividends)
+    results = {}     # year -> market -> code -> data
+    div_results = {} # year -> code -> data
 
     import time
     import gc
@@ -745,6 +765,11 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                     except: pass
                 merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
                 _save_json_safe(fpath, merged)
+                
+                # Force cleanup of existing_data and merged to free memory IMMEDIATELY
+                del existing_data
+                del merged
+                gc.collect()
         # Save Dividends
         for year, new_div_data in div_results_to_save.items():
             if not new_div_data: continue
@@ -756,11 +781,15 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                 except: pass
             merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
             _save_json_safe(fpath, merged)
+            
+            del existing_data
+            del merged
+            gc.collect()
         results_to_save.clear()
         div_results_to_save.clear()
         gc.collect()
 
-    SAVE_INTERVAL = 20 # Save every 20 tickers
+    SAVE_INTERVAL = 10 if IS_CLOUD else 200 # Flush more frequently on cloud
     processed_in_buffer = 0
 
     for i in range(0, total_tickers, CHUNK_SIZE):
@@ -845,7 +874,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         # Explicit GC to free memory after EVERY batch/stock
         del data
         gc.collect()
-        time.sleep(0.5)
+        if BATCH_DELAY > 0:
+            time.sleep(BATCH_DELAY)
 
     # 5. Final Flush
     flush_results(results, div_results)

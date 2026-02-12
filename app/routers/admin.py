@@ -66,7 +66,7 @@ async def trigger_backup(user: dict = Depends(get_admin_user)):
     else:
         raise HTTPException(status_code=500, detail=f"Backup failed: {result.get('reason')}")
 
-@router.post("/refresh-prewarm-data")
+@router.post("/refresh-prewarm")
 async def trigger_prewarm_refresh(background_tasks: BackgroundTasks, user: dict = Depends(get_admin_user)):
     """Trigger pre-warm data refresh to GitHub (Background Task)."""
     if not user or user.get('email') not in GM_EMAILS:

@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks
 from contextlib import asynccontextmanager
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -995,8 +997,6 @@ async def analyze_portfolio_cb(user: dict = Depends(get_current_user)):
 # ---------------- Portfolio API ----------------
 # NOTE: Portfolio DB refactored. Imports now from services/repositories.
 # Legacy import block removed. Functions imported at top of file or inline.
-from pydantic import BaseModel
-from typing import Optional
 
 # Initialize portfolio DB on startup
 # Portfolio DB initialized in lifespan

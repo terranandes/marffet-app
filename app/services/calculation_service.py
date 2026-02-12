@@ -5,6 +5,7 @@ import os
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
+from typing import List, Dict, Any, Optional
 
 from app.database import get_db
 from app.config import STOCK_NAME_CACHE

@@ -10,8 +10,9 @@ echo "🎆 Starting Annual Prewarm: $(date)"
 echo "📂 Working Directory: $(pwd)"
 
 # 1. Run Full Crawler (all years)
-echo "🕷️ Running Full Crawler (2000-2026)..."
-./scripts/ops/run_crawler_prod.sh --foreground 2000 2026
+CURRENT_YEAR=$(date +%Y)
+echo "🕷️ Running Full Crawler (2000-$CURRENT_YEAR)..."
+./scripts/ops/run_crawler_prod.sh --foreground 2000 $CURRENT_YEAR
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then

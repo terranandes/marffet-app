@@ -74,6 +74,7 @@ class CrawlerService:
                 cls._progress_pct = 5
                 
                 # Only clear Current Year to avoid 3-min wait
+                import datetime
                 current_year = datetime.datetime.now().year
                 
                 # Delete data/raw/*{year}*.json (correct path)

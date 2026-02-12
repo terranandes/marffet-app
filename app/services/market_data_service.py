@@ -706,10 +706,16 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     original_code_map = {t[0]: t[2] for t in tasks}
     all_tickers = [t[0] for t in tasks]
     
-    CHUNK_SIZE = 50
+    # CRITICAL STABILITY TUNING:
+    # CHUNK_SIZE=50 caused OOM/Silent Crash at ~11% on Zeabur.
+    # Reducing to 10 and adding GC to ensuring stability.
+    CHUNK_SIZE = 10 
     total_tickers = len(all_tickers)
     results = {}     # year -> market -> code -> data (New prices)
     div_results = {} # year -> code -> data (New dividends)
+
+    import time
+    import gc
 
     for i in range(0, total_tickers, CHUNK_SIZE):
         chunk = all_tickers[i:i+CHUNK_SIZE]
@@ -723,8 +729,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             progress_callback(f"Batch {batch}/{total_batches}: Fetching {period} history for {first}...", pct)
         
         try:
-            # Download with actions=True
-            data = yf.download(chunk, period=period, group_by='ticker', actions=True, progress=False, threads=True)
+            # Download with threads=False to save memory on Zeabur
+            data = yf.download(chunk, period=period, group_by='ticker', actions=True, progress=False, threads=False)
             if data.empty: continue
             
             for ticker in chunk:
@@ -782,6 +788,10 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
         except Exception as e:
             print(f"[Backfill] Chunk Error: {e}")
+        
+        # Explicit GC to free memory
+        del data
+        gc.collect()
         
         if i + CHUNK_SIZE < total_tickers:
             import time

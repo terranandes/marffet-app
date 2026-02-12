@@ -14,8 +14,9 @@ class MarketCache:
     """
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     DATA_DIR = BASE_DIR / "data/raw"
+    import datetime
     START_YEAR = 2000  # yfinance supports unadjusted prices from 2000+
-    END_YEAR = 2026
+    END_YEAR = datetime.datetime.now().year
 
     @classmethod
     def get_prices_db(cls, force_reload: bool = False) -> Dict[int, Dict[str, Any]]:

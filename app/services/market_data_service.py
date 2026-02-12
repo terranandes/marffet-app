@@ -803,7 +803,11 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     
     saved_count = 0
     # Save Prices
-    for year, markets in results.items():
+    years = sorted(list(results.keys()))
+    for year in years:
+        markets = results[year]
+        if progress_callback: progress_callback(f"Saving data for {year}...", 96)
+        
         for m_name, new_market_data in markets.items():
             if not new_market_data: continue
             

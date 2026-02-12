@@ -681,18 +681,21 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
     for _, row in df.iterrows():
         code = str(row['code']).strip()
+        industry = str(row.get('industry', 'nan')).strip()
+        mtype = str(row.get('market_type', '')).strip()
+
         # Validation: Stock codes are usually 4-6 digits, ETFs 5-6 digits.
         # Avoid any UUIDs, session IDs, or long metadata strings.
         if not (code.isdigit() or (len(code) >= 4 and len(code) <= 8)):
              continue
              
-        # --- CLOUD SCALE FILTER ---
-        # 48,000 stocks is too much for a web-background task on 512MB RAM.
-        # We limit cloud backfills to Core Equities (4 digits) by default.
-        if IS_CLOUD and len(code) > 4:
+        # --- SMART UNIVERSE FILTER (COMPLETENESS vs STABILITY) ---
+        # 48,000+ total items include ~45,000 Warrants (6-digits, nan industry).
+        # Warrants are short-lived derivatives and NOT needed for core Mars strategy.
+        # Removing them ensures stability (2,500 vs 50,000 stocks) without losing completeness.
+        if IS_CLOUD and len(code) == 6 and industry == 'nan':
             continue
              
-        mtype = str(row.get('market_type', '')).strip()
         
         if mtype == 'Listed':
             suffix, market = '.TW', 'TWSE'

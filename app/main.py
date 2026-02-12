@@ -205,7 +205,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "martian-backend",
-        "version": "1.0.1"  # Bumped for debug
+        "version": "1.0.2"  # Build marker
     }
 
 @app.get("/api/health/cache")
@@ -233,6 +233,8 @@ async def health_cache():
     }
 
 # ---------------- Debug Endpoint (Temporary) ----------------
+_STARTUP_RAN = False  # Flag to track startup_event execution
+
 @app.get("/api/debug/cache-info")
 async def debug_cache_info():
     """Temporary debug endpoint to inspect MarketCache on Zeabur."""
@@ -246,6 +248,8 @@ async def debug_cache_info():
         files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
     
     return {
+        "build": "1.0.2",
+        "startup_ran": _STARTUP_RAN,
         "base_dir": str(base_dir),
         "data_dir": str(data_dir),
         "data_dir_exists": data_dir.exists(),
@@ -1417,6 +1421,8 @@ async def startup_event():
     import traceback
     
     # Pre-warm Market Cache
+    global _STARTUP_RAN
+    _STARTUP_RAN = True
     try:
         data_dir = mc.MarketCache.DATA_DIR
         logging.info(f"[Startup] Pre-warming MarketCache... DATA_DIR={data_dir}, exists={data_dir.exists()}")

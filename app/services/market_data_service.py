@@ -754,6 +754,25 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                 
                 df_ticker['Year'] = df_ticker.index.year
                 for year, group in df_ticker.groupby('Year'):
+                    daily_data = []
+                    for idx, row in group.iterrows():
+                        try:
+                            o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
+                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
+                            daily_data.append({
+                                "d": idx.strftime('%Y-%m-%d'), 
+                                "o": round(float(o), 2), "h": round(float(h), 2), 
+                                "l": round(float(l), 2), "c": round(float(c), 2), 
+                                "v": int(v)
+                            })
+                        except: continue
+                        
+                    if not daily_data: continue
+                    
+                    try:
+                        high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
+                        summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}
+                        
                         if year not in results: results[year] = {'TWSE': {}, 'TPEx': {}}
                         results[year][market][code] = {"daily": daily_data, "summary": summary}
                     except: pass
@@ -769,6 +788,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     print(f"[Backfill] Saving merged data...")
     if progress_callback: progress_callback("Saving results...", 95)
     
+    saved_count = 0
     # Save Prices
     for year, markets in results.items():
         for m_name, new_market_data in markets.items():
@@ -787,7 +807,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             
             # Merge
             merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
-            _save_json_safe(fpath, merged)
+            if _save_json_safe(fpath, merged):
+                saved_count += 1
 
     # Save Dividends
     for year, new_div_data in div_results.items():
@@ -804,18 +825,12 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             except: pass
             
         merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
-        _save_json_safe(fpath, merged)
-                saved_count += 1
-                
-    for year, divs in existing_divs.items():
-        if divs:
-            fpath = out_dir / f"TWSE_Dividends_{year}.json"
-            _save_json_safe(fpath, divs)
+        if _save_json_safe(fpath, merged):
             saved_count += 1
 
     return {
         "status": "ok", 
         "stocks_processed": total_tickers, 
-        "years": sorted(list(existing_prices.keys())),
+        "years_updated": sorted(list(results.keys())),
         "files_saved": saved_count
     }

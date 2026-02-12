@@ -166,8 +166,16 @@ class CrawlerService:
                 progress_callback=progress_hook
             )
             
+            # Check for error from service
+            if result.get("status") == "error":
+                cls._last_run_status = "error"
+                cls._last_message = f"Backfill Error: {result.get('message')}"
+                cls._progress_pct = 0
+                cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
+                return result
+
             # Step 2: Push to GitHub if requested
-            if push_to_github and result.get("status") != "error":
+            if push_to_github:
                 from app.services.backup import BackupService
                 cls._last_message = "Universe Backfill complete. Pushing to GitHub..."
                 push_result = BackupService.refresh_prewarm_data()

@@ -640,6 +640,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
+    if progress_callback: progress_callback("Dependencies loaded. Reading stock list...", 5)
     """
     Backfill historical data for all stocks in the cache.
     Saves to data/raw/Market_{Year}_Prices.json and TPEx_Market_{Year}_Prices.json.

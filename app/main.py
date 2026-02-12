@@ -232,6 +232,29 @@ async def health_cache():
         "status": "loaded"
     }
 
+# ---------------- Debug Endpoint (Temporary) ----------------
+@app.get("/api/debug/cache-info")
+async def debug_cache_info():
+    """Temporary debug endpoint to inspect MarketCache on Zeabur."""
+    import app.services.market_cache as mc
+    from pathlib import Path
+    data_dir = mc.MarketCache.DATA_DIR
+    base_dir = mc.MarketCache.BASE_DIR
+    
+    files_found = []
+    if data_dir.exists():
+        files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
+    
+    return {
+        "base_dir": str(base_dir),
+        "data_dir": str(data_dir),
+        "data_dir_exists": data_dir.exists(),
+        "price_files_count": len(files_found),
+        "price_files": files_found[:5],  # First 5 for brevity
+        "_IS_LOADED": mc._IS_LOADED,
+        "_PRICES_CACHE_years": len(mc._PRICES_CACHE),
+    }
+
 # ---------------- Notification Engine (Premium) ----------------
 from app.engines import RuthlessManager
 
@@ -1391,15 +1414,25 @@ async def startup_event():
     """Initialize core services on startup."""
     import app.services.market_cache as mc
     import logging
+    import traceback
     
-    # Pre-warm Market Cache (Non-blocking if possible, but for now blocking is safer to ensure readiness)
-    # On Zeabur/Cloud Run, startup time is less critical than "Ready" state correctness.
+    # Pre-warm Market Cache
     try:
-        logging.info("[Startup] Pre-warming MarketCache...")
+        data_dir = mc.MarketCache.DATA_DIR
+        logging.info(f"[Startup] Pre-warming MarketCache... DATA_DIR={data_dir}, exists={data_dir.exists()}")
+        
+        if data_dir.exists():
+            files = list(data_dir.glob("Market_*_Prices.json"))
+            logging.info(f"[Startup] Found {len(files)} Market price files.")
+        
         mc.MarketCache.get_prices_db()
-        logging.info("[Startup] MarketCache Ready.")
+        logging.info(f"[Startup] MarketCache Ready. _IS_LOADED={mc._IS_LOADED}")
     except Exception as e:
         logging.error(f"[Startup] MarketCache Init Failed: {e}")
+        logging.error(traceback.format_exc())
+        # Still mark as loaded (empty) so UI doesn't get stuck in 'Warming up' forever
+        mc._IS_LOADED = True
+        logging.info("[Startup] Forced _IS_LOADED=True to prevent UI freeze.")
 
 if __name__ == "__main__":
     import uvicorn

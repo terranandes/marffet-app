@@ -5,7 +5,7 @@ import sqlite3
 # import yfinance as yf # Lazy Import
 import gc
 from datetime import datetime, timedelta
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Callable
 from pathlib import Path
 import json
 
@@ -636,7 +636,7 @@ def _save_json_safe(fpath: Path, data: dict):
     except Exception as e:
         print(f"[MarketData] Error saving {fpath.name}: {e}")
 
-def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[callable] = None) -> dict:
+def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None) -> dict:
     if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
@@ -690,7 +690,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
     print(f"[Backfill] Found {len(tasks)} stocks to process.")
 
-    # 3. Setup Paths and Pre-load Existing Data for Smart Merge
+    # 3. Setup Paths
     out_dir = base_dir.parent / "data/raw"
     if not out_dir.exists():
         out_dir = Path("/app/data/raw") # Docker fallback
@@ -700,35 +700,6 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
     print(f"[Backfill] Output directory: {out_dir}")
     if progress_callback: progress_callback("Initializing backfill...", 5)
-
-    existing_prices = {} # year -> market -> code -> data
-    existing_divs = {}   # year -> code -> data
-    
-    # Pre-load Prices
-    for f in out_dir.glob("*_Prices.json"):
-        try:
-            name = f.name
-            year_search = [int(s) for s in name.split('_') if s.isdigit()]
-            if not year_search: continue
-            year = year_search[0]
-            market = "TPEx" if "TPEx" in name else "TWSE"
-            if year not in existing_prices: existing_prices[year] = {"TWSE": {}, "TPEx": {}}
-            with open(f, 'r') as jf:
-                existing_prices[year][market].update(json.load(jf))
-        except Exception as e:
-            print(f"[Backfill] Error loading {f.name}: {e}")
-
-    # Pre-load Dividends
-    for f in out_dir.glob("TWSE_Dividends_*.json"):
-        try:
-            parts = f.name.replace('.json', '').split('_')
-            year_search = [int(p) for p in parts if p.isdigit()]
-            if not year_search: continue
-            year = year_search[0]
-            with open(f, 'r') as jf:
-                existing_divs[year] = json.load(jf)
-        except Exception as e:
-            print(f"[Backfill] Error loading {f.name}: {e}")
 
     # 4. Batch Processing
     market_map = {t[0]: t[1] for t in tasks}
@@ -783,29 +754,6 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                 
                 df_ticker['Year'] = df_ticker.index.year
                 for year, group in df_ticker.groupby('Year'):
-                    # SKIP if not overwrite and already exists in loaded data
-                    if not overwrite and year in existing_prices and code in existing_prices[year][market]:
-                        continue
-                        
-                    daily_data = []
-                    for idx, row in group.iterrows():
-                        try:
-                            o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
-                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
-                            daily_data.append({
-                                "d": idx.strftime('%Y-%m-%d'), 
-                                "o": round(float(o), 2), "h": round(float(h), 2), 
-                                "l": round(float(l), 2), "c": round(float(c), 2), 
-                                "v": int(v)
-                            })
-                        except: continue
-                        
-                    if not daily_data: continue
-                    
-                    try:
-                        high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
-                        summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}
-                        
                         if year not in results: results[year] = {'TWSE': {}, 'TPEx': {}}
                         results[year][market][code] = {"daily": daily_data, "summary": summary}
                     except: pass
@@ -817,37 +765,46 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             import time
             time.sleep(1)
 
-    # Merge Prices
-    for year, markets in results.items():
-        if year not in existing_prices: 
-            existing_prices[year] = {"TWSE": {}, "TPEx": {}}
-        
-        for m_name in ["TWSE", "TPEx"]:
-            new_stocks = markets.get(m_name, {})
-            existing_prices[year][m_name] = _merge_data_dict(
-                existing_prices[year].get(m_name, {}), 
-                new_stocks, 
-                overwrite=overwrite
-            )
-
-    # Merge Dividends
-    for year, new_divs in div_results.items():
-        existing_divs[year] = _merge_data_dict(
-            existing_divs.get(year, {}), 
-            new_divs, 
-            overwrite=overwrite
-        )
-
+    # 5. On-Demand Merging and Saving (Memory Efficient)
     print(f"[Backfill] Saving merged data...")
     if progress_callback: progress_callback("Saving results...", 95)
     
-    saved_count = 0
-    for year, markets in existing_prices.items():
-        for m_name, market_data in markets.items():
-            if market_data:
-                prefix = "TPEx_" if m_name == 'TPEx' else ""
-                fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
-                _save_json_safe(fpath, market_data)
+    # Save Prices
+    for year, markets in results.items():
+        for m_name, new_market_data in markets.items():
+            if not new_market_data: continue
+            
+            prefix = "TPEx_" if m_name == 'TPEx' else ""
+            fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
+            
+            # Load existing just for this file
+            existing_data = {}
+            if fpath.exists():
+                try:
+                    with open(fpath, 'r') as f:
+                        existing_data = json.load(f)
+                except: pass
+            
+            # Merge
+            merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
+            _save_json_safe(fpath, merged)
+
+    # Save Dividends
+    for year, new_div_data in div_results.items():
+        if not new_div_data: continue
+        
+        fpath = out_dir / f"TWSE_Dividends_{year}.json"
+        
+        # Load existing
+        existing_data = {}
+        if fpath.exists():
+            try:
+                with open(fpath, 'r') as f:
+                    existing_data = json.load(f)
+            except: pass
+            
+        merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
+        _save_json_safe(fpath, merged)
                 saved_count += 1
                 
     for year, divs in existing_divs.items():

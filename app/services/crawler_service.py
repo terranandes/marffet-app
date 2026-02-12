@@ -1,6 +1,7 @@
 import asyncio
 import os
 import glob
+import datetime
 from app.project_tw.run_analysis import main as run_analysis_main
 
 class CrawlerService:
@@ -146,7 +147,6 @@ class CrawlerService:
         cls._last_run_status = "running"
         cls._last_message = "Universe Backfill initiated..."
         cls._progress_pct = 1 # Start at 1%
-        import datetime
         cls._start_time = datetime.datetime.now(datetime.timezone.utc)
         
         try:

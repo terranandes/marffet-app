@@ -46,20 +46,26 @@ async def lifespan(app: FastAPI):
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 MarketCache - Attempt Pre-warm (OOM Resilient)
-        # We previously skipped this, but now we have OOM protection.
+        # 1.5 MarketCache - Background Pre-warm (Prevent 502 Timeout)
+        # Run in a thread so lifespan yields immediately and app starts.
         import app.services.market_cache as mc
+        import threading
         global _STARTUP_RAN
         _STARTUP_RAN = True
         
-        try:
-            print("[Startup] Pre-warming MarketCache...")
-            mc.MarketCache.get_prices_db()
-            print(f"[Startup] MarketCache Initialized. Loaded: {mc._IS_LOADED}")
-        except BaseException as e:
-            print(f"[Startup] MarketCache Init Warning (OOM?): {e}")
-            # Ensure IS_LOADED is True so we don't block
-            mc._IS_LOADED = True
+        def background_warmup():
+            try:
+                print("[Startup] Background: Pre-warming MarketCache...")
+                mc.MarketCache.get_prices_db()
+                print(f"[Startup] Background: MarketCache Initialized. Loaded: {mc._IS_LOADED}")
+            except BaseException as e:
+                print(f"[Startup] Background: Cache Init Warning (OOM?): {e}")
+                mc._IS_LOADED = True
+
+        # Start background thread
+        t = threading.Thread(target=background_warmup, daemon=True)
+        t.start()
+        print("[Startup] MarketCache pre-warming started in background thread.")
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -259,7 +265,7 @@ async def debug_cache_info():
         files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
     
     return {
-        "build": "1.0.3",
+        "build": "1.0.4",
         "startup_ran": _STARTUP_RAN,
         "base_dir": str(base_dir),
         "data_dir": str(data_dir),

@@ -1,5 +1,5 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
-from app.auth import get_admin_user
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from app.auth import get_admin_user, get_current_user, GM_EMAILS
 from app.services.market_cache import MarketCache
 from app.services.backup import BackupService
 from app.services.crawler_service import CrawlerService
@@ -44,3 +44,37 @@ async def backfill_market_data(
         "status": "accepted", 
         "message": "Universe Backfill started in background. Monitor status via Crawler Status."
     }
+@router.post("/system/initialize")
+async def manual_initialize(user: dict = Depends(get_admin_user)):
+    """Manually trigger MarketCache loading if startup failed."""
+    try:
+        MarketCache.get_prices_db(force_reload=True)
+        import app.services.market_cache as mc
+        return {"status": "ok", "loaded": mc._IS_LOADED, "years": len(mc._PRICES_CACHE)}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@router.post("/backup")
+async def trigger_backup(user: dict = Depends(get_admin_user)):
+    """Trigger manual database backup to GitHub."""
+    result = BackupService.backup_db()
+    
+    if result.get("status") == "success":
+        return {"message": "Backup successful", "details": result}
+    elif result.get("status") == "skipped":
+        return {"message": "Backup skipped (missing config)", "details": result}
+    else:
+        raise HTTPException(status_code=500, detail=f"Backup failed: {result.get('reason')}")
+
+@router.post("/refresh-prewarm-data")
+async def trigger_prewarm_refresh(background_tasks: BackgroundTasks, user: dict = Depends(get_admin_user)):
+    """Trigger pre-warm data refresh to GitHub (Background Task)."""
+    if not user or user.get('email') not in GM_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Run in background to prevent timeout
+    async def run_bg_prewarm():
+        await BackupService.annual_prewarm_with_rebuild()
+        
+    background_tasks.add_task(run_bg_prewarm)
+    return {"message": "Pre-warm Rebuild & Push started in background.", "status": "accepted"}

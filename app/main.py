@@ -1427,8 +1427,8 @@ async def startup_event():
         
         mc.MarketCache.get_prices_db()
         logging.info(f"[Startup] MarketCache Ready. _IS_LOADED={mc._IS_LOADED}")
-    except Exception as e:
-        logging.error(f"[Startup] MarketCache Init Failed: {e}")
+    except BaseException as e:
+        logging.error(f"[Startup] MarketCache Init Failed: {type(e).__name__}: {e}")
         logging.error(traceback.format_exc())
         # Still mark as loaded (empty) so UI doesn't get stuck in 'Warming up' forever
         mc._IS_LOADED = True

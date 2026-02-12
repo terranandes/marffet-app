@@ -28,35 +28,46 @@ class MarketCache:
         if _IS_LOADED and not force_reload:
             return _PRICES_CACHE
 
-        logging.info("[MarketCache] Warming up... Loading 20 years of price data into memory.")
+        logging.info("[MarketCache] Warming up... Loading price data into memory.")
         new_cache = {}
+        loaded_count = 0
+        skipped_count = 0
 
-        for year in range(cls.START_YEAR, cls.END_YEAR + 1):
-            year_data = {}
-            
-            # 1. Main Market
-            p_file = cls.DATA_DIR / f"Market_{year}_Prices.json"
-            if p_file.exists():
-                try:
-                    with open(p_file, "r") as f:
-                        year_data.update(json.load(f))
-                except Exception as e:
-                    logging.error(f"[MarketCache] Error loading {p_file}: {e}")
+        try:
+            for year in range(cls.START_YEAR, cls.END_YEAR + 1):
+                year_data = {}
+                
+                # 1. Main Market
+                p_file = cls.DATA_DIR / f"Market_{year}_Prices.json"
+                if p_file.exists():
+                    try:
+                        with open(p_file, "r") as f:
+                            year_data.update(json.load(f))
+                        loaded_count += 1
+                    except BaseException as e:
+                        logging.error(f"[MarketCache] Error loading {p_file}: {type(e).__name__}: {e}")
+                        skipped_count += 1
 
-            # 2. TPEx Market (OTC)
-            tpex_file = cls.DATA_DIR / f"TPEx_Market_{year}_Prices.json"
-            if tpex_file.exists():
-                try:
-                    with open(tpex_file, "r") as f:
-                        year_data.update(json.load(f))
-                except Exception as e:
-                    logging.error(f"[MarketCache] Error loading {tpex_file}: {e}")
-            
-            new_cache[year] = year_data
+                # 2. TPEx Market (OTC)
+                tpex_file = cls.DATA_DIR / f"TPEx_Market_{year}_Prices.json"
+                if tpex_file.exists():
+                    try:
+                        with open(tpex_file, "r") as f:
+                            year_data.update(json.load(f))
+                        loaded_count += 1
+                    except BaseException as e:
+                        logging.error(f"[MarketCache] Error loading {tpex_file}: {type(e).__name__}: {e}")
+                        skipped_count += 1
+                
+                new_cache[year] = year_data
+        except BaseException as e:
+            logging.error(f"[MarketCache] Fatal error during cache load: {type(e).__name__}: {e}")
+        finally:
+            # ALWAYS set loaded, even if partially loaded or failed
+            _PRICES_CACHE = new_cache
+            _IS_LOADED = True
+            logging.info(f"[MarketCache] Done. Loaded {loaded_count} files, skipped {skipped_count}. Years: {len(new_cache)}")
         
-        logging.info(f"[MarketCache] Loaded {len(new_cache)} years. (RAM Usage: ~100MB)")
-        _PRICES_CACHE = new_cache
-        _IS_LOADED = True
         return _PRICES_CACHE
 
     @classmethod

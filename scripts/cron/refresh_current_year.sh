@@ -40,5 +40,11 @@ else
     exit 1
 fi
 
+# 3. Push to GitHub
+echo "📤 Pushing to GitHub..."
+curl -s -X POST "$API_URL/api/admin/market-data/push" \
+     -H "X-API-KEY: $CRON_SECRET" \
+     -H "Content-Type: application/json" || echo "Push endpoint not available"
+
 echo "🎉 Nightly Refresh Complete."
 echo "---------------------------------------------------"

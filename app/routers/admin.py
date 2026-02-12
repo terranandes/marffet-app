@@ -49,6 +49,7 @@ async def backfill_market_data(
     background_tasks: BackgroundTasks,
     period: str = "max", 
     overwrite: bool = False,
+    push: bool = False,
     user: dict = Depends(get_admin_user)
 ):
     """
@@ -56,11 +57,19 @@ async def backfill_market_data(
     Admin-only.
     """
     # Trigger via CrawlerService to manage background state
-    background_tasks.add_task(CrawlerService.run_universe_backfill, period=period, overwrite=overwrite)
+    background_tasks.add_task(
+        CrawlerService.run_universe_backfill, 
+        period=period, 
+        overwrite=overwrite,
+        push_to_github=push
+    )
+    
+    msg = "Universe Backfill started."
+    if push: msg += " Will push to GitHub upon completion."
     
     return {
         "status": "accepted", 
-        "message": "Universe Backfill started in background. Monitor status via Crawler Status."
+        "message": f"{msg} Monitor status via Crawler Status."
     }
 @router.post("/system/initialize")
 async def manual_initialize(user: dict = Depends(get_admin_user)):
@@ -96,3 +105,21 @@ async def trigger_prewarm_refresh(background_tasks: BackgroundTasks, user: dict 
         
     background_tasks.add_task(run_bg_prewarm)
     return {"message": "Pre-warm Rebuild & Push started in background.", "status": "accepted"}
+
+@router.post("/market-data/push")
+async def force_push_to_github(background_tasks: BackgroundTasks, user: dict = Depends(get_admin_user)):
+    """
+    Trigger immediate push of market data JSON files to GitHub.
+    Admin-only.
+    """
+    background_tasks.add_task(BackupService.refresh_prewarm_data)
+    return {"status": "accepted", "message": "Market data push-to-GitHub started in background."}
+
+@router.post("/market-data/sync-dividends")
+async def trigger_dividend_sync(background_tasks: BackgroundTasks, user: dict = Depends(get_admin_user)):
+    """
+    Trigger Global Dividend Sync (Universe) + GitHub Push.
+    Admin-only.
+    """
+    background_tasks.add_task(BackupService.run_quarterly_dividend_sync)
+    return {"status": "accepted", "message": "Global Dividend Sync started in background."}

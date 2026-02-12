@@ -135,9 +135,9 @@ class CrawlerService:
             cls._is_running = False
 
     @classmethod
-    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False):
+    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False, push_to_github: bool = False):
         """
-        Run the Full Universe Backfill (2000-2023).
+        Run the Full Universe Backfill (2000-Present).
         """
         if cls._is_running:
             return {"status": "skipped", "message": "Another background task is already running"}
@@ -166,9 +166,21 @@ class CrawlerService:
                 progress_callback=progress_hook
             )
             
+            # Step 2: Push to GitHub if requested
+            if push_to_github and result.get("status") != "error":
+                from app.services.backup import BackupService
+                cls._last_message = "Universe Backfill complete. Pushing to GitHub..."
+                push_result = BackupService.refresh_prewarm_data()
+                result["github_push"] = push_result
+                if push_result.get("status") == "success":
+                    cls._last_message = f"Universe Backfill & Push complete. Commit: {push_result.get('commit_sha')}"
+                else:
+                    cls._last_message = f"Universe Backfill complete, but Push failed: {push_result.get('reason')}"
+            else:
+                cls._last_message = "Universe Backfill completed successfully."
+
             cls._last_run_time = datetime.datetime.now(datetime.timezone.utc)
             cls._last_run_status = "success"
-            cls._last_message = "Universe Backfill completed successfully."
             cls._progress_pct = 100
             
             return result

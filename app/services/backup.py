@@ -412,29 +412,39 @@ class BackupService:
     @staticmethod
     async def run_quarterly_dividend_sync():
         """
-        Quarterly scheduled job: Sync ALL dividend data for all users, then backup to GitHub.
+        Quarterly scheduled job: Sync ALL dividend data for all stocks in the universe, then backup to GitHub.
         Scheduled for Jan/Apr/Jul/Oct 1st at 03:00 UTC.
         """
         from app import dividend_cache
+        import pandas as pd
+        from pathlib import Path
         
-        logger.info("[Quarterly Sync] Starting Dividend Sync...")
+        logger.info("[Quarterly Sync] Starting Global Dividend Sync (Universe)...")
         
         try:
-            # 1. Get all stocks
-            with get_db() as conn:
-                stock_ids = target_repo.get_all_unique_stock_ids(conn)
+            # 1. Load All Stocks (Universe)
+            stock_list_path = Path("app/project_tw/stock_list.csv")
+            if stock_list_path.exists():
+                df_stocks = pd.read_csv(stock_list_path)
+                stock_ids = df_stocks['code'].astype(str).tolist()
+                logger.info(f"[Quarterly Sync] Loaded {len(stock_ids)} symbols from stock_list.csv")
+            else:
+                # Fallback to user targets if file missing
+                with get_db() as conn:
+                    stock_ids = target_repo.get_all_unique_stock_ids(conn)
+                logger.warning("[Quarterly Sync] stock_list.csv missing. Falling back to active targets.")
                 
             if not stock_ids:
                 logger.info("[Quarterly Sync] No stocks to sync.")
-                return
+                return {"status": "skipped", "message": "No stocks found"}
             
-            # 2. Sync All
-            # This operations updates the local JSON files in data/dividends/*.json
+            # 2. Sync All (Updates DB + files)
+            # This operations updates the local JSON files in data/raw/TWSE_Dividends_*.json
             result = dividend_cache.sync_all_caches(stock_ids)
             logger.info(f"[Quarterly Sync] Local Sync Result: {result}")
             
             # 3. Backup to GitHub
-            backup_result = BackupService.backup_dividend_cache()
+            backup_result = BackupService.refresh_prewarm_data()
             
             logger.info(f"[Quarterly Sync] Complete. Backup Status: {backup_result.get('status')}")
             return {

@@ -61,6 +61,7 @@ export default function AdminPage() {
     const [monitorPrewarm, setMonitorPrewarm] = useState(false);
     const [hasStartedRunning, setHasStartedRunning] = useState(false);
     const [safeMode, setSafeMode] = useState(true); // Phase 4: Safe Mode for Backfill (default ON)
+    const [pushToGithub, setPushToGithub] = useState(false); // Phase 7: GitHub Push for Backfill
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -265,17 +266,17 @@ export default function AdminPage() {
         }
     };
 
-    // Handle Dividend Sync (Across all users)
+    // Handle Dividend Sync (Universe) - Updated Phase 7
     const handleSyncDividends = async () => {
-        if (!confirm("🔄 Sync Dividends for ALL users' stocks?\nThis will update history and push to GitHub.")) return;
+        if (!confirm("🔄 Sync Dividends for ALL targets in the UNIVERSE?\nThis will update history and push to GitHub.")) return;
         try {
-            const res = await fetch(`${API_BASE}/api/sync/all-users-dividends`, {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/sync-dividends`, {
                 method: 'POST',
                 credentials: 'include'
             });
             const data = await res.json();
             if (res.ok) {
-                alert(`✅ Dividend Sync Success! ${data.message}`);
+                alert(`✅ Global Dividend Sync initiated! ${data.message}`);
             } else {
                 alert(`❌ Sync failed: ${data.detail || data.message || 'Unknown error'}`);
             }
@@ -305,13 +306,14 @@ export default function AdminPage() {
         }
     };
 
-    // Handle Universe Backfill (Phase 4)
+    // Handle Universe Backfill (Phase 4 / Updated Phase 7)
     const handleBackfill = async () => {
         const mode = safeMode ? 'SAFE (Incremental)' : '⚠️ OVERWRITE';
-        if (!confirm(`🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}\nThis will fetch historical Prices + Dividends (2000-Present) for all stocks from Yahoo Finance.\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.`)) return;
+        const pushMsg = pushToGithub ? '\n📤 WILL PUSH TO GITHUB ON COMPLETION' : '';
+        if (!confirm(`🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}${pushMsg}\n\nThis will fetch historical Prices + Dividends (2000-Present) for all stocks from Yahoo Finance.\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.`)) return;
 
         try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}`, {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}&push=${pushToGithub}`, {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -624,22 +626,35 @@ export default function AdminPage() {
                                 🔗 Copy Metrics URL
                             </button>
 
-                            {/* Backfill with Safe Mode Toggle */}
-                            <div className="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-lg border border-white/5">
-                                <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={safeMode}
-                                        onChange={(e) => setSafeMode(e.target.checked)}
-                                        className="w-3 h-3 accent-cyan-500 rounded"
-                                    />
-                                    <span className={safeMode ? 'text-cyan-400' : 'text-orange-400 font-bold'}>
-                                        {safeMode ? '🛡️ Safe Mode' : '⚠️ Overwrite'}
-                                    </span>
-                                </label>
+                            {/* Backfill with Safe Mode & Push Toggle */}
+                            <div className="flex flex-col gap-2 bg-black/40 px-3 py-2 rounded-lg border border-white/5">
+                                <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={safeMode}
+                                            onChange={(e) => setSafeMode(e.target.checked)}
+                                            className="w-3 h-3 accent-cyan-500 rounded"
+                                        />
+                                        <span className={safeMode ? 'text-cyan-400' : 'text-orange-400 font-bold'}>
+                                            {safeMode ? '🛡️ Safe Mode' : '⚠️ Overwrite'}
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={pushToGithub}
+                                            onChange={(e) => setPushToGithub(e.target.checked)}
+                                            className="w-3 h-3 accent-indigo-500 rounded"
+                                        />
+                                        <span className={pushToGithub ? 'text-indigo-400' : 'text-gray-500'}>
+                                            {pushToGithub ? '📤 Push to GitHub' : '🏠 Local Only'}
+                                        </span>
+                                    </label>
+                                </div>
                                 <button
                                     onClick={handleBackfill}
-                                    className="text-[10px] bg-cyan-900 hover:bg-cyan-800 px-3 py-1 rounded border border-cyan-700"
+                                    className="text-[10px] bg-cyan-900 hover:bg-cyan-800 px-3 py-1 rounded border border-cyan-700 w-full"
                                 >
                                     🚀 Universe Backfill (2000+)
                                 </button>

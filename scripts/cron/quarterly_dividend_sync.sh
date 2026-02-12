@@ -22,15 +22,15 @@ API_URL=${API_URL:-http://localhost:8000}
 
 echo "🔄 Triggering Dividend Sync API (if available)..."
 
-# Option 1: Use existing admin endpoint
-RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$API_URL/api/portfolio/sync-dividends" \
+# Option 1: Use the global admin sync endpoint (Universe + Push)
+RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$API_URL/api/admin/market-data/sync-dividends" \
      -H "X-API-KEY: $CRON_SECRET" \
      -H "Content-Type: application/json")
 
 HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
 BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
 
-echo "Response: $BODY"
+echo "Response Body: $BODY"
 
 if [ "$HTTP_STATUS" -eq 200 ]; then
     echo "✅ Dividend Sync Complete."

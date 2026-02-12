@@ -36,7 +36,9 @@ Sign in securely with your **Google Account** to access your personalized portfo
 ## 🛠 Support
 *   **Bugs**: Report to GM.
 *   **Feedback**: Use the "Help & Support" tab in Settings to send feature requests or bug reports.
-*   **Documentation**: Detailed guides available in the App Settings.
+*   **Documentation**: Detailed guides:
+    - [User Guide](./README.md)
+    - [Admin & Operational Guide](./admin_operations.md)
 
 ---
 *Built with ❤️ by the Martian AI Team.*

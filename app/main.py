@@ -5,12 +5,11 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
-import pandas as pd
 import asyncio
 import os
 import sys
 import traceback
-import numpy as np
+# import numpy as np # Lazy Import
 from pathlib import Path
 
 # Get absolute path to project root (parent of app/)
@@ -495,6 +494,7 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
             return SIM_CACHE[cache_key]["data"]
 
         # Load filtered list
+        import pandas as pd
         SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0)
@@ -534,6 +534,9 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
         print(f"[Detail API] Request for {stock_id} ({start_year})")
         # Check Cache (Reuse if exact match)
         cache_key = f"DETAIL_{stock_id}_{start_year}_{principal}_{contribution}"
+        if cache_key in SIM_CACHE:
+            print(f"[Detail] Cache Hit for {stock_id}")
+            return SIM_CACHE[cache_key]
         if cache_key in SIM_CACHE:
             print(f"[Detail] Cache Hit for {stock_id}")
             return SIM_CACHE[cache_key]
@@ -591,6 +594,7 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
 def sanitize_for_json(obj):
     """Recursively convert NaNs to None and Numpy types to Python types"""
     import math
+    # import numpy as np # Lazy Import inside function
     import numpy as np
     
     if isinstance(obj, np.integer):
@@ -630,6 +634,8 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
             # But strictly refactoring this to call `get_results` logic is cleaner, 
             # but to minimize risk, I will duplicate the cache-miss logic but SAVE to cache.
             
+            # Lazy Import
+            import pandas as pd
             SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
             df = pd.read_excel(SOURCE_FILE)
             df = df.fillna(0) # Ensure no NaNs

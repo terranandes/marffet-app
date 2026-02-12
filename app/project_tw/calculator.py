@@ -1,6 +1,6 @@
 
-import pandas as pd
-import numpy as np
+# import pandas as pd # Lazy Import
+# import numpy as np # Lazy Import
 
 # Split Detector for handling stock splits
 try:
@@ -20,7 +20,9 @@ class ROICalculator:
     def __init__(self):
         pass
 
-    def calculate_metrics(self, df: pd.DataFrame):
+    def calculate_metrics(self, df):
+        import pandas as pd
+        import numpy as np
         """
         Calculate key metrics for Mars Strategy:
         1. Annualized Return (CAGR)
@@ -65,7 +67,8 @@ class ROICalculator:
             "data_points": len(df)
         }
 
-    def simulate_dca(self, df: pd.DataFrame, monthly_investment: float):
+    def simulate_dca(self, df, monthly_investment: float):
+        import pandas as pd
         """
         Simulate Dollar Cost Averaging.
         Buy 'monthly_investment' amount on the first trading day of each month.
@@ -108,9 +111,10 @@ class ROICalculator:
             "history": portfolio_history
         }
 
-    def calculate_complex_simulation(self, df: pd.DataFrame, start_year: int, principal: float = 1_000_000, 
+    def calculate_complex_simulation(self, df, start_year: int, principal: float = 1_000_000, 
                                      annual_investment: float = 60_000, dividend_data: dict = None, stock_code: str = "",
                                      buy_logic: str = 'FIRST_CLOSE'):
+        import pandas as pd
         """
         Simulate Mars Strategy: 
         1. Principal 1M (Buy at Year 1).
@@ -283,7 +287,8 @@ class ROICalculator:
         results["history"] = history
         return results
 
-    def calculate_yearly_cumulative_cagr(self, df: pd.DataFrame, start_year: int):
+    def calculate_yearly_cumulative_cagr(self, df, start_year: int):
+        import pandas as pd
         """
         Calculate cumulative CAGR (Compound Annual Growth Rate) from start_year to each year end.
         Output keys: 's{start_year}e{year}bao' (e.g., s2006e2025bao)

@@ -4,7 +4,7 @@ import asyncio
 import json
 import os
 import time
-import pandas as pd
+# import pandas as pd # Lazy Import
 from datetime import datetime, timedelta
 
 class TWSECrawler:
@@ -220,6 +220,7 @@ class TWSECrawler:
         return [r for r in results if r and r.get('stat') == 'OK']
 
     def parse_to_dataframe(self, raw_data_list):
+        import pandas as pd
         """Convert list of TWSE JSON responses to a single Pandas DataFrame"""
         all_rows = []
         for data in raw_data_list:

@@ -1,5 +1,5 @@
 from app.services import market_data_service
-import pandas as pd
+# import pandas as pd # Lazy Import
 import asyncio
 from typing import List, Dict, Any
 
@@ -7,12 +7,14 @@ class NotificationEngine:
     def __init__(self):
         pass
 
-    async def fetch_history(self, ticker: str, period="2y") -> pd.DataFrame:
+    async def fetch_history(self, ticker: str, period="2y") -> Any:
+        import pandas as pd
         """Fetch historical data for SMA calculation"""
         # Clean Code: Use MarketDataService
         return await asyncio.to_thread(market_data_service.fetch_history_series, ticker, period)
 
     async def check_sma_divergence(self, targets: List[Dict]) -> List[Dict]:
+        import pandas as pd
         """
         Strategy A: SMA Pair Rebalancing
         Identify Overvalued (> +20% vs SMA) and Undervalued (< -20% vs SMA).

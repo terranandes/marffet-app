@@ -3,7 +3,7 @@ import asyncio
 import os
 import json
 import datetime
-import pandas as pd
+# import pandas as pd # Lazy Import (already imported locally in fetch_market_prices_batch)
 import time
 
 class TPEXCrawler:

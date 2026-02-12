@@ -1,9 +1,8 @@
 
 import json
 import os
+# import pandas as pd # Lazy Import
 from datetime import datetime, date, timedelta
-from typing import List, Dict, Any, Optional
-import pandas as pd
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
 
@@ -163,6 +162,7 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
     return total_div_cash
 
 def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Dict[str, Any]]:
+    import pandas as pd
     """
     Get monthly portfolio value history.
     months=0 means return ALL data.
@@ -314,6 +314,7 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
 
 def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     """Calculated race data using Trend Strategy."""
+    import pandas as pd
     import calendar
     # Clean Code: logic moved to market_data_service
     
@@ -487,8 +488,9 @@ def get_portfolio_snapshot(user_id: str) -> Dict[str, Any]:
         "holdings": holdings
     }
 
-def _fetch_prices_from_market_cache(stock_ids: List[str]) -> Dict[str, pd.Series]:
+def _fetch_prices_from_market_cache(stock_ids: List[str]) -> Dict[str, Any]:
     """Helper to fetch prices from MarketCache as pd.Series"""
+    import pandas as pd
     results = {}
     for sid in stock_ids:
         # Use fast history (Daily V2 or Yearly V1)

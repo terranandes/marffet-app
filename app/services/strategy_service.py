@@ -1,6 +1,7 @@
 
-import pandas as pd
-import numpy as np
+
+# import pandas as pd # Lazy Import
+# import numpy as np # Lazy Import
 import json
 import logging
 from pathlib import Path
@@ -26,6 +27,8 @@ class MarsStrategy:
         self.crawler = TWSECrawler()
 
     async def analyze(self, stock_ids: List[str], start_year: int = 2006) -> List[Dict[str, Any]]:
+        import pandas as pd
+        # import numpy as np
         """
         Analyze stocks using MarketCache and ROICalculator.
         """
@@ -178,6 +181,7 @@ class MarsStrategy:
         return results
 
     def export_to_excel(self, data: List[Dict]) -> bytes:
+        import pandas as pd
         """
         Export filtered data to Excel binary.
         """

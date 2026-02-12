@@ -3,7 +3,7 @@ import httpx
 import asyncio
 import json
 import os
-import yfinance as yf
+# import yfinance as yf # Lazy Import
 from datetime import datetime
 
 class CBCrawler:
@@ -43,6 +43,7 @@ class CBCrawler:
             return []
 
     async def get_market_data(self, cb_code: str, stock_code: str):
+        import yfinance as yf
         """
         Fetch latest market data for CB and Stock using YFinance.
         Returns tuple (cb_close, stock_close, success)

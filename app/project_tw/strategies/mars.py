@@ -1,6 +1,6 @@
 
 import asyncio
-import pandas as pd
+# import pandas as pd # Lazy Import
 from app.project_tw.crawler import TWSECrawler
 from app.project_tw.crawler_tpex import TPEXCrawler
 from app.project_tw.calculator import ROICalculator
@@ -13,6 +13,7 @@ class MarsStrategy:
         self.top_50 = []
         
     async def analyze_stock_batch(self, stock_codes: list, start_year: int, end_year: int, std_threshold: float = 100.0, status_callback=None):
+        import pandas as pd
         """
         Analyze a batch of stocks concurrently using Market-Wide Batch Data.
         """
@@ -294,6 +295,7 @@ class MarsStrategy:
         return results
 
     def filter_and_rank(self, metrics_list, stock_dict=None):
+        import pandas as pd
         """
         Apply User-Defined Filters:
         1. Ranking: CAGR 2006-2025 (s...bao) - Descending
@@ -402,6 +404,7 @@ class MarsStrategy:
         return self.top_50
 
     def save_to_excel(self, output_path: str):
+        import pandas as pd
         """
         Save the filtered results.
         Format: id, name, id_name_valid_yrs, s...bao...

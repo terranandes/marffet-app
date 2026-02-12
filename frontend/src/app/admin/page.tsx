@@ -227,6 +227,25 @@ export default function AdminPage() {
         alert("Copied to clipboard!");
     };
 
+    // Handle Cache Initialize (Phase 4)
+    const handleInitializeCache = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/system/initialize`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`✅ Cache Initialized! ${data.status === 'ok' ? 'Success' : 'Error: ' + data.error}`);
+                fetchCrawlerStatus();
+            } else {
+                alert(`❌ Initialization failed: ${data.detail || data.error || 'Unknown error'}`);
+            }
+        } catch {
+            alert('❌ Network error during cache initialization.');
+        }
+    };
+
     // Handle Crawl Trigger
     const handleCrawl = async (force: boolean) => {
         const endpoint = `${API_BASE}/api/admin/crawl?key=secret&force=${force}`;
@@ -468,6 +487,13 @@ export default function AdminPage() {
                                 className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
                             >
                                 🔥 Rebuild All (Cold Run)
+                            </button>
+
+                            <button
+                                onClick={handleInitializeCache}
+                                className="bg-green-900/50 hover:bg-green-800 text-white border border-green-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
+                            >
+                                🔋 Initialize Market Cache
                             </button>
                         </div>
                     </div>

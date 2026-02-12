@@ -332,116 +332,113 @@ def _is_valid_number(value) -> bool:
 
 def process_to_cache(
     all_data: Dict[str, pd.DataFrame],
-    output_dir: str = "data/raw"
+    output_dir: str = "data/raw",
+    incremental: bool = False
 ) -> Dict[int, int]:
     """
     Convert yfinance DataFrames into MarketCache JSON format.
     
-    Outputs to data/raw/Market_{Year}_Prices.json
-    Each stock has: id, summary (start/end/high/low/volume/first_open), daily (array of OHLCV)
-    
     Args:
-        all_data: Dict mapping stock code -> DataFrame with OHLCV data
+        all_data: Dict mapping stock code -> DataFrame
         output_dir: Directory to write JSON files
+        incremental: If True, merge with existing data instead of overwriting
         
     Returns:
-        Dict mapping year -> count of stocks processed for that year
+        Dict mapping year -> count of stocks processed
     """
-    logger.info(f"🔄 Processing {len(all_data)} stocks into cache format...")
+    logger.info(f"🔄 Processing {len(all_data)} stocks into cache format (Mode: {'Incremental' if incremental else 'Full'})...")
     start_time = time.time()
     
-    # Organize data by year
-    # Structure: {year: {stock_code: {"id": ..., "summary": ..., "daily": [...]}}}
-    yearly_data: Dict[int, Dict[str, dict]] = {}
-    
-    for code, df in all_data.items():
-        if df.empty:
-            continue
-            
-        # Ensure index is datetime
-        if not isinstance(df.index, pd.DatetimeIndex):
-            df.index = pd.to_datetime(df.index)
-        
-        # Group by year
-        df['year'] = df.index.year
-        
-        for year, year_df in df.groupby('year'):
-            year = int(year)
-            if year not in yearly_data:
-                yearly_data[year] = {}
-            
-            # Build daily OHLCV array
-            daily = []
-            for idx, row in year_df.iterrows():
-                # Handle column names (could be 'Open' or 'open')
-                o = row.get('Open', row.get('open'))
-                h = row.get('High', row.get('high'))
-                l = row.get('Low', row.get('low'))
-                c = row.get('Close', row.get('close'))
-                v = row.get('Volume', row.get('volume'))
-                
-                # Skip if any OHLC is invalid (NaN/None)
-                if not all(_is_valid_number(x) for x in [o, h, l, c]):
-                    continue
-                    
-                daily.append({
-                    "d": idx.strftime("%Y-%m-%d"),
-                    "o": round(float(o), 2) if _is_valid_number(o) else None,
-                    "h": round(float(h), 2) if _is_valid_number(h) else None,
-                    "l": round(float(l), 2) if _is_valid_number(l) else None,
-                    "c": round(float(c), 2) if _is_valid_number(c) else None,
-                    "v": int(v) if _is_valid_number(v) else 0
-                })
-            
-            if not daily:
-                continue
-            
-            # Build summary from daily data
-            opens = [d["o"] for d in daily if d["o"] is not None]
-            highs = [d["h"] for d in daily if d["h"] is not None]
-            lows = [d["l"] for d in daily if d["l"] is not None]
-            closes = [d["c"] for d in daily if d["c"] is not None]
-            volumes = [d["v"] for d in daily if d["v"] is not None]
-            
-            if not opens or not closes:
-                continue
-            
-            summary = {
-                "id": code,
-                "name": code,  # Name not available from yfinance batch
-                "start": opens[0],
-                "end": closes[-1],
-                "high": max(highs) if highs else None,
-                "low": min(lows) if lows else None,
-                "volume": sum(volumes) if volumes else 0,
-                "first_open": opens[0]
-            }
-            
-            yearly_data[year][code] = {
-                "id": code,
-                "summary": summary,
-                "daily": daily
-            }
-    
-    # Write JSON files per year
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
+    # Structure: {year: {stock_code: {"id": ..., "summary": ..., "daily": [...]}}}
+    # We load years as needed if incremental
     year_counts = {}
-    for year, stocks_dict in sorted(yearly_data.items()):
+    
+    # Group stocks by year first for efficiency
+    raw_by_year: Dict[int, Dict[str, pd.DataFrame]] = {}
+    for code, df in all_data.items():
+        if df.empty: continue
+        df['year'] = df.index.year
+        for year, year_df in df.groupby('year'):
+            year = int(year)
+            if year not in raw_by_year: raw_by_year[year] = {}
+            raw_by_year[year][code] = year_df
+
+    for year, stocks_in_year in sorted(raw_by_year.items()):
         file_path = output_path / f"Market_{year}_Prices.json"
+        existing_data = {}
         
-        # Write atomically (write to temp, then rename)
+        if incremental and file_path.exists():
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    existing_data = json.load(f)
+                logger.info(f"   Loaded {len(existing_data)} existing stocks for {year}")
+            except Exception as e:
+                logger.error(f"   Could not load existing {file_path.name}: {e}")
+
+        # Process new data for this year
+        for code, year_df in stocks_in_year.items():
+            daily_new = []
+            for idx, row in year_df.iterrows():
+                o, h, l, c, v = row.get('Open'), row.get('High'), row.get('Low'), row.get('Close'), row.get('Volume')
+                if not all(_is_valid_number(x) for x in [o, h, l, c]): continue
+                daily_new.append({
+                    "d": idx.strftime("%Y-%m-%d"),
+                    "o": round(float(o), 2), "h": round(float(h), 2), "l": round(float(l), 2), "c": round(float(c), 2),
+                    "v": int(v) if _is_valid_number(v) else 0
+                })
+            
+            if not daily_new: continue
+
+            if incremental and code in existing_data:
+                # Merge logic
+                node = existing_data[code]
+                existing_days = {d["d"]: d for d in node.get("daily", [])}
+                
+                # Update/Add days
+                for d in daily_new:
+                    existing_days[d["d"]] = d
+                
+                # Sort by date
+                sorted_days = sorted(existing_days.values(), key=lambda x: x["d"])
+                node["daily"] = sorted_days
+                
+                # Re-calculate summary based on FULL history
+                h_list = [d["h"] for d in sorted_days]
+                l_list = [d["l"] for d in sorted_days]
+                v_list = [d["v"] for d in sorted_days]
+                
+                node["summary"] = {
+                    "id": code,
+                    "name": node["summary"].get("name", code),
+                    "start": sorted_days[0]["o"],
+                    "end": sorted_days[-1]["c"],
+                    "high": max(h_list),
+                    "low": min(l_list),
+                    "volume": sum(v_list),
+                    "first_open": sorted_days[0]["o"]
+                }
+            else:
+                # New entry
+                summary = {
+                    "id": code, "name": code,
+                    "start": daily_new[0]["o"], "end": daily_new[-1]["c"],
+                    "high": max(d["h"] for d in daily_new), "low": min(d["l"] for d in daily_new),
+                    "volume": sum(d["v"] for d in daily_new), "first_open": daily_new[0]["o"]
+                }
+                existing_data[code] = {"id": code, "summary": summary, "daily": daily_new}
+
+        # Write year file
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(stocks_dict, f, ensure_ascii=False, separators=(',', ':'))
+            json.dump(existing_data, f, ensure_ascii=False, separators=(',', ':'))
         
-        year_counts[year] = len(stocks_dict)
-        logger.info(f"📁 Wrote {file_path.name}: {len(stocks_dict)} stocks")
-    
+        year_counts[year] = len(existing_data)
+        logger.info(f"📁 Updated {file_path.name}: {len(existing_data)} stocks")
+
     total_time = time.time() - start_time
-    logger.info(f"✨ Cache processing completed in {total_time:.1f}s")
-    logger.info(f"📊 Years processed: {len(year_counts)}, Total stock-years: {sum(year_counts.values())}")
-    
+    logger.info(f"✨ Processing complete in {total_time:.1f}s")
     return year_counts
 
 
@@ -453,27 +450,59 @@ async def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Ultra-Fast Market Data Crawler")
+    parser.add_argument("--mode", type=str, default="full", choices=["full", "incremental"], help="Run mode (full rebuild or incremental supplement)")
+    parser.add_argument("--days", type=int, default=7, help="Days to fetch for incremental mode (default: 7)")
     parser.add_argument("--start-year", type=int, default=2000, help="Start year (default: 2000)")
     parser.add_argument("--end-year", type=int, default=None, help="End year (default: current year)")
     parser.add_argument("--sample", action="store_true", help="Run sample test only (10 stocks)")
+    parser.add_argument("--tickers", type=str, default=None, help="Comma-separated list of stock codes to process (e.g. 2330,0050)")
     parser.add_argument("--output-dir", type=str, default="data/raw", help="Output directory")
     args = parser.parse_args()
     
+    is_incremental = args.mode == "incremental"
     end_year = args.end_year or pd.Timestamp.now().year
-    start_date = f"{args.start_year}-01-01"
-    end_date = f"{end_year}-12-31"
     
+    if is_incremental:
+        # In incremental mode, we only care about the last N days
+        # This usually only affects the current year (unless it's Jan 1st)
+        start_date = (pd.Timestamp.now() - pd.Timedelta(days=args.days)).strftime("%Y-%m-%d")
+        end_date = pd.Timestamp.now().strftime("%Y-%m-%d")
+        start_year_to_process = pd.Timestamp(start_date).year
+    else:
+        start_date = f"{args.start_year}-01-01"
+        end_date = None
+        start_year_to_process = args.start_year
+
     logger.info("=" * 60)
-    logger.info("🚀 ULTRA-FAST MARKET DATA CRAWLER")
+    logger.info(f"🚀 ULTRA-FAST MARKET DATA CRAWLER (Mode: {args.mode.upper()})")
+    if is_incremental:
+        logger.info(f"🕒 Supplemental window: {start_date} to today ({args.days} days)")
     logger.info("=" * 60)
     total_start = time.time()
     
     # Task 1: Fetch stock universe
     logger.info("\n📋 TASK 1: Fetching Stock Universe...")
-    twse, tpex = await fetch_stock_universe()
     
-    if len(twse) < 100 or len(tpex) < 100:
-        logger.error("❌ Universe fetch failed. Aborting.")
+    if args.tickers:
+        logger.info(f"🎯 Using filtered tickers from command line: {args.tickers}")
+        filter_list = [t.strip() for t in args.tickers.split(",") if t.strip()]
+        # We still need to know which market they belong to for suffixes (.TW vs .TWO)
+        # Fetching universe full list is fast enough for this check
+        twse_full, tpex_full = await fetch_stock_universe()
+        twse = [t for t in filter_list if t in twse_full]
+        tpex = [t for t in filter_list if t in tpex_full]
+        
+        # Handle case where ticker is not in ISIN list (might be newer or delisted but still in DB)
+        # We'll assume TWSE as default or try both suffixes in Task 2
+        missing_from_isin = [t for t in filter_list if t not in twse and t not in tpex]
+        if missing_from_isin:
+            logger.warning(f"⚠️ {len(missing_from_isin)} tickers not found in ISIN list, will attempt TWSE suffix: {missing_from_isin}")
+            twse.extend(missing_from_isin)
+    else:
+        twse, tpex = await fetch_stock_universe()
+        
+    if len(twse) < 1 and len(tpex) < 1:
+        logger.error("❌ No tickers to process. Aborting.")
         return
     
     logger.info(f"✅ Task 1 Complete: {len(twse)} TWSE + {len(tpex)} TPEx = {len(twse) + len(tpex)} total stocks")
@@ -481,13 +510,17 @@ async def main():
     # Task 2 & 3: Process Year by Year
     overall_year_counts = {}
     
-    for year in range(args.start_year, end_year + 1):
+    for year in range(start_year_to_process, end_year + 1):
         logger.info(f"\n" + "="*40)
         logger.info(f"📅 PROCESSING YEAR {year}")
         logger.info("="*40)
         
-        current_start = f"{year}-01-01"
-        current_end = f"{year}-12-31"
+        if is_incremental:
+            current_start = start_date
+            current_end = end_date
+        else:
+            current_start = f"{year}-01-01"
+            current_end = f"{year}-12-31"
         
         # Download
         if args.sample:
@@ -507,7 +540,7 @@ async def main():
         
         # Process to cache
         logger.info(f"🔄 Processing {year} to Cache Format...")
-        counts = process_to_cache(all_data, output_dir=args.output_dir)
+        counts = process_to_cache(all_data, output_dir=args.output_dir, incremental=is_incremental)
         overall_year_counts.update(counts)
         
         logger.info(f"💾 Saved {year} data.")

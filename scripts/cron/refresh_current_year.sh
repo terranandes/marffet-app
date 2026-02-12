@@ -7,10 +7,10 @@ echo "---------------------------------------------------"
 echo "🕒 Starting Nightly Refresh: $(date)"
 echo "📂 Working Directory: $(pwd)"
 
-# 1. Run Crawler for current year (2026) in foreground
-# Using the production runner updated to support --foreground
-echo "🕷️  Running Crawler for 2026..."
-./scripts/ops/run_crawler_prod.sh --foreground 2026 2026
+# 1. Run Smart Supplemental Crawler
+# This targets active portfolio stocks + top universe using incremental logic
+echo "🕷️  Running Smart Supplemental Refresh..."
+uv run python scripts/cron/supplement_prices.py
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then

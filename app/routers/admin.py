@@ -1,3 +1,4 @@
+from typing import Optional, Callable
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from app.auth import get_admin_user, get_current_user, GM_EMAILS
 from app.services.market_cache import MarketCache
@@ -50,7 +51,7 @@ async def backfill_market_data(
     period: str = "max", 
     overwrite: bool = False,
     push: bool = False,
-    deep: bool = False,
+    deep: Optional[bool] = Query(None),
     user: dict = Depends(get_admin_user)
 ):
     """

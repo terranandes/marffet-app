@@ -1,3 +1,4 @@
+from typing import Optional
 import asyncio
 import os
 import glob
@@ -137,7 +138,7 @@ class CrawlerService:
             cls._is_running = False
 
     @classmethod
-    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False, push_to_github: bool = False, include_warrants: bool = False):
+    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False, push_to_github: bool = False, include_warrants: Optional[bool] = None):
         """
         Run the Full Universe Backfill (2000-Present).
         """

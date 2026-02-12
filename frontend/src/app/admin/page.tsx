@@ -64,6 +64,14 @@ export default function AdminPage() {
     const [pushToGithub, setPushToGithub] = useState(false); // Phase 7: GitHub Push for Backfill
     const [deepUniverse, setDeepUniverse] = useState(false); // Deep Universe (Include Warrants)
 
+    // Set initial Deep Universe default based on environment
+    useEffect(() => {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+            setDeepUniverse(true);
+        }
+    }, []);
+
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
         setLoadingMetrics(true);

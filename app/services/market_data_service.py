@@ -637,6 +637,7 @@ def _save_json_safe(fpath: Path, data: dict):
         print(f"[MarketData] Error saving {fpath.name}: {e}")
 
 def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[callable] = None) -> dict:
+    if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
     """

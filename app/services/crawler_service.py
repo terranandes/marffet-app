@@ -145,7 +145,7 @@ class CrawlerService:
         cls._is_running = True
         cls._last_run_status = "running"
         cls._last_message = "Universe Backfill initiated..."
-        cls._progress_pct = 0
+        cls._progress_pct = 1 # Start at 1%
         import datetime
         cls._start_time = datetime.datetime.now(datetime.timezone.utc)
         

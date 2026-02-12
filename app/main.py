@@ -20,7 +20,7 @@ load_dotenv()
 from app.project_tw.strategies.cb import CBStrategy
 from app.project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
-from app.auth import router as auth_router, get_current_user
+from app.auth import router as auth_router, get_current_user, get_admin_user
 from app.database import get_db, init_db
 from app.services.portfolio_service import (
     get_all_targets_by_type, 

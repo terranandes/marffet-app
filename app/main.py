@@ -49,14 +49,16 @@ async def lifespan(app: FastAPI):
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 MarketCache - LAZY LOAD ONLY (Safety Mode)
-        # We process start failed with threads, so we rely on manual trigger.
-        # POST /api/admin/system/initialize to warm up.
-        import app.services.market_cache as mc
+        # 1.5 MarketCache - BACKGROUND AUTO-LOAD
+        # We start this in the background so lifespan can complete immediately,
+        # preventing 502/timeouts on Zeabur.
+        import asyncio
+        from app.services.market_cache import MarketCache
+        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True))
+        
         global _STARTUP_RAN
         _STARTUP_RAN = True
-        print("[Startup] MarketCache: Skipping pre-warm. Use /api/admin/system/initialize")
-        mc._IS_LOADED = False  # Explicitly set false
+        print("[Startup] MarketCache: Background auto-load initiated.")
         
         # THREAD DISABLED due to 502/Crash suspicion
         # def background_warmup(): ...

@@ -195,11 +195,18 @@ def init_db():
                 title TEXT NOT NULL,
                 message TEXT NOT NULL,
                 is_read BOOLEAN DEFAULT 0,
+                link TEXT, -- URL link for notification action
                 target_id TEXT, -- Optional link to stock
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+
+        # Migration: Add link column to notifications (for existing DBs)
+        try:
+            cursor.execute("ALTER TABLE notifications ADD COLUMN link TEXT")
+        except:
+            pass  # Column already exists
         
         # Migration: Add subscription_tier to users
         try:

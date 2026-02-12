@@ -137,7 +137,7 @@ class CrawlerService:
             cls._is_running = False
 
     @classmethod
-    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False, push_to_github: bool = False):
+    async def run_universe_backfill(cls, period: str = "max", overwrite: bool = False, push_to_github: bool = False, include_warrants: bool = False):
         """
         Run the Full Universe Backfill (2000-Present).
         """
@@ -164,7 +164,8 @@ class CrawlerService:
                 backfill_all_stocks, 
                 period=period, 
                 overwrite=overwrite, 
-                progress_callback=progress_hook
+                progress_callback=progress_hook,
+                include_warrants=include_warrants
             )
             
             # Check for error from service

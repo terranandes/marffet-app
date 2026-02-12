@@ -62,6 +62,7 @@ export default function AdminPage() {
     const [hasStartedRunning, setHasStartedRunning] = useState(false);
     const [safeMode, setSafeMode] = useState(true); // Phase 4: Safe Mode for Backfill (default ON)
     const [pushToGithub, setPushToGithub] = useState(false); // Phase 7: GitHub Push for Backfill
+    const [deepUniverse, setDeepUniverse] = useState(false); // Deep Universe (Include Warrants)
 
     // Fetch Metrics
     const fetchMetrics = useCallback(async () => {
@@ -313,7 +314,7 @@ export default function AdminPage() {
         if (!confirm(`🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}${pushMsg}\n\nThis will fetch historical Prices + Dividends (2000-Present) for all stocks from Yahoo Finance.\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.`)) return;
 
         try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}&push=${pushToGithub}`, {
+            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}&push=${pushToGithub}&deep=${deepUniverse}`, {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -649,6 +650,17 @@ export default function AdminPage() {
                                         />
                                         <span className={pushToGithub ? 'text-indigo-400 font-bold' : 'text-gray-500'}>
                                             {pushToGithub ? '📤 Push to GitHub (Remote)' : '🏠 Zeabur Local Only'}
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={deepUniverse}
+                                            onChange={(e) => setDeepUniverse(e.target.checked)}
+                                            className="w-3 h-3 accent-purple-500 rounded"
+                                        />
+                                        <span className={deepUniverse ? 'text-purple-400 font-bold' : 'text-gray-500'}>
+                                            {deepUniverse ? '🌌 Deep Universe (Incl. Warrants)' : '🔭 Smart Universe (Stocks/ETFs)'}
                                         </span>
                                     </label>
                                 </div>

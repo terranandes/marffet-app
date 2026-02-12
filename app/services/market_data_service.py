@@ -643,7 +643,7 @@ def _save_json_safe(fpath: Path, data: dict):
     except Exception as e:
         print(f"[MarketData] Error saving {fpath.name}: {e}")
 
-def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None) -> dict:
+def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None) -> dict:
     if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
@@ -657,6 +657,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         period: yfinance period (max, 10y, etc)
         overwrite: If False, skip existing ticker/year entries to preserve manual patches.
         progress_callback: Optional function(message, percentage) for real-time tracking.
+        include_warrants: If True, includes short-lived warrants (6-digit code, nan industry).
+                         If None, uses environment default (True locally, False on cloud).
     """
     # 1. Load Stock List
     base_dir = Path(__file__).parent.parent # app/
@@ -693,7 +695,11 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         # 48,000+ total items include ~45,000 Warrants (6-digits, nan industry).
         # Warrants are short-lived derivatives and NOT needed for core Mars strategy.
         # Removing them ensures stability (2,500 vs 50,000 stocks) without losing completeness.
-        if IS_CLOUD and len(code) == 6 and industry == 'nan':
+        
+        # Environment default: Include warrants locally, exclude on cloud if not explicitly requested.
+        effective_warrant_flag = include_warrants if include_warrants is not None else (not IS_CLOUD)
+        
+        if not effective_warrant_flag and len(code) == 6 and industry == 'nan':
             continue
              
         

@@ -50,6 +50,7 @@ async def backfill_market_data(
     period: str = "max", 
     overwrite: bool = False,
     push: bool = False,
+    deep: bool = False,
     user: dict = Depends(get_admin_user)
 ):
     """
@@ -61,7 +62,8 @@ async def backfill_market_data(
         CrawlerService.run_universe_backfill, 
         period=period, 
         overwrite=overwrite,
-        push_to_github=push
+        push_to_github=push,
+        include_warrants=deep
     )
     
     msg = "Universe Backfill started."

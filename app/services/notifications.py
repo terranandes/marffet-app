@@ -25,7 +25,10 @@ class NotificationEngine:
         low_candidates = []
         
         for target in targets:
-            symbol = target['id']
+            symbol = target.get('stock_id') or target.get('id')
+            # Skip if still a UUID or invalid
+            if not symbol or '-' in symbol or len(symbol) > 10:
+                continue
             hist = await self.fetch_history(symbol)
             if hist.empty or len(hist) < 250:
                 continue
@@ -83,7 +86,10 @@ class NotificationEngine:
         
         # 1. Fetch Caps and Prices
         for target in targets:
-            symbol = target['id']
+            symbol = target.get('stock_id') or target.get('id')
+            if not symbol or '-' in symbol or len(symbol) > 10:
+                continue
+            
             # ... (suffix logic same as above, can refactor) ...
             if not (symbol.endswith('.TW') or symbol.endswith('.TWO')):
                 symbol += '.TW'

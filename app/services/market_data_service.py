@@ -575,13 +575,19 @@ def get_cached_prices_batch(stock_ids: list, start_date: str = None) -> Dict[str
     return results
 
 def fetch_history_series(ticker: str, period: str = "1y") -> Any:
+    import yfinance as yf
     """
     Fetch historical data for a ticker.
     Used by NotificationEngine for SMA calculations.
     """
     try:
+        # Check if it's a valid ticker format (e.g. 4-6 chars + .TW/.TWO or just digits)
+        # Avoid UUIDs or session IDs
+        if '-' in ticker or len(ticker) > 20:
+             return pd.DataFrame()
+
         if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
-             if len(ticker) == 4 and ticker.isdigit(): ticker += '.TW'
+             if len(ticker) >= 4 and ticker[:4].isdigit(): ticker += '.TW'
         
         t = yf.Ticker(ticker)
         return t.history(period=period)
@@ -673,7 +679,12 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
          return {"status": "error", "message": "CSV missing 'market_type' column"}
 
     for _, row in df.iterrows():
-        code = row['code']
+        code = str(row['code']).strip()
+        # Validation: Stock codes are usually 4-6 digits, ETFs 5-6 digits.
+        # Avoid any UUIDs, session IDs, or long metadata strings.
+        if not (code.isdigit() or (len(code) >= 4 and len(code) <= 8)):
+             continue
+             
         mtype = str(row.get('market_type', '')).strip()
         
         if mtype == 'Listed':
@@ -706,16 +717,51 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     original_code_map = {t[0]: t[2] for t in tasks}
     all_tickers = [t[0] for t in tasks]
     
-    # CRITICAL STABILITY TUNING:
-    # CHUNK_SIZE=50 caused OOM/Silent Crash at ~11% on Zeabur.
-    # Reducing to 10 and adding GC to ensuring stability.
-    CHUNK_SIZE = 10 
+    # CRITICAL STABILITY TUNING (ULTRA-STABILITY MODE):
+    # CHUNK_SIZE=50 and 10 still caused OOM/Silent Crash on Zeabur (512MB RAM).
+    # Reducing to 1 and adding aggressive GC to ensure 100% completion.
+    CHUNK_SIZE = 1 
     total_tickers = len(all_tickers)
     results = {}     # year -> market -> code -> data (New prices)
     div_results = {} # year -> code -> data (New dividends)
 
     import time
     import gc
+
+    def flush_results(results_to_save, div_results_to_save):
+        """Helper to save current batch and clear memory."""
+        if not results_to_save and not div_results_to_save: return
+        print(f"[Backfill] Flushing {len(results_to_save)} years of buffered data to disk...")
+        # Save Prices
+        for year, markets in results_to_save.items():
+            for m_name, new_market_data in markets.items():
+                if not new_market_data: continue
+                prefix = "TPEx_" if m_name == 'TPEx' else ""
+                fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
+                existing_data = {}
+                if fpath.exists():
+                    try:
+                        with open(fpath, 'r') as f: existing_data = json.load(f)
+                    except: pass
+                merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
+                _save_json_safe(fpath, merged)
+        # Save Dividends
+        for year, new_div_data in div_results_to_save.items():
+            if not new_div_data: continue
+            fpath = out_dir / f"TWSE_Dividends_{year}.json"
+            existing_data = {}
+            if fpath.exists():
+                try:
+                    with open(fpath, 'r') as f: existing_data = json.load(f)
+                except: pass
+            merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
+            _save_json_safe(fpath, merged)
+        results_to_save.clear()
+        div_results_to_save.clear()
+        gc.collect()
+
+    SAVE_INTERVAL = 20 # Save every 20 tickers
+    processed_in_buffer = 0
 
     for i in range(0, total_tickers, CHUNK_SIZE):
         chunk = all_tickers[i:i+CHUNK_SIZE]
@@ -786,68 +832,23 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                         results[year][market][code] = {"daily": daily_data, "summary": summary}
                     except: pass
 
+                processed_in_buffer += 1
+            
+            # Check if we should flush to disk
+            if processed_in_buffer >= SAVE_INTERVAL:
+                flush_results(results, div_results)
+                processed_in_buffer = 0
+
         except Exception as e:
             print(f"[Backfill] Chunk Error: {e}")
         
-        # Explicit GC to free memory
+        # Explicit GC to free memory after EVERY batch/stock
         del data
         gc.collect()
-        
-        if i + CHUNK_SIZE < total_tickers:
-            import time
-            time.sleep(1)
+        time.sleep(0.5)
 
-    # 5. On-Demand Merging and Saving (Memory Efficient)
-    print(f"[Backfill] Saving merged data...")
-    if progress_callback: progress_callback("Saving results...", 95)
+    # 5. Final Flush
+    flush_results(results, div_results)
     
-    saved_count = 0
-    # Save Prices
-    years = sorted(list(results.keys()))
-    for year in years:
-        markets = results[year]
-        if progress_callback: progress_callback(f"Saving data for {year}...", 96)
-        
-        for m_name, new_market_data in markets.items():
-            if not new_market_data: continue
-            
-            prefix = "TPEx_" if m_name == 'TPEx' else ""
-            fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
-            
-            # Load existing just for this file
-            existing_data = {}
-            if fpath.exists():
-                try:
-                    with open(fpath, 'r') as f:
-                        existing_data = json.load(f)
-                except: pass
-            
-            # Merge
-            merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
-            if _save_json_safe(fpath, merged):
-                saved_count += 1
-
-    # Save Dividends
-    for year, new_div_data in div_results.items():
-        if not new_div_data: continue
-        
-        fpath = out_dir / f"TWSE_Dividends_{year}.json"
-        
-        # Load existing
-        existing_data = {}
-        if fpath.exists():
-            try:
-                with open(fpath, 'r') as f:
-                    existing_data = json.load(f)
-            except: pass
-            
-        merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
-        if _save_json_safe(fpath, merged):
-            saved_count += 1
-
-    return {
-        "status": "ok", 
-        "stocks_processed": total_tickers, 
-        "years_updated": sorted(list(results.keys())),
-        "files_saved": saved_count
-    }
+    if progress_callback: progress_callback("Backfill complete!", 100)
+    return {"status": "ok", "stocks_processed": total_tickers}

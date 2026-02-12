@@ -46,9 +46,20 @@ async def lifespan(app: FastAPI):
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 MarketCache - LAZY LOAD (Skip pre-warming to prevent Zeabur startup timeout)
-        # The cache will be loaded on first API request instead
-        print("[Startup] MarketCache will load lazily on first request (Zeabur timeout fix)")
+        # 1.5 MarketCache - Attempt Pre-warm (OOM Resilient)
+        # We previously skipped this, but now we have OOM protection.
+        import app.services.market_cache as mc
+        global _STARTUP_RAN
+        _STARTUP_RAN = True
+        
+        try:
+            print("[Startup] Pre-warming MarketCache...")
+            mc.MarketCache.get_prices_db()
+            print(f"[Startup] MarketCache Initialized. Loaded: {mc._IS_LOADED}")
+        except BaseException as e:
+            print(f"[Startup] MarketCache Init Warning (OOM?): {e}")
+            # Ensure IS_LOADED is True so we don't block
+            mc._IS_LOADED = True
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -248,7 +259,7 @@ async def debug_cache_info():
         files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
     
     return {
-        "build": "1.0.2",
+        "build": "1.0.3",
         "startup_ran": _STARTUP_RAN,
         "base_dir": str(base_dir),
         "data_dir": str(data_dir),
@@ -1413,38 +1424,24 @@ async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict
 async def root():
     return JSONResponse({"status": "ok", "service": "Martian API", "docs": "/docs"})
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize core services on startup."""
-    import app.services.market_cache as mc
-    import logging
-    import traceback
-    
-    # Pre-warm Market Cache
-    global _STARTUP_RAN
-    _STARTUP_RAN = True
-    try:
-        data_dir = mc.MarketCache.DATA_DIR
-        logging.info(f"[Startup] Pre-warming MarketCache... DATA_DIR={data_dir}, exists={data_dir.exists()}")
-        
-        if data_dir.exists():
-            files = list(data_dir.glob("Market_*_Prices.json"))
-            logging.info(f"[Startup] Found {len(files)} Market price files.")
-        
-        mc.MarketCache.get_prices_db()
-        logging.info(f"[Startup] MarketCache Ready. _IS_LOADED={mc._IS_LOADED}")
-    except BaseException as e:
-        logging.error(f"[Startup] MarketCache Init Failed: {type(e).__name__}: {e}")
-        logging.error(traceback.format_exc())
-        # Still mark as loaded (empty) so UI doesn't get stuck in 'Warming up' forever
-        mc._IS_LOADED = True
-        logging.info("[Startup] Forced _IS_LOADED=True to prevent UI freeze.")
+# Startup event removed - Logic moved to lifespan context manager at top of file
+
 
 if __name__ == "__main__":
     import uvicorn
     # Use 0.0.0.0 to make it accessible if needed, or 127.0.0.1 for local
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
 # ---------------- Admin / System ----------------
+
+@app.post("/api/admin/system/initialize")
+async def manual_initialize(user: dict = Depends(get_admin_user)):
+    """Manually trigger MarketCache loading if startup failed."""
+    import app.services.market_cache as mc
+    try:
+        mc.MarketCache.get_prices_db(force_reload=True)
+        return {"status": "ok", "loaded": mc._IS_LOADED, "years": len(mc._PRICES_CACHE)}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 @app.post("/api/admin/backup")
 async def trigger_backup(user: dict = Depends(get_current_user)):

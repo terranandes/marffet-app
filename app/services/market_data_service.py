@@ -717,7 +717,10 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         
         if progress_callback:
             pct = 10 + int((i / total_tickers) * 80)
-            progress_callback(f"Fetching history for {len(chunk)} stocks...", pct)
+            batch = (i // CHUNK_SIZE) + 1
+            total_batches = (total_tickers + CHUNK_SIZE - 1) // CHUNK_SIZE
+            first = chunk[0]
+            progress_callback(f"Batch {batch}/{total_batches}: Fetching {period} history for {first}...", pct)
         
         try:
             # Download with actions=True

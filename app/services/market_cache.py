@@ -19,23 +19,39 @@ class MarketCache:
     END_YEAR = datetime.datetime.now().year
 
     @classmethod
-    def get_prices_db(cls, force_reload: bool = False) -> Dict[int, Dict[str, Any]]:
+    def get_prices_db(cls, force_reload: bool = False, incremental: bool = False) -> Dict[int, Dict[str, Any]]:
         """
         Returns the Prices Database: { Year: { StockID: {Start, End, High, Low...} } }
         Lazy loads heavily on first call.
+        
+        Args:
+            force_reload: Re-read all files even if cache is loaded.
+            incremental: If True, sleep between years to avoid spiking memory/CPU (Cloud safety).
         """
         global _PRICES_CACHE, _IS_LOADED
+        import os
+        import time
 
         if _IS_LOADED and not force_reload:
             return _PRICES_CACHE
+        
+        IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
 
-        logging.info("[MarketCache] Warming up... Loading price data into memory.")
-        new_cache = {}
+        logging.info(f"[MarketCache] Warming up... Loading price data. (Cloud={IS_CLOUD}, Incremental={incremental})")
+        
+        # Don't overwrite the global cache until we are finished to avoid partial state during web requests
+        # UNLESS it's a force_reload or first load, in which case we populate _PRICES_CACHE directly
+        # but for background warmup, we can build it incrementally.
+        
         loaded_count = 0
         skipped_count = 0
 
         try:
-            for year in range(cls.START_YEAR, cls.END_YEAR + 1):
+            # We iterate year by year. If incremental, we sleep 2 seconds between years to give GC time.
+            for year in range(cls.END_YEAR, cls.START_YEAR - 1, -1): # Start from newest year (most relevant)
+                if year in _PRICES_CACHE and not force_reload:
+                    continue
+                    
                 year_data = {}
                 
                 # 1. Main Market
@@ -60,14 +76,20 @@ class MarketCache:
                         logging.error(f"[MarketCache] Error loading {tpex_file}: {type(e).__name__}: {e}")
                         skipped_count += 1
                 
-                new_cache[year] = year_data
+                if year_data:
+                    _PRICES_CACHE[year] = year_data
+                
+                # Cloud Safety: Stun the load to avoid 512MB RAM ceiling
+                if incremental and IS_CLOUD:
+                    time.sleep(1.0) # 1 sec gap between years for GC
+                    import gc
+                    gc.collect()
+
+            _IS_LOADED = True
+            logging.info(f"[MarketCache] Done. Loaded {loaded_count} files, skipped {skipped_count}. Total Years: {len(_PRICES_CACHE)}")
+            
         except BaseException as e:
             logging.error(f"[MarketCache] Fatal error during cache load: {type(e).__name__}: {e}")
-        finally:
-            # ALWAYS set loaded, even if partially loaded or failed
-            _PRICES_CACHE = new_cache
-            _IS_LOADED = True
-            logging.info(f"[MarketCache] Done. Loaded {loaded_count} files, skipped {skipped_count}. Years: {len(new_cache)}")
         
         return _PRICES_CACHE
 

@@ -53,12 +53,16 @@ async def lifespan(app: FastAPI):
         # We start this in the background so lifespan can complete immediately,
         # preventing 502/timeouts on Zeabur.
         import asyncio
+        import os
         from app.services.market_cache import MarketCache
-        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True))
+        
+        # Cloud Safety: Use incremental loading to avoid memory spikes
+        IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
+        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True, incremental=IS_CLOUD))
         
         global _STARTUP_RAN
         _STARTUP_RAN = True
-        print("[Startup] MarketCache: Background auto-load initiated.")
+        print(f"[Startup] MarketCache: Background auto-load initiated. (Incremental={IS_CLOUD})")
         
         # THREAD DISABLED due to 502/Crash suspicion
         # def background_warmup(): ...

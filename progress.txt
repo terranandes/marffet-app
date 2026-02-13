@@ -3,3 +3,4 @@ Task 3: MarketDataProvider (Read Layer) - Completed. Created app/services/market
 Task 4: Rewrite Backfill Writer - Completed. Modified app/services/market_data_service.py to write directly to DuckDB in batches. Removed JSON merging logic and atomic save helpers.
 Task 5: Update Calculation Service (Trend + Race + Portfolio) - Completed. Replaced MarketCache with MarketDataProvider, updated dividend fallback to use DuckDB, and optimized price fetching with monthly closes.
 Task 2: JSON → DuckDB Migration Script - Completed. Created script with V1/V2 support and idempotency. Migration is currently running.
+Task 6: Update Strategy Service (Mars + CB) - Completed. Replaced MarketCache with MarketDataProvider for history and latest price. Moved dividend fetching to DuckDB and optimized Mars Strategy with daily high-resolution data.

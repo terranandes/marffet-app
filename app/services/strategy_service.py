@@ -8,12 +8,12 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from io import BytesIO
 import asyncio
+from datetime import datetime
 
 # Import existing Services/Crawlers
-from app.services.market_cache import MarketCache
+from app.services.market_data_provider import MarketDataProvider
 from app.services.roi_calculator import ROICalculator
 from app.project_tw.crawler_cb import CBCrawler
-from app.project_tw.crawler import TWSECrawler
 
 # Setup Logging
 logger = logging.getLogger(__name__)
@@ -23,98 +23,88 @@ class MarsStrategy:
         self.calculator = ROICalculator()
         self.data_dir = Path("data/raw")
         self.top_50 = []
-        # Instantiate crawler for Dividend Data
-        self.crawler = TWSECrawler()
+        # Dividends are now fetched from MarketDataProvider (DuckDB)
 
     async def analyze(self, stock_ids: List[str], start_year: int = 2006) -> List[Dict[str, Any]]:
         import pandas as pd
         # import numpy as np
         """
-        Analyze stocks using MarketCache and ROICalculator.
+        Analyze stocks using MarketDataProvider and ROICalculator.
         """
         # 1. Auto-Detect Universe if needed
         if not stock_ids or stock_ids == ["ALL"]:
-            db = MarketCache.get_prices_db()
-            if db:
-                last_year = max(db.keys())
-                stock_ids = sorted(list(db[last_year].keys()))
-                logger.info(f"Auto-detected {len(stock_ids)} stocks from MarketCache.")
+            stock_ids = MarketDataProvider.get_stock_list()
+            if stock_ids:
+                logger.info(f"Auto-detected {len(stock_ids)} stocks from DuckDB.")
             else:
-                logger.warning("MarketCache is empty. Cannot auto-detect stocks.")
+                logger.warning("DuckDB is empty. Cannot auto-detect stocks.")
                 return []
 
         results = []
         end_year = 2025 # Default or current year
         years = list(range(start_year, end_year + 1))
         
-        # 2. Fetch Dividends (Async Parallel)
-        logger.info(f"Fetching dividends for {len(years)} years...")
-        dividend_data = {} # {year: {code: {'cash': x, 'stock': y}}}
+        # 2. Dividend Data fetching (now from DuckDB)
+        logger.info(f"Using DuckDB for market data and dividends...")
         
-        # We can fetch all years in parallel
-        tasks = [self.crawler.fetch_ex_rights_history(y) for y in years]
-        try:
-            div_results = await asyncio.gather(*tasks)
-            for i, y_data in enumerate(div_results):
-                year = years[i]
-                if y_data:
-                    dividend_data[year] = y_data
-        except Exception as e:
-            logger.error(f"Error fetching dividends: {e}")
-            # Continue without dividends (only patches will apply)
-        
+        # Load patches once before loop
+        if not hasattr(self, 'dividend_patches'):
+            try:
+                patch_file = self.data_dir.parent / "dividend_patches.json"
+                if patch_file.exists():
+                    with open(patch_file, 'r') as f:
+                        self.dividend_patches = json.load(f)
+                else:
+                    self.dividend_patches = {}
+            except Exception as e:
+                logger.error(f"Error loading dividend patches: {e}")
+                self.dividend_patches = {}
+
         logger.info(f"Processing {len(stock_ids)} stocks...")
         
         for code in stock_ids:
             try:
-                # 3. Fetch History from MarketCache (Hybrid: RAM + SQLite Fallback)
-                # Mars Strategy needs ~20 years history, which might not be in RAM on Cloud.
-                history_list = MarketCache.get_strategy_history(code, start_year)
+                # 3. Fetch History from MarketDataProvider (DuckDB)
+                # Mars Strategy needs daily data for high-resolution volatility.
+                history_raw = MarketDataProvider.get_daily_history(code, start_date=f"{start_year}-01-01")
+                if not history_raw:
+                    continue
+                
+                # Transform to format expected by ROICalculator
+                history_list = []
+                for h in history_raw:
+                    try:
+                        dt = datetime.strptime(h['d'], "%Y-%m-%d")
+                        history_list.append({
+                            'date': dt,
+                            'year': dt.year,
+                            'month': dt.month,
+                            'open': h['o'],
+                            'high': h['h'],
+                            'low': h['l'],
+                            'close': h['c'],
+                            'volume': h['v']
+                        })
+                    except: pass
+
                 if not history_list:
                     continue
-                
-                df = pd.DataFrame(history_list)
-                if 'year' not in df.columns or 'close' not in df.columns:
-                    continue
-                
-                # Filter by start_year
-                df = df[df['year'] >= start_year]
-                if df.empty:
-                    continue
                     
-                # 4. Prepare Dividends (Real Data + Patches)
+                df = pd.DataFrame(history_list)
+                
+                # 4. Prepare Dividends (DuckDB + Patches)
                 stock_divs = {}
                 
-                # A. Real Data from Crawler
-                for y in years:
-                    if y in dividend_data:
-                        d_info = dividend_data[y].get(code)
-                        if d_info:
-                            stock_divs[y] = {
-                                'cash': float(d_info.get('cash', 0)),
-                                'stock': float(d_info.get('stock', 0) or d_info.get('stock_rate', 0))
-                            }
+                # A. Real Data from DuckDB
+                db_divs = MarketDataProvider.get_dividends(code, start_year)
+                for d in db_divs:
+                    y = d['year']
+                    stock_divs[y] = {
+                        'cash': float(d.get('cash', 0)),
+                        'stock': float(d.get('stock', 0))
+                    }
                 
-                # B. PATCHES (Override/Supplement)
-                # B. PATCHES (Override/Supplement)
-                # Load from data/dividend_patches.json (Lazily or Cached)
-                # For now, we load it here or better, load it once in __init__
-                # But to keep diff small, I will load it if not loaded, or just read file
-                
-                # Ideally: self.patches should be loaded in __init__
-                # But let's assume we refactor strictly:
-                
-                if not hasattr(self, 'dividend_patches'):
-                    try:
-                        patch_file = self.data_dir.parent / "dividend_patches.json"
-                        if patch_file.exists():
-                            with open(patch_file, 'r') as f:
-                                self.dividend_patches = json.load(f)
-                        else:
-                            self.dividend_patches = {}
-                    except Exception as e:
-                        logger.error(f"Error loading dividend patches: {e}")
-                        self.dividend_patches = {}
+                # B. PATCHES (Override)
 
                 if code in self.dividend_patches:
                     patches = self.dividend_patches[code]
@@ -234,11 +224,8 @@ class CBStrategy:
             # 1. Generate Candidates
             candidates = [f"{stock_code}{i}" for i in range(1, 6)]
             
-            # 2. Get Stock Price (FAST: MarketCache)
-            stock_price = 0.0
-            history = MarketCache.get_stock_history_fast(stock_code)
-            if history:
-                stock_price = history[-1]['close']
+            # 2. Get Stock Price (FAST: DuckDB Latest Price Cache)
+            stock_price = MarketDataProvider.get_latest_price(stock_code) or 0.0
             
             for cb_code in candidates:
                 # 3. Fetch CB Price

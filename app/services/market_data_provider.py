@@ -196,13 +196,16 @@ class MarketDataProvider:
             div_count = conn.execute("SELECT COUNT(*) FROM dividends").fetchone()[0]
             stock_count = conn.execute("SELECT COUNT(*) FROM stocks").fetchone()[0]
             
-            latest_date = conn.execute("SELECT MAX(date) FROM daily_prices").fetchone()[0]
+            res_dates = conn.execute("SELECT MIN(date), MAX(date) FROM daily_prices").fetchone()
+            distinct_stocks_prices = conn.execute("SELECT COUNT(DISTINCT stock_id) FROM daily_prices").fetchone()[0]
             
             return {
                 "price_rows": price_count,
                 "dividend_rows": div_count,
                 "stock_rows": stock_count,
-                "latest_date": str(latest_date) if latest_date else None,
+                "min_date": str(res_dates[0]) if res_dates[0] else None,
+                "max_date": str(res_dates[1]) if res_dates[1] else None,
+                "distinct_stocks_prices": distinct_stocks_prices,
                 "cache_warmed": cls._is_cache_warmed,
                 "cache_size": len(cls._latest_price_cache)
             }

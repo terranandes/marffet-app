@@ -12,6 +12,7 @@ import os
 
 from app.database import get_db
 from app.config import STOCK_NAME_CACHE, SUPPLEMENTARY_NAME_CACHE
+from app.services.market_db import get_connection
 
 def load_stock_name_cache():
     """Load stock names from Mars Strategy Excel file into global cache."""
@@ -620,40 +621,9 @@ def fetch_stock_info(ticker: str) -> dict:
         print(f"[MarketData] Fetch Info Error for {ticker}: {e}")
         return {}
 
-def _merge_data_dict(existing: dict, new: dict, overwrite: bool = False) -> dict:
-    """
-    Internal helper for Smart Merge.
-    If overwrite is False, existing entries take precedence.
-    """
-    if not existing:
-        return new.copy()
-    
-    result = existing.copy()
-    for key, value in new.items():
-        if overwrite or key not in result:
-            result[key] = value
     return result
 
-def _save_json_safe(fpath: Path, data: dict):
-    """Save JSON to file atomically, ensuring parent directory exists."""
-    import tempfile
-    import os
-    try:
-        fpath.parent.mkdir(parents=True, exist_ok=True)
-        # Use a temporary file in the same directory to ensure atomic swap
-        with tempfile.NamedTemporaryFile('w', dir=fpath.parent, delete=False, encoding='utf-8') as tf:
-            json.dump(data, tf, ensure_ascii=False)
-            tempname = tf.name
-        
-        # Atomic rename (replace existing file)
-        os.replace(tempname, fpath)
-    except Exception as e:
-        print(f"[MarketData] Error saving {fpath.name} atomically: {e}")
-        # Cleanup temp file if it exists and swap failed
-        try:
-            if 'tempname' in locals() and os.path.exists(tempname):
-                os.remove(tempname)
-        except: pass
+# Atomic JSON saving removed in favor of DuckDB
 
 def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None) -> dict:
     if progress_callback: progress_callback("Loading dependencies...", 2)
@@ -687,6 +657,9 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         df = pd.read_csv(csv_path, dtype={'code': str, 'name': str})
     except Exception as e:
         return {"status": "error", "message": f"Failed to read CSV: {e}"}
+
+    # Detect environment early for warrant filtering and batch tuning
+    IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
 
     # 2. Prepare Tasks
     tasks = []
@@ -729,15 +702,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
     print(f"[Backfill] Found {len(tasks)} stocks to process.")
 
-    # 3. Setup Paths
-    out_dir = base_dir.parent / "data/raw"
-    if not out_dir.exists():
-        out_dir = Path("/app/data/raw") # Docker fallback
-        if not out_dir.exists():
-            out_dir = Path("data/raw")
-            out_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"[Backfill] Output directory: {out_dir}")
+    print(f"[Backfill] Found {len(tasks)} stocks to process.")
     if progress_callback: progress_callback("Initializing backfill...", 5)
 
     # 4. Batch Processing
@@ -747,7 +712,6 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     
     # --- ADAPTIVE STABILITY TUNING ---
     # Detect environment to balance stability (Tank Mode) vs. performance (Fast Mode)
-    IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
     
     if IS_CLOUD:
         # TANK MODE: Ultra-stable for 512MB RAM
@@ -772,40 +736,63 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     def flush_results(results_to_save, div_results_to_save):
         """Helper to save current batch and clear memory."""
         if not results_to_save and not div_results_to_save: return
-        print(f"[Backfill] Flushing {len(results_to_save)} years of buffered data to disk...")
-        # Save Prices
-        for year, markets in results_to_save.items():
-            for m_name, new_market_data in markets.items():
-                if not new_market_data: continue
-                prefix = "TPEx_" if m_name == 'TPEx' else ""
-                fpath = out_dir / f"{prefix}Market_{year}_Prices.json"
-                existing_data = {}
-                if fpath.exists():
-                    try:
-                        with open(fpath, 'r') as f: existing_data = json.load(f)
-                    except: pass
-                merged = _merge_data_dict(existing_data, new_market_data, overwrite=overwrite)
-                _save_json_safe(fpath, merged)
-                
-                # Force cleanup of existing_data and merged to free memory IMMEDIATELY
-                del existing_data
-                del merged
-                gc.collect()
-        # Save Dividends
-        for year, new_div_data in div_results_to_save.items():
-            if not new_div_data: continue
-            fpath = out_dir / f"TWSE_Dividends_{year}.json"
-            existing_data = {}
-            if fpath.exists():
-                try:
-                    with open(fpath, 'r') as f: existing_data = json.load(f)
-                except: pass
-            merged = _merge_data_dict(existing_data, new_div_data, overwrite=overwrite)
-            _save_json_safe(fpath, merged)
+        print(f"[Backfill] Flushing data to DuckDB...")
+        
+        conn = get_connection()
+        try:
+            # 1. Save Prices
+            price_rows = []
+            for year, markets in results_to_save.items():
+                for m_name, market_data in markets.items():
+                    for code, data in market_data.items():
+                        for day in data["daily"]:
+                            price_rows.append((
+                                code, day["d"], 
+                                float(day["o"]), float(day["h"]), 
+                                float(day["l"]), float(day["c"]), 
+                                int(day["v"]), m_name
+                            ))
             
-            del existing_data
-            del merged
-            gc.collect()
+            if price_rows:
+                # Use batch size for DuckDB to be safe with memory
+                batch_size = 50000
+                for j in range(0, len(price_rows), batch_size):
+                    batch = price_rows[j:j+batch_size]
+                    conn.execute("BEGIN TRANSACTION")
+                    conn.executemany("""
+                        INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume, market)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT (stock_id, date) DO UPDATE SET
+                            open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low,
+                            close = EXCLUDED.close, volume = EXCLUDED.volume, market = EXCLUDED.market
+                    """, batch)
+                    conn.execute("COMMIT")
+                print(f"[Backfill] Inserted {len(price_rows)} price rows.")
+
+            # 2. Save Dividends
+            div_rows = []
+            for year, year_divs in div_results_to_save.items():
+                for code, div_data in year_divs.items():
+                    div_rows.append((code, year, float(div_data['cash']), float(div_data['stock'])))
+            
+            if div_rows:
+                conn.execute("BEGIN TRANSACTION")
+                conn.executemany("""
+                    INSERT INTO dividends (stock_id, year, cash, stock)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (stock_id, year) DO UPDATE SET
+                        cash = EXCLUDED.cash, stock = EXCLUDED.stock
+                """, div_rows)
+                conn.execute("COMMIT")
+                print(f"[Backfill] Inserted {len(div_rows)} dividend rows.")
+
+        except Exception as e:
+            print(f"[Backfill] DuckDB Save Error: {e}")
+            try: conn.execute("ROLLBACK")
+            except: pass
+        finally:
+            conn.close()
+            
         results_to_save.clear()
         div_results_to_save.clear()
         gc.collect()

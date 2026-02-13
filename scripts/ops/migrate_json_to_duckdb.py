@@ -29,7 +29,7 @@ def migrate_json_to_duckdb():
     conn = get_connection()
     
     # Configure DuckDB for performance and resource limits
-    conn.execute("SET memory_limit='400MB'")
+    conn.execute("SET memory_limit='100MB'")
     conn.execute("SET temp_directory='data/tmp'")
     os.makedirs('data/tmp', exist_ok=True)
     
@@ -89,6 +89,7 @@ def migrate_json_to_duckdb():
     logger.info(f"Found {len(dividend_files)} dividend files.")
     
     for d_file in dividend_files:
+        new_stocks_batch = []
         try:
             parts = d_file.stem.split("_")
             year_str = parts[-1]
@@ -105,11 +106,7 @@ def migrate_json_to_duckdb():
                 # Add stock_id to distinct_stocks if not already present
                 if stock_id not in distinct_stocks:
                     # For dividends, we don't have full stock info, so we insert with minimal data
-                    conn.execute("""
-                        INSERT INTO stocks (stock_id, name, market_type, industry)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT (stock_id) DO NOTHING
-                    """, (stock_id, "", "", "")) # Insert with empty name/market/industry
+                    new_stocks_batch.append((stock_id, "", "", ""))
                     distinct_stocks.add(stock_id)
 
                 div_rows.append((
@@ -119,6 +116,13 @@ def migrate_json_to_duckdb():
                     float(node.get("stock", 0.0) or 0.0)
                 ))
             
+            if new_stocks_batch:
+                conn.executemany("""
+                    INSERT INTO stocks (stock_id, name, market_type, industry)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (stock_id) DO NOTHING
+                """, new_stocks_batch)
+
             if div_rows:
                 conn.execute("BEGIN TRANSACTION")
                 conn.executemany("""
@@ -132,6 +136,10 @@ def migrate_json_to_duckdb():
                 total_dividends_rows += len(div_rows)
             
             logger.info(f"Processed dividends for {d_file.name}")
+            del data
+            del div_rows
+            import gc
+            gc.collect()
         except Exception as e:
             logger.error(f"Error processing {d_file.name}: {e}")
             try: conn.execute("ROLLBACK")
@@ -228,7 +236,46 @@ def migrate_json_to_duckdb():
             try: conn.execute("ROLLBACK")
             except: pass
 
-    # 4. Final Validation
+    # 4. Process Race Cache (SQLite) for Historical Monthly Data
+    try:
+        sqlite_path = project_root / "data/portfolio.db"
+        if sqlite_path.exists():
+            import sqlite3
+            logger.info("Migrating Race Cache (Monthly Closes) from portfolio.db...")
+            with sqlite3.connect(sqlite_path) as s_conn:
+                cursor = s_conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='race_cache'")
+                if cursor.fetchone():
+                    rows = cursor.execute("SELECT stock_id, month, close_price FROM race_cache WHERE month < '2024-01'").fetchall()
+                    race_batch = []
+                    for r in rows:
+                        sid, month, price = r
+                        if month == 'ERROR' or not price: continue
+                        try:
+                            p_val = float(price)
+                            # Store as 1st of month to avoid date conflicts with YYYY-12-31 summary
+                            # This provides ~12 points/year for volatility instead of 1
+                            race_batch.append((
+                                sid, f"{month}-01", 
+                                p_val, p_val, p_val, p_val, 0, 'Unknown'
+                            ))
+                        except: pass
+                    
+                    if race_batch:
+                        logger.info(f"  Inserting {len(race_batch)} monthly rows from race_cache...")
+                        conn.execute("BEGIN TRANSACTION")
+                        conn.executemany("""
+                            INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume, market)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT (stock_id, date) DO NOTHING
+                        """, race_batch)
+                        conn.execute("COMMIT")
+                        total_prices_rows += len(race_batch)
+                        logger.info(f"   Inserted {len(race_batch)} historical monthly rows.")
+    except Exception as e:
+        logger.error(f"Error migrating race cache: {e}")
+
+    # 5. Final Validation
     db_prices_count = conn.execute("SELECT count(*) FROM daily_prices").fetchone()[0]
     db_div_count = conn.execute("SELECT count(*) FROM dividends").fetchone()[0]
     db_stocks_count = conn.execute("SELECT count(*) FROM stocks").fetchone()[0]

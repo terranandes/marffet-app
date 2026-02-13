@@ -43,36 +43,49 @@
     - [x] Verified `ROICalculator` uses Unadjusted Prices (TSMC ~60).
     - [x] **Split Detection Implemented**: Auto-detects >40% drops. 0050 CAGR fixed (12.1%).
     - [x] **CAGR Verification**: TSMC 19.0% (Realistic) vs previous halluncination. Correlation PROVEN.
-- [x] **Phase 4: Universal Data Lake (Daily Data)** <!-- id: 30 -->
-    - [x] **Universe Backfill** (yfinance Prices + Dividends, 2000-Present)
-        - [x] Smart Merge logic (`_merge_data_dict`, `overwrite=False` default)
-        - [x] Dividend extraction via `yfinance` `actions=True`
-        - [x] Stock Split → Stock Dividend rate conversion
-    - [x] **Admin Dashboard Enhancement**
-        - [x] Safe Mode toggle (default ON)
-        - [x] `POST /api/admin/market-data/backfill` API endpoint
-        - [x] Progress polling via shared `CrawlerService` state
-    - [x] **Ultra-Fast Crawler** (`crawl_fast.py`) - Asyncio + Batch Implementation
-    - [/] Upgrade Scraper to Store Daily OHLCV (Parquet/DuckDB) - *Deferred per consensus* <!-- id: 31 -->
-    - [x] Update `MarketCache` to support Nested Schema (V2).
-    - [x] Update App Logic to support Nested Schema (V2).
-    - [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
-    - [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.    - [x] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`. ✅
-- [/] **Phase 5: Production Deployment & Remote Verification** <!-- id: 40 -->
-    - [x] Deploy Phase 4 changes to Zeabur (Auto-deployed via Git push)
-    - [ ] Verify Admin Backfill UI on production
-    - [ ] Trigger Backfill on Zeabur (Resolves BUG-112 data gap)
-    - [ ] Verify TSMC CAGR on Zeabur (~19%)
 
-## 5. Maintenance & workflows
+## 5. Phase 6: Universal Data Lake (Daily Data) - [COMPLETED]
+- [x] **Universe Backfill** (yfinance Prices + Dividends, 2000-Present)
+    - [x] Smart Merge logic (`_merge_data_dict`, `overwrite=False` default)
+    - [x] Dividend extraction via `yfinance` `actions=True`
+    - [x] Stock Split → Stock Dividend rate conversion
+- [x] **Admin Dashboard Enhancement**
+    - [x] Safe Mode toggle (default ON)
+    - [x] `POST /api/admin/market-data/backfill` API endpoint
+    - [x] Progress polling via shared `CrawlerService` state
+- [x] **Ultra-Fast Crawler** (`crawl_fast.py`) - Asyncio + Batch Implementation
+- [x] Update `MarketCache` to support Nested Schema (V2).
+- [x] Update App Logic to support Nested Schema (V2).
+- [x] Update `Trend` and `Race` endpoints to use Daily Data (via `MarketCache` + `market_data_service`).
+- [x] **Clean Code Optimization**: Removed direct `yfinance` dependencies from Backend Layers.
+- [x] **Global Data Verification** ("Verify Everywhere"): Refactor `main.py` to remove direct Excel reads and enforce `MarketCache`.
+
+## 6. Phase 7: DuckDB Core Migration - [COMPLETED]
+- [x] **Replace JSON Engine with DuckDB Columnar DB**
+    - [x] Solve Zeabur OOM (2.7GB → 100MB usage target)
+    - [x] V9 Arrow/Pandas Turbo migration script (Ingested 6.5M rows)
+    - [x] Unified `MarketDataProvider` (Single source of truth)
+- [x] **Market Data Accuracy Recovery**
+    - [x] Verified TSMC 2010 Daily Data (No longer monthly approximation)
+    - [x] Unified `Dividends` table with Yearly/Quarterly sync support
+- [x] **Cleanup & Operational Rigor**
+    - [x] Deleted 2.7GB of fragmented JSON files
+    - [x] Dropped `race_cache` from SQLite
+    - [x] Revamped `supplement_prices.py` to target DuckDB directly
+
+## 7. Phase 8: Premium UI & Remote Stabilization - [IN PROGRESS]
+- [ ] **Zeabur Volume Persistence**
+    - [ ] Configure volume mount for `/data` to persist `market.duckdb`
+    - [ ] Final Remote Verification of TSMC CAGR (~19%)
+- [ ] **Interactive Backfill Dashboard**
+- [ ] **Mobile Premium Overhaul**
+
+## 8. Maintenance & Workflows
 - [x] **AI Copilot Fix** (Updated SDK discovery logic & injected Portfolio Context)
 - [x] **Trend Page Data Fix** (Fixed NameError in `get_portfolio_history`)
 - [x] **Bar Chart Race Local Fix** (Added missing numpy import)
 - [x] **Full System Verification** (Verified all API endpoints locally)
-- [x] **Admin "Rebuild & Push" Feedback Improvement**
 - [x] **Full Test Suite (Automated)** - `tests/e2e/e2e_suite.py` + `tests/integration/test_all_tabs.py` (Passed 100% locally)
 - [x] **Sidebar Reordering** (Compound Interest moved)
-- [x] **Mars Strategy Modal Performance Fix** (Removed Auto-Crawl triggering backend analysis on load)
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
-

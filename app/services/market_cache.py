@@ -108,6 +108,95 @@ class MarketCache:
         return _PRICES_CACHE
 
     @classmethod
+    def get_strategy_history(cls, stock_id: str, start_year: int = 2000) -> list:
+        """
+        Hybrid Fetch: Defaults to RAM, falls back to SQLite for older data (Mars Strategy).
+        Returns list of daily dicts: [{'date': '2010-01-01', 'close': 50.0, ...}, ...]
+        Note: SQLite stores Month-End Close. This is sufficient for CAGR but not Daily Backtest.
+        """
+        import pandas as pd
+        from datetime import datetime
+        
+        # 1. Get what we have in RAM (Fast, Recent)
+        ram_history = cls.get_stock_history_fast(stock_id)
+        
+        # 2. Identify missing years
+        # If RAM has 2025-2026, and start_year=2006, we need 2006-2024 from DB.
+        
+        # If RAM is empty (no cache?), we might need everything from DB
+        # But race_cache only has Month-End.
+        
+        # Wait, get_stock_history_fast returns daily data. 
+        # race_cache returns Monthly.
+        # MarsStrategy uses daily close/summary end. 
+        # If we return Monthly data as "Daily" (e.g. 1st of month), it allows CAGR calc.
+        
+        # Pull from SQLite for the requested range
+        db_history = []
+        try:
+             # We reuse get_cached_prices_batch logic but for single stock
+            with cls.BASE_DIR.joinpath("data/portfolio.db").open('rb') as f: pass # Check exists
+            
+            import sqlite3
+            with sqlite3.connect(cls.BASE_DIR / "data/portfolio.db") as conn:
+                cursor = conn.cursor()
+                # race_cache: stock_id, month (YYYY-MM), close_price
+                # We need to filter by start_year
+                query = "SELECT month, close_price FROM race_cache WHERE stock_id = ? AND month >= ?"
+                cursor.execute(query, (stock_id, f"{start_year}-01"))
+                rows = cursor.fetchall()
+                
+                for r in rows:
+                    m_str, price = r
+                    if m_str == 'ERROR': continue
+                    # Create a dummy daily object for the Strategy
+                    # Mars uses: {'year': 2024, 'close': 100, 'date': ...}
+                    dt = datetime.strptime(m_str + "-01", "%Y-%m-%d")
+                    db_history.append({
+                        'date': dt,
+                        'year': dt.year,
+                        'month': dt.month,
+                        'close': float(price),
+                        'open': float(price), # Approximation
+                        'high': float(price),
+                        'low': float(price),
+                        'vol': 0
+                    })
+        except Exception as e:
+            logging.error(f"[MarketCache] Strategy DB Fallback Error for {stock_id}: {e}")
+            
+        # 3. Merge: Prefer RAM data (Real Daily) over DB data (Monthly)
+        # Convert to dict by date to dedup
+        merged = {}
+        
+        # First fill with DB (Lower quality)
+        for h in db_history:
+             d_str = h['date'].strftime("%Y-%m-%d")
+             # Actually, we can just use Year-Month as key to overwrite?
+             # No, strategy might look for specific dates.
+             # MarsStrategy iterates by Year.
+             merged[h['date']] = h
+
+        # Overlay RAM (Higher quality)
+        for h in ram_history:
+            # h comes from get_stock_history_fast -> {'date': '2010-01-01', ...}
+            if h['year'] >= start_year and 'date' in h:
+                # RAM returns strings for JSONify-ability, convert to DT for sort/merge
+                if isinstance(h['date'], str):
+                     try:
+                        dt = datetime.strptime(h['date'], "%Y-%m-%d")
+                        h_copy = h.copy()
+                        h_copy['date'] = dt
+                        merged[dt] = h_copy
+                     except: pass
+                elif isinstance(h['date'], datetime):
+                     merged[h['date']] = h 
+                
+        # Sort
+        final_list = sorted(merged.values(), key=lambda x: x['date'])
+        return final_list
+
+    @classmethod
     def get_stock_history_fast(cls, stock_id: str) -> list:
         """
         Optimized history fetch using memory cache.

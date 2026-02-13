@@ -67,8 +67,9 @@ class MarsStrategy:
         
         for code in stock_ids:
             try:
-                # 3. Fetch History from MarketCache (Fast)
-                history_list = MarketCache.get_stock_history_fast(code)
+                # 3. Fetch History from MarketCache (Hybrid: RAM + SQLite Fallback)
+                # Mars Strategy needs ~20 years history, which might not be in RAM on Cloud.
+                history_list = MarketCache.get_strategy_history(code, start_year)
                 if not history_list:
                     continue
                 

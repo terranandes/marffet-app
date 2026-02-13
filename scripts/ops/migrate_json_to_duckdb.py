@@ -1,17 +1,16 @@
-import json
 import logging
 import os
 import time
 import sys
-import csv
+import json
+import pandas as pd
 from pathlib import Path
-from typing import Dict, Any, List, Set
 
 # Add the project root to sys.path to import app
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
-from app.services.market_db import get_connection, init_schema
+from app.services.market_db import get_connection
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,278 +21,126 @@ logger = logging.getLogger(__name__)
 
 def migrate_json_to_duckdb():
     start_time = time.time()
-    logger.info("Starting JSON to DuckDB migration...")
+    logger.info("Starting JSON to DuckDB migration (V9 Arrow/Pandas Turbo)...")
     
-    # Initialize schema and get connection
-    init_schema()
+    DB_PATH = project_root / "data/market.duckdb"
+    if DB_PATH.exists(): os.remove(DB_PATH)
+    
     conn = get_connection()
-    
-    # Configure DuckDB for performance
-    conn.execute("SET memory_limit='400MB'")
-    conn.execute("SET threads=1")
-    conn.execute("SET preserve_insertion_order=false")
-    conn.execute("SET temp_directory='data/tmp'")
-    os.makedirs('data/tmp', exist_ok=True)
-    
+    conn.execute("""
+        CREATE TABLE daily_prices (
+            stock_id VARCHAR, date DATE, open DOUBLE, high DOUBLE, low DOUBLE, close DOUBLE, volume BIGINT, market VARCHAR
+        );
+        CREATE TABLE dividends (
+            stock_id VARCHAR, year INTEGER, cash DOUBLE, stock DOUBLE
+        );
+        CREATE TABLE stocks (
+            stock_id VARCHAR PRIMARY KEY, name VARCHAR, market_type VARCHAR, industry VARCHAR
+        );
+    """)
+    conn.execute("SET memory_limit='3GB'")
+    conn.execute("SET threads=8")
+
     data_dir = project_root / "data/raw"
+    
+    # 1. Stocks CSV
     stock_list_path = project_root / "app/project_tw/stock_list.csv"
-    
-    total_prices_rows = 0
-    total_dividends_rows = 0
-    distinct_stocks = set()
-    
-    # 1. Populate stocks table from stock_list.csv
     if stock_list_path.exists():
-        logger.info(f"Loading stock list from {stock_list_path}...")
-        try:
-            with open(stock_list_path, mode='r', encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f)
-                stock_rows = []
-                for row in reader:
-                    code = row.get('code', '').strip()
-                    if not code: continue
-                    name = row.get('name', '').strip()
-                    mtype = row.get('market_type', '').strip()
-                    industry = row.get('industry', '').strip()
-                    if industry.lower() == 'nan': industry = ""
-                    
-                    # Only add to stock_rows if not already processed to avoid redundant updates
-                    if code not in distinct_stocks:
-                        stock_rows.append((code, name, mtype, industry))
-                        distinct_stocks.add(code)
-                    
-                    if len(stock_rows) >= 1000:
-                        conn.executemany("""
-                            INSERT INTO stocks (stock_id, name, market_type, industry)
-                            VALUES (?, ?, ?, ?)
-                            ON CONFLICT (stock_id) DO UPDATE SET
-                                name = EXCLUDED.name,
-                                market_type = EXCLUDED.market_type,
-                                industry = EXCLUDED.industry
-                        """, stock_rows)
-                        stock_rows = []
-                
-                if stock_rows:
-                    conn.executemany("""
-                        INSERT INTO stocks (stock_id, name, market_type, industry)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT (stock_id) DO UPDATE SET
-                            name = EXCLUDED.name,
-                            market_type = EXCLUDED.market_type,
-                            industry = EXCLUDED.industry
-                    """, stock_rows)
-            logger.info(f"Loaded {len(distinct_stocks)} stocks from CSV.")
-        except Exception as e:
-            logger.error(f"Error loading stock list CSV: {e}")
-
-    # 2. Process Dividend Files
-    dividend_files = sorted(list(data_dir.glob("*_Dividends_*.json")))
-    logger.info(f"Found {len(dividend_files)} dividend files.")
+        logger.info("Loading stocks CSV...")
+        conn.execute(f"INSERT INTO stocks SELECT code, name, market_type, industry FROM read_csv_auto('{stock_list_path}', all_varchar=True) ON CONFLICT DO NOTHING")
     
-    for d_file in dividend_files:
-        new_stocks_batch = []
+    stock_meta = [] # list of dicts for batch stock update
+
+    # 2. Dividends
+    div_files = sorted(list(data_dir.glob("*_Dividends_*.json")))
+    logger.info(f"Loading {len(div_files)} dividend files via Pandas...")
+    for d_file in div_files:
         try:
-            parts = d_file.stem.split("_")
-            year_str = parts[-1]
-            if not year_str.isdigit(): continue
-            year = int(year_str)
-            
-            with open(d_file, "r", encoding="utf-8") as f:
+            year = int(d_file.stem.split("_")[-1])
+            with open(d_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            
-            if not data: continue
-            
-            div_rows = []
-            for stock_id, node in data.items():
-                # Add stock_id to distinct_stocks if not already present
-                if stock_id not in distinct_stocks:
-                    # For dividends, we don't have full stock info, so we insert with minimal data
-                    new_stocks_batch.append((stock_id, "", "", ""))
-                    distinct_stocks.add(stock_id)
+                if not data: continue
+                df_div = pd.DataFrame.from_dict(data, orient='index')
+                df_div['stock_id'] = df_div.index
+                df_div['year'] = year
+                df_div['cash'] = pd.to_numeric(df_div['cash'], errors='coerce').fillna(0)
+                df_div['stock'] = pd.to_numeric(df_div['stock'], errors='coerce').fillna(0)
+                conn.execute("INSERT INTO dividends SELECT stock_id, year, cash, stock FROM df_div")
+        except: pass
 
-                div_rows.append((
-                    stock_id,
-                    year,
-                    float(node.get("cash", 0.0) or 0.0),
-                    float(node.get("stock", 0.0) or 0.0)
-                ))
-            
-            if new_stocks_batch:
-                conn.executemany("""
-                    INSERT INTO stocks (stock_id, name, market_type, industry)
-                    VALUES (?, ?, ?, ?)
-                    ON CONFLICT (stock_id) DO NOTHING
-                """, new_stocks_batch)
-
-            if div_rows:
-                conn.execute("BEGIN TRANSACTION")
-                conn.executemany("""
-                    INSERT INTO dividends (stock_id, year, cash, stock)
-                    VALUES (?, ?, ?, ?)
-                    ON CONFLICT (stock_id, year) DO UPDATE SET
-                        cash = EXCLUDED.cash,
-                        stock = EXCLUDED.stock
-                """, div_rows)
-                conn.execute("COMMIT")
-                total_dividends_rows += len(div_rows)
-            
-            logger.info(f"Processed dividends for {d_file.name}")
-            del data
-            del div_rows
-            import gc
-            gc.collect()
-        except Exception as e:
-            logger.error(f"Error processing {d_file.name}: {e}")
-            try: conn.execute("ROLLBACK")
-            except: pass
-    
-    # 3. Process Price Files
+    # 3. Prices
     price_files = sorted(list(data_dir.glob("*_Prices.json")))
-    logger.info(f"Found {len(price_files)} price files.")
+    logger.info(f"Loading {len(price_files)} price files via Arrow/Pandas...")
     
+    processed_stocks_set = set() # To track which stocks we already have names for
+
+    total_all_prices = 0
     for i, p_file in enumerate(price_files):
-        try:
-            market = "TWSE"
-            if "TPEx" in p_file.name:
-                market = "TPEx"
+        t0 = time.time()
+        market = "TWSE" if "TPEx" not in p_file.name else "TPEx"
+        parts = p_file.stem.split("_")
+        year = 0
+        for part in parts:
+            if part.isdigit() and len(part) == 4:
+                year = int(part)
+                break
+        
+        if year == 0: continue
+        
+        with open(p_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            flat_prices = []
             
-            parts = p_file.stem.split("_")
-            year = 0
-            for part in parts:
-                if part.isdigit() and len(part) == 4:
-                    year = int(part)
-                    break
-            
-            if year == 0: continue
-                
-            logger.info(f"[{i+1}/{len(price_files)}] Processing {p_file.name}...")
-            
-            with open(p_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            
-            if not data: continue
-            
-            daily_rows = []
-            
-            stock_updates = []
-            for stock_id, node in data.items():
-                if stock_id not in distinct_stocks:
-                    market_type = "Listed" if "Market" in p_file.name and "TPEx" not in p_file.name else "OTC"
-                    stock_updates.append((stock_id, "", market_type, ""))
-                    distinct_stocks.add(stock_id)
-            
-            if stock_updates:
-                conn.executemany("""
-                    INSERT INTO stocks (stock_id, name, market_type, industry)
-                    VALUES (?, ?, ?, ?)
-                    ON CONFLICT (stock_id) DO NOTHING
-                """, stock_updates)
-                
-                # Extract daily data (V2)
-                if isinstance(node, dict) and "daily" in node and node["daily"]:
-                    for day in node["daily"]:
-                        daily_rows.append((
-                            stock_id,
-                            day["d"],
-                            float(day.get("o") or 0.0) if day.get("o") is not None else None,
-                            float(day.get("h") or 0.0) if day.get("h") is not None else None,
-                            float(day.get("l") or 0.0) if day.get("l") is not None else None,
-                            float(day.get("c") or 0.0) if day.get("c") is not None else None,
-                            int(day.get("v") or 0) if day.get("v") is not None else 0,
-                            market
-                        ))
-                # Fallback to Summary (V1)
-                elif isinstance(node, dict):
-                    s = node.get("summary") if isinstance(node.get("summary"), dict) else node
-                    open_p, close_p = s.get("start") or s.get("first_open"), s.get("end")
-                    high_p, low_p = s.get("high"), s.get("low")
-                    vol = s.get("volume", 0)
-                    
-                    if open_p is not None or close_p is not None:
-                        daily_rows.append((stock_id, f"{year}-12-31", float(open_p or 0), float(high_p or 0), 
-                                         float(low_p or 0), float(close_p or 0), int(vol or 0), market))
+            # Robust check for data format
+            if isinstance(data, list):
+                # Format: [{"sid": "2330", "daily": [...]}, ...]
+                nodes = {node.get('stock_id') or node.get('id'): node for node in data if node}
+            else:
+                nodes = data
 
-            # Batch insert daily prices
-            if daily_rows:
-                logger.info(f"  Inserting {len(daily_rows)} price rows...")
-                for j in range(0, len(daily_rows), 100000):
-                    batch = daily_rows[j:j+100000]
-                    conn.execute("BEGIN TRANSACTION")
-                    conn.executemany("""
-                        INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume, market)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT (stock_id, date) DO UPDATE SET
-                            open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low,
-                            close = EXCLUDED.close, volume = EXCLUDED.volume, market = EXCLUDED.market
-                    """, batch)
-                    conn.execute("COMMIT")
-                total_prices_rows += len(daily_rows)
-                logger.info(f"   Inserted {len(daily_rows)} rows for {year} {market}.")
-            
-            # Explicitly clear data to free memory
-            del data
-            del daily_rows
-            import gc
-            gc.collect()
+            for sid, node in nodes.items():
+                if not sid or not node: continue
+                if sid not in processed_stocks_set:
+                    name = node.get("name") or (node.get("summary") or {}).get("name") or ""
+                    stock_meta.append({'stock_id': sid, 'name': name, 'market_type': market, 'industry': ''})
+                    processed_stocks_set.add(sid)
                 
-        except Exception as e:
-            logger.error(f"Error processing {p_file.name}: {e}")
-            try: conn.execute("ROLLBACK")
-            except: pass
+                daily = node.get("daily")
+                if isinstance(daily, list) and len(daily) > 0:
+                    for d in daily:
+                        flat_prices.append({'stock_id': sid, 'date': d['d'], 'open': d.get('o'), 'high': d.get('h'), 'low': d.get('l'), 'close': d.get('c'), 'volume': d.get('v'), 'market': market})
+                else:
+                    s = node.get("summary") or node
+                    if isinstance(s, dict) and s.get('end'):
+                        flat_prices.append({'stock_id': sid, 'date': f"{year}-12-31", 'open': s.get('start'), 'high': s.get('high'), 'low': s.get('low'), 'close': s.get('end'), 'volume': s.get('volume',0), 'market': market})
+            
+            if flat_prices:
+                df_p = pd.DataFrame(flat_prices)
+                df_p['date'] = pd.to_datetime(df_p['date'])
+                conn.execute("INSERT INTO daily_prices SELECT * FROM df_p")
+                total_all_prices += len(flat_prices)
+                
+        logger.info(f"  [{i+1}/{len(price_files)}] {p_file.name} - {len(flat_prices):,} rows in {time.time()-t0:.2f}s")
+        if i % 10 == 0: conn.execute("CHECKPOINT")
 
-    # 4. Process Race Cache (SQLite) for Historical Monthly Data
-    try:
-        sqlite_path = project_root / "data/portfolio.db"
-        if sqlite_path.exists():
-            import sqlite3
-            logger.info("Migrating Race Cache (Monthly Closes) from portfolio.db...")
-            with sqlite3.connect(sqlite_path) as s_conn:
-                cursor = s_conn.cursor()
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='race_cache'")
-                if cursor.fetchone():
-                    rows = cursor.execute("SELECT stock_id, month, close_price FROM race_cache WHERE month < '2024-01'").fetchall()
-                    race_batch = []
-                    for r in rows:
-                        sid, month, price = r
-                        if month == 'ERROR' or not price: continue
-                        try:
-                            p_val = float(price)
-                            # Store as 1st of month to avoid date conflicts with YYYY-12-31 summary
-                            # This provides ~12 points/year for volatility instead of 1
-                            race_batch.append((
-                                sid, f"{month}-01", 
-                                p_val, p_val, p_val, p_val, 0, 'Unknown'
-                            ))
-                        except: pass
-                    
-                    if race_batch:
-                        logger.info(f"  Inserting {len(race_batch)} monthly rows from race_cache...")
-                        conn.execute("BEGIN TRANSACTION")
-                        conn.executemany("""
-                            INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume, market)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                            ON CONFLICT (stock_id, date) DO NOTHING
-                        """, race_batch)
-                        conn.execute("COMMIT")
-                        total_prices_rows += len(race_batch)
-                        logger.info(f"   Inserted {len(race_batch)} historical monthly rows.")
-    except Exception as e:
-        logger.error(f"Error migrating race cache: {e}")
+    # 4. Final Updates
+    if stock_meta:
+        logger.info("Finalizing stock metadata...")
+        df_meta = pd.DataFrame(stock_meta)
+        conn.execute("INSERT INTO stocks SELECT * FROM df_meta ON CONFLICT DO NOTHING")
 
-    # 5. Final Validation
-    db_prices_count = conn.execute("SELECT count(*) FROM daily_prices").fetchone()[0]
-    db_div_count = conn.execute("SELECT count(*) FROM dividends").fetchone()[0]
-    db_stocks_count = conn.execute("SELECT count(*) FROM stocks").fetchone()[0]
-    
+    # 5. Indexing (Deduplication pass)
+    logger.info("Deduplicating and adding Primary Keys...")
+    conn.execute("""
+        CREATE TABLE dp_final AS SELECT * FROM daily_prices QUALIFY ROW_NUMBER() OVER (PARTITION BY stock_id, date ORDER BY close DESC) = 1;
+        DROP TABLE daily_prices;
+        ALTER TABLE dp_final RENAME TO daily_prices;
+        ALTER TABLE daily_prices ADD PRIMARY KEY (stock_id, date);
+    """)
+
     conn.close()
-    
-    duration = time.time() - start_time
-    logger.info("=" * 40)
-    logger.info(f"Migration Complete in {duration:.2f}s")
-    logger.info(f"Price Rows (All): {db_prices_count}")
-    logger.info(f"Dividend Rows: {db_div_count}")
-    logger.info(f"Distinct Stocks: {db_stocks_count}")
-    logger.info("=" * 40)
+    logger.info(f"Migration Complete in {time.time() - start_time:.2f}s")
+    logger.info(f"Total rows gathered: {total_all_prices:,}")
 
 if __name__ == "__main__":
     migrate_json_to_duckdb()

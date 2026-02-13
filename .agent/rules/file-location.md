@@ -56,6 +56,9 @@ Keep clean room.
     - **Primary Owner:** `[PL]` (Maintains structure)
     - **Contributors:** `[CODE]`, `[UI]` (Provide library details)
 
+### Implementation Plan/PRD ()
+- `./docs/plan/*`
+
 ---
 
 ## 6. Production Scripts & Cron Jobs

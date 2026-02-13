@@ -7,3 +7,4 @@ Task 6: Update Strategy Service (Mars + CB) - Completed. Migrated StrategyServic
 Task 8: Revamp Cron Scripts - Completed. Updated supplement_prices.py and annual_prewarm.sh to use DuckDB-aligned backfill logic. Updated dividend_cache.py to write to DuckDB dividends table.
 Task 7: Update Admin Router & Main Startup - Completed. Integrated MarketDataProvider into lifespan, added market-data stats endpoint, and replaced all MarketCache usage in app/main.py.
 Task: Fix SyntaxError and IndentationError in app/main.py - Fixed indentation in get_race_data and confirmed server.log error is resolved by following correct syntax rules.
+Task 9: Revamp Ops Scripts - Completed. Updated verify_integrity.py with DuckDB queries, verified patch_stock_data.py and duckdb_stats.py, and confirmed deletion of obsolete measurement scripts.

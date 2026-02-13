@@ -2,7 +2,6 @@ from typing import Optional, Callable
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from app.auth import get_admin_user, get_current_user, GM_EMAILS
 from app.services.market_data_provider import MarketDataProvider
-from app.services.market_db import MarketDB
 from app.services.backup import BackupService
 from app.services.crawler_service import CrawlerService
 

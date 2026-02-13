@@ -216,6 +216,8 @@ __marimo__/
 # Database files
 *.db
 app/portfolio.db
+data/*.duckdb
+*.duckdb
 
 # Worktrees
 .worktrees/

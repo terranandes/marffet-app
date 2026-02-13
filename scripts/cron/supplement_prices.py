@@ -13,6 +13,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("SupplementPrices")
 
+# Load Martian App Path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.services.market_data_service import backfill_all_stocks
+
 # Config
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DB_PATH = PROJECT_ROOT / "app" / "portfolio.db"
@@ -53,42 +59,27 @@ def get_active_tickers():
         logger.error(f"❌ Error querying database: {e}")
         return set(TOP_UNIVERSE)
 
-def run_incremental_crawl(tickers):
-    """Run crawl_fast.py in incremental mode for specified tickers."""
-    ticker_list = ",".join(sorted(list(tickers)))
-    logger.info(f"🚀 Starting Incremental Crawl for {len(tickers)} tickers...")
-    
-    # We use 'uv run' to ensure dependencies are loaded
-    cmd = [
-        "uv", "run", "python", str(CRAWLER_SCRIPT),
-        "--mode", "incremental",
-        "--days", "10",
-        "--tickers", ticker_list
-    ]
+def run_supplemental_backfill(tickers):
+    """Run backfill for specified tickers directly to DuckDB."""
+    logger.info(f"🚀 Starting Supplemental Backfill for {len(tickers)} tickers to DuckDB...")
     
     try:
-        # Run and capture output
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            cwd=str(PROJECT_ROOT)
+        # We use period="1mo" for supplemental refresh
+        # to ensure we get a few days of buffer including today.
+        # include_warrants=True locally, False on cloud (auto-handled)
+        result = backfill_all_stocks(
+            period="1mo",
+            overwrite=True, 
+            tickers=list(tickers)
         )
         
-        # Stream output to log
-        for line in process.stdout:
-            print(f"   [Crawler] {line.strip()}")
-            
-        process.wait()
-        
-        if process.returncode == 0:
-            logger.info("✅ Incremental crawl completed successfully.")
+        if result.get("status") == "error":
+            logger.error(f"❌ Backfill failed: {result.get('message')}")
         else:
-            logger.error(f"❌ Crawler exited with code {process.returncode}")
+            logger.info("✅ Supplemental backfill completed successfully.")
             
     except Exception as e:
-        logger.error(f"❌ Failed to execute crawler: {e}")
+        logger.error(f"❌ Failed to execute backfill: {e}")
 
 if __name__ == "__main__":
     logger.info("=" * 60)
@@ -100,5 +91,5 @@ if __name__ == "__main__":
         logger.error("❌ No tickers identified. Aborting.")
         sys.exit(1)
         
-    run_incremental_crawl(active_tickers)
+    run_supplemental_backfill(active_tickers)
     logger.info("🎉 Supplemental refresh cycle finished.")

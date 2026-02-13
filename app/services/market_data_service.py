@@ -625,7 +625,7 @@ def fetch_stock_info(ticker: str) -> dict:
 
 # Atomic JSON saving removed in favor of DuckDB
 
-def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None) -> dict:
+def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None, tickers: Optional[List[str]] = None) -> dict:
     if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
@@ -641,6 +641,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         progress_callback: Optional function(message, percentage) for real-time tracking.
         include_warrants: If True, includes short-lived warrants (6-digit code, nan industry).
                          If None, uses environment default (True locally, False on cloud).
+        tickers: Optional list of stock IDs to filter the backfill.
     """
     # 1. Load Stock List
     base_dir = Path(__file__).parent.parent # app/
@@ -688,6 +689,9 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             continue
              
         
+        if tickers and code not in tickers:
+            continue
+            
         if mtype == 'Listed':
             suffix, market = '.TW', 'TWSE'
         elif mtype == 'OTC':

@@ -226,9 +226,36 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
                 except:
                     stock_name = clean_id
         
-        # WRITE TO BOTH: File + DB
+        # WRITE TO BOTH: File + DB + DuckDB
         _save_to_file(clean_id, stock_name, dividends)
         _save_to_db(clean_id, stock_name, dividends)
+        
+        # WRITE TO DUCKDB (Task 8 Alignment)
+        try:
+            from app.services.market_db import get_connection
+            conn = get_connection()
+            # Convert yfinance records to yearly summary (DuckDB dividends table is yearly)
+            # Strategy: Sum up dividends by year
+            yearly_divs = {}
+            for d in dividends:
+                y = int(d['date'][:4])
+                if y not in yearly_divs: yearly_divs[y] = 0.0
+                yearly_divs[y] += d['amount']
+            
+            div_rows = []
+            for y, amount in yearly_divs.items():
+                div_rows.append((clean_id, y, float(amount), 0.0)) # stock dividend is usually 0 from simple series
+            
+            if div_rows:
+                conn.executemany("""
+                    INSERT INTO dividends (stock_id, year, cash, stock)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (stock_id, year) DO UPDATE SET
+                        cash = EXCLUDED.cash, stock = EXCLUDED.stock
+                """, div_rows)
+            conn.close()
+        except Exception as e:
+            print(f"[DividendCache] DuckDB write error for {clean_id}: {e}")
         
         return {
             "success": True, 

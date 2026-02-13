@@ -9,10 +9,10 @@ echo "---------------------------------------------------"
 echo "🎆 Starting Annual Prewarm: $(date)"
 echo "📂 Working Directory: $(pwd)"
 
-# 1. Run Full Crawler (all years)
+# 1. Run Full DuckDB Backfill (all years)
 CURRENT_YEAR=$(date +%Y)
-echo "🕷️ Running Full Crawler (2000-$CURRENT_YEAR)..."
-./scripts/ops/run_crawler_prod.sh --foreground 2000 $CURRENT_YEAR
+echo "🕷️ Running Full DuckDB Backfill (2000-$CURRENT_YEAR)..."
+uv run python -c "from app.services.market_data_service import backfill_all_stocks; print(backfill_all_stocks(period='max'))"
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then

@@ -606,11 +606,11 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
             df = pd.read_excel(SOURCE_FILE)
             df = df.fillna(0) # Ensure no NaNs
             
-        # Load Prices (Optimized via MarketDataProvider)
-        from app.services.market_data_provider import MarketDataProvider
-        
-        # Run Simulation
-        results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
+            # Load Prices (Optimized via MarketDataProvider)
+            from app.services.market_data_provider import MarketDataProvider
+            
+            # Run Simulation
+            results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
             
             # Save to Cache
             SIM_CACHE[cache_key] = {

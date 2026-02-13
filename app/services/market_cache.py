@@ -19,12 +19,13 @@ class MarketCache:
     END_YEAR = datetime.datetime.now().year
 
     @classmethod
-    def get_prices_db(cls, force_reload: bool = False, incremental: bool = False) -> Dict[int, Dict[str, Any]]:
+    def get_prices_db(cls, start_year: int = None, force_reload: bool = False, incremental: bool = False) -> Dict[int, Dict[str, Any]]:
         """
         Returns the Prices Database: { Year: { StockID: {Start, End, High, Low...} } }
         Lazy loads heavily on first call.
         
         Args:
+        start_year: Optional start year filter (inclusive). If None, uses START_YEAR.
             force_reload: Re-read all files even if cache is loaded.
             incremental: If True, sleep between years to avoid spiking memory/CPU (Cloud safety).
         """
@@ -35,9 +36,10 @@ class MarketCache:
         if _IS_LOADED and not force_reload:
             return _PRICES_CACHE
         
+        target_start_year = start_year if start_year is not None else cls.START_YEAR
         IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
 
-        logging.info(f"[MarketCache] Warming up... Loading price data. (Cloud={IS_CLOUD}, Incremental={incremental})")
+        logging.info(f"[MarketCache] Warming up... Loading price data from {target_start_year} to {cls.END_YEAR}. (Cloud={IS_CLOUD}, Incremental={incremental})")
         
         # Don't overwrite the global cache until we are finished to avoid partial state during web requests
         # UNLESS it's a force_reload or first load, in which case we populate _PRICES_CACHE directly
@@ -48,7 +50,7 @@ class MarketCache:
 
         try:
             # We iterate year by year. If incremental, we sleep 2 seconds between years to give GC time.
-            for year in range(cls.END_YEAR, cls.START_YEAR - 1, -1): # Start from newest year (most relevant)
+            for year in range(cls.END_YEAR, target_start_year - 1, -1): # Start from newest year (most relevant)
                 if year in _PRICES_CACHE and not force_reload:
                     continue
                     

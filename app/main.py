@@ -56,13 +56,19 @@ async def lifespan(app: FastAPI):
         import os
         from app.services.market_cache import MarketCache
         
-        # Cloud Safety: Use incremental loading to avoid memory spikes
+        # Cloud Safety: Use incremental loading AND recent-only filter to stay under 512MB RAM
         IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
-        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True, incremental=IS_CLOUD))
+        
+        # On Cloud, load only last 2 years (Current + Previous) to save ~2.2GB RAM
+        # On Local, load everything (2000+)
+        from datetime import datetime
+        start_year = datetime.now().year - 1 if IS_CLOUD else None
+        
+        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True, incremental=IS_CLOUD, start_year=start_year))
         
         global _STARTUP_RAN
         _STARTUP_RAN = True
-        print(f"[Startup] MarketCache: Background auto-load initiated. (Incremental={IS_CLOUD})")
+        print(f"[Startup] MarketCache: Background auto-load initiated. (Incremental={IS_CLOUD}, StartYear={start_year})")
         
         # THREAD DISABLED due to 502/Crash suspicion
         # def background_warmup(): ...

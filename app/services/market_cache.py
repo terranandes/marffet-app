@@ -61,9 +61,15 @@ class MarketCache:
                         with open(p_file, "r") as f:
                             year_data.update(json.load(f))
                         loaded_count += 1
-                    except BaseException as e:
+                    except Exception as e:
                         logging.error(f"[MarketCache] Error loading {p_file}: {type(e).__name__}: {e}")
                         skipped_count += 1
+                        # Robustness: Move corrupted file aside so it doesn't crash us again
+                        try:
+                            corrupt_path = p_file.with_suffix(".json.corrupted")
+                            os.replace(p_file, corrupt_path)
+                            logging.warning(f"[MarketCache] Moved corrupted {p_file.name} to {corrupt_path.name}")
+                        except: pass
 
                 # 2. TPEx Market (OTC)
                 tpex_file = cls.DATA_DIR / f"TPEx_Market_{year}_Prices.json"
@@ -72,9 +78,15 @@ class MarketCache:
                         with open(tpex_file, "r") as f:
                             year_data.update(json.load(f))
                         loaded_count += 1
-                    except BaseException as e:
+                    except Exception as e:
                         logging.error(f"[MarketCache] Error loading {tpex_file}: {type(e).__name__}: {e}")
                         skipped_count += 1
+                        # Robustness: Move corrupted file aside
+                        try:
+                            corrupt_path = tpex_file.with_suffix(".json.corrupted")
+                            os.replace(tpex_file, corrupt_path)
+                            logging.warning(f"[MarketCache] Moved corrupted {tpex_file.name} to {corrupt_path.name}")
+                        except: pass
                 
                 if year_data:
                     _PRICES_CACHE[year] = year_data

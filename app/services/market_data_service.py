@@ -635,13 +635,25 @@ def _merge_data_dict(existing: dict, new: dict, overwrite: bool = False) -> dict
     return result
 
 def _save_json_safe(fpath: Path, data: dict):
-    """Save JSON to file, ensuring parent directory exists."""
+    """Save JSON to file atomically, ensuring parent directory exists."""
+    import tempfile
+    import os
     try:
         fpath.parent.mkdir(parents=True, exist_ok=True)
-        with open(fpath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=None, ensure_ascii=False)
+        # Use a temporary file in the same directory to ensure atomic swap
+        with tempfile.NamedTemporaryFile('w', dir=fpath.parent, delete=False, encoding='utf-8') as tf:
+            json.dump(data, tf, ensure_ascii=False)
+            tempname = tf.name
+        
+        # Atomic rename (replace existing file)
+        os.replace(tempname, fpath)
     except Exception as e:
-        print(f"[MarketData] Error saving {fpath.name}: {e}")
+        print(f"[MarketData] Error saving {fpath.name} atomically: {e}")
+        # Cleanup temp file if it exists and swap failed
+        try:
+            if 'tempname' in locals() and os.path.exists(tempname):
+                os.remove(tempname)
+        except: pass
 
 def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None) -> dict:
     if progress_callback: progress_callback("Loading dependencies...", 2)
@@ -831,6 +843,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                     actions = df_ticker[(df_ticker.get('Dividends', 0) > 0) | (df_ticker.get('Stock Splits', 0) > 0)]
                     for idx, row in actions.iterrows():
                         y = idx.year
+                        if y < 2000: continue
                         if y not in div_results: div_results[y] = {}
                         if code not in div_results[y]: div_results[y][code] = {'cash': 0.0, 'stock': 0.0}
                         
@@ -847,6 +860,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                 
                 df_ticker['Year'] = df_ticker.index.year
                 for year, group in df_ticker.groupby('Year'):
+                    if year < 2000: continue
                     daily_data = []
                     for idx, row in group.iterrows():
                         try:

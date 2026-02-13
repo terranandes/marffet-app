@@ -5,3 +5,4 @@ Task 5: Update Calculation Service (Trend + Race + Portfolio) - Completed. Repla
 Task 2: JSON → DuckDB Migration Script - Completed. Created script with V1/V2 support and idempotency. Migration is currently running.
 Task 6: Update Strategy Service (Mars + CB) - Completed. Migrated StrategyService to use MarketDataProvider, updated daily price mapping and dividend fetching to use DuckDB.
 Task 8: Revamp Cron Scripts - Completed. Updated supplement_prices.py and annual_prewarm.sh to use DuckDB-aligned backfill logic. Updated dividend_cache.py to write to DuckDB dividends table.
+Task 7: Update Admin Router & Main Startup - Completed. Integrated MarketDataProvider into lifespan, added market-data stats endpoint, and replaced all MarketCache usage in app/main.py.

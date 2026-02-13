@@ -11,6 +11,7 @@ import asyncio
 import os
 import sys
 import traceback
+from datetime import datetime
 # import numpy as np # Lazy Import
 from pathlib import Path
 
@@ -22,6 +23,7 @@ load_dotenv()
 from app.project_tw.strategies.cb import CBStrategy
 from app.project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
+from app.services.market_data_provider import MarketDataProvider
 from app.auth import router as auth_router, get_current_user, get_admin_user
 from app.database import get_db, init_db
 from app.services.portfolio_service import (
@@ -49,31 +51,18 @@ async def lifespan(app: FastAPI):
         init_db()
         print("[Startup] Portfolio Database Initialized")
 
-        # 1.5 MarketCache - BACKGROUND AUTO-LOAD
-        # We start this in the background so lifespan can complete immediately,
-        # preventing 502/timeouts on Zeabur.
-        import asyncio
-        import os
-        from app.services.market_cache import MarketCache
+        from app.services.market_data_provider import MarketDataProvider
+        from app.services.market_db import init_schema
         
-        # Cloud Safety: Use incremental loading AND recent-only filter to stay under 512MB RAM
-        IS_CLOUD = os.getenv("ZEABUR") or os.getenv("RAILWAY") or os.getenv("RENDER")
+        # 1.5.1 Init DuckDB Schema
+        init_schema()
         
-        # On Cloud, load only last 2 years (Current + Previous) to save ~2.2GB RAM
-        # On Local, load everything (2000+)
-        from datetime import datetime
-        start_year = datetime.now().year - 1 if IS_CLOUD else None
-        
-        asyncio.create_task(asyncio.to_thread(MarketCache.get_prices_db, force_reload=True, incremental=IS_CLOUD, start_year=start_year))
+        # 1.5.2 Warm Latest Price Cache (fast dashboard load)
+        asyncio.create_task(asyncio.to_thread(MarketDataProvider.warm_latest_cache))
         
         global _STARTUP_RAN
         _STARTUP_RAN = True
-        print(f"[Startup] MarketCache: Background auto-load initiated. (Incremental={IS_CLOUD}, StartYear={start_year})")
-        
-        # THREAD DISABLED due to 502/Crash suspicion
-        # def background_warmup(): ...
-        # t = threading.Thread(...)
-        # t.start()
+        print(f"[Startup] MarketDataProvider: Background warming initiated.")
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -242,52 +231,32 @@ async def health_check():
 
 @app.get("/api/health/cache")
 async def health_cache():
-    """Check status of MarketCache (loaded years)."""
-    # Import inside to get latest state of the module global
-    import app.services.market_cache as mc
+    """Check status of MarketDataProvider."""
+    from app.services.market_data_provider import MarketDataProvider
+    stats = MarketDataProvider.get_stats()
     
-    # Check if loaded, regardless of content size
-    if not mc._IS_LOADED:
-        return {
-            "ready": False, 
-            "years": 0, 
-            "status": "not_loaded_yet" # Debug info
-        }
-        
-    cache = mc._PRICES_CACHE
-    years = sorted(cache.keys())
     return {
-        "ready": True, 
-        "years": len(years),
-        "oldest": str(years[0]) if years else None,
-        "newest": str(years[-1]) if years else None,
-        "status": "loaded"
+        "ready": stats.get('price_rows', 0) > 0,
+        "stats": stats,
+        "status": "ready" if stats.get('price_rows', 0) > 0 else "loading/empty"
     }
 
 # ---------------- Debug Endpoint (Temporary) ----------------
 
 @app.get("/api/debug/cache-info")
 async def debug_cache_info():
-    """Temporary debug endpoint to inspect MarketCache on Zeabur."""
-    import app.services.market_cache as mc
+    """Temporary debug endpoint to inspect DuckDB on Zeabur."""
+    from app.services.market_data_provider import MarketDataProvider
     from pathlib import Path
-    data_dir = mc.MarketCache.DATA_DIR
-    base_dir = mc.MarketCache.BASE_DIR
     
-    files_found = []
-    if data_dir.exists():
-        files_found = sorted([f.name for f in data_dir.glob("Market_*_Prices.json")])
+    duckdb_path = Path("data/market.duckdb")
     
     return {
-        "build": "1.0.5",
+        "build": "1.1.0-duckdb",
         "startup_ran": _STARTUP_RAN,
-        "base_dir": str(base_dir),
-        "data_dir": str(data_dir),
-        "data_dir_exists": data_dir.exists(),
-        "price_files_count": len(files_found),
-        "price_files": files_found[:5],  # First 5 for brevity
-        "_IS_LOADED": mc._IS_LOADED,
-        "_PRICES_CACHE_years": len(mc._PRICES_CACHE),
+        "duckdb_exists": duckdb_path.exists(),
+        "duckdb_size_mb": round(duckdb_path.stat().st_size / (1024*1024), 2) if duckdb_path.exists() else 0,
+        "stats": MarketDataProvider.get_stats()
     }
 
 # ---------------- Notification Engine (Premium) ----------------
@@ -486,12 +455,11 @@ def get_results(start_year: int = 2006, principal: float = 1_000_000, contributi
         df = pd.read_excel(SOURCE_FILE)
         df = df.fillna(0)
         
-        # Load Prices (Optimized via MarketCache)
-        from app.services.market_cache import MarketCache
-        PRICES_DB = MarketCache.get_prices_db()
-
-    # Run Simulation
-        results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        # Load Prices (Optimized via MarketDataProvider)
+        from app.services.market_data_provider import MarketDataProvider
+        
+        # Run Simulation
+        results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
         
         # Sanitize numpy types for JSON serialization
         results = sanitize_for_json(results)
@@ -537,14 +505,25 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
         current_max_year = 2026
         
         # Prepare Dataframe for ROICalculator
-        # Prepare Dataframe for ROICalculator (Optimized)
-        from app.services.market_cache import MarketCache
-        history = MarketCache.get_stock_history_fast(stock_id)
+        # Prepare Dataframe for ROICalculator (Optimized via MarketDataProvider)
+        from app.services.market_data_provider import MarketDataProvider
+        history_raw = MarketDataProvider.get_daily_history(stock_id, start_date=f"{start_year}-01-01")
         
-        # Filter by Start Year (simulating the loop logic)
-        for h in history:
-            if h['year'] >= start_year:
-                rows.append(h)
+        # Transform for ROICalculator
+        for h in history_raw:
+            try:
+                dt = datetime.strptime(h['d'], "%Y-%m-%d") if isinstance(h['d'], str) else h['d']
+                rows.append({
+                    'date': dt,
+                    'year': dt.year,
+                    'month': dt.month,
+                    'open': h['o'],
+                    'high': h['h'],
+                    'low': h['l'],
+                    'close': h['c'],
+                    'volume': h['v']
+                })
+            except: pass
 
         if not rows:
             return {"error": "No data found for stock"}
@@ -627,12 +606,11 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
             df = pd.read_excel(SOURCE_FILE)
             df = df.fillna(0) # Ensure no NaNs
             
-            # Load Prices (Optimized via MarketCache)
-            from app.services.market_cache import MarketCache
-            PRICES_DB = MarketCache.get_prices_db()
-    
-            # Run Simulation
-            results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        # Load Prices (Optimized via MarketDataProvider)
+        from app.services.market_data_provider import MarketDataProvider
+        
+        # Run Simulation
+        results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
             
             # Save to Cache
             SIM_CACHE[cache_key] = {
@@ -693,11 +671,8 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
         current_max_year = 2026
 
         # 2. Run Simulation (to get Final Wealth / Stats aligned with UI)
-        # Load Prices via MarketCache (Single Source of Truth)
-        from app.services.market_cache import MarketCache
-        PRICES_DB = MarketCache.get_prices_db()
-
-        race_results = run_mars_simulation(df, PRICES_DB, DIVIDENDS_DB, start_year, principal, contribution)
+        from app.services.market_data_provider import MarketDataProvider
+        race_results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
         
         # 3. Construct Export DataFrame
         # User wants "Aligned" data, implying the rows should show the simulation result
@@ -831,57 +806,46 @@ if DIVIDENDS_FILE.exists():
 @app.get("/api/stock/{stock_id}/history")
 def get_stock_history(stock_id: str):
     """Return detailed yearly history for simulation (Prices + Dividends)"""
-    from app.services.market_cache import MarketCache
+    from app.services.market_data_provider import MarketDataProvider
     history = []
     
     try:
         # Convert Stock ID to string key
         sid = str(stock_id)
         
-        # Load prices from MarketCache (Single Source of Truth)
-        PRICES_DB = MarketCache.get_prices_db()
+        # Get latest stats to know timeframe? Or just iterate.
+        # For simplify, we call a new provider method or reuse get_daily_history
+        # This endpoint is mostly for a legacy detailed view.
+        daily_history = MarketDataProvider.get_daily_history(sid)
+        if not daily_history: return []
         
-        for year in range(2006, 2027):
-            year_str = str(year)
-            # Get price data from cache
-            pdata = PRICES_DB.get(year, {})
-            start_price = 0
-            end_price = 0
-            
-            if sid in pdata:
-                node = pdata[sid]
-                # Handle V2 schema (with 'summary') vs V1 schema (flat)
-                if isinstance(node, dict):
-                    if 'summary' in node:
-                        start_price = node['summary'].get('start', 0)
-                        end_price = node['summary'].get('end', 0)
-                    else:
-                        start_price = node.get('start', node.get('first_open', 0))
-                        end_price = node.get('end', 0)
-            
+        # Group by year to get yearly summary (mimicking MarketCache behavior)
+        import pandas as pd
+        df = pd.DataFrame(daily_history)
+        df['year'] = pd.to_datetime(df['d']).dt.year
+        
+        yearly = df.groupby('year').agg({'o': 'first', 'c': 'last'}).reset_index()
+        
+        for _, row in yearly.iterrows():
+            year = int(row['year'])
             # Get Dividend using Generalized DB
-            # DB Structure might be: { "2330": { "2020": { "cash": 10.0, "stock_split": 1.0 } } }
-            div_info = DIVIDENDS_DB.get(sid, {}).get(year_str) or DIVIDENDS_DB.get(sid, {}).get(year, {})
+            div_info = DIVIDENDS_DB.get(sid, {}).get(str(year)) or DIVIDENDS_DB.get(sid, {}).get(year, {})
             
-            # Handle old structure vs new full structure
             div_cash = 0
             stock_split = 1.0
-            
             if isinstance(div_info, dict):
                 div_cash = div_info.get('cash', 0)
                 stock_split = div_info.get('stock_split', 1.0)
             elif isinstance(div_info, (int, float)):
-                div_cash = div_info # Backward compat with simple float map
+                div_cash = div_info
             
-            # Only append if we have valid price data
-            if start_price > 0:
-                history.append({
-                    "year": year,
-                    "price_start": start_price,
-                    "price_end": end_price,
-                    "div_cash": div_cash,
-                    "stock_div": stock_split # Renamed for clarity in frontend? Or just use same?
-                })
+            history.append({
+                "year": year,
+                "price_start": row['o'],
+                "price_end": row['c'],
+                "div_cash": div_cash,
+                "stock_div": stock_split
+            })
         
         return history
     except Exception as e:
@@ -897,7 +861,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
     import pandas as pd
     import time
     from app.project_tw.calculator import ROICalculator
-    from app.services.market_cache import MarketCache
+    
+    # MarketDataProvider is now a top-level import
     
     print(f"[run_mars_simulation] Starting Precision Engine for {len(df)} stocks...")
     t_start = time.time()
@@ -908,16 +873,31 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
     for _, row in df.iterrows():
         stock_id = str(row['id'])
         
-        # 1. Fetch History using the Smart Cache Logic (Handles Daily/Summary V2/V1)
-        # This ensures we use Daily data if available, matching the Detail API exactly.
-        history_rows = MarketCache.get_stock_history_fast(stock_id)
+        # 1. Fetch History using DuckDB
+        history_raw = MarketDataProvider.get_daily_history(stock_id)
+        if not history_raw:
+            continue
             
+        history_rows = []
+        for h in history_raw:
+            try:
+                dt = datetime.strptime(h['d'], "%Y-%m-%d") if isinstance(h['d'], str) else h['d']
+                history_rows.append({
+                    'date': dt,
+                    'year': dt.year,
+                    'month': dt.month,
+                    'open': h['o'],
+                    'high': h['h'],
+                    'low': h['l'],
+                    'close': h['c'],
+                    'volume': h['v']
+                })
+            except: pass
+
         if not history_rows:
             continue
             
         stock_df = pd.DataFrame(history_rows)
-        if 'year' not in stock_df.columns:
-            stock_df['year'] = stock_df['year'].astype(int) # Safety
             
         # 2. Run Precision Calculation (BAO - Buy At Open)
         div_data = dividends_db.get(stock_id, {})

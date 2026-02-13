@@ -1,7 +1,8 @@
 from typing import Optional, Callable
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from app.auth import get_admin_user, get_current_user, GM_EMAILS
-from app.services.market_cache import MarketCache
+from app.services.market_data_provider import MarketDataProvider
+from app.services.market_db import MarketDB
 from app.services.backup import BackupService
 from app.services.crawler_service import CrawlerService
 
@@ -10,13 +11,10 @@ router = APIRouter()
 @router.post("/refresh-market-data")
 async def refresh_market_data(user: dict = Depends(get_admin_user)):
     """
-    Force reload of MarketCache from JSON files.
-    Admin-only (role='owner' validated by get_admin_user).
+    Force reload of latest price cache.
     """
-    # Reload the cache
-    db = MarketCache.get_prices_db(force_reload=True)
-    
-    return {"status": "ok", "years_loaded": len(db)}
+    MarketDataProvider.warm_latest_cache()
+    return {"status": "ok", "message": "Latest price cache warmed."}
 
 @router.post("/backup-market-data")
 async def backup_market_data(user: dict = Depends(get_admin_user)):
@@ -74,13 +72,25 @@ async def backfill_market_data(
         "status": "accepted", 
         "message": f"{msg} Monitor status via Crawler Status."
     }
+
+@router.get("/market-data/stats")
+async def get_market_data_stats(user: dict = Depends(get_admin_user)):
+    """
+    Return DuckDB row counts and stats.
+    """
+    try:
+        stats = MarketDataProvider.get_stats()
+        return stats
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 @router.post("/system/initialize")
 async def manual_initialize(user: dict = Depends(get_admin_user)):
-    """Manually trigger MarketCache loading if startup failed."""
+    """Manually trigger MarketDataProvider warming."""
     try:
-        MarketCache.get_prices_db(force_reload=True)
-        import app.services.market_cache as mc
-        return {"status": "ok", "loaded": mc._IS_LOADED, "years": len(mc._PRICES_CACHE)}
+        from app.services.market_db import init_schema
+        init_schema()
+        MarketDataProvider.warm_latest_cache()
+        return {"status": "ok", "warmed": True}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 

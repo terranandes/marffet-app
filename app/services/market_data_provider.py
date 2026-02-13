@@ -184,3 +184,30 @@ class MarketDataProvider:
             logger.error(f"Error warming latest cache: {e}")
         finally:
             conn.close()
+
+    @classmethod
+    def get_stats(cls) -> Dict[str, Any]:
+        """
+        Return DuckDB row counts and descriptive stats.
+        """
+        conn = get_connection(read_only=True)
+        try:
+            price_count = conn.execute("SELECT COUNT(*) FROM daily_prices").fetchone()[0]
+            div_count = conn.execute("SELECT COUNT(*) FROM dividends").fetchone()[0]
+            stock_count = conn.execute("SELECT COUNT(*) FROM stocks").fetchone()[0]
+            
+            latest_date = conn.execute("SELECT MAX(date) FROM daily_prices").fetchone()[0]
+            
+            return {
+                "price_rows": price_count,
+                "dividend_rows": div_count,
+                "stock_rows": stock_count,
+                "latest_date": str(latest_date) if latest_date else None,
+                "cache_warmed": cls._is_cache_warmed,
+                "cache_size": len(cls._latest_price_cache)
+            }
+        except Exception as e:
+            logger.error(f"Error fetching stats: {e}")
+            return {"error": str(e)}
+        finally:
+            conn.close()

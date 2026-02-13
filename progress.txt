@@ -4,3 +4,4 @@ Task 4: Rewrite Backfill Writer - Completed. Modified app/services/market_data_s
 Task 5: Update Calculation Service (Trend + Race + Portfolio) - Completed. Replaced MarketCache with MarketDataProvider, updated dividend fallback to use DuckDB, and optimized price fetching with monthly closes.
 Task 2: JSON → DuckDB Migration Script - Completed. Created script with V1/V2 support and idempotency. Migration is currently running.
 Task 6: Update Strategy Service (Mars + CB) - Completed. Migrated StrategyService to use MarketDataProvider, updated daily price mapping and dividend fetching to use DuckDB.
+Task 7: Update Admin Router & Main Startup - Completed. Added MarketDataProvider.get_stats(), updated app lifespan to initialize DuckDB and warm cache, and updated admin router with stats endpoint and manual initialize.

@@ -1,1 +1,5 @@
 Task 1: DuckDB Engine & Schema - Completed. Created app/services/market_db.py and tests/unit/test_market_db.py, added duckdb dependency.
+Task 3: MarketDataProvider (Read Layer) - Completed. Created app/services/market_data_provider.py with DuckDB read methods and RAM cache, verified with unit tests.
+Task 4: Rewrite Backfill Writer - Completed. Modified app/services/market_data_service.py to write directly to DuckDB in batches. Removed JSON merging logic and atomic save helpers.
+Task 5: Update Calculation Service (Trend + Race + Portfolio) - Completed. Replaced MarketCache with MarketDataProvider, updated dividend fallback to use DuckDB, and optimized price fetching with monthly closes.
+Task 2: JSON → DuckDB Migration Script - Completed. Created script with V1/V2 support and idempotency. Migration is currently running.

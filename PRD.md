@@ -1,1 +1,1 @@
-docs/plan/phase_4_maintenance_prd.md
+docs/plan/2026-02-13-duckdb-architecture-migration_PRD.md

@@ -12,7 +12,7 @@ from app.config import STOCK_NAME_CACHE
 from app.repositories import transaction_repo, target_repo, group_repo
 from app.services import market_data_service
 from app import dividend_cache
-from app.services.market_cache import MarketCache
+from app.services.market_data_provider import MarketDataProvider
 
 def get_target_summary(target_id: str, current_price: float = None) -> Dict[str, Any]:
     """
@@ -89,6 +89,15 @@ def get_target_summary(target_id: str, current_price: float = None) -> Dict[str,
         }
     }
 
+    if current_price is None:
+        try:
+            with get_db() as conn:
+                target = target_repo.get_target(conn, target_id)
+                if target:
+                    current_price = MarketDataProvider.get_latest_price(target['stock_id'])
+        except Exception as e:
+            print(f"[Target Summary] Error fetching price: {e}")
+
     if current_price is not None:
         market_value = total_shares * current_price
         unrealized_pnl = market_value - total_cost
@@ -103,7 +112,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> Dict[str,
     return summary
 
 def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]) -> float:
-    """Fallback to Legacy JSON Load for dividends."""
+    """Fallback to DuckDB for dividends if repository has no record."""
     total_div_cash = 0.0
     try:
         # Determine stock ID
@@ -113,22 +122,12 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
              
         if not stock_id: return 0.0
         
-        # Load JSON
-        base_dir = Path(__file__).parent.parent # app/
-        div_file = base_dir / "data/dividends_all.json"
+        # Load from DuckDB via Provider
+        div_history = MarketDataProvider.get_dividends(stock_id)
+        if not div_history: return 0.0
         
-        div_db = {}
-        if div_file.exists():
-            with open(div_file, "r") as f:
-                full_db = json.load(f)
-                div_db = full_db.get(str(stock_id), {})
-        
-        if str(stock_id) == "2330" and not div_db:
-             div_db = {
-                "2023": {"cash": 11.5}, "2024": {"cash": 15.0}, "2025": {"cash": 19.0}
-             }
-        
-        if not div_db: return 0.0
+        # Build year map for lookup
+        div_db = {str(d['year']): d['cash'] for d in div_history}
         
         # Replay Holdings
         sorted_tx = sorted(transactions, key=lambda t: t['date'])
@@ -137,13 +136,7 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
         
         for y in range(start_year, current_year + 1):
             year_str = str(y)
-            div_info = div_db.get(year_str) or div_db.get(y)
-            if not div_info: continue
-            
-            u_cash = 0
-            if isinstance(div_info, dict): u_cash = div_info.get('cash', 0)
-            elif isinstance(div_info, (int, float)): u_cash = div_info
-            
+            u_cash = div_db.get(year_str, 0)
             if u_cash <= 0: continue
             
             ex_date = f"{y}-07-01"
@@ -158,7 +151,7 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
                 total_div_cash += shares_on_ex * u_cash
                 
     except Exception as e:
-        print(f"[Diff Calc Error] {e}")
+        print(f"[Div Fallback Error] {e}")
         
     return total_div_cash
 
@@ -222,9 +215,10 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     price_history = {}
     if stock_ids:
         try:
-            # Clean Code: Use MarketCache (Single Source of Truth)
+            # Clean Code: Use MarketDataProvider (Single Source of Truth)
             s_date_str = start_date.strftime("%Y-%m-%d")
-            price_history = _fetch_prices_from_market_cache(stock_ids)
+            # For portfolio history, we can use monthly closes if we only need month-end points
+            price_history = _fetch_prices_from_market_cache(stock_ids, use_daily=False)
 
         except Exception as e:
             print(f"[History] Price Fetch Error: {e}")
@@ -357,9 +351,10 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     # Fetch Prices
     price_history = {}
     try:
-        # Clean Code: Use MarketCache (Single Source of Truth)
+        # Clean Code: Use MarketDataProvider (Single Source of Truth)
         s_date_str = start_date.strftime("%Y-%m-%d")
-        price_history = _fetch_prices_from_market_cache(stock_ids)
+        # For race data, monthly (specifically quarter-end) is sufficient
+        price_history = _fetch_prices_from_market_cache(stock_ids, use_daily=False)
 
     except Exception as e:
         print(f"[Race] Price Fetch Error: {e}")
@@ -489,40 +484,33 @@ def get_portfolio_snapshot(user_id: str) -> Dict[str, Any]:
         "holdings": holdings
     }
 
-def _fetch_prices_from_market_cache(stock_ids: List[str]) -> Dict[str, Any]:
-    """Helper to fetch prices from MarketCache as pd.Series"""
+def _fetch_prices_from_market_cache(stock_ids: List[str], use_daily: bool = False) -> Dict[str, Any]:
+    """Helper to fetch prices from MarketDataProvider as pd.Series"""
     import pandas as pd
     results = {}
-    for sid in stock_ids:
-        # Use fast history (Daily V2 or Yearly V1)
-        history = MarketCache.get_stock_history_fast(sid)
-        if not history: continue
-        
-        dates = []
-        prices = []
-        
-        for h in history:
-            if 'date' in h:
-                # V2 Daily
-                dates.append(pd.to_datetime(str(h['date'])))
-                prices.append(float(h['close']))
-            else:
-                # V1 Yearly - Approximate
-                # Use Year start/end
-                year = h['year']
-                # Start
-                dates.append(pd.to_datetime(f"{year}-01-01"))
-                prices.append(float(h.get('open', 0)))
-                # End
-                dates.append(pd.to_datetime(f"{year}-12-31"))
-                prices.append(float(h.get('close', 0)))
-                
-        if dates:
+    
+    if use_daily:
+        # Fetch full daily history for each stock
+        for sid in stock_ids:
+            history = MarketDataProvider.get_daily_history(sid)
+            if not history: continue
+            
+            dates = [pd.to_datetime(h['d']) for h in history]
+            prices = [float(h['c']) for h in history]
+            
             s = pd.Series(data=prices, index=dates)
-            s = s.sort_index()
-            # Dedupe indices if needed
-            s = s.groupby(s.index).last()
-            results[sid] = s
+            results[sid] = s.sort_index()
+    else:
+        # Use efficient batch monthly closes
+        all_data = MarketDataProvider.get_monthly_closes(stock_ids, start_year=2000)
+        for sid, history in all_data.items():
+            if not history: continue
+            
+            dates = [pd.to_datetime(h['date']) for h in history]
+            prices = [float(h['close']) for h in history]
+            
+            s = pd.Series(data=prices, index=dates)
+            results[sid] = s.sort_index()
             
     return results
 

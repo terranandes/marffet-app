@@ -28,8 +28,10 @@ def migrate_json_to_duckdb():
     init_schema()
     conn = get_connection()
     
-    # Configure DuckDB for performance and resource limits
-    conn.execute("SET memory_limit='100MB'")
+    # Configure DuckDB for performance
+    conn.execute("SET memory_limit='400MB'")
+    conn.execute("SET threads=1")
+    conn.execute("SET preserve_insertion_order=false")
     conn.execute("SET temp_directory='data/tmp'")
     os.makedirs('data/tmp', exist_ok=True)
     
@@ -44,7 +46,7 @@ def migrate_json_to_duckdb():
     if stock_list_path.exists():
         logger.info(f"Loading stock list from {stock_list_path}...")
         try:
-            with open(stock_list_path, mode='r', encoding='utf-8') as f:
+            with open(stock_list_path, mode='r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 stock_rows = []
                 for row in reader:
@@ -173,16 +175,19 @@ def migrate_json_to_duckdb():
             
             daily_rows = []
             
+            stock_updates = []
             for stock_id, node in data.items():
-                # Add stock_id to distinct_stocks if not already present
                 if stock_id not in distinct_stocks:
-                    # For prices, we don't have full stock info, so we insert with minimal data
-                    conn.execute("""
-                        INSERT INTO stocks (stock_id, name, market_type, industry)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT (stock_id) DO NOTHING
-                    """, (stock_id, "", market, "")) # Insert with empty name/industry, but with market
+                    market_type = "Listed" if "Market" in p_file.name and "TPEx" not in p_file.name else "OTC"
+                    stock_updates.append((stock_id, "", market_type, ""))
                     distinct_stocks.add(stock_id)
+            
+            if stock_updates:
+                conn.executemany("""
+                    INSERT INTO stocks (stock_id, name, market_type, industry)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (stock_id) DO NOTHING
+                """, stock_updates)
                 
                 # Extract daily data (V2)
                 if isinstance(node, dict) and "daily" in node and node["daily"]:
@@ -285,7 +290,7 @@ def migrate_json_to_duckdb():
     duration = time.time() - start_time
     logger.info("=" * 40)
     logger.info(f"Migration Complete in {duration:.2f}s")
-    logger.info(f"Price Rows:    {db_prices_count}")
+    logger.info(f"Price Rows (All): {db_prices_count}")
     logger.info(f"Dividend Rows: {db_div_count}")
     logger.info(f"Distinct Stocks: {db_stocks_count}")
     logger.info("=" * 40)

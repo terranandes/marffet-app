@@ -1,6 +1,1 @@
-- Task 1 (Backend): Refactored market_data_service for Smart Merge and Dividend history.
-- Task 2 (Backend): Verified CrawlerService.run_universe_backfill integration.
-- Task 3 (Frontend): Built Universe Maintenance UI Card.
-- Task 4 (Verify): Verified Smart Merge with integration tests.
-----------
-ralph-done-v28bg
+Task 1: DuckDB Engine & Schema - Completed. Created app/services/market_db.py and tests/unit/test_market_db.py, added duckdb dependency.

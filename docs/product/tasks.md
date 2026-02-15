@@ -73,6 +73,18 @@
     - [x] Dropped `race_cache` from SQLite
     - [x] Revamped `supplement_prices.py` to target DuckDB directly
 
+## 14. Phase 14: Nominal Price Standardization - [IN PROGRESS]
+- [ ] **MI_INDEX Mass Fetch (Nominal Source)**
+    - [ ] Implement `fetch_mi_index_mass.py` with WAF protection
+    - [ ] Execute fetch for 2004-2025 (Daily Checkpoints)
+- [ ] **Database Rebuild (Nominal Basis)**
+    - [ ] Purge `daily_prices` adjusted data
+    - [ ] Rehydrate from MI_INDEX snapshots
+- [ ] **Verification & Sync**
+    - [ ] `verify_nominal_integrity.py` (Basis Audit)
+    - [ ] Grand Correlation v4 (>90% target)
+    - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch)
+
 ## 7. Phase 8: Premium UI & Remote Stabilization - [IN PROGRESS]
 - [ ] **Zeabur Volume Persistence**
     - [ ] Configure volume mount for `/data` to persist `market.duckdb`

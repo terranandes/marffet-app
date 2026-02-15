@@ -142,7 +142,7 @@ class ROICalculator:
 
     def calculate_complex_simulation(self, df: Any, start_year: int, principal: float = 1_000_000, 
                                      annual_investment: float = 60_000, dividend_data: dict = None, stock_code: str = "",
-                                     buy_logic: str = 'FIRST_CLOSE'):
+                                     buy_logic: str = 'YEAR_START_OPEN', precomputed_yearly_stats: Any = None):
         import pandas as pd
         """
         Simulate Mars Strategy: 
@@ -153,42 +153,59 @@ class ROICalculator:
            - Stock: Add to shares (Par $10 base).
         
         Args:
-            buy_logic (str): 'FIRST_CLOSE' | 'YEAR_HIGH' | 'YEAR_LOW' | 'FIRST_OPEN'
+            buy_logic (str): 'FIRST_CLOSE' | 'YEAR_HIGH' | 'YEAR_LOW' | 'YEAR_START_OPEN'
+            precomputed_yearly_stats (DataFrame): Optional pre-aggregated yearly stats (action_price, avg_price, end_price)
         """
-        if df.empty:
+        if df.empty and precomputed_yearly_stats is None:
             return {}
+
+        # 1. Price Standard Reconciliation (Reconcile Nominal vs Adjusted)
+        # Some stocks in DuckDB are pre-adjusted (e.g. 2542 at 1.7 in 2006)
+        # Some are nominal (e.g. 2330 at 58 in 2006).
+        detector = _get_detector()
+        is_pre_adjusted = False
+        if detector and not df.empty and stock_code:
+            try:
+                first_row = df.iloc[0]
+                first_price = first_row['close']
+                first_year = int(first_row.name.year) if hasattr(first_row.name, 'year') else start_year
+                # If price is extremely low (<20) but we have significant splits later (ratio > 2)
+                # it's almost certainly already split-adjusted in the source.
+                ratio_2026 = detector.get_cumulative_ratio(str(stock_code), first_year, 2026)
+                if ratio_2026 > 2.0 and first_price < 20.0:
+                    is_pre_adjusted = True
+            except: pass
             
-        df = df.copy()
-
-        # Safe Year Extraction
-        if 'year' not in df.columns:
-            if isinstance(df.index, pd.DatetimeIndex):
-                df['year'] = df.index.year
+        if precomputed_yearly_stats is not None:
+            # Use pre-aggregated data (much faster)
+            df_yearly = precomputed_yearly_stats
+            yearly_avg_prices = df_yearly.set_index('year')['avg_price']
+            yearly_end_prices = df_yearly.set_index('year')['end_price']
+            yearly_action_prices = df_yearly.set_index('year')['action_price']
+            sorted_years = sorted([y for y in df_yearly['year'].unique() if y >= start_year])
+        else:
+            # Fallback to slow per-stock groupby
+            df = df.copy()
+            if 'year' not in df.columns:
+                if isinstance(df.index, pd.DatetimeIndex):
+                    df['year'] = df.index.year
+                else:
+                    return {}
+                    
+            years = df['year'].unique()
+            yearly_avg_prices = df.groupby('year')['close'].mean()
+            
+            if buy_logic == 'YEAR_HIGH':
+                yearly_action_prices = df.groupby('year')['high'].max()
+            elif buy_logic == 'YEAR_LOW':
+                yearly_action_prices = df.groupby('year')['low'].min()
+            elif buy_logic == 'FIRST_OPEN' or buy_logic == 'YEAR_START_OPEN':
+                yearly_action_prices = df.groupby('year')['open'].first()
             else:
-                # If no year column and no DatetimeIndex, we can't process
-                return {}
-                
-        years = df['year'].unique()
-        yearly_avg_prices = df.groupby('year')['close'].mean()
-        
-        # Calculate Yearly Action Price based on Logic
-        if buy_logic == 'YEAR_HIGH':
-            yearly_action_prices = df.groupby('year')['high'].max() # Use HIGH column
-            # Fallback if 'high' is missing or 0 
-            if yearly_action_prices.max() == 0:
-                 yearly_action_prices = df.groupby('year')['close'].max()
-        elif buy_logic == 'YEAR_LOW':
-            yearly_action_prices = df.groupby('year')['low'].min() # Use LOW column
-            if yearly_action_prices.min() == 0:
-                 yearly_action_prices = df.groupby('year')['close'].min()
-        elif buy_logic == 'FIRST_OPEN':
-            yearly_action_prices = df.groupby('year')['open'].first()
-        else: # FIRST_CLOSE (Default)
-            yearly_action_prices = df.groupby('year')['close'].first()
+                yearly_action_prices = df.groupby('year')['close'].first()
 
-        yearly_end_prices = df.groupby('year')['close'].last()
-        
-        sorted_years = sorted([y for y in years if y >= start_year])
+            yearly_end_prices = df.groupby('year')['close'].last()
+            sorted_years = sorted([y for y in years if y >= start_year])
         if not sorted_years:
             return {}
             
@@ -231,112 +248,69 @@ class ROICalculator:
             # Price Data
             p_action = yearly_action_prices.get(year, 0) # The price we buy at
             p_end = yearly_end_prices.get(year, 0)
-            p_avg = yearly_avg_prices.get(year, 0)
+            
+            # MoneyCome Methodology: Reinvestment Price = (Start + End) / 2
+            p_reinvest = (p_action + p_end) / 2.0
+            p_avg = p_reinvest # Use midpoint for all reinvestments
             
             if p_action == 0: continue
             
-            # 1. Invest Capital
+            # 1. Invest Capital & Calculate Multi-Year Effects
             if i == 0:
-                # Initial Principal + Extra Input
-                amt = principal + annual_investment 
-                shares_bought = amt / p_action
-                current_shares += shares_bought
-                total_invested_cash += amt
-            else:
-                # Yearly Extra Input
-                amt = annual_investment
-                shares_bought = amt / p_action
-                current_shares += shares_bought
-                total_invested_cash += amt
+                # Initial Principal is bought at Start Price (Opening)
+                current_shares = principal / p_action
+                total_invested_cash = principal
             
-            # 2. Dividends
-            # Default from passed data or 0
+            # --- START DIVIDEND BASE CAPTURE ---
+            # Rule: Dividends are calculated based on Carry-over Shares (留倉部位)
+            # which means shares held BEFORE the current year's contribution/reinvestment.
+            
+            # Extract dividends for this year
             div_info = {'cash': 0.0, 'stock': 0.0}
-            
             if dividend_data:
-                # Handle string/int key mismatch
                 data_y = dividend_data.get(year) or dividend_data.get(str(year))
                 if data_y:
                     div_info.update(data_y)
             
-            # Calculate dividends
             cash_div_per_share = div_info.get('cash', 0)
             stock_div_dollar = div_info.get('stock', 0)
             
-            # Case: Stock Div
-            if stock_div_dollar > 0:
-                # Based on Current Shares (Buy at Open qualifies for Mid-Year Div)
-                stock_shares_add = current_shares * (stock_div_dollar / 10.0)
-                current_shares += stock_shares_add
-            
-            # Case: Cash Div Reinvest
-            # Based on Current Shares
             total_cash_div = current_shares * cash_div_per_share
-            if total_cash_div > 0 and p_avg > 0:
-                shares_add = total_cash_div / p_avg
-                current_shares += shares_add
+            # ------------------------------------
 
-            # 3. Apply Split Adjustment for this year
-            # If a split occurred this year, multiply share count by split ratio
-            detector = _get_detector()
-            if detector and stock_code:
-                # Get splits that happened UP TO this year
-                # Actually, check logic: get_cumulative_ratio usually used to adjust OLD shares to NEW basis
-                # But here we are iterating year by year.
-                # If we are strictly maintaining 'current_shares' as the count of shares AT THAT TIME,
-                # we need to adjust them when a split happens.
-                
-                # The split detector has 'adjust_shares' which uses cumulative ratio.
-                # Here we just want to know if a split happened THIS year.
-                
-                # Let's see: split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
-                # This returns the ratio from start_year to year.
-                # But 'current_shares' is being accumulated.
-                
-                # If current_shares accounts for splits iteratively, we should check for splits in the current year only.
-                # But the original code did: split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
-                # AND THEN: adjusted_shares = current_shares * split_ratio
-                
-                # Wait, if current_shares is NOT adjusted in place in the loop, then it represents "original" shares?
-                # No, we add shares_bought = amt / p_action. p_action is nominal price.
-                # So shares added are nominal shares at that year.
-                
-                # If I buy 100 shares in 2010 (price 10), and split 2:1 in 2011 (price 5).
-                # 2010: 100 shares. Value = 100 * 10 = 1000.
-                # 2011: I have 200 shares. Price is 5. Value = 200 * 5 = 1000.
-                
-                # Original code:
-                # adjusted_shares = current_shares * split_ratio
-                # total_asset_value = adjusted_shares * p_end
-                
-                # It seems 'current_shares' in the loop is treated as a mix of shares bought at different times?
-                # This looks suspicious if there are multiple splits.
-                
-                # Let's trust the logic from project_tw first if I am just PORTING.
-                # The task says "Port ROICalculator class".
-                # I should stick to the original logic unless I find a blatant bug.
-                # But looking at original:
-                # split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
-                # adjusted_shares = current_shares * split_ratio
-                
-                # This suggests 'current_shares' is NOT tracking the actual number of shares held,
-                # but something else? Or maybe it assumes all shares purchased so far need to be adjusted by the ratio relative to start year?
-                # That would be wrong if I bought shares AFTER the split.
-                
-                # HOWEVER, for the sake of "Porting", I will copy the original logic.
-                # The original code's comment says:
-                # "Metric Calculation (shares adjusted for splits)"
-                
-                # I will reproduce the original logic exactly for now to minimize regression risk during porting.
-                # Refactoring logic should be a separate task.
-                
-                split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
-            else:
-                split_ratio = 1.0
+            # 2. Add Annual Contribution & Reinvest Dividends at Midpoint
+            # Rule: Both contribution and dividends are reinvested at (Start + End) / 2
             
-            # Metric Calculation (shares adjusted for splits)
-            adjusted_shares = current_shares * split_ratio
-            total_asset_value = adjusted_shares * p_end
+            # Add Contribution
+            contrib_shares = annual_investment / p_reinvest
+            current_shares += contrib_shares
+            total_invested_cash += annual_investment
+            
+            # Reinvest Cash Dividends
+            if total_cash_div > 0 and p_reinvest > 0:
+                div_shares = total_cash_div / p_reinvest
+                current_shares += div_shares
+            
+            # 3. Stock Dividends (Add to shares)
+            if stock_div_dollar != 0:
+                # Based on shares AFTER contribution? 
+                # Methodology says "Calculated based on held shares... Reinvestment at average price"
+                # Stock dividends are usually processed at Par.
+                ratio = stock_div_dollar / 10.0
+                current_shares *= (1.0 + ratio)
+
+            # 4. Apply Split Adjustment (Manual logic for non-adjusted stocks)
+            detector = _get_detector()
+            if detector and stock_code and not is_pre_adjusted:
+                ratio_now = detector.get_cumulative_ratio(stock_code, start_year, year)
+                if i > 0:
+                    ratio_prev = detector.get_cumulative_ratio(stock_code, start_year, sorted_years[i-1])
+                    if ratio_prev != 0 and ratio_now != ratio_prev:
+                        split_multiplier = ratio_now / ratio_prev
+                        current_shares *= split_multiplier
+            
+            # Metric Calculation (current_shares are now adjusted for everything so far)
+            total_asset_value = current_shares * p_end
             
             # Use actual investment duration, not global start year
             effective_start_year = sorted_years[0]
@@ -345,7 +319,7 @@ class ROICalculator:
             cagr_val = 0.0
             roi_val = 0.0
             
-            if total_invested_cash > 0:
+            if total_invested_cash > 0 and total_asset_value > 0:
                 # CAGR
                 cagr_raw = (total_asset_value / total_invested_cash) ** (1 / n_yrs) - 1
                 cagr_val = round(cagr_raw * 100, 1)
@@ -370,8 +344,17 @@ class ROICalculator:
 
             # Check for final year to populate Final Value
             if year == sorted_years[-1]:
+                # Total Investment (Inclusive of Start Year)
+                # Principal + (Number of Contribution Years * Contribution)
+                total_investment = principal + (len(sorted_years) * annual_investment)
                 results["finalValue"] = round(total_asset_value, 0)
-                results["totalCost"] = round(total_invested_cash, 0)
+                results["totalCost"] = round(total_investment, 0)
+                
+                # Recalculate ROI and CAGR for final results
+                results["roi"] = ((total_asset_value - total_investment) / total_investment) * 100 if total_investment > 0 else 0
+                n_years = len(sorted_years)
+                if n_years > 0:
+                    results["cagr"] = ((total_asset_value / principal) ** (1 / n_years) - 1) * 100 if principal > 0 else 0
                 
         results[f"s{start_year}e{sorted_years[-1]}yrs"] = len(sorted_years)
         results["history"] = history

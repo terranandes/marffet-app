@@ -67,7 +67,11 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 
 ### 3.3 Corporate Actions
 - **Split Detection**: Auto-detects splits via >40% overnight price drops.
-- **Adjustment**: Adjusts share count cumulatively. Handles mixed data sources (yfinance adjusted vs unadjusted).
+- **Data Basis**: **100% Nominal (Unadjusted)**.
+    - All prices in `daily_prices` must be the raw trading price at that date.
+    - The engine handles dividend reinvestment and split adjustments *dynamically* during calculation.
+    - Feeding adjusted prices (TRI) to the engine will lead to incorrect CAGR results.
+- **Adjustment**: Adjusts share count cumulatively.
 
 ## 4. Deployment Strategy
 

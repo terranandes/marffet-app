@@ -12,7 +12,7 @@ from datetime import datetime
 
 # Import existing Services/Crawlers
 from app.services.market_data_provider import MarketDataProvider
-from app.services.roi_calculator import ROICalculator
+from app.services.roi_calculator import ROICalculator, _get_detector
 from app.project_tw.crawler_cb import CBCrawler
 
 # Setup Logging
@@ -25,29 +25,47 @@ class MarsStrategy:
         self.top_50 = []
         # Dividends are now fetched from MarketDataProvider (DuckDB)
 
-    async def analyze(self, stock_ids: List[str], start_year: int = 2006) -> List[Dict[str, Any]]:
+    async def analyze(self, stock_ids: List[str], start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000) -> List[Dict[str, Any]]:
         import pandas as pd
-        # import numpy as np
+        import numpy as np
         """
-        Analyze stocks using MarketDataProvider and ROICalculator.
+        Analyze stocks using bulk data loading for high performance.
         """
-        # 1. Auto-Detect Universe if needed
+        start_time = datetime.now()
+        
+        # 1. Detect Universe
         if not stock_ids or stock_ids == ["ALL"]:
             stock_ids = MarketDataProvider.get_stock_list()
-            if stock_ids:
-                logger.info(f"Auto-detected {len(stock_ids)} stocks from DuckDB.")
-            else:
+            if not stock_ids:
                 logger.warning("DuckDB is empty. Cannot auto-detect stocks.")
                 return []
+            is_full_universe = True
+        else:
+            is_full_universe = False
 
-        results = []
-        end_year = 2025 # Default or current year
-        years = list(range(start_year, end_year + 1))
+        # 2. Bulk Fetch Data (The Big Optimization)
+        logger.info(f"Bulk loading market data for {len(stock_ids)} stocks...")
+        start_date = f"{start_year}-01-01"
         
-        # 2. Dividend Data fetching (now from DuckDB)
-        logger.info(f"Using DuckDB for market data and dividends...")
+        # We fetch all if full universe OR specific list if provided
+        # For simplicity, if full universe we use the optimized get_all_*
+        # If specific list, for now we still fetch all and filter in memory if list is large
+        # or use standard if list is small. 
+        # But if user is on Mars tab, it's usually ALL.
         
-        # Load patches once before loop
+        all_prices_df = MarketDataProvider.get_all_daily_history_df(start_date)
+        all_dividends_df = MarketDataProvider.get_all_dividends_df(start_year)
+        
+        # Filter prices if not full universe
+        if not is_full_universe:
+            all_prices_df = all_prices_df[all_prices_df['stock_id'].isin(stock_ids)]
+            all_dividends_df = all_dividends_df[all_dividends_df['stock_id'].isin(stock_ids)]
+
+        if all_prices_df.empty:
+            logger.warning("No price data found for analysis.")
+            return []
+
+        # 3. Load patches once
         if not hasattr(self, 'dividend_patches'):
             try:
                 patch_file = self.data_dir.parent / "dividend_patches.json"
@@ -60,115 +78,121 @@ class MarsStrategy:
                 logger.error(f"Error loading dividend patches: {e}")
                 self.dividend_patches = {}
 
-        logger.info(f"Processing {len(stock_ids)} stocks...")
+        # 4. Pre-calculate Yearly Statistics (The Second Big Optimization)
+        logger.info(f"Pre-calculating yearly statistics for all stocks...")
+        all_prices_df['year'] = all_prices_df['date'].dt.year
         
-        for code in stock_ids:
+        # We need first-open, mean-close, last-close, max-high, min-low per year per stock
+        # This one-time bulk aggregation saves 3+ groupbies per stock in the loop
+        yearly_agg = all_prices_df.groupby(['stock_id', 'year']).agg(
+            action_price=('open', 'first'),
+            avg_price=('close', 'mean'),
+            end_price=('close', 'last')
+        ).reset_index()
+        
+        # Group the aggregated data for easy lookup
+        yearly_agg_groups = yearly_agg.groupby('stock_id')
+
+        # 5. Group by stock_id for raw history access
+        price_groups = all_prices_df.groupby('stock_id')
+        div_groups = all_dividends_df.groupby('stock_id')
+        
+        results = []
+        end_year = datetime.now().year
+        years = list(range(start_year, end_year + 1))
+
+        # 6. Process each stock
+        processed_count = 0
+        total_stocks = len(price_groups)
+        logger.info(f"Processing {total_stocks} stocks...")
+
+        for code, df_group in price_groups:
             try:
-                # 3. Fetch History from MarketDataProvider (DuckDB)
-                # Mars Strategy needs daily data for high-resolution volatility.
-                history_raw = MarketDataProvider.get_daily_history(code, start_date=f"{start_year}-01-01")
-                if not history_raw:
+                # Prepare pre-calculated yearly data for this stock
+                if code not in yearly_agg_groups.groups:
+                    # logger.warning(f"Stock {code} not in yearly_agg_groups")
                     continue
                 
-                # Transform to format expected by ROICalculator
-                history_list = []
-                for h in history_raw:
-                    try:
-                        dt = datetime.strptime(h['d'], "%Y-%m-%d")
-                        history_list.append({
-                            'date': dt,
-                            'year': dt.year,
-                            'month': dt.month,
-                            'open': h['o'],
-                            'high': h['h'],
-                            'low': h['l'],
-                            'close': h['c'],
-                            'volume': h['v']
-                        })
-                    except: pass
-
-                if not history_list:
-                    continue
-                    
-                df = pd.DataFrame(history_list)
+                stock_yearly_stats = yearly_agg_groups.get_group(code)
                 
-                # 4. Prepare Dividends (DuckDB + Patches)
+                # Fetch splits and dividends for this stock
+                detector = _get_detector()
+                if detector:
+                    # Detect splits once for this entire stock history
+                    detector.detect_splits(str(code), df_group.reset_index().to_dict('records'))
+                
                 stock_divs = {}
+                if code in div_groups.groups:
+                    div_df = div_groups.get_group(code)
+                    for _, row in div_df.iterrows():
+                        y = int(row['year'])
+                        stock_divs[y] = {
+                            'cash': float(row['cash']),
+                            'stock': float(row['stock'])
+                        }
                 
-                # A. Real Data from DuckDB
-                db_divs = MarketDataProvider.get_dividends(code, start_year)
-                for d in db_divs:
-                    y = d['year']
-                    stock_divs[y] = {
-                        'cash': float(d.get('cash', 0)),
-                        'stock': float(d.get('stock', 0))
-                    }
-                
-                # B. PATCHES (Override)
-
-                if code in self.dividend_patches:
-                    patches = self.dividend_patches[code]
+                # Apply Patches
+                if str(code) in self.dividend_patches:
+                    patches = self.dividend_patches[str(code)]
                     for y_str, data in patches.items():
-                        y_int = int(y_str)
-                        if y_int in years: # Only apply if year is in range
-                            # Merge or Overwrite?
-                            # Logic was: if not in stock_divs... etc.
-                            # But 2330 case was unconditional overwrite.
-                            # 0050 case was "if not in stock_divs".
-                            # To be safe and cleaner: We prioritize Patch > Crawler?
-                            # 2330: Overwrite. 0050: Supplement.
-                            
-                            # Let's standardize: Patches ALWAYS Overwrite/Supplement
-                            # If we want "Supplement", we check existence.
-                            # But distinguishing per stock is messy.
-                            # Let's just Overwrite. It's a "Patch" after all.
-                            stock_divs[y_int] = data
-                
-                # 5. Run Logic
+                        stock_divs[int(y_str)] = data
+
+                # 7. Run Logic (Highly Optimized with Pre-computed Stats)
                 metrics = self.calculator.calculate_complex_simulation(
-                    df, 
+                    df_group, 
                     start_year, 
+                    principal=principal,
+                    annual_investment=contribution,
                     dividend_data=stock_divs, 
                     stock_code=code,
-                    buy_logic='FIRST_OPEN'
+                    buy_logic='YEAR_START_OPEN',
+                    precomputed_yearly_stats=stock_yearly_stats
                 )
                 
-                if metrics:
-                    metrics['stock_code'] = code
-                    metrics['stock_name'] = str(code) 
-                    metrics['price'] = df.iloc[-1]['close'] if not df.empty else 0
+                if not metrics:
+                    continue
                     
-                    if len(df) > 1:
-                        annual_returns = df['close'].pct_change().dropna()
-                        metrics['volatility_pct'] = annual_returns.std() * 100
-                    else:
-                        metrics['volatility_pct'] = 0.0
+                metrics['stock_code'] = code
+                metrics['stock_name'] = str(code) 
+                metrics['price'] = df_group.iloc[-1]['close'] if not df_group.empty else 0
+                
+                if len(df_group) > 1:
+                    # Vectorized volatility (much faster)
+                    close_prices = df_group['close'].values
+                    pct_change = np.diff(close_prices) / close_prices[:-1]
+                    metrics['volatility_pct'] = np.std(pct_change) * 100
+                else:
+                    metrics['volatility_pct'] = 0.0
 
-                    # Fetch CAGR for specific interval
-                    last_valid_y = df.iloc[-1]['year']
-                    metrics['cagr_pct'] = metrics.get(f"s{start_year}e{last_valid_y}bao", 0)
-                    
-                    # CAGR StdDev
-                    traj_values = []
-                    for y in years:
-                        val = metrics.get(f"s{start_year}e{y}bao")
-                        if val is not None:
-                            try:
-                                traj_values.append(float(val))
-                            except: pass
-                    
-                    if len(traj_values) > 1:
-                        metrics['cagr_std'] = pd.Series(traj_values).std()
-                    else:
-                        metrics['cagr_std'] = 999.0
+                last_valid_y = df_group.iloc[-1]['year']
+                metrics['cagr_pct'] = metrics.get(f"s{start_year}e{last_valid_y}bao", 0)
+                
+                # CAGR StdDev Calculation
+                traj_values = []
+                for y in years:
+                    val = metrics.get(f"s{start_year}e{y}bao")
+                    if val is not None:
+                        try: traj_values.append(float(val))
+                        except: pass
+                
+                if len(traj_values) > 1:
+                    metrics['cagr_std'] = np.std(traj_values)
+                else:
+                    metrics['cagr_std'] = 999.0
 
-                    metrics['valid_lasting_years'] = len(df)
-                    results.append(metrics)
+                metrics['valid_lasting_years'] = len(df_group)
+                results.append(metrics)
                     
             except Exception as e:
-                # logger.error(f"Error processing {code}: {e}")
-                pass
-                
+                # Silently catch per-stock errors to avoid crashing full run
+                continue
+            
+            processed_count += 1
+            if processed_count % 500 == 0:
+                logger.info(f"  Processed {processed_count}/{total_stocks} stocks...")
+
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.info(f"Mars Analysis complete for {len(results)} stocks in {duration:.2f}s")
         return results
 
     def export_to_excel(self, data: List[Dict]) -> bytes:

@@ -787,32 +787,58 @@ class TWSECrawler:
                                 cash_val = 0.0
                                 stock_rate = 0.0
                                 
-                                if length >= 17: # Old Schema (e.g. 2007)
+                                if length >= 17: # Old Schema (e.g. 2005, 2007)
                                     # Index 6 is Cash (Row 7). Index 5 is Rights.
                                     # Prior: 3. Ref: 4.
-                                    prior = float(row[3].replace(',', ''))
-                                    ref = float(row[4].replace(',', ''))
-                                    c_str = row[6] # Cash
-                                    r_str = row[5] # Rights
+                                    if isinstance(row[3], str):
+                                        prior = float(row[3].replace(',', ''))
+                                    else:
+                                        prior = float(row[3])
+                                        
+                                    if isinstance(row[4], str):
+                                        ref = float(row[4].replace(',', ''))
+                                    else:
+                                        ref = float(row[4])
                                     
-                                    cash_val = float(c_str.replace(',', '')) if c_str != '-' else 0.0
-                                    rights_val = float(r_str.replace(',', '')) if r_str != '-' else 0.0
+                                    c_val = row[6]
+                                    r_val = row[5]
                                     
+                                    if isinstance(c_val, str):
+                                        cash_val = float(c_val.replace(',', '')) if c_val != '-' else 0.0
+                                    else:
+                                        cash_val = float(c_val)
+                                        
+                                    if isinstance(r_val, str):
+                                        rights_val = float(r_val.replace(',', '')) if r_val != '-' else 0.0
+                                    else:
+                                        rights_val = float(r_val)
+                                
                                     # Derive Stock Rate from Rights Val
-                                    # Rights Val = Prior - (Ref ignoring cash) ?
                                     # Formula: Ref = (Prior - Cash) / (1 + Rate)
                                     # Rate = ((Prior - Cash) / Ref) - 1
                                     if ref > 0:
                                         stock_rate = ((prior - cash_val) / ref) - 1
+
                                 elif length <= 15: # New Schema (e.g. 2024)
                                     # Index 5 is Value. Index 6 is Type ('權', '息', '權息').
                                     # Prior: 3. Ref: 4.
-                                    prior = float(row[3].replace(',', ''))
-                                    ref = float(row[4].replace(',', ''))
-                                    val_str = row[5]
+                                    if isinstance(row[3], str):
+                                        prior = float(row[3].replace(',', ''))
+                                    else:
+                                        prior = float(row[3])
+                                        
+                                    if isinstance(row[4], str):
+                                        ref = float(row[4].replace(',', ''))
+                                    else:
+                                        ref = float(row[4])
+                                        
+                                    val_raw = row[5]
                                     type_str = row[6]
                                     
-                                    val = float(val_str.replace(',', ''))
+                                    if isinstance(val_raw, str):
+                                        val = float(val_raw.replace(',', ''))
+                                    else:
+                                        val = float(val_raw)
                                     
                                     if type_str == '息':
                                         cash_val = val
@@ -822,19 +848,13 @@ class TWSECrawler:
                                         if ref > 0:
                                             stock_rate = (prior / ref) - 1
                                     elif '權' in type_str and '息' in type_str:
-                                        # Combined?
-                                        # Check if next columns split it?
-                                        # 2024 Sample doesn't show split cols clearly.
-                                        # Assuming simple case for now. 
-                                        # If combined, usually separate columns exist or parsing needed.
-                                        # For TSMC, mostly '息' recently.
-                                        if ref > 0:
-                                            # Approximation: Total Val = Prior - Ref
-                                            # If mostly cash...
-                                            diff = prior - ref
-                                            # Assume all Cash if Type is Mixed? No.
-                                            # Let's hope TSMC is simple.
-                                            cash_val = val # Fallback
+                                        # For Combined cases, the 'val' in TWT49U (Index 5) is the Price Adjustment.
+                                        # It is NOT the Cash Dividend. Automated parsing is unreliable here.
+                                        # We zero it to avoid massive inflation and rely on FALLBACK_PATCHES.
+                                        cash_val = 0.0
+                                        stock_rate = 0.0
+                                        # Log for visibility (will show up in crawler logs/terminal)
+                                        # print(f"  ⚠️  Ambiguous 'Combined' type for {code}: needs patch (Val={val})")
                                             
                                 # Sanity Check
                                 if stock_rate < 0.0001: stock_rate = 0.0
@@ -845,7 +865,9 @@ class TWSECrawler:
                                 results[code]['cash'] += cash_val
                                 results[code]['stock'] += stock_div_par
                                 
-                            except:
+                            except Exception as e:
+                                # quiet log unless debugging
+                                # print(f"Error parse row {row}: {e}")
                                 pass
                 except Exception as e:
                     print(f"Error fetching TWT49U for {year} Q: {e}")

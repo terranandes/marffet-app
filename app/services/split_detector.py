@@ -86,6 +86,26 @@ class SplitDetector:
                 change = (curr_open - prev_close) / prev_close
                 
                 if change < self.SPLIT_THRESHOLD:
+                    # Persistence Check: Ensure it's not a single-day fluke
+                    # Price should stay in the new range for the next few days
+                    is_persistent = True
+                    for j in range(1, 4): # Check next 3 days
+                        if i + j < len(history):
+                            next_open = history[i+j].get('open', 0)
+                            # If next price is back near prev_close, it's a spike
+                            if next_open > prev_close * 0.7:
+                                is_persistent = False
+                                break
+                    
+                    if not is_persistent:
+                        continue
+                    
+                    # New: Check for High-Low spread to avoid outlier data gaps
+                    curr_high = curr.get('high', curr_open)
+                    if curr_high > curr_open * 1.5:
+                        # Massive intraday spike is likely a data outlier, not a split
+                        continue
+                        
                     # Estimate split ratio
                     ratio = round(prev_close / curr_open)
                     if ratio >= 2:  # Must be at least 1:2

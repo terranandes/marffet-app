@@ -1,45 +1,29 @@
-import sys
-import os
-from pathlib import Path
 
-# Add project root to sys.path
-BASE_DIR = Path(__file__).resolve().parents[2]
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
-
-import json
-import os
+import asyncio
+import pandas as pd
+from app.services.market_data_provider import MarketDataProvider
+from app.services.roi_calculator import _get_detector
 
 # Configuration matching User's screenshot
 PRINCIPAL = 1_000_000
-ANNUAL_CONTRIB = 60_000
+ANNUAL_CONTRIB = 0
 START_YEAR = 2006
-END_YEAR = 2025 # Screenshot says 2026, but usually data is up to last closed year
+END_YEAR = 2025
 STOCK_ID = "2330"
 
-# Dividend Data (Cash per Share)
-DIVIDENDS = {
-    2006: 2.39, 2007: 2.95, 2008: 2.99, 2009: 2.98, 2010: 3.00,
-    2011: 3.00, 2012: 3.00, 2013: 3.00, 2014: 3.00, 2015: 4.50,
-    2016: 6.00, 2017: 7.00, 2018: 8.00, 2019: 12.5, 2020: 10.0,
-    2021: 10.5, 2022: 11.0, 2023: 11.5, 2024: 15.0, 2025: 19.0
-}
+async def run_simulation():
+    # 1. Fetch Data
+    prices_df = MarketDataProvider.get_all_daily_history_df("2006-01-01")
+    df = prices_df[prices_df['stock_id'] == STOCK_ID].copy()
+    df['year'] = df['date'].dt.year
+    
+    divs_df = MarketDataProvider.get_all_dividends_df(2006)
+    stock_divs = divs_df[divs_df['stock_id'] == STOCK_ID]
+    
+    DIVIDENDS = {}
+    for _, row in stock_divs.iterrows():
+        DIVIDENDS[int(row['year'])] = float(row['cash'])
 
-def get_price(year, type='start'):
-    # Load JSON
-    try:
-        path = f"data/raw/Market_{year}_Prices.json"
-        if not os.path.exists(path):
-            return None
-        with open(path, 'r') as f:
-            data = json.load(f)
-            if STOCK_ID in data:
-                return data[STOCK_ID].get(type)
-    except Exception as e:
-        print(e)
-    return None
-
-def run_simulation():
     total_shares = 0
     total_cash_invested = 0
     
@@ -47,22 +31,22 @@ def run_simulation():
     print("-" * 65)
 
     # Initial Purchase (2006 Start)
-    start_price_2006 = get_price(2006, 'start')
+    year_data_2006 = df[df['year'] == 2006]
+    start_price_2006 = year_data_2006.iloc[0]['open']
     total_shares = PRINCIPAL / start_price_2006
     total_cash_invested += PRINCIPAL
     
-    print(f"INIT   {start_price_2006:<10} {'-':<10} {int(total_shares):<10} {int(total_shares * start_price_2006):<12} {'-':<10}")
+    print(f"INIT   {start_price_2006:<10.2f} {'-':<10} {int(total_shares):<10} {int(total_shares * start_price_2006):<12} {'-':<10}")
 
     for year in range(START_YEAR, END_YEAR + 1):
-        start_price = get_price(year, 'start')
-        end_price = get_price(year, 'end')
+        year_data = df[df['year'] == year]
+        if year_data.empty: continue
         
-        # Assumption: Dividends received used to buy more shares at AVG price (or Start?)
-        # MoneyCome says "Yearly Cash Div. Reinvestment" -> buying at "Yearly Avg"? 
-        # Let's approx with (Start + End) / 2
+        start_price = year_data.iloc[0]['open']
+        end_price = year_data.iloc[-1]['close']
         avg_price = (start_price + end_price) / 2
         
-        # 1. Receive Dividend
+        # 1. Receive Dividend (On carry-over shares)
         div_per_share = DIVIDENDS.get(year, 0)
         total_div_cash = total_shares * div_per_share
         
@@ -79,11 +63,15 @@ def run_simulation():
         # Value at End of Year
         wealth = total_shares * end_price
         
-        print(f"{year:<6} {start_price:<10} {end_price:<10} {int(total_shares):<10} {int(wealth):<12} {int(total_div_cash):<10}")
+        print(f"{year:<6} {start_price:<10.2f} {end_price:<10.2f} {int(total_shares):<10} {int(wealth):<12} {int(total_div_cash):<10}")
 
     print("-" * 65)
     print(f"Final Shares: {int(total_shares)}")
     print(f"Final Value: {int(total_shares * end_price)}")
-    
+    print(f"Total Invested: {total_cash_invested}")
+    years = END_YEAR - START_YEAR + 1
+    cagr = ((total_shares * end_price) / PRINCIPAL)**(1/years) - 1
+    print(f"CAGR: {cagr*100:.2f}%")
+
 if __name__ == "__main__":
-    run_simulation()
+    asyncio.run(run_simulation())

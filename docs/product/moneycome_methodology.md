@@ -25,8 +25,8 @@ Based on `tests/debug_tools/sim_moneycome.py` and comparative analysis.
 4.  **Dec 31st**: End of Year Price. Update Total Value.
 
 ### 3. Data Sources
--   **Price History**: `MarketCache` (sourced from yfinance, stored in `data/raw/Market_{Year}_Prices.json`).
--   **Dividends**: `DividendCache` (sqlite or hardcoded overrides for key stocks like 2330/0050).
+-   **Price History**: `daily_prices` (DuckDB). **Mandatory: 100% Nominal Basis**. Adjusted prices (TRI) are strictly forbidden as they cause "Double Adjustment" errors.
+-   **Dividends**: `dividends` (DuckDB). Nominal cash and stock dividends.
 
 ### 4. Verification Benchmark
 **Target**: TSMC (2330)

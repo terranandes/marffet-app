@@ -97,20 +97,23 @@ export default function MarsPage() {
     const fetchStocks = async () => {
         setIsCalculating(true);
         try {
+            console.log(`[Mars] Fetching stocks for year ${sim.startYear}...`);
             const res = await fetch(
                 `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
             );
             const data = await res.json();
+            console.log(`[Mars] Received ${Array.isArray(data) ? data.length : 'non-array'} stocks.`);
+
             if (Array.isArray(data)) {
-                // Backend now calculates finalValue, so we just use it directly
-                // But if backend doesn't, we can fallback or just adopt backend's exact value.
-                // The verification showed backend calculates it.
-                // However, we need to map history if available.
                 setStocks(data);
+                if (data.length > 0) {
+                    setIsCalculating(false);
+                }
             }
         } catch (err) {
             console.error("Failed to fetch stocks:", err);
             setStocks([]);
+            setIsCalculating(false);
         }
         setLoading(false);
         setIsCalculating(false);
@@ -427,7 +430,7 @@ export default function MarsPage() {
                                         {/* BAO */}
                                         <div className="text-center font-bold text-[var(--color-cta)] text-xl">
                                             {detailLoading ? "Loading..." :
-                                                detailResult?.BAO?.finalValue ? formatCurrency(detailResult.BAO.finalValue) : "-"}
+                                                detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"}
                                         </div>
 
                                         {/* BAH */}

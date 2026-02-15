@@ -1,0 +1,736 @@
+{
+  "timestamp": "2026-02-14T16:14:10.702739",
+  "total_stocks": 1940,
+  "cagr_outliers_count": 61,
+  "dividend_outliers_count": 71,
+  "cagr_outliers": [
+    {
+      "stock_id": "6763",
+      "legacy": -30.6,
+      "new": 11.8,
+      "diff": 42.4
+    },
+    {
+      "stock_id": "6584",
+      "legacy": 42.1,
+      "new": 12.4,
+      "diff": 29.7
+    },
+    {
+      "stock_id": "4763",
+      "legacy": -2.3,
+      "new": 19.0,
+      "diff": 21.3
+    },
+    {
+      "stock_id": "5292",
+      "legacy": 11.2,
+      "new": 31.4,
+      "diff": 20.2
+    },
+    {
+      "stock_id": "3591",
+      "legacy": -2.7,
+      "new": 14.5,
+      "diff": 17.2
+    },
+    {
+      "stock_id": "6776",
+      "legacy": 1.5,
+      "new": 18.1,
+      "diff": 16.6
+    },
+    {
+      "stock_id": "2496",
+      "legacy": 18.9,
+      "new": 2.6,
+      "diff": 16.3
+    },
+    {
+      "stock_id": "6753",
+      "legacy": 17.0,
+      "new": 33.2,
+      "diff": 16.2
+    },
+    {
+      "stock_id": "2429",
+      "legacy": 16.5,
+      "new": 0.8,
+      "diff": 15.7
+    },
+    {
+      "stock_id": "4413",
+      "legacy": 12.3,
+      "new": -3.1,
+      "diff": 15.4
+    },
+    {
+      "stock_id": "8077",
+      "legacy": 10.2,
+      "new": -5.0,
+      "diff": 15.2
+    },
+    {
+      "stock_id": "6640",
+      "legacy": 42.4,
+      "new": 27.3,
+      "diff": 15.1
+    },
+    {
+      "stock_id": "6517",
+      "legacy": 2.5,
+      "new": 17.3,
+      "diff": 14.8
+    },
+    {
+      "stock_id": "6841",
+      "legacy": -9.2,
+      "new": 5.6,
+      "diff": 14.8
+    },
+    {
+      "stock_id": "2743",
+      "legacy": 26.2,
+      "new": 11.6,
+      "diff": 14.6
+    },
+    {
+      "stock_id": "6283",
+      "legacy": 1.2,
+      "new": 15.5,
+      "diff": 14.3
+    },
+    {
+      "stock_id": "2348",
+      "legacy": 18.2,
+      "new": 4.2,
+      "diff": 14.0
+    },
+    {
+      "stock_id": "6756",
+      "legacy": -13.3,
+      "new": 0.6,
+      "diff": 13.9
+    },
+    {
+      "stock_id": "3357",
+      "legacy": 2.3,
+      "new": 15.8,
+      "diff": 13.5
+    },
+    {
+      "stock_id": "6861",
+      "legacy": -12.9,
+      "new": 0.6,
+      "diff": 13.5
+    },
+    {
+      "stock_id": "6693",
+      "legacy": -2.9,
+      "new": 10.5,
+      "diff": 13.4
+    },
+    {
+      "stock_id": "8476",
+      "legacy": -5.6,
+      "new": 7.7,
+      "diff": 13.3
+    },
+    {
+      "stock_id": "8422",
+      "legacy": -5.2,
+      "new": 7.9,
+      "diff": 13.1
+    },
+    {
+      "stock_id": "2364",
+      "legacy": 16.4,
+      "new": 3.7,
+      "diff": 12.7
+    },
+    {
+      "stock_id": "4923",
+      "legacy": -7.8,
+      "new": 4.9,
+      "diff": 12.7
+    },
+    {
+      "stock_id": "6873",
+      "legacy": -0.3,
+      "new": 12.3,
+      "diff": 12.6
+    },
+    {
+      "stock_id": "6708",
+      "legacy": -5.5,
+      "new": 6.9,
+      "diff": 12.4
+    },
+    {
+      "stock_id": "2949",
+      "legacy": -16.5,
+      "new": -4.4,
+      "diff": 12.1
+    },
+    {
+      "stock_id": "4967",
+      "legacy": 30.9,
+      "new": 18.9,
+      "diff": 12.0
+    },
+    {
+      "stock_id": "6240",
+      "legacy": 6.8,
+      "new": -5.2,
+      "diff": 12.0
+    },
+    {
+      "stock_id": "3272",
+      "legacy": -6.1,
+      "new": 5.9,
+      "diff": 12.0
+    },
+    {
+      "stock_id": "6645",
+      "legacy": -12.2,
+      "new": -0.2,
+      "diff": 12.0
+    },
+    {
+      "stock_id": "2408",
+      "legacy": 17.6,
+      "new": 5.8,
+      "diff": 11.8
+    },
+    {
+      "stock_id": "4558",
+      "legacy": -11.0,
+      "new": 0.6,
+      "diff": 11.6
+    },
+    {
+      "stock_id": "6743",
+      "legacy": -12.5,
+      "new": -0.9,
+      "diff": 11.6
+    },
+    {
+      "stock_id": "6782",
+      "legacy": -6.4,
+      "new": 5.0,
+      "diff": 11.4
+    },
+    {
+      "stock_id": "5213",
+      "legacy": 16.3,
+      "new": 5.0,
+      "diff": 11.3
+    },
+    {
+      "stock_id": "6550",
+      "legacy": -17.5,
+      "new": -6.3,
+      "diff": 11.2
+    },
+    {
+      "stock_id": "3530",
+      "legacy": -5.3,
+      "new": 5.8,
+      "diff": 11.1
+    },
+    {
+      "stock_id": "3095",
+      "legacy": 5.5,
+      "new": -5.5,
+      "diff": 11.0
+    },
+    {
+      "stock_id": "5301",
+      "legacy": 3.3,
+      "new": -7.7,
+      "diff": 11.0
+    },
+    {
+      "stock_id": "3666",
+      "legacy": -1.0,
+      "new": -12.0,
+      "diff": 11.0
+    },
+    {
+      "stock_id": "6904",
+      "legacy": -4.5,
+      "new": 6.5,
+      "diff": 11.0
+    },
+    {
+      "stock_id": "1449",
+      "legacy": 7.6,
+      "new": -3.3,
+      "diff": 10.9
+    },
+    {
+      "stock_id": "00636K",
+      "legacy": 2.1,
+      "new": 13.0,
+      "diff": 10.9
+    },
+    {
+      "stock_id": "3086",
+      "legacy": 16.3,
+      "new": 5.5,
+      "diff": 10.8
+    },
+    {
+      "stock_id": "6761",
+      "legacy": 3.2,
+      "new": 14.0,
+      "diff": 10.8
+    },
+    {
+      "stock_id": "5314",
+      "legacy": 11.4,
+      "new": 22.1,
+      "diff": 10.7
+    },
+    {
+      "stock_id": "4736",
+      "legacy": 7.9,
+      "new": -2.7,
+      "diff": 10.6
+    },
+    {
+      "stock_id": "4198",
+      "legacy": 3.4,
+      "new": -7.1,
+      "diff": 10.5
+    }
+  ],
+  "dividend_outliers": [
+    {
+      "stock_id": "6669",
+      "year": 2020,
+      "cash": 22.998816,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6669",
+      "year": 2021,
+      "cash": 32.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6669",
+      "year": 2022,
+      "cash": 25.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6669",
+      "year": 2023,
+      "cash": 50.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6669",
+      "year": 2024,
+      "cash": 42.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6669",
+      "year": 2025,
+      "cash": 74.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2404",
+      "year": 2024,
+      "cash": 21.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2404",
+      "year": 2025,
+      "cash": 28.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3563",
+      "year": 2019,
+      "cash": 27.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3533",
+      "year": 2023,
+      "cash": 25.182608,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3533",
+      "year": 2024,
+      "cash": 25.754503,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3533",
+      "year": 2025,
+      "cash": 41.722823,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "5269",
+      "year": 2021,
+      "cash": 24.000915,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "5269",
+      "year": 2022,
+      "cash": 26.001016,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "5269",
+      "year": 2023,
+      "cash": 20.000362,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "5269",
+      "year": 2025,
+      "cash": 30.000078,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2327",
+      "year": 2019,
+      "cash": 45.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2059",
+      "year": 2025,
+      "cash": 32.2,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2379",
+      "year": 2022,
+      "cash": 27.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2379",
+      "year": 2023,
+      "cash": 27.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2379",
+      "year": 2025,
+      "cash": 25.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2603",
+      "year": 2025,
+      "cash": 32.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2017,
+      "cash": 20.00432,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2018,
+      "cash": 20.000813,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2021,
+      "cash": 23.504301,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2022,
+      "cash": 23.553022,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2023,
+      "cash": 43.508924,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2024,
+      "cash": 37.503591,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6409",
+      "year": 2025,
+      "cash": 43.00451,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2357",
+      "year": 2021,
+      "cash": 26.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2357",
+      "year": 2022,
+      "cash": 42.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2357",
+      "year": 2025,
+      "cash": 34.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2015,
+      "cash": 21.999933,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2021,
+      "cash": 37.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2022,
+      "cash": 73.00106,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2023,
+      "cash": 76.006606,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2024,
+      "cash": 55.005308,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2454",
+      "year": 2025,
+      "cash": 54.000217,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3034",
+      "year": 2022,
+      "cash": 51.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3034",
+      "year": 2023,
+      "cash": 37.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3034",
+      "year": 2024,
+      "cash": 32.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3034",
+      "year": 2025,
+      "cash": 28.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "6670",
+      "year": 2023,
+      "cash": 21.999074,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2014,
+      "cash": 28.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2015,
+      "cash": 51.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2016,
+      "cash": 63.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2017,
+      "cash": 63.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2018,
+      "cash": 72.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2019,
+      "cash": 68.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2020,
+      "cash": 79.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2021,
+      "cash": 91.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2022,
+      "cash": 109.656082,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2023,
+      "cash": 72.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2024,
+      "cash": 81.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3008",
+      "year": 2025,
+      "cash": 85.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "8016",
+      "year": 2022,
+      "cash": 32.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "8016",
+      "year": 2023,
+      "cash": 22.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2912",
+      "year": 2018,
+      "cash": 25.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2227",
+      "year": 2015,
+      "cash": 30.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2227",
+      "year": 2017,
+      "cash": 22.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2227",
+      "year": 2018,
+      "cash": 21.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2227",
+      "year": 2020,
+      "cash": 21.27,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "4763",
+      "year": 2023,
+      "cash": 31.5,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "4763",
+      "year": 2024,
+      "cash": 26.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2498",
+      "year": 2007,
+      "cash": 27.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2498",
+      "year": 2008,
+      "cash": 34.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "2498",
+      "year": 2012,
+      "cash": 40.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3673",
+      "year": 2013,
+      "cash": 20.907424,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3592",
+      "year": 2022,
+      "cash": 45.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3592",
+      "year": 2023,
+      "cash": 41.0,
+      "reason": "Absolute cash > 20"
+    },
+    {
+      "stock_id": "3592",
+      "year": 2025,
+      "cash": 22.2,
+      "reason": "Absolute cash > 20"
+    }
+  ]
+}

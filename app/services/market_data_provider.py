@@ -22,6 +22,7 @@ class MarketDataProvider:
     def get_daily_history(cls, stock_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Get full daily OHLCV for a stock. Used by Mars Strategy.
+        Legacy dict-based method. Use get_daily_history_df for better performance.
         """
         conn = get_connection(read_only=True)
         try:
@@ -47,6 +48,52 @@ class MarketDataProvider:
         except Exception as e:
             logger.error(f"Error fetching daily history for {stock_id}: {e}")
             return []
+        finally:
+            conn.close()
+
+    @classmethod
+    def get_daily_history_df(cls, stock_id: str, start_date: Optional[str] = None):
+        """
+        Fetch daily history as a Pandas DataFrame directly from DuckDB.
+        """
+        import pandas as pd
+        conn = get_connection(read_only=True)
+        try:
+            query = "SELECT date, open, high, low, close, volume FROM daily_prices WHERE stock_id = ?"
+            params = [stock_id]
+            if start_date:
+                query += " AND date >= ?"
+                params.append(start_date)
+            query += " ORDER BY date"
+            
+            # Use DuckDB's .df() for high-speed conversion
+            return conn.execute(query, params).df()
+        except Exception as e:
+            logger.error(f"Error fetching daily history DF for {stock_id}: {e}")
+            return pd.DataFrame()
+        finally:
+            conn.close()
+
+    @classmethod
+    def get_all_daily_history_df(cls, start_date: Optional[str] = None):
+        """
+        Fetch ALL daily history for ALL stocks as one massive Pandas DataFrame.
+        This is significantly faster for universe-wide analysis (Mars Strategy).
+        """
+        import pandas as pd
+        conn = get_connection(read_only=True)
+        try:
+            query = "SELECT stock_id, date, open, high, low, close, volume FROM daily_prices"
+            params = []
+            if start_date:
+                query += " WHERE date >= ?"
+                params.append(start_date)
+            query += " ORDER BY stock_id, date"
+            
+            return conn.execute(query, params).df()
+        except Exception as e:
+            logger.error(f"Error fetching ALL daily history DF: {e}")
+            return pd.DataFrame()
         finally:
             conn.close()
 
@@ -126,6 +173,7 @@ class MarketDataProvider:
     def get_dividends(cls, stock_id: str, start_year: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Get dividend history for a stock.
+        Legacy dict-based method.
         """
         conn = get_connection(read_only=True)
         try:
@@ -143,6 +191,28 @@ class MarketDataProvider:
         except Exception as e:
             logger.error(f"Error fetching dividends for {stock_id}: {e}")
             return []
+        finally:
+            conn.close()
+
+    @classmethod
+    def get_all_dividends_df(cls, start_year: Optional[int] = None):
+        """
+        Fetch ALL dividends for ALL stocks as a Pandas DataFrame.
+        """
+        import pandas as pd
+        conn = get_connection(read_only=True)
+        try:
+            query = "SELECT stock_id, year, cash, stock FROM dividends"
+            params = []
+            if start_year:
+                query += " WHERE year >= ?"
+                params.append(start_year)
+            query += " ORDER BY stock_id, year"
+            
+            return conn.execute(query, params).df()
+        except Exception as e:
+            logger.error(f"Error fetching all dividends DF: {e}")
+            return pd.DataFrame()
         finally:
             conn.close()
 

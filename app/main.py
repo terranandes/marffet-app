@@ -437,34 +437,57 @@ async def chat_with_mars(req: ChatRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/api/results")
-def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
-    """Return filtered results with Mars Simulation (Cached)"""
-    # Validate start_year (yfinance supports 2000+)
+async def get_results(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+    """Return filtered results with Mars Simulation (Optimized & Async)"""
     if start_year < 2000:
         return JSONResponse(status_code=400, content={"error": "start_year must be >= 2000"})
     try:
         # Check Cache
         cache_key = (start_year, principal, contribution)
         if cache_key in SIM_CACHE:
-            print(f"[Mars] Serving simulation from cache for {cache_key}")
             return SIM_CACHE[cache_key]["data"]
 
-        # Load filtered list
+        from app.services.strategy_service import MarsStrategy
+        strategy = MarsStrategy()
+        
+        # MarsStrategy.analyze now handles ALL or specific IDs
+        # For the Mars Page, we use "ALL" (filtered by the strategy's own logic)
+        raw_results = await strategy.analyze(
+            stock_ids=["ALL"], 
+            start_year=start_year,
+            principal=principal,
+            contribution=contribution
+        )
+        
+        # Map to Legacy format for Frontend Compatibility
+        # Next.js expects: id, name, finalValue, totalCost, cagr_pct, history, etc.
+        results = []
+        
+        # Load names for enrichment if needed (Strategy might just have IDs)
         import pandas as pd
         SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-        df = pd.read_excel(SOURCE_FILE)
-        df = df.fillna(0)
-        
-        # Load Prices (Optimized via MarketDataProvider)
-        from app.services.market_data_provider import MarketDataProvider
-        
-        # Run Simulation
-        results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
-        
-        # Sanitize numpy types for JSON serialization
+        name_map = {}
+        if SOURCE_FILE.exists():
+            try:
+                name_df = pd.read_excel(SOURCE_FILE)
+                for _, row in name_df.iterrows():
+                    name_map[str(row['id'])] = row['name']
+            except: pass
+
+        for res in raw_results:
+            sid = str(res['stock_code'])
+            res['id'] = sid
+            res['name'] = name_map.get(sid, sid)
+            res['valid_years'] = res.get('valid_lasting_years', 0)
+            results.append(res)
+            
+        # Sanitize and Cache
         results = sanitize_for_json(results)
         
-        # Save to Cache
+        # Prevent memory leak by limiting cache size
+        if len(SIM_CACHE) > 100:
+            SIM_CACHE.clear()
+            
         SIM_CACHE[cache_key] = {
             "timestamp": time.time(),
             "data": results

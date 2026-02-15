@@ -1,0 +1,30 @@
+/home/terwu01/github/martian/app/services/strategy_service.py:162: RuntimeWarning: divide by zero encountered in divide
+  pct_change = np.diff(close_prices) / close_prices[:-1]
+/home/terwu01/github/martian/app/services/strategy_service.py:162: RuntimeWarning: invalid value encountered in divide
+  pct_change = np.diff(close_prices) / close_prices[:-1]
+/home/terwu01/github/martian/app/services/strategy_service.py:162: RuntimeWarning: divide by zero encountered in divide
+  pct_change = np.diff(close_prices) / close_prices[:-1]
+/home/terwu01/github/martian/app/services/strategy_service.py:162: RuntimeWarning: invalid value encountered in divide
+  pct_change = np.diff(close_prices) / close_prices[:-1]
+🚀 Starting Grand Correlation (DuckDB vs Legacy Excel)...
+📄 Loaded 1940 stocks from legacy Excel.
+⚙️ Running simulation for 1940 stocks using DuckDB...
+✅ Simulation complete. Received 1903 results.
+
+📈 Correlation Summary:
+ - Total Stocks Examined: 1940
+ - Results Obtained: 1903
+ - Perfect Matches (<0.1% diff): 50 (2.6%)
+ - High Correlation (<1.0% diff): 336 (17.3%)
+
+⚠️ Largest Outliers:
+ - 1752 (南光): Legacy=3.4%, New=158.4%, Diff=155.0%
+ - 4763 (材料*-KY): Legacy=-2.3%, New=123.5%, Diff=125.8%
+ - 8422 (可寧衛*): Legacy=-5.2%, New=78.8%, Diff=84.0%
+ - 8070 (長華*): Legacy=-0.1%, New=76.5%, Diff=76.6%
+ - 6763 (綠界科技*): Legacy=-30.6%, New=11.8%, Diff=42.4%
+ - 2597 (潤弘): Legacy=17.0%, New=56.5%, Diff=39.5%
+ - 3209 (全科): Legacy=10.2%, New=44.5%, Diff=34.3%
+ - 2539 (櫻花建): Legacy=20.4%, New=54.3%, Diff=33.9%
+ - 3090 (日電貿): Legacy=12.2%, New=43.5%, Diff=31.3%
+ - 6584 (南俊國際): Legacy=42.1%, New=12.4%, Diff=29.7%

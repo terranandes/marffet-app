@@ -11,4 +11,5 @@ Task 9: Revamp Ops Scripts - Completed. Verified scripts/ops/verify_integrity.py
 Task 10: Full System Verification - Completed. Passed integrity checks, verified monthly closes, and confirmed TSMC 2010 granularity (6,500 rows).
 Task 11: Cleanup & Deploy - Completed. Deleted 2.7GB of legacy JSON files. Dropped race_cache from portfolio.db. Updated Dockerfile and gitignore.
 
-ralph-done-70123
+Task 12: Phase 14 - Nominal Price Standardization - In Progress. Created fetch_mi_index_mass.py (Draft).
+

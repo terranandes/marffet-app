@@ -1,11 +1,29 @@
 import duckdb
 import logging
 import os
+import shutil
 from pathlib import Path
 
 # Path to the DuckDB database file
+# Priority: /data/market.duckdb (Zeabur persistent volume) > project-local data/market.duckdb
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = BASE_DIR / "data/market.duckdb"
+_VOLUME_DB_PATH = Path("/data/market.duckdb")
+_LOCAL_DB_PATH = BASE_DIR / "data/market.duckdb"
+
+def _resolve_db_path() -> Path:
+    """Resolve the best DuckDB path, with copy-on-startup for Zeabur."""
+    # If /data/ volume exists (Zeabur), use it
+    if _VOLUME_DB_PATH.parent.exists() and _VOLUME_DB_PATH.parent.is_dir():
+        if not _VOLUME_DB_PATH.exists() and _LOCAL_DB_PATH.exists():
+            # First deploy: copy bundled DB to persistent volume
+            logging.info(f"[MarketDB] Copying {_LOCAL_DB_PATH} → {_VOLUME_DB_PATH} (first deploy)")
+            shutil.copy2(str(_LOCAL_DB_PATH), str(_VOLUME_DB_PATH))
+        if _VOLUME_DB_PATH.exists():
+            return _VOLUME_DB_PATH
+    # Fallback: local development path
+    return _LOCAL_DB_PATH
+
+DB_PATH = _resolve_db_path()
 
 def get_connection(read_only: bool = False):
     """

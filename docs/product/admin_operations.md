@@ -1,7 +1,7 @@
 # Martian Admin Operations Guide 🛰️🕹️
 
 **Owner**: [PL] / [PM]
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-17
 
 This document serves as the definitive reference for GM (Game Master) operations, including manual dashboard tools and automated background processes.
 
@@ -47,22 +47,22 @@ Located at `/admin` on the Martian Frontend.
 
 These jobs run on the Zeabur server/local host via `crontab`.
 
-| Job Name | Script Path | Schedule | Logic | GitHub Persistence |
+| Job Name | Script Path | Schedule | Logic | Data Target |
 | :--- | :--- | :--- | :--- | :--- |
-| **Nightly Refresh** | `refresh_current_year.sh` | 22:00 HKT | Incremental price fetch + merge. | ✅ Yes |
-| **Quarterly Sync** | `quarterly_dividend_sync.sh` | Q-Start 02:00 | Global Universe Dividend refresh. | ✅ Yes |
-| **Annual Pre-warm** | `annual_prewarm.sh` | Jan 1st 02:00 | Full universe health check + re-upload. | ✅ Yes |
-| **DB Backup** | (Internal) | Daily 04:00 | SQLite Snapshot. | ✅ Yes |
+| **Nightly Full Supplement** | `nightly_full_supplement.py` (via `refresh_current_year.sh`) | 22:00 HKT | Fetches last 2 trading days (`period=2d`) for ALL stocks → DuckDB. 1-day safety buffer in case cron misses a night. | **DuckDB** (1,629 stocks) |
+| **Quarterly Sync** | `quarterly_dividend_sync.sh` | Q-Start 02:00 | Global Universe Dividend refresh. | ✅ GitHub |
+| **Annual Pre-warm** | `annual_prewarm.sh` | Jan 1st 02:00 | Full universe health check + re-upload. | ✅ GitHub |
+| **DB Backup** | (Internal) | Daily 04:00 | SQLite (`portfolio.db`) snapshot. | ✅ GitHub |
 
 ---
 
 ## 3. Data Integrity & Persistence Loop
 
-The system operates on a **"Crawl-Local-Push"** cycle:
-1.  **Crawl**: Data is fetched from TWSE/TPEx or Yahoo Finance.
-2.  **Local Storage**: Data is merged into `data/raw/Market_YYYY_Prices.json`.
-3.  **Persistence**: The `BackupService` creates a git commit and pushes to `origin master`.
-4.  **Deployment**: Zeabur detects the push and redeploys the App with "Pre-warmed" data.
+The system operates on a **"Crawl → DuckDB → Serve"** cycle:
+1.  **Crawl**: Price data is fetched from Yahoo Finance (`yfinance`) for all stocks.
+2.  **DuckDB Storage**: Data is upserted into `data/market.duckdb` (or `/data/market.duckdb` on Zeabur).
+3.  **Serve**: Mars Strategy and other tabs query DuckDB directly on each request (with SIM_CACHE for performance).
+4.  **Persistence**: `portfolio.db` is backed up to GitHub. DuckDB is downloadable via `GET /api/admin/backup/duckdb`.
 
 ### Manual Data Patching
 If data is missing for a specific ticker (e.g., historical gaps for 5314 or 2330), use:

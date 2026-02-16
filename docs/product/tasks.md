@@ -73,16 +73,19 @@
     - [x] Dropped `race_cache` from SQLite
     - [x] Revamped `supplement_prices.py` to target DuckDB directly
 
-## 14. Phase 14: Nominal Price Standardization - [IN PROGRESS]
-- [ ] **MI_INDEX Mass Fetch (Nominal Source)**
-    - [ ] Implement `fetch_mi_index_mass.py` with WAF protection
-    - [ ] Execute fetch for 2004-2025 (Daily Checkpoints)
-- [ ] **Database Rebuild (Nominal Basis)**
-    - [ ] Purge `daily_prices` adjusted data
-    - [ ] Rehydrate from MI_INDEX snapshots
+## 14. Phase 14: Nominal Price Standardization - [COMPLETED]
+- [x] **MI_INDEX Mass Fetch (Nominal Source)**
+    - [x] Implement `fetch_mi_index_mass.py` with WAF protection
+    - [x] Execute fetch for 2004-2025 (Daily Checkpoints)
+- [x] **Database Rebuild (Nominal Basis)**
+    - [x] Purge `daily_prices` adjusted data
+    - [x] Rehydrate from MI_INDEX snapshots → **5,025,797 rows, 1,629 stocks, 326 MB**
+- [x] **Post-Rebuild Steps**
+    - [x] Gap-Fill: 16 gaps filled, 0 failures (5,398 trading days)
+    - [x] Dividend Import: 14,007 records from TWSE official API
 - [ ] **Verification & Sync**
-    - [ ] `verify_nominal_integrity.py` (Basis Audit)
-    - [ ] Grand Correlation v4 (>90% target)
+    - [x] `correlate_mars.py` fixed and running (TSMC 19.4% ≈ 18.8% ref)
+    - [ ] Grand Correlation v4 (>90% target — needs MoneyCome ref recalibration)
     - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch)
 
 ## 7. Phase 8: Premium UI & Remote Stabilization - [IN PROGRESS]
@@ -101,3 +104,17 @@
 - [x] **Sidebar Reordering** (Compound Interest moved)
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
+- [x] **Fix BUG-111: Next.js API Proxy 500 Error** (Resolved: Port mismatch fixed .env -> 8000) <!-- id: bug-111 -->
+
+## 15. Phase 15: DuckDB Optimization & Dividend Migration - [COMPLETED]
+- [x] **Dividend Migration (Single Source of Truth)**
+    - [x] Retire `dividends_all.json` & hardcoded `DIVIDENDS_DB`
+    - [x] Implement `MarketDataProvider.load_dividends_dict()` (DuckDB read)
+    - [x] Update `app/main.py` (Remove legacy loader)
+    - [x] Update `MarsStrategy` to skip live crawling (DuckDB read)
+    - [x] Update all test/debug scripts
+- [x] **Data Population**
+    - [ ] Run `reimport_twse_dividends.py` (Pending Phase 14 Rebuild)
+- [x] **Tab Audit**
+    - [x] Confirm all tabs use DuckDB for prices
+    - [x] Migrate Portfolio Dividend Sync from yfinance to DuckDB (Future Optimization)

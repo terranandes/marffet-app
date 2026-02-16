@@ -20,8 +20,8 @@ def test_logic():
     df = pd.DataFrame(history)
     
     # Load Divs
-    from app.main import DIVIDENDS_DB
-    div_data = DIVIDENDS_DB.get(stock_id, {})
+    from app.services.market_data_provider import MarketDataProvider
+    div_data = MarketDataProvider.load_dividends_dict().get(stock_id, {})
     
     calc = ROICalculator()
     

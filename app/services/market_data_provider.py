@@ -17,6 +17,37 @@ class MarketDataProvider:
     
     _latest_price_cache: Dict[str, float] = {}
     _is_cache_warmed: bool = False
+    _dividends_dict: Optional[Dict[str, Dict[int, Dict[str, float]]]] = None
+
+    @classmethod
+    def load_dividends_dict(cls, force_reload: bool = False) -> Dict[str, Dict[int, Dict[str, float]]]:
+        """
+        Load ALL dividends from DuckDB into the legacy dict format:
+            {stock_id: {year: {'cash': float, 'stock': float}}}
+        Cached in-memory after first load. Use force_reload=True to refresh.
+        """
+        if cls._dividends_dict is not None and not force_reload:
+            return cls._dividends_dict
+
+        conn = get_connection(read_only=True)
+        try:
+            rows = conn.execute(
+                "SELECT stock_id, year, cash, stock FROM dividends ORDER BY stock_id, year"
+            ).fetchall()
+            result: Dict[str, Dict[int, Dict[str, float]]] = {}
+            for stock_id, year, cash, stock_div in rows:
+                if stock_id not in result:
+                    result[stock_id] = {}
+                result[stock_id][year] = {'cash': cash or 0.0, 'stock': stock_div or 0.0}
+            cls._dividends_dict = result
+            logger.info(f"Loaded {len(rows)} dividend records for {len(result)} stocks from DuckDB.")
+            return result
+        except Exception as e:
+            logger.error(f"Error loading dividends dict from DuckDB: {e}")
+            # Return empty dict if DuckDB is unavailable (e.g., during rebuild)
+            return cls._dividends_dict or {}
+        finally:
+            conn.close()
 
     @classmethod
     def get_daily_history(cls, stock_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> List[Dict[str, Any]]:

@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from app.services.market_cache import MarketCache
 from app.project_tw.calculator import ROICalculator
-from app.main import DIVIDENDS_DB, init_db
+from app.services.market_data_provider import MarketDataProvider
 
 def benchmark_calc():
     print("--- 1. Warming Up ---")
@@ -28,7 +28,7 @@ def benchmark_calc():
     # Simulate API logic
     rows = [h for h in history if h['year'] >= start_year]
     df = pd.DataFrame(rows)
-    div_data = DIVIDENDS_DB.get(stock_id, {})
+    div_data = MarketDataProvider.load_dividends_dict().get(stock_id, {})
     
     print(f"\n--- 3. Running Calculations (3 Strategies) ---")
     t0 = time.time()

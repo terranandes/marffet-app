@@ -25,9 +25,9 @@
 | Package Manager | **uv** | Ultra-fast Python package installer |
 | Data Processing | Pandas | Simulation, Excel I/O |
 | Authentication | Authlib + Starlette | OAuth 2.0 (Google) + Guest Mode |
-| Database | SQLite + JSON | Zero-maintenance, **Auto-Backup to GitHub** |
-| Persistence | Git Backup Loop | [Read Architecture Spec](./backup_restore.md) |
-| Data Crawler | AsyncIO + HTTPX | **[Crawler Architecture](./crawler_architecture.md)** |
+| Database | DuckDB + SQLite | **DuckDB (Market Data Lake)** + SQLite (User Data) |
+| Persistence | Zeabur Persistent Volume | [Read Architecture Spec](./duckdb_architecture.md) |
+| Data Crawler | AsyncIO + yfinance | Nightly Full Supplement (`period=2d`) |
 | Data Pipeline | Python, Pandas, Asyncio, HTTPX | **[Data Pipeline Architecture](./data_pipeline.md)** |
 | External API | TWSE (MI_INDEX), TPEx | Stock Name Resolution & Verification |
 | Pre-warm | APScheduler | Annual auto-rebuild + push |

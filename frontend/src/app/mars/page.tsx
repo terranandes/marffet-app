@@ -212,11 +212,11 @@ export default function MarsPage() {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">
-                                Start Year (2006-{currentYear})
+                                Start Year (2000-{currentYear})
                             </label>
                             <input
                                 type="number"
-                                min={2006}
+                                min={2000}
                                 max={currentYear}
                                 value={sim.startYear}
                                 onChange={(e) => setSim({ ...sim, startYear: Number(e.target.value) })}

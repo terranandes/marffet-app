@@ -1,10 +1,29 @@
 # Martian Investment System - Technical Specifications
-**Version**: 3.0
-**Date**: 2026-02-07
+**Version**: 4.0
+**Date**: 2026-02-17
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
+
 Decoupled Client-Server architecture for containerized deployment (Zeabur).
+
+### Feature Specifications Index
+
+| Module | Spec Document | Status |
+|:-------|:-------------|:-------|
+| Mars Strategy & BCR | [Mars & BCR Feature Logic](./mars_strategy_bcr.md) | ✅ Production |
+| Portfolio Tracker | [Portfolio Feature Spec](./feature_portfolio.md) | ✅ Production |
+| Compound Simulator | [Compound Feature Spec](./feature_compound.md) | ✅ Production |
+| Convertible Bonds | [CB Feature Spec](./feature_cb.md) | 🚧 Development |
+| AI Copilot | [AI Copilot Feature Spec](./feature_ai_copilot.md) | ✅ Production |
+| Leaderboard & Ladder | [Leaderboard Feature Spec](./feature_leaderboard.md) | ✅ Production |
+| Admin Dashboard | [Admin Feature Spec](./feature_admin.md) | ✅ Production |
+| Settings & User System | [Settings & User Spec](./feature_settings_user.md) | ✅ Production |
+| Trend & My Race | [Trend & Race Feature Spec](./feature_trend_race.md) | ✅ Production |
+| Auth Architecture | [Google OAuth & Guest Mode](./auth_db_architecture.md) | ✅ Production |
+| DuckDB Data Lake | [DuckDB Architecture](./duckdb_architecture.md) | ✅ Production |
+| Data Pipeline | [Crawler & Pipeline](./data_pipeline.md) | ✅ Production |
+| Admin Operations | [Ops Manual](./admin_operations.md) | ✅ Production |
 
 ### 1.1 Components
 | Component | Tech | Role | URL |

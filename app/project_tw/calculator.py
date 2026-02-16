@@ -194,6 +194,18 @@ class ROICalculator:
             
             if p_action == 0: continue
             
+            # 0. Apply Split FIRST (before buying new shares this year)
+            # With nominal prices, a split causes price to drop (e.g., $60 → $15 for 1:4)
+            # Existing shares must multiply by the split ratio so value is preserved.
+            # New shares bought this year are at the post-split price, so they're already correct.
+            detector = _get_detector()
+            if detector and stock_code:
+                # Year-over-year ratio: only splits that happened THIS year
+                prev_year = sorted_years[i - 1] if i > 0 else start_year - 1
+                yr_split = detector.get_cumulative_ratio(stock_code, prev_year, year)
+                if yr_split > 1.0:
+                    current_shares *= yr_split
+
             # 1. Invest Capital
             if i == 0:
                 # Initial Principal + Extra Input
@@ -235,18 +247,9 @@ class ROICalculator:
                 shares_add = total_cash_div / p_avg
                 current_shares += shares_add
 
-            # 3. Apply Split Adjustment for this year
-            # If a split occurred this year, multiply share count by split ratio
-            detector = _get_detector()
-            if detector and stock_code:
-                # Get splits that happened UP TO this year
-                split_ratio = detector.get_cumulative_ratio(stock_code, start_year, year)
-            else:
-                split_ratio = 1.0
-            
-            # Metric Calculation (shares adjusted for splits)
-            adjusted_shares = current_shares * split_ratio
-            total_asset_value = adjusted_shares * p_end
+            # 3. Valuation — with nominal prices, no further adjustment needed.
+            # current_shares is already in post-split terms.
+            total_asset_value = current_shares * p_end
             
             # Use actual investment duration, not global start year
             effective_start_year = sorted_years[0]

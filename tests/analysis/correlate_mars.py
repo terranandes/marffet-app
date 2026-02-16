@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
 from app.project_tw.calculator import ROICalculator
-from app.services.market_cache import MarketCache
+from app.services.market_data_provider import MarketDataProvider
 
 # MoneyCome Reference Data (2006-2026, BAO Strategy)
 # Source: Manual verification against MoneyCome Excel
@@ -34,10 +34,9 @@ CAGR_TOLERANCE = 0.5
 VALUE_TOLERANCE_PCT = 5.0
 
 def load_dividends():
-    """Load dividend data from main.py's DIVIDENDS_DB."""
-    # Import from main to get the same dividend data
-    from app.main import DIVIDENDS_DB
-    return DIVIDENDS_DB
+    """Load dividend data from DuckDB via MarketDataProvider."""
+    from app.services.market_data_provider import MarketDataProvider
+    return MarketDataProvider.load_dividends_dict()
 
 def run_correlation():
     """Run correlation check against MoneyCome reference."""
@@ -49,10 +48,10 @@ def run_correlation():
     calc = ROICalculator()
     dividends_db = load_dividends()
     
-    # Ensure MarketCache is loaded
-    print("\n[1/3] Loading MarketCache...")
-    MarketCache.get_prices_db()
-    print("      Done.")
+    # Ensure DuckDB stats
+    print("\n[1/3] Checking Market Data...")
+    stats = MarketDataProvider.get_stats()
+    print(f"      Rows: {stats.get('price_rows', 0):,}")
     
     results = []
     all_pass = True
@@ -63,13 +62,16 @@ def run_correlation():
         print(f"\n--- {stock_id} ({ref['name']}) ---")
         
         # Get stock history
-        history = MarketCache.get_stock_history_fast(stock_id)
-        if not history:
+        df = MarketDataProvider.get_daily_history_df(stock_id)
+        if df.empty:
             print(f"  ERROR: No history found for {stock_id}")
             all_pass = False
             continue
         
-        df = pd.DataFrame(history)
+        # Prepare DataFrame for ROICalculator (needs year, month columns)
+        df['date'] = pd.to_datetime(df['date'])
+        df['year'] = df['date'].dt.year
+        df['month'] = df['date'].dt.month
         
         # Get dividends
         div_data = dividends_db.get(stock_id, {})

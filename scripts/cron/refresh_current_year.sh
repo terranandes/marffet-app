@@ -7,14 +7,14 @@ echo "---------------------------------------------------"
 echo "🕒 Starting Nightly Refresh: $(date)"
 echo "📂 Working Directory: $(pwd)"
 
-# 1. Run Smart Supplemental Crawler
-# This targets active portfolio stocks + top universe using incremental logic
-echo "🕷️  Running Smart Supplemental Refresh..."
-uv run python scripts/cron/supplement_prices.py
+# 1. Run Full Universe Nightly Supplement (ALL stocks, period=3d)
+# This ensures the Mars tab has T-0 close data for all 1,629 stocks
+echo "🕷️  Running Full Universe Supplement (ALL stocks, 3d)..."
+uv run python scripts/cron/nightly_full_supplement.py
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then
-    echo "❌ Crawler failed with exit code $CRAWL_EXIT_CODE"
+    echo "❌ Full supplement failed with exit code $CRAWL_EXIT_CODE"
     exit $CRAWL_EXIT_CODE
 fi
 

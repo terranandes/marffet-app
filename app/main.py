@@ -247,15 +247,14 @@ async def health_cache():
 async def debug_cache_info():
     """Temporary debug endpoint to inspect DuckDB on Zeabur."""
     from app.services.market_data_provider import MarketDataProvider
-    from pathlib import Path
-    
-    duckdb_path = Path("data/market.duckdb")
+    from app.services.market_db import DB_PATH
     
     return {
-        "build": "1.1.0-duckdb",
+        "build": "1.2.0-duckdb-persistent",
         "startup_ran": _STARTUP_RAN,
-        "duckdb_exists": duckdb_path.exists(),
-        "duckdb_size_mb": round(duckdb_path.stat().st_size / (1024*1024), 2) if duckdb_path.exists() else 0,
+        "duckdb_path": str(DB_PATH),
+        "duckdb_exists": DB_PATH.exists(),
+        "duckdb_size_mb": round(DB_PATH.stat().st_size / (1024*1024), 2) if DB_PATH.exists() else 0,
         "stats": MarketDataProvider.get_stats()
     }
 
@@ -552,7 +551,7 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
             return {"error": "No data found for stock"}
 
         df = pd.DataFrame(rows)
-        div_data = DIVIDENDS_DB.get(stock_id, {})
+        div_data = MarketDataProvider.load_dividends_dict().get(stock_id, {})
 
         # Run 3 Simulations
         res_bao = calc.calculate_complex_simulation(
@@ -605,7 +604,7 @@ def sanitize_for_json(obj):
     return obj
 
 @app.get("/api/race-data")
-def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
+async def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000):
     """Return year-by-year ranking data with Generalized Share Accumulation Simulation"""
     # Validate start_year (yfinance supports 2000+)
     if start_year < 2000:
@@ -619,23 +618,40 @@ def get_race_data(start_year: int = 2006, principal: float = 1_000_000, contribu
              print(f"[Race] Reusing cached simulation for {cache_key}")
              results = SIM_CACHE[cache_key]["data"]
         else:
-            # If not cached, we strictly should compute it.
-            # But strictly refactoring this to call `get_results` logic is cleaner, 
-            # but to minimize risk, I will duplicate the cache-miss logic but SAVE to cache.
+            # Cache miss — run the FAST bulk MarsStrategy.analyze()
+            from app.services.strategy_service import MarsStrategy
+            strategy = MarsStrategy()
             
-            # Lazy Import
+            raw_results = await strategy.analyze(
+                stock_ids=["ALL"],
+                start_year=start_year,
+                principal=principal,
+                contribution=contribution
+            )
+            
+            # Load names for enrichment
             import pandas as pd
             SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
-            df = pd.read_excel(SOURCE_FILE)
-            df = df.fillna(0) # Ensure no NaNs
+            name_map = {}
+            if SOURCE_FILE.exists():
+                try:
+                    name_df = pd.read_excel(SOURCE_FILE)
+                    for _, row in name_df.iterrows():
+                        name_map[str(row['id'])] = row['name']
+                except: pass
             
-            # Load Prices (Optimized via MarketDataProvider)
-            from app.services.market_data_provider import MarketDataProvider
+            results = []
+            for res in raw_results:
+                sid = str(res['stock_code'])
+                res['id'] = sid
+                res['name'] = name_map.get(sid, sid)
+                results.append(res)
             
-            # Run Simulation
-            results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
+            results = sanitize_for_json(results)
             
             # Save to Cache
+            if len(SIM_CACHE) > 100:
+                SIM_CACHE.clear()
             SIM_CACHE[cache_key] = {
                 "timestamp": time.time(),
                 "data": results
@@ -673,116 +689,107 @@ from fastapi.responses import StreamingResponse
 @app.get("/api/export/excel")
 async def api_export_excel(mode: str = "filtered", start_year: int = 2006, principal: float = 1000000, contribution: float = 60000):
     """
-    Export Raw or Filtered Data as Excel (Dynamic Simulation).
-    mode: 'raw' (Unfiltered) or 'filtered' (Default)
+    Export Mars Strategy results as Excel.
+    Reuses SIM_CACHE from /api/results for instant response.
+    mode: 'raw' (all stocks) or 'filtered' (top 50 only)
     """
     try:
         from io import BytesIO
         import pandas as pd
-        import re
         
-        # 1. Determine Source File (Now using 2026)
-        filename_source = "stock_list_s2006e2026_unfiltered.xlsx" if mode == "raw" else "stock_list_s2006e2026_filtered.xlsx"
-        source_path = BASE_DIR / "app/project_tw/references" / filename_source
+        current_max_year = datetime.now().year
         
-        if not source_path.exists():
-             raise HTTPException(status_code=404, detail=f"Source file not found: {filename_source}")
-
-        df = pd.read_excel(source_path)
-        df = df.fillna(0)
-        
-        current_max_year = 2026
-
-        # 2. Run Simulation (to get Final Wealth / Stats aligned with UI)
-        from app.services.market_data_provider import MarketDataProvider
-        race_results = run_mars_simulation(df, MarketDataProvider, DIVIDENDS_DB, start_year, principal, contribution)
-        
-        # 3. Construct Export DataFrame
-        # User wants "Aligned" data, implying the rows should show the simulation result
-        # AND "Column head same with...". This implies preserving the ROI columns.
-        
-        # Map simulation results to a dict for easy merge
-        sim_map = {}
-        for r in race_results:
-             sim_map[r['id']] = r
-        
-        # Create list for DataFrame construction
-        export_rows = []
-        
-        # Identify relevant ROI columns for the requested range [start_year, 2026]
-        # Regex to match `s2006e2007bao` style or just filter by year in name?
-        # The column format matches: s<BASE>e<TARGET>bao
-        # e.g. s2006e2007bao.
-        # IF start_year is 2015, we might still want to show the 'bao' columns corresponding to 2015+?
-        # The column name `s2006e2007bao` implies the year 2007 (or 2006-2007). 
-        # Let's extract year from column name.
-        
-        relevant_cols = []
-        for c in df.columns:
-            if 'bao' in c:
-                # Try extract year
-                # e.g. s2006e2007bao -> 2007?
-                # or just keep ALL columns if user wants "same head"?
-                # "Dynamic" implies cutting off irrelevant past years.
-                # Let's keep columns where year >= start_year
+        # 1. Get simulation results — reuse SIM_CACHE if available
+        cache_key = (start_year, principal, contribution)
+        if cache_key in SIM_CACHE:
+            sim_results = SIM_CACHE[cache_key]["data"]
+        else:
+            # Cache miss — run the fast bulk MarsStrategy.analyze()
+            from app.services.strategy_service import MarsStrategy
+            strategy = MarsStrategy()
+            raw_results = await strategy.analyze(
+                stock_ids=["ALL"],
+                start_year=start_year,
+                principal=principal,
+                contribution=contribution
+            )
+            
+            # Load stock names
+            SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+            name_map = {}
+            if SOURCE_FILE.exists():
                 try:
-                    # simplistic extraction: split by 'e'
-                    # s2006e2007bao -> ['s2006', '2007bao']
-                    y_part = c.split('e')[1][:4] 
-                    if int(y_part) >= start_year:
-                        relevant_cols.append(c)
-                except:
-                    pass
+                    name_df = pd.read_excel(SOURCE_FILE)
+                    for _, row in name_df.iterrows():
+                        name_map[str(row['id'])] = row['name']
+                except: pass
+            
+            sim_results = []
+            for res in raw_results:
+                sid = str(res['stock_code'])
+                res['id'] = sid
+                res['name'] = name_map.get(sid, sid)
+                sim_results.append(res)
+            
+            sim_results = sanitize_for_json(sim_results)
+            
+            # Cache for future use
+            if len(SIM_CACHE) > 100:
+                SIM_CACHE.clear()
+            SIM_CACHE[cache_key] = {
+                "timestamp": time.time(),
+                "data": sim_results
+            }
         
-        # Build rows
-        for _, row in df.iterrows():
-            sid = str(row['id'])
-            if sid in sim_map:
-                data = sim_map[sid]
-                
-                final_val = data.get('finalValue', 0)
-                cost = data.get('totalCost', 0)
-                roi = 0
-                if cost > 0:
-                    roi = ((final_val - cost) / cost) * 100
-
-                # Base Info
-                new_row = {
-                    "id": sid,
-                    "name": data['name'],
-                    # summary stats
-                    "Final Wealth": final_val,
-                    "Total Cost": cost,
-                    "Total ROI %": round(roi, 2),
-                    "CAGR %": data.get('cagr_pct', 0),
-                    "Yield %": 0 # Placeholder as yield is not currently tracked in top-level output
-                }
-                
-                # Add original ROI columns (filtered by year)
-                for c in relevant_cols:
-                    new_row[c] = row[c]
-                
-                export_rows.append(new_row)
+        # 2. Build export rows from cached results
+        export_rows = []
+        for data in sim_results:
+            final_val = data.get('finalValue', 0)
+            cost = data.get('totalCost', 0)
+            roi = ((final_val - cost) / cost) * 100 if cost > 0 else 0
+            
+            new_row = {
+                "id": data.get('id', ''),
+                "name": data.get('name', ''),
+                "Final Wealth": final_val,
+                "Total Cost": cost,
+                "Total ROI %": round(roi, 2),
+                "CAGR %": data.get('cagr_pct', 0),
+                "Volatility %": data.get('volatility_pct', 0),
+                "Price": data.get('price', 0),
+            }
+            
+            # Add per-year CAGR columns (s2006e2007bao, etc.)
+            for k, v in data.items():
+                if k.startswith('s') and 'bao' in k:
+                    new_row[k] = v
+            
+            export_rows.append(new_row)
+        
+        # 3. Apply mode filter
+        if mode == "filtered":
+            # Sort by Final Wealth descending, take top 50
+            export_rows.sort(key=lambda x: x.get('Final Wealth', 0), reverse=True)
+            export_rows = export_rows[:50]
         
         df_export = pd.DataFrame(export_rows)
         
         # 4. Write to Excel
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df_export.to_excel(writer, index=False, sheet_name='Mars Strategy Source')
+            df_export.to_excel(writer, index=False, sheet_name='Mars Strategy')
             
-            # Params
             pd.DataFrame([{
                 "Start Year": start_year,
                 "End Year": current_max_year,
-                "Principal": principal, 
+                "Principal": principal,
                 "Contribution": contribution,
-                "Mode": mode
+                "Mode": mode,
+                "Stocks": len(export_rows)
             }]).to_excel(writer, index=False, sheet_name='Parameters')
             
         output.seek(0)
         
-        # Correct Filename Format: stock_list_s{start}e{end}_{mode}.xlsx
         filename = f"stock_list_s{start_year}e{current_max_year}_{mode}.xlsx"
         
         return StreamingResponse(
@@ -793,37 +800,13 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
 
     except Exception as e:
         print(f"Export Error: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# Global Dividend Database (Cash per Share)
-# Initialize with Critical Hardcoded Data (Safety Baseline)
-DIVIDENDS_DB = {
-    "2330": {
-        2006: {'cash': 2.39}, 2007: {'cash': 2.95}, 2008: {'cash': 2.99}, 2009: {'cash': 2.98}, 2010: {'cash': 3.00},
-        2011: {'cash': 3.00}, 2012: {'cash': 3.00}, 2013: {'cash': 3.00}, 2014: {'cash': 3.00}, 2015: {'cash': 4.50},
-        2016: {'cash': 6.00}, 2017: {'cash': 7.00}, 2018: {'cash': 8.00}, 2019: {'cash': 12.5}, 2020: {'cash': 10.0},
-        2021: {'cash': 10.5}, 2022: {'cash': 11.0}, 2023: {'cash': 11.5}, 2024: {'cash': 15.0}, 2025: {'cash': 19.0}
-    },
-    "5904": {
-            2008: {'cash': 1.78}, 2009: {'cash': 1.80}, 2010: {'cash': 0.38}, 2011: {'cash': 2.54}, 2012: {'cash': 2.97},
-            2013: {'cash': 3.79}, 2014: {'cash': 4.43}, 2015: {'cash': 6.97}, 2016: {'cash': 8.29}, 2017: {'cash': 10.29},
-            2018: {'cash': 12.62}, 2019: {'cash': 15.29}, 2020: {'cash': 16.60}, 2021: {'cash': 18.16}, 2022: {'cash': 11.00},
-            2023: {'cash': 24.14}, 2024: {'cash': 21.00}, 2025: {'cash': 23.00} 
-    }
-}
-
-# Try to load full dataset and MERGE (Overwrite hardcoded if data exists)
-import json, os
-DIVIDENDS_FILE = BASE_DIR / "data/dividends_all.json"
-if DIVIDENDS_FILE.exists():
-    try:
-        with open(DIVIDENDS_FILE, "r") as f:
-            json_data = json.load(f)
-            # Merge: update() adds new keys and overwrites existing ones
-            DIVIDENDS_DB.update(json_data)
-            # print(f"Loaded {len(json_data)} stocks from DB (Merged)")
-    except Exception as e:
-        print(f"Error loading dividends: {e}")
+# Dividends are now loaded from DuckDB via MarketDataProvider.load_dividends_dict()
+# Legacy DIVIDENDS_DB (hardcoded + dividends_all.json) has been retired.
+# See: scripts/ops/reimport_twse_dividends.py to populate DuckDB dividends table.
 
 
 @app.get("/api/stock/{stock_id}/history")
@@ -852,7 +835,8 @@ def get_stock_history(stock_id: str):
         for _, row in yearly.iterrows():
             year = int(row['year'])
             # Get Dividend using Generalized DB
-            div_info = DIVIDENDS_DB.get(sid, {}).get(str(year)) or DIVIDENDS_DB.get(sid, {}).get(year, {})
+            _divs = MarketDataProvider.load_dividends_dict()
+            div_info = _divs.get(sid, {}).get(str(year)) or _divs.get(sid, {}).get(year, {})
             
             div_cash = 0
             stock_split = 1.0

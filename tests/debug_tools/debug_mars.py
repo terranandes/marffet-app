@@ -36,12 +36,9 @@ def main():
                     PRICES_DB[year] = {}
                 PRICES_DB[year].update(json.load(f))
     
-    # Load Dividends (simplified - just hardcode)
-    DIVIDENDS_DB = {}
-    dividends_file = BASE_DIR / "data/dividends_all.json"
-    if dividends_file.exists():
-        with open(dividends_file, "r") as f:
-            DIVIDENDS_DB = json.load(f)
+    # Load Dividends from DuckDB (Single Source of Truth)
+    from app.services.market_data_provider import MarketDataProvider
+    DIVIDENDS_DB = MarketDataProvider.load_dividends_dict()
     
     # Simulation Parameters
     start_year = 2006

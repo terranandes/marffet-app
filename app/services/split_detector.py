@@ -54,8 +54,13 @@ class SplitDetector:
     """
     Detects and tracks stock splits for accurate ROI calculations.
     
-    The engine uses unadjusted prices, so when calculating total value,
-    we need to multiply share count by the cumulative split ratio.
+    Phase 14 Design:
+    - Data source is NOMINAL (unadjusted) prices from TWSE MI_INDEX.
+    - Genuine splits (1:2, 1:4) cause >40% overnight price drops → detected.
+    - Stock dividends cause only ~2-10% ex-div drops → safely below threshold.
+    - Cash dividends are handled separately in the ROICalculator.
+    - The calculator applies split ratios YEAR-OVER-YEAR to existing shares
+      BEFORE buying new shares, so post-split purchases aren't double-counted.
     """
     
     # Threshold for detecting splits (40% overnight drop)

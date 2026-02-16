@@ -2,36 +2,34 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [ ] Ultra-fast Crawler done, but a little slower than expected.
-- [ ] Ultra-fast Crawler with accuracy Integration
-- [ ] Check every main tabs and sub-tabs can reuse the data lake, expecting a instant response or short time response.
-- [ ] check compound interest tab
-- [ ] check Cash Ladder tab
-
-- [ ] **Phase 2 Scraper**: Fetch UNADJUSTED prices from TWSE/TPEx (Fix Wealth Bug).
-    - [ ] Build `tests/ops_scripts/crawl_official.py`.
-    - [ ] Re-ingest Data Lake.
+- [] Agents rebuilding correct MarketPrize and dividend on DuckDB
+- [ ] Check every main tabs and sub-tabs can reuse the data lake(DuckDB), expecting a instant response or short time response.
+- [ ] checking tab Mars
+- [ ] check tab BCR
+- [ ] check tab Compound Interest
+- [ ] check tab Cash Ladder
 
 ---
 
 ## === Barrier === (DONT-TOUCH AREA)
 
+- [] Clean or optimized DuckDB
 - [ ] Multi-language (Deferred).
 - [ ] AICopilot enhancement
 - [ ] Test Google Cloud Run
-- [ ] DB/Warm Staic files/locally cached files optimization
+- [ ] DB/Warm Static files/locally cached files optimization
 - [ ] Email support
 
 ---
 
 ## BOSS TBD (DONT-TOUCH AREA)
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
-- adopt Ralph extention
+- adopt Ralph extension
     - Ralph Loop (currently testing)
     - Ralph.sh
     - Ralphban
 
-Skill to transfrom plan to PRD.md
+Skill to transform plan to PRD.md
 https://github.com/snarktank/ralph
 https://skills.sh/?q=ralph
 
@@ -44,7 +42,7 @@ https://skills.sh/?q=memory
 - Manus workflow
 - study and integrate GEMINI CLI into AntiGravity
 - study and integrate opencode into AntiGravity
-- GEMENI CLI & Conductor
+- GEMINI CLI & Conductor
 - Plan using Opus, Coding using Gemini 3 Pro High
 
 ---

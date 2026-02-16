@@ -47,3 +47,30 @@ Console log snippet:
 ## Suggested Fix
 
 Check `frontend/next.config.mjs` for `rewrites()` configuration and ensure `/api/*` routes are properly proxied.
+
+---
+
+## Resolution (2026-02-16)
+
+**Investigator:** [CV] (AntiGravity)
+
+### Root Cause: Port Mismatch (Configuration/Operational Issue — NOT a Code Bug)
+
+| Component | Config | Actual (Worktree) |
+|-----------|--------|-------------------|
+| Backend default port | `uvicorn.run(port=8000)` | Running on **8001** |
+| Frontend `.env.local` | `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000` | Proxying to **8000** |
+
+When the frontend proxy (`next.config.ts` `rewrites()`) forwards `/api/*` to port 8000 but the backend is on 8001, Next.js returns **500 Internal Server Error** because the upstream fetch fails.
+
+### Verified
+1. ✅ `next.config.ts` rewrites are correct (`/api/:path*` → `${API_URL}/api/:path*`, `/auth/:path*` → `${API_URL}/auth/:path*`)
+2. ✅ No conflicting Next.js API route handlers exist (no `frontend/src/app/api/` directory)
+3. ✅ No Next.js middleware intercepting requests
+4. ✅ All backend endpoints exist: `/auth/me` (L282), `/api/portfolio/groups` (L1084), etc.
+5. ✅ `API_BASE = ""` in all frontend files → all calls use relative paths → go through rewrites (correct behavior)
+
+### Fix
+- **For local dev:** Ensure `.env.local` port matches the running backend port. Default is 8000.
+- **For worktree dev:** Create worktree-specific `.env.local` with correct port.
+- **Status:** RESOLVED (Configuration)

@@ -20,9 +20,9 @@ from app.project_tw.calculator import ROICalculator
 from app.services.market_cache import MarketCache
 
 def load_dividends():
-    """Load dividend data from main.py's DIVIDENDS_DB."""
-    from app.main import DIVIDENDS_DB
-    return DIVIDENDS_DB
+    """Load dividend data from DuckDB via MarketDataProvider."""
+    from app.services.market_data_provider import MarketDataProvider
+    return MarketDataProvider.load_dividends_dict()
 
 def run_universal_verification(top_n: int = None, filter_pattern: str = None):
     """Run verification against all stocks."""

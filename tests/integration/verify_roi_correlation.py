@@ -13,7 +13,7 @@ import json
 import os
 import random
 import numpy as np
-from app.main import DIVIDENDS_DB, get_stock_history
+from app.services.market_data_provider import MarketDataProvider
 
 # Paths
 EXCEL_PATH = 'project_tw/references/stock_list_s2006e2026_filtered.xlsx'
@@ -93,7 +93,7 @@ def calculate_roi_sim(stock_id, start_year, end_year, prices_db):
         
         # 1. Dividend Reinvestment & Split
         # Helper from main.py logic? We'll re-implement simple version
-        div_info = DIVIDENDS_DB.get(str(stock_id), {}).get(str(year))
+        div_info = MarketDataProvider.load_dividends_dict().get(str(stock_id), {}).get(str(year))
         
         cash_div = 0
         stock_div = 1.0

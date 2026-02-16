@@ -1,5 +1,6 @@
 from typing import Optional, Callable
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from app.auth import get_admin_user, get_current_user, GM_EMAILS
 from app.services.market_data_provider import MarketDataProvider
 from app.services.backup import BackupService
@@ -135,3 +136,71 @@ async def trigger_dividend_sync(background_tasks: BackgroundTasks, user: dict = 
     """
     background_tasks.add_task(BackupService.run_quarterly_dividend_sync)
     return {"status": "accepted", "message": "Global Dividend Sync started in background."}
+
+
+# ==================== Backup Download Endpoints ====================
+
+@router.get("/backup/duckdb")
+async def download_duckdb(user: dict = Depends(get_admin_user)):
+    """Download the market DuckDB database file."""
+    from app.services.market_db import DB_PATH
+    if not DB_PATH.exists():
+        raise HTTPException(status_code=404, detail="DuckDB file not found")
+    return FileResponse(
+        path=str(DB_PATH),
+        filename="market.duckdb",
+        media_type="application/octet-stream"
+    )
+
+@router.get("/backup/portfolio")
+async def download_portfolio(user: dict = Depends(get_admin_user)):
+    """Download the portfolio SQLite database file."""
+    from pathlib import Path
+    # Check /data/ volume first, then local
+    for p in [Path("/data/portfolio.db"), Path("data/portfolio.db")]:
+        if p.exists():
+            return FileResponse(
+                path=str(p),
+                filename="portfolio.db",
+                media_type="application/octet-stream"
+            )
+    raise HTTPException(status_code=404, detail="portfolio.db not found")
+
+
+# ==================== Upload Endpoint (DuckDB) ====================
+
+@router.post("/upload/duckdb")
+async def upload_duckdb(file: UploadFile = File(...), user: dict = Depends(get_admin_user)):
+    """
+    Upload a DuckDB file to the server's persistent storage.
+    Used for first Zeabur deployment (uploading from local).
+    File will be written to the resolved DB_PATH.
+    """
+    from app.services.market_db import DB_PATH
+    import shutil
+    import tempfile
+
+    if not file.filename or not file.filename.endswith('.duckdb'):
+        raise HTTPException(status_code=400, detail="File must be a .duckdb file")
+
+    # Write to temp file first, then atomic move
+    tmp_path = str(DB_PATH) + ".uploading"
+    try:
+        with open(tmp_path, "wb") as buffer:
+            while chunk := await file.read(1024 * 1024):  # 1MB chunks
+                buffer.write(chunk)
+        
+        # Atomic replace
+        shutil.move(tmp_path, str(DB_PATH))
+        
+        size_mb = DB_PATH.stat().st_size / (1024 * 1024)
+        return {
+            "status": "ok",
+            "message": f"DuckDB uploaded successfully ({size_mb:.1f} MB)",
+            "path": str(DB_PATH)
+        }
+    except Exception as e:
+        # Cleanup temp file
+        if Path(tmp_path).exists():
+            Path(tmp_path).unlink()
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")

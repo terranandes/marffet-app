@@ -115,11 +115,9 @@ class MarsStrategy:
                 
                 stock_yearly_stats = yearly_agg_groups.get_group(code)
                 
-                # Fetch splits and dividends for this stock
-                detector = _get_detector()
-                if detector:
-                    # Detect splits once for this entire stock history
-                    detector.detect_splits(str(code), df_group.reset_index().to_dict('records'))
+                # NOTE: Split detection is handled internally by calculate_complex_simulation
+                # (via detector.detect_splits). Do NOT call it here — it duplicates the
+                # expensive df.to_dict('records') conversion for 1,578 stocks.
                 
                 stock_divs = {}
                 if code in div_groups.groups:
@@ -180,7 +178,7 @@ class MarsStrategy:
                 else:
                     metrics['cagr_std'] = 999.0
 
-                metrics['valid_lasting_years'] = len(df_group)
+                metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years, NOT daily rows
                 results.append(metrics)
                     
             except Exception as e:

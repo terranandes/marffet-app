@@ -10,7 +10,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 from app.services.market_cache import MarketCache
 from app.project_tw.calculator import ROICalculator
-from app.main import DIVIDENDS_DB
+from app.services.market_data_provider import MarketDataProvider
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -34,7 +34,7 @@ def run_correlation(stock_id: str, name: str):
     start_year = 2006
     
     # Dividend Data
-    div_data = DIVIDENDS_DB.get(stock_id, {})
+    div_data = MarketDataProvider.load_dividends_dict().get(stock_id, {})
     
     res = calc.calculate_complex_simulation(
         df, 

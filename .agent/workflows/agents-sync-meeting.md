@@ -14,6 +14,7 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - discrepancy between Local-Run and Deployment (currently in Zeabur only)
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
+- recall artifact used at the latest/last session: `Implementation Plan`/`Task`/`Walkthrough`...etc
 - review/renew of product related files that agents owns at ./docs/product
 - review the mobile Web layout, whereas UI components shall be elegant and feasible
 - trace worktree/branch status, continue?/finished?/can be cleaned-up?

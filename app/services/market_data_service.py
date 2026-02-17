@@ -340,7 +340,7 @@ def update_price_cache(stock_id: str):
         for date, row in hist.iterrows():
             month_str = date.strftime('%Y-%m')
             close = row['Close']
-            if pd.notna(close):
+            if pd.na(close):
                 data_to_insert.append((final_id, month_str, float(close)))
 
         with get_db() as conn:
@@ -457,7 +457,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                         successful_orig_ids.add(original_id) 
                         
                         for date, price in series.items():
-                            if pd.notna(price):
+                            if pd.na(price):
                                 to_insert.append((col_ticker, date.strftime('%Y-%m'), float(price)))
                 
                 if to_insert:
@@ -503,7 +503,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                          successful_orig_ids_2.add(original_id)
                          
                          for date, price in series.items():
-                            if pd.notna(price):
+                            if pd.na(price):
                                 to_insert2.append((col_ticker, date.strftime('%Y-%m'), float(price)))
                                 
                 if to_insert2:
@@ -625,7 +625,31 @@ def fetch_stock_info(ticker: str) -> dict:
 
 # Atomic JSON saving removed in favor of DuckDB
 
-def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None, tickers: Optional[List[str]] = None) -> dict:
+def load_stock_list():
+    """Load stock list from CSV."""
+    import pandas as pd
+    base_dir = Path(__file__).parent.parent # app/
+    csv_path = base_dir / "project_tw/stock_list.csv"
+    
+    if not csv_path.exists():
+         csv_path = base_dir.parent / "app/project_tw/stock_list.csv"
+         
+    if not csv_path.exists():
+        # Last resort
+        csv_path = Path("/app/app/project_tw/stock_list.csv")
+        
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Stock list not found at {csv_path}")
+
+    return pd.read_csv(csv_path, dtype={'code': str, 'name': str})
+
+
+def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_callback: Optional[Callable] = None, include_warrants: Optional[bool] = None, tickers: Optional[List[str]] = None, start_date: Optional[str] = None, end_date: Optional[str] = None, chunk_size: int = 50) -> dict:
+    """
+    Download historical data for ALL stocks and save to daily_prices.
+    Uses chunking to avoid memory issues and rate limits.
+    """
+
     if progress_callback: progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
@@ -642,6 +666,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         include_warrants: If True, includes short-lived warrants (6-digit code, nan industry).
                          If None, uses environment default (True locally, False on cloud).
         tickers: Optional list of stock IDs to filter the backfill.
+        start_date: Start date string (YYYY-MM-DD). If provided, overrides period.
+        end_date: End date string (YYYY-MM-DD). If provided, overrides period.
     """
     # 1. Load Stock List
     base_dir = Path(__file__).parent.parent # app/
@@ -720,13 +746,13 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     if IS_CLOUD:
         # TANK MODE: Ultra-stable for 512MB RAM
         CHUNK_SIZE = 1
-        SAVE_INTERVAL = 20
+        # SAVE_INTERVAL = 20 # Redundant, removed
         BATCH_DELAY = 0.5
         print("[Backfill] Adaptive Mode: TANK (Cloud Detected - 512MB Safety)")
     else:
         # FAST MODE: Performance for local dev (8GB+ RAM)
         CHUNK_SIZE = 50
-        SAVE_INTERVAL = 200
+        # SAVE_INTERVAL = 20  # Reduced: 200 stocks × 1000 rows was too large for ON CONFLICT upserts
         BATCH_DELAY = 0
         print("[Backfill] Adaptive Mode: FAST (Local Environment)")
     
@@ -741,6 +767,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         """Helper to save current batch and clear memory."""
         if not results_to_save and not div_results_to_save: return
         print(f"[Backfill] Flushing data to DuckDB...")
+        # DEBUG
+        # print(f"[DEBUG] Flushing {len(results_to_save)} years. Keys: {results_to_save.keys()}", flush=True)
         
         conn = get_connection()
         try:
@@ -793,7 +821,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         except Exception as e:
             print(f"[Backfill] DuckDB Save Error: {e}")
             try: conn.execute("ROLLBACK")
-            except: pass
+            except Exception as e: pass
         finally:
             conn.close()
             
@@ -801,28 +829,39 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         div_results_to_save.clear()
         gc.collect()
 
-    SAVE_INTERVAL = 10 if IS_CLOUD else 200 # Flush more frequently on cloud
+    SAVE_INTERVAL = 10 if IS_CLOUD else 20  # 20 stocks ≈ 20k rows per flush (200 caused DuckDB hangs)
     processed_in_buffer = 0
 
-    for i in range(0, total_tickers, CHUNK_SIZE):
-        chunk = all_tickers[i:i+CHUNK_SIZE]
-        print(f"[Backfill] Processing chunk {i//CHUNK_SIZE + 1}/{(total_tickers-1)//CHUNK_SIZE + 1}...")
+    for i in range(0, total_tickers, chunk_size):
+        chunk = all_tickers[i:i+chunk_size]
+        print(f"[Backfill] Processing chunk {i//chunk_size + 1}/{(total_tickers-1)//chunk_size + 1}...")
+        
+        batch = (i // chunk_size) + 1
         
         if progress_callback:
             pct = 10 + int((i / total_tickers) * 80)
-            batch = (i // CHUNK_SIZE) + 1
-            total_batches = (total_tickers + CHUNK_SIZE - 1) // CHUNK_SIZE
+            total_batches = (total_tickers + chunk_size - 1) // chunk_size
             first = chunk[0]
             progress_callback(f"Batch {batch}/{total_batches}: Fetching {period} history for {first}...", pct)
         
         try:
-            # Download with threads=False to save memory on Zeabur
+            # Download with threads=not IS_CLOUD (works reliably if chunk_size=1)
+            run_threads = not IS_CLOUD
             # CRITICAL: auto_adjust=False to get Nominal prices (yfinance defaults to True)
-            data = yf.download(chunk, period=period, group_by='ticker', actions=True, auto_adjust=False, progress=False, threads=False)
+            if start_date:
+                data = yf.download(chunk, start=start_date, end=end_date, group_by='ticker', actions=True, auto_adjust=False, progress=False, threads=run_threads)
+            else:
+                data = yf.download(chunk, period=period, group_by='ticker', actions=True, auto_adjust=False, progress=False, threads=run_threads)
+            
+            print(f"[Debug] Batch {batch}: Downloaded {len(data)} rows for {chunk}.", flush=True)
+            
             if data.empty: continue
             
             for ticker in chunk:
-                df_ticker = data[ticker] if len(chunk) > 1 else data
+                # Robust extraction for Yfinance 1.0+ which returns MultiIndex even for single ticker
+                df_ticker = data
+                if isinstance(data.columns, pd.MultiIndex) and ticker in data.columns:
+                    df_ticker = data[ticker]
                 if df_ticker.empty: continue
                 df_ticker = df_ticker.dropna(how='all')
                 if df_ticker.empty: continue
@@ -830,6 +869,9 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                 market = market_map.get(ticker, 'TWSE')
                 code = original_code_map.get(ticker, ticker)
                 
+                # DEBUG
+                # print(f"[DEBUG] Processing {ticker}. Rows: {len(df_ticker)}. Index: {type(df_ticker.index)}")
+
                 # 4.1. Process Dividends & Splits
                 if 'Dividends' in df_ticker.columns or 'Stock Splits' in df_ticker.columns:
                     actions = df_ticker[(df_ticker.get('Dividends', 0) > 0) | (df_ticker.get('Stock Splits', 0) > 0)]
@@ -857,17 +899,17 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                     for idx, row in group.iterrows():
                         try:
                             o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
-                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
+                            if pd.na(c) or (v == 0 and o == 0 and c == 0): continue
                             daily_data.append({
                                 "d": idx.strftime('%Y-%m-%d'), 
                                 "o": round(float(o), 2), "h": round(float(h), 2), 
                                 "l": round(float(l), 2), "c": round(float(c), 2), 
                                 "v": int(v)
                             })
-                        except: continue
-                        
-                    if not daily_data: continue
-                    
+                        except Exception as e:
+                     # Log but continue
+                     print(f"[Error] Processing ticker {ticker}: {e}")
+                     continue
                     try:
                         high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
                         summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}

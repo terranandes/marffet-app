@@ -6,19 +6,20 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - triages for bugs found by us (agents and BOSS) and Jira tickets at ./jira
 - performance improvement
 - features implemented
-- features unimplmented or deferred
+- features unimplemented or deferred
 - features planned to next phase
 - deployment completeness
 - discrepancy between Local-Run and Deployment (currently in Zeabur only)
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
+- recall artifact used at the latest/last session: `Implementation Plan`/`Task`/`Walkthrough`...etc
 - review/renew of product related files that agents owns at ./docs/product
-- review the mobile Web layout, whereas UI components shall be elegant and feacible
+- review the mobile Web layout, whereas UI components shall be elegant and feasible
 - trace worktree/branch status, continue?/finished?/can be cleaned-up?
 - do workflow `code_review`
-- use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementaion/progress in `./docs/product`.
-- adjust plans in `./docs/plan` as neccessary
+- use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
+- adjust plans in `./docs/plan` as necessary
 
-At the end of meeting, [PL] report to me (Terran) the summary and coordinate othe agents consequences later-on.
+At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.
 And save the meeting note at "./docs/meeting" and code-review note at "./docs/code_review". We always trace the notes.
 """

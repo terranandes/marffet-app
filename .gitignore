@@ -221,3 +221,6 @@ data/*.duckdb
 
 # Worktrees
 .worktrees/
+
+# Raw Market Index Data (Source of Truth snapshots)
+data/raw/mi_index/*.json

@@ -817,7 +817,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         
         try:
             # Download with threads=False to save memory on Zeabur
-            data = yf.download(chunk, period=period, group_by='ticker', actions=True, progress=False, threads=False)
+            # CRITICAL: auto_adjust=False to get Nominal prices (yfinance defaults to True)
+            data = yf.download(chunk, period=period, group_by='ticker', actions=True, auto_adjust=False, progress=False, threads=False)
             if data.empty: continue
             
             for ticker in chunk:

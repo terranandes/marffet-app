@@ -899,7 +899,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                     for idx, row in group.iterrows():
                         try:
                             o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
-                            if pd.na(c) or (v == 0 and o == 0 and c == 0): continue
+                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
                             daily_data.append({
                                 "d": idx.strftime('%Y-%m-%d'), 
                                 "o": round(float(o), 2), "h": round(float(h), 2), 
@@ -907,16 +907,19 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                                 "v": int(v)
                             })
                         except Exception as e:
-                     # Log but continue
-                     print(f"[Error] Processing ticker {ticker}: {e}")
-                     continue
+                            # Log but continue
+                            print(f"[Error] Processing ticker {ticker}: {e}")
+                            continue
+                    
                     try:
                         high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
                         summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}
                         
                         if year not in results: results[year] = {'TWSE': {}, 'TPEx': {}}
                         results[year][market][code] = {"daily": daily_data, "summary": summary}
-                    except: pass
+                    except Exception as e:
+                        # print(f"[Error] Summary calc error: {e}")
+                        pass
 
                 processed_in_buffer += 1
             

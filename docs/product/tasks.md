@@ -85,10 +85,10 @@
     - [x] Dividend Import: 14,007 records from TWSE official API
 - [ ] **Verification & Sync**
     - [x] `correlate_mars.py` fixed and running (TSMC 19.4% ≈ 18.8% ref)
-    - [ ] Grand Correlation v4 (>90% target — needs MoneyCome ref recalibration)
+    - [x] Grand Correlation v4 (>90% target — needs MoneyCome ref recalibration)
     - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch)
 
-## 7. Phase 8: Premium UI & Remote Stabilization - [IN PROGRESS]
+## 7. Phase 8: Premium UI & Remote Stabilization - [PAUSED]
 - [ ] **Zeabur Volume Persistence**
     - [ ] Configure volume mount for `/data` to persist `market.duckdb`
     - [ ] Final Remote Verification of TSMC CAGR (~19%)
@@ -118,3 +118,63 @@
 - [x] **Tab Audit**
     - [x] Confirm all tabs use DuckDB for prices
     - [x] Migrate Portfolio Dividend Sync from yfinance to DuckDB (Future Optimization)
+
+## 16. Phase 16: Data Integrity Finalization (2000-2025) - [COMPLETED]
+- [x] **Fix 2005-01-03 Data Cliff** (Major Anomaly)
+    - [x] Investigate V12 (2004) vs Phase 14 (2005+) price discontinuity
+    - [x] Resolve 60-99% drops for 1316, 2348, 3701, etc. (Purged 242 stocks)
+- [x] **Fix "Bad Ticks"** (1,565 High-Frequency Glitches)
+    - [x] Delete V-shape price spikes (>15% drop + immediate >85% recovery)
+    - [x] Example: 0050 on 2024-01-25 (134 -> 81 -> 135) - Fixed
+- [x] **Fix Missing Splits** (679 Persistent Drops)
+    - [x] Patch L-shape price drops (>15% drop + stable low)
+    - [x] Example: 0050 on 2025-06-18 (188 -> 47, 4-for-1 split) - Patched
+- [x] **Full Validation**
+    - [x] Run `benchmark_mars_simulation.py` (24-year full history) - 12.25s
+    - [x] Verify CAGR >85% match with MoneyCome reference (TSMC 18.6%)
+
+## 17. Phase 17: Grand Correlation, Zeabur Deployment & Nightly Pipeline - [NEXT]
+> Ref: [Implementation Plan](file:///home/terwu01/.gemini/antigravity/brain/cdb129a3-7dbe-4f7d-a2a9-90d43225661c/implementation_plan.md)
+
+### Part A: Grand Correlation vs MoneyCome Reference
+- [ ] **Create `correlate_all_stocks.py`** (NEW)
+    - [ ] Load UNFILTERED Excel (`stock_list_s2006e2026_unfiltered.xlsx`) — 2,385 stocks
+    - [ ] Compare `s2006e2026bao` (MoneyCome CAGR) vs our BAO CAGR
+    - [ ] Report: match rate (>85% target), mean absolute error, outlier list
+    - [ ] Output side-by-side comparison Excel
+
+### Part B: Local Web App Verification (BOSS)
+- [ ] Start backend: `uvicorn app.main:app --port 8000`
+- [ ] Start frontend: `cd frontend && bun run dev`
+- [ ] BOSS verifies: Mars tab, BCR tab, Export Excel, Compound Interest tab
+
+### Part C: Zeabur Deployment (Persistent DuckDB)
+- [ ] **Zeabur Volume Mount**: Configure persistent volume at `/data/`
+- [ ] **Rehydration Logic in `app/main.py`** (MODIFY)
+    - [ ] On startup: check if `/data/market.duckdb` exists
+    - [ ] If missing → REHYDRATE from `data/backup/*.parquet` (bundled in image)
+    - [ ] If exists → use existing (preserves daily updates)
+- [ ] **Parquet Backup for Git** (Part D prerequisite)
+    - [ ] Create `backup_duckdb.py` — Export DuckDB → yearly `data/backup/prices_YYYY.parquet` (<50MB each)
+    - [ ] Check in `data/backup/*.parquet` to Git (DO NOT check in `market.duckdb`)
+- [ ] **Push to `origin/master`** (after Parquet backup)
+- [ ] **Verify Zeabur Remote**: TSMC CAGR ~19%, Mars tab, Auth flow
+
+### Part D: Nightly Pipeline & Backup
+- [ ] **Create `backup_duckdb.py`** (NEW)
+    - [ ] `COPY (SELECT * FROM daily_prices WHERE year=YYYY) TO 'data/backup/prices_YYYY.parquet'`
+    - [ ] Each yearly file <50MB, Git-friendly
+- [ ] **Modify `refresh_current_year.sh`** (cron)
+    - [ ] Add step: `supplement_splits.py --apply` after crawl
+    - [ ] Add step: `backup_duckdb.py` before git push
+- [ ] **Add Admin Backup Trigger** (`POST /api/admin/backup/trigger`)
+- [ ] **Pipeline Flow**: Crawl → Split Supplement → Parquet Backup → Git Push
+
+### Part E: Housekeeping
+- [ ] Commit Phase 16 scripts to `master`
+- [ ] Clean up 6 stale branches (4 ralph-loop + 2 remote features)
+- [ ] Kill lingering zombie Python processes
+- [ ] Remove redundant `SAVE_INTERVAL` at L755 in `market_data_service.py`
+- [ ] Gate debug prints behind `DEBUG` flag
+- [ ] Fix bare `except` clauses (L909, L919) in `market_data_service.py`
+

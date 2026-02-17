@@ -2,9 +2,10 @@
 description: 6 agents sync-up meeting
 ---
 
-Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] are starting a brief discussion on
-- project progress
-- current bugs
+Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] <br>
+are starting a brief discussion on or follow the rules/workflows below:
+- project live progress at `docs/product/tasks.md`
+- Always read the LATEST `meeting note` and `code-review note` only (highest version number for today's date, or most recent date)."
 - triages for bugs found by us (agents and BOSS) and Jira tickets at ./jira
 - performance improvement
 - features implemented
@@ -15,12 +16,13 @@ Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
 - recall artifact used at the latest/last session: `Implementation Plan`/`Task`/`Walkthrough`...etc
-- review/renew of product related files that agents owns at ./docs/product
+- review/renew product related files that agents owns at `./docs/product` by demand
 - review the mobile Web layout, whereas UI components shall be elegant and feasible
 - trace worktree/branch status, continue?/finished?/can be cleaned-up?
 - do workflow `code_review`
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
 - adjust plans in `./docs/plan` as necessary
+- integrate necessary current artifact `Implementation Plan`/`Task`/`Walkthrough` into `docs/product/tasks.md`
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.
 And save the meeting note at "./docs/meeting" and code-review note at "./docs/code_review". We always trace the notes.

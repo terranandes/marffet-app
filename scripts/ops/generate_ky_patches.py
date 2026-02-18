@@ -103,6 +103,12 @@ def fetch_yf_data(stock_id):
                 
                 stock_val = (ratio - 1) * 10
                 
+                # Cap extremely large splits (likely par value changes, e.g. 10-to-1)
+                # 20.0 corresponds to a 3-for-1 split (ratio 3.0) -> (3-1)*10 = 20.
+                if stock_val > 20.0:
+                    print(f"  ⚠️  Capping large split for {symbol} date={date.date()} ratio={ratio} val={stock_val:.2f} -> 20.0")
+                    stock_val = 20.0
+                
                 if year not in yearly_data: yearly_data[year] = {'cash': 0.0, 'stock': 0.0}
                 yearly_data[year]['stock'] += stock_val
                 

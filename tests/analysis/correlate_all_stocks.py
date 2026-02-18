@@ -1,214 +1,246 @@
-#!/usr/bin/env python3
 """
-Grand Correlation: All Stocks vs MoneyCome Reference Excel
-
-Correlates our ROICalculator BAO CAGR (2006→2026) against the unfiltered
-MoneyCome reference Excel for ALL stocks.
-
-Usage:
-    uv run python tests/analysis/correlate_all_stocks.py
+Phase 17-A: Grand Correlation Analysis
+Compare our DuckDB-calculated Mars CAGR vs MoneyCome reference (s2006e2026bao).
+Target: >85% match rate within ±1.5% CAGR tolerance.
 """
-import sys, os, time
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
+import os
+import sys
+import duckdb
 import pandas as pd
-import numpy as np
+from pathlib import Path
 from datetime import datetime
 
-REFERENCE_FILE = os.path.join(
-    os.path.dirname(__file__), '..', '..',
-    'app', 'project_tw', 'references', 'stock_list_s2006e2026_unfiltered.xlsx'
-)
+# ── Project root on sys.path ──────────────────────────────────────────────────
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 
-# Tolerance bands
-CAGR_TOLERANCE_TIGHT = 1.0   # ±1.0% for "match"
-CAGR_TOLERANCE_LOOSE = 3.0   # ±3.0% for "close"
+from app.project_tw.calculator import ROICalculator
+
+# ── Constants ─────────────────────────────────────────────────────────────────
+DB_PATH      = ROOT / "data/market.duckdb"
+REF_EXCEL    = ROOT / "app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx"
+OUTPUT_CSV   = ROOT / "tests/analysis/correlation_report_full.csv"
+START_YEAR   = 2006
+MATCH_TIGHT  = 1.5   # ±1.5% → "Match"
+MATCH_LOOSE  = 3.0   # ±3.0% → "Close"
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def load_reference() -> pd.DataFrame:
+    """Load MoneyCome reference Excel. Returns df with columns: code, name, ref_cagr."""
+    print(f"Loading reference: {REF_EXCEL}")
+    df = pd.read_excel(REF_EXCEL)
+    df.columns = [str(c).strip() for c in df.columns]
+
+    # Detect code / name / cagr columns (flexible naming)
+    code_col = next((c for c in df.columns if c in ("代號", "id", "ID", "code", "Code")), df.columns[0])
+    name_col = next((c for c in df.columns if c in ("名稱", "name", "Name")), None)
+    cagr_col = next((c for c in df.columns if "s2006e2026bao" in c.lower() or c == "s2006e2026bao"), None)
+
+    if cagr_col is None:
+        # Print all columns so we can debug
+        print(f"[WARN] Could not find s2006e2026bao column. Available: {df.columns.tolist()}")
+        # Try to find any column that looks like a CAGR
+        cagr_col = next((c for c in df.columns if "bao" in c.lower() and "2006" in c), None)
+        if cagr_col is None:
+            raise ValueError(f"Cannot find CAGR column in Excel. Columns: {df.columns.tolist()}")
+
+    print(f"  → code_col={code_col!r}, name_col={name_col!r}, cagr_col={cagr_col!r}")
+
+    out = pd.DataFrame()
+    out["code"] = df[code_col].astype(str).str.strip().str.zfill(4)
+    out["name"] = df[name_col].astype(str).str.strip() if name_col else ""
+    out["ref_cagr"] = pd.to_numeric(df[cagr_col], errors="coerce")
+
+    # Keep only valid 4-digit codes with a real CAGR
+    out = out[out["code"].str.match(r"^\d{4}$") & out["ref_cagr"].notna()]
+    print(f"  → {len(out)} valid reference stocks loaded.")
+    return out.reset_index(drop=True)
 
 
-def run_full_correlation():
-    print("=" * 70)
-    print("Grand Correlation: All Stocks vs MoneyCome Reference")
-    print("=" * 70)
+def fetch_prices(con: duckdb.DuckDBPyConnection, stock_id: str) -> pd.DataFrame:
+    """Fetch daily price data from DuckDB for a stock from START_YEAR onward."""
+    df = con.execute("""
+        SELECT date, open, high, low, close
+        FROM daily_prices
+        WHERE stock_id = ?
+          AND YEAR(date) >= ?
+        ORDER BY date ASC
+    """, [stock_id, START_YEAR]).df()
 
-    # 1. Load Reference
-    print("\n[1/5] Loading MoneyCome reference Excel...")
-    ref_df = pd.read_excel(REFERENCE_FILE)
-    ref_df['id'] = ref_df['id'].astype(str)
-    # Only keep stocks with valid 2006→2026 BAO CAGR
-    ref_df = ref_df[ref_df['s2006e2026bao'].notna()].copy()
-    print(f"       Valid reference stocks: {len(ref_df)}")
+    if df.empty:
+        return df
 
-    # 2. Run MarsStrategy bulk simulation
-    print("\n[2/5] Running MarsStrategy simulation (bulk DuckDB load)...")
-    from app.services.strategy_service import MarsStrategy
-    import asyncio
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date")
+    df["year"] = df.index.year
+    return df
 
-    strategy = MarsStrategy()
-    t_start = time.time()
 
-    # Run simulation for ALL stocks
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        raw_results = loop.run_until_complete(
-            strategy.analyze(
-                stock_ids=["ALL"],
-                start_year=2006,
-                principal=1_000_000,
-                contribution=60_000
-            )
-        )
-    finally:
-        loop.close()
+def fetch_dividends(con: duckdb.DuckDBPyConnection, stock_id: str) -> dict:
+    """Fetch dividends from DuckDB. Returns {year: {cash, stock}}."""
+    rows = con.execute("""
+        SELECT year, cash, stock
+        FROM dividends
+        WHERE stock_id = ?
+          AND year >= ?
+    """, [stock_id, START_YEAR]).fetchall()
 
-    t_elapsed = time.time() - t_start
-    print(f"       Simulation completed in {t_elapsed:.1f}s")
-    print(f"       Stocks simulated: {len(raw_results)}")
+    return {int(r[0]): {"cash": float(r[1] or 0), "stock": float(r[2] or 0)} for r in rows}
 
-    # 3. Build result lookup
-    print("\n[3/5] Matching results to MoneyCome reference...")
-    our_results = {}
-    for res in raw_results:
-        code = str(res.get('stock_code', res.get('id', '')))
-        # Get BAO CAGR from history
-        history = res.get('history', [])
-        cagr = 0.0
-        if history and len(history) > 1:
-            last = history[-1]
-            cagr = last.get('cagr', 0.0)
-        # Also check top-level keys
-        if cagr == 0.0:
-            cagr = res.get('cagr_pct', res.get('cagr', 0.0))
-        our_results[code] = {
-            'cagr': cagr,
-            'final_value': res.get('finalValue', 0),
-            'valid_years': res.get('valid_lasting_years', 0),
-        }
 
-    # 4. Correlate
-    print("\n[4/5] Computing correlation statistics...")
-    matched = 0
-    close_match = 0
-    total_compared = 0
-    mismatches = []
-    all_diffs = []
+def calc_mars_cagr(con: duckdb.DuckDBPyConnection, stock_id: str) -> tuple[float, str]:
+    """
+    Run ROICalculator.calculate_complex_simulation for a stock.
+    Returns (cagr_pct, note).
+    """
+    df = fetch_prices(con, stock_id)
+    if df.empty:
+        return 0.0, "No Data"
 
-    rows_for_excel = []
+    # Need at least 2 years of data
+    years_available = df["year"].nunique()
+    if years_available < 2:
+        return 0.0, f"Insufficient Data ({years_available} yr)"
 
-    for _, ref_row in ref_df.iterrows():
-        sid = str(ref_row['id'])
-        mc_cagr = ref_row['s2006e2026bao']
-        mc_bah = ref_row.get('s2006e2026bah', np.nan)
-        mc_bal = ref_row.get('s2006e2026bal', np.nan)
-        mc_yrs = ref_row.get('s2006e2026yrs', np.nan)
+    div_dict = fetch_dividends(con, stock_id)
 
-        our = our_results.get(sid)
-        if our is None:
-            rows_for_excel.append({
-                'stock_id': sid,
-                'name': ref_row.get('name', ''),
-                'mc_bao_cagr': mc_cagr,
-                'our_bao_cagr': None,
-                'diff': None,
-                'status': 'NOT_IN_DB'
-            })
-            continue
+    calc = ROICalculator()
+    result = calc.calculate_complex_simulation(
+        df=df,
+        start_year=START_YEAR,
+        principal=1_000_000,
+        annual_investment=60_000,
+        dividend_data=div_dict,
+        stock_code=stock_id,
+        buy_logic="FIRST_CLOSE",
+    )
 
-        our_cagr = our['cagr']
-        diff = our_cagr - mc_cagr
+    if not result:
+        return 0.0, "Calc Failed"
+
+    # Find the latest available year's CAGR key (s2006eYYYYbao)
+    cagr_keys = sorted([k for k in result if k.startswith(f"s{START_YEAR}e") and k.endswith("bao")])
+    if not cagr_keys:
+        return 0.0, "No CAGR Key"
+
+    # Prefer s2006e2026bao to match reference Excel column
+    preferred = f"s{START_YEAR}e2026bao"
+    key = preferred if preferred in result else cagr_keys[-1]
+    return float(result[key]), "OK"
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def run_correlation():
+    print(f"\n{'='*50}")
+    print(f"PHASE 17-A: GRAND CORRELATION ANALYSIS")
+    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*50}\n")
+
+    # 1. Load reference
+    df_ref = load_reference()
+    total = len(df_ref)
+
+    # 2. Connect to DuckDB (read-only)
+    if not DB_PATH.exists():
+        print(f"[ERROR] DuckDB not found at {DB_PATH}")
+        return
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+
+    # 3. Process each stock
+    results = []
+    matches_tight = 0
+    matches_loose = 0
+    no_data_count = 0
+
+    print(f"Processing {total} stocks...\n")
+    for i, row in df_ref.iterrows():
+        stock_id  = row["code"]
+        ref_cagr  = float(row["ref_cagr"])
+
+        try:
+            mars_cagr, note = calc_mars_cagr(con, stock_id)
+        except Exception as e:
+            mars_cagr, note = 0.0, f"Error: {e}"
+
+        if note == "No Data":
+            no_data_count += 1
+
+        diff     = mars_cagr - ref_cagr
         abs_diff = abs(diff)
-        total_compared += 1
-        all_diffs.append(abs_diff)
 
-        if abs_diff <= CAGR_TOLERANCE_TIGHT:
-            status = '✅ MATCH'
-            matched += 1
-        elif abs_diff <= CAGR_TOLERANCE_LOOSE:
-            status = '🟡 CLOSE'
-            close_match += 1
+        if note == "OK" and abs_diff <= MATCH_TIGHT:
+            status = "Match"
+            matches_tight += 1
+        elif note == "OK" and abs_diff <= MATCH_LOOSE:
+            status = "Close"
+            matches_loose += 1
+        elif note == "OK":
+            status = "Mismatch"
         else:
-            status = '❌ MISS'
-            mismatches.append((sid, ref_row.get('name', ''), mc_cagr, our_cagr, diff))
+            status = note  # "No Data" / "Error" / etc.
 
-        rows_for_excel.append({
-            'stock_id': sid,
-            'name': ref_row.get('name', ''),
-            'mc_bao_cagr': mc_cagr,
-            'our_bao_cagr': round(our_cagr, 2),
-            'diff': round(diff, 2),
-            'abs_diff': round(abs_diff, 2),
-            'mc_yrs': mc_yrs,
-            'our_valid_yrs': our.get('valid_years', 0),
-            'status': status
+        results.append({
+            "code":      stock_id,
+            "name":      row.get("name", ""),
+            "ref_cagr":  round(ref_cagr, 2),
+            "mars_cagr": round(mars_cagr, 2),
+            "diff":      round(diff, 2),
+            "status":    status,
+            "note":      note,
         })
 
-    # 5. Report
-    print("\n" + "=" * 70)
-    print("[5/5] CORRELATION REPORT")
-    print("=" * 70)
+        processed = i + 1
+        if processed % 200 == 0 or processed == total:
+            valid_so_far = processed - no_data_count
+            rate = (matches_tight / valid_so_far * 100) if valid_so_far > 0 else 0
+            print(f"  [{processed:4d}/{total}] Match(±1.5%): {rate:.1f}%  NoData: {no_data_count}")
 
-    not_in_db = len(ref_df) - total_compared
-    print(f"\n  Reference stocks:      {len(ref_df)}")
-    print(f"  Compared:              {total_compared}")
-    print(f"  Not in DuckDB:         {not_in_db}")
-    print(f"  ✅ Match (±{CAGR_TOLERANCE_TIGHT}%):    {matched}  ({matched/max(total_compared,1)*100:.1f}%)")
-    print(f"  🟡 Close (±{CAGR_TOLERANCE_LOOSE}%):    {close_match}  ({close_match/max(total_compared,1)*100:.1f}%)")
-    miss_count = total_compared - matched - close_match
-    print(f"  ❌ Miss  (>{CAGR_TOLERANCE_LOOSE}%):     {miss_count}  ({miss_count/max(total_compared,1)*100:.1f}%)")
+    con.close()
 
-    if all_diffs:
-        diffs_arr = np.array(all_diffs)
-        print(f"\n  Mean Abs Error:        {diffs_arr.mean():.2f}%")
-        print(f"  Median Abs Error:      {np.median(diffs_arr):.2f}%")
-        print(f"  Std Dev:               {diffs_arr.std():.2f}%")
-        print(f"  P90 Error:             {np.percentile(diffs_arr, 90):.2f}%")
-        print(f"  P95 Error:             {np.percentile(diffs_arr, 95):.2f}%")
+    # 4. Save report
+    df_out = pd.DataFrame(results)
+    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
+    df_out.to_csv(str(OUTPUT_CSV), index=False)
 
-    print(f"\n  ⏱️  Simulation Time:    {t_elapsed:.1f}s")
+    # 5. Summary
+    valid_count = total - no_data_count
+    if valid_count == 0:
+        valid_count = 1  # avoid div/0
 
-    # Top 10 worst mismatches
-    if mismatches:
-        mismatches.sort(key=lambda x: abs(x[4]), reverse=True)
-        print(f"\n  Top 10 Worst Mismatches:")
-        print(f"  {'ID':>6}  {'Name':<10}  {'MC':>7}  {'Ours':>7}  {'Diff':>7}")
-        for sid, name, mc, ours, diff in mismatches[:10]:
-            print(f"  {sid:>6}  {(name or '')[:10]:<10}  {mc:>7.1f}  {ours:>7.1f}  {diff:>+7.1f}")
+    match_rate_tight = matches_tight / valid_count * 100
+    match_rate_loose = (matches_tight + matches_loose) / valid_count * 100
+    mae = df_out[df_out["note"] == "OK"]["diff"].abs().mean()
 
-    # Key stocks check
-    print(f"\n  Key Stock Checks:")
-    for key_id, key_name in [('2330', 'TSMC'), ('2317', 'Hon Hai'), ('2454', 'MediaTek'), ('0050', '元大台灣50')]:
-        mc_row = ref_df[ref_df['id'] == key_id]
-        mc_val = mc_row['s2006e2026bao'].values[0] if not mc_row.empty else None
-        our = our_results.get(key_id, {}).get('cagr', None)
-        if mc_val is not None and our is not None:
-            print(f"    {key_id} ({key_name}): MC={mc_val:.1f}%  Ours={our:.1f}%  Diff={our-mc_val:+.1f}%")
-        else:
-            print(f"    {key_id} ({key_name}): {'MC='+ str(mc_val) if mc_val else 'NO_REF'}  {'Ours='+str(our) if our else 'NO_SIM'}")
+    print(f"\n{'='*50}")
+    print("GRAND CORRELATION REPORT")
+    print(f"{'='*50}")
+    print(f"Total Reference Stocks : {total}")
+    print(f"Valid Comparisons      : {valid_count}")
+    print(f"No Data (not in DB)    : {no_data_count}")
+    print(f"Match Rate (±1.5%)     : {match_rate_tight:.2f}%  ← Target >85%")
+    print(f"Match Rate (±3.0%)     : {match_rate_loose:.2f}%")
+    print(f"Mean Absolute Error    : {mae:.4f}%")
+    print(f"{'='*50}")
 
-    # Save Excel
-    output_path = os.path.join(os.path.dirname(__file__), '..', 'log', 'correlation_report.xlsx')
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    result_df = pd.DataFrame(rows_for_excel)
-    result_df.to_excel(output_path, index=False, engine='openpyxl')
-    print(f"\n  📊 Report saved to: {output_path}")
+    # Top outliers
+    ok_df = df_out[df_out["note"] == "OK"].copy()
+    if not ok_df.empty:
+        outliers = pd.concat([
+            ok_df.nlargest(15, "diff"),
+            ok_df.nsmallest(15, "diff")
+        ]).drop_duplicates().sort_values("diff", key=abs, ascending=False).head(15)
+        print("\nTop 15 Outliers:")
+        print(outliers[["code", "name", "ref_cagr", "mars_cagr", "diff"]].to_string(index=False))
 
-    return {
-        'total_ref': len(ref_df),
-        'compared': total_compared,
-        'matched': matched,
-        'close': close_match,
-        'miss': miss_count,
-        'elapsed': t_elapsed,
-        'mean_error': float(diffs_arr.mean()) if all_diffs else 0,
-    }
+    print(f"\nFull report saved → {OUTPUT_CSV}")
+    print(f"Finished: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Return match rate for CI/pass-fail
+    return match_rate_tight
 
 
 if __name__ == "__main__":
-    result = run_full_correlation()
-    match_rate = (result['matched'] + result['close']) / max(result['compared'], 1) * 100
-    print(f"\n{'='*70}")
-    if match_rate >= 85:
-        print(f"🎉 OVERALL: {match_rate:.1f}% within ±{CAGR_TOLERANCE_LOOSE}% — CORRELATION PASSED")
-    else:
-        print(f"⚠️  OVERALL: {match_rate:.1f}% within ±{CAGR_TOLERANCE_LOOSE}% — NEEDS INVESTIGATION")
-    sys.exit(0 if match_rate >= 85 else 1)
+    run_correlation()

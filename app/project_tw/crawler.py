@@ -848,14 +848,25 @@ class TWSECrawler:
                                         if ref > 0:
                                             stock_rate = (prior / ref) - 1
                                     elif '權' in type_str and '息' in type_str:
-                                        # For Combined cases, the 'val' in TWT49U (Index 5) is the Price Adjustment.
-                                        # It is NOT the Cash Dividend. Automated parsing is unreliable here.
-                                        # We zero it to avoid massive inflation and rely on FALLBACK_PATCHES.
-                                        cash_val = 0.0
+                                        # For Combined cases, we cannot split Cash/Stock from the single value.
+                                        # Store the TOTAL value as 'cash' temporarily and flag it.
+                                        # The 'fetch_goodinfo_dividends.py' script will use this flag to fetch exact splits.
+                                        cash_val = val
                                         stock_rate = 0.0
-                                        # Log for visibility (will show up in crawler logs/terminal)
-                                        # print(f"  ⚠️  Ambiguous 'Combined' type for {code}: needs patch (Val={val})")
+                                        # print(f"  ⚠️  Combined '權息' for {code}: Val={val} (Stored as Cash temporarily)")
+                                        
+                                        if code not in results:
+                                            results[code] = {'cash': 0.0, 'stock': 0.0}
                                             
+                                        # Use update() to preserve metadata if we add it in future
+                                        results[code].update({
+                                            'cash': results[code].get('cash', 0.0) + cash_val,
+                                            'stock': results[code].get('stock', 0.0),
+                                            '_type': 'combined',        # Flag for post-processing
+                                            '_total_val': val
+                                        })
+                                        continue # Skip standard accumulation below to avoid double-adding if logic changes
+
                                 # Sanity Check
                                 if stock_rate < 0.0001: stock_rate = 0.0
                                 stock_div_par = stock_rate * 10.0

@@ -224,3 +224,13 @@ data/*.duckdb
 
 # Raw Market Index Data (Source of Truth snapshots)
 data/raw/mi_index/*.json
+
+# All raw data snapshots (re-fetchable from official APIs)
+data/raw/*.json
+
+# Raw dividend cache (large, regeneratable)
+data/raw_dividends/*.json
+
+# Reference data (generated, not source)
+data/ref/*.json
+data/ref/debug/

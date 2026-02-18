@@ -198,15 +198,50 @@ class ROICalculator:
             # With nominal prices, a split causes price to drop (e.g., $60 → $15 for 1:4)
             # Existing shares must multiply by the split ratio so value is preserved.
             # New shares bought this year are at the post-split price, so they're already correct.
+            # GUARD: Skip if a stock dividend already exists for this year in dividend_data.
+            #        Large stock dividends cause ex-rights price drops >40% that the SplitDetector
+            #        falsely detects as splits. The dividends table already handles bonus shares
+            #        via stock_div_dollar, so applying the split ratio too would double-count.
             detector = _get_detector()
             if detector and stock_code:
                 # Year-over-year ratio: only splits that happened THIS year
                 prev_year = sorted_years[i - 1] if i > 0 else start_year - 1
                 yr_split = detector.get_cumulative_ratio(stock_code, prev_year, year)
                 if yr_split > 1.0:
-                    current_shares *= yr_split
+                    # Check for overlapping stock dividend — avoid double-counting
+                    has_stock_div = False
+                    if dividend_data:
+                        div_y = dividend_data.get(year) or dividend_data.get(str(year))
+                        if div_y and float(div_y.get('stock', 0)) > 0.5:
+                            has_stock_div = True
+                    if not has_stock_div:
+                        current_shares *= yr_split
 
-            # 1. Invest Capital
+            # 1. Dividends FIRST — MoneyCome: 去年留倉部位 (last year's remaining position)
+            # Dividends are calculated on shares held BEFORE this year's new investment.
+            div_info = {'cash': 0.0, 'stock': 0.0}
+            
+            if dividend_data:
+                # Handle string/int key mismatch
+                data_y = dividend_data.get(year) or dividend_data.get(str(year))
+                if data_y:
+                    div_info.update(data_y)
+            
+            cash_div_per_share = div_info.get('cash', 0)
+            stock_div_dollar = div_info.get('stock', 0)
+            
+            # Case: Stock Div (on last year's position)
+            if stock_div_dollar > 0:
+                stock_shares_add = current_shares * (stock_div_dollar / 10.0)
+                current_shares += stock_shares_add
+            
+            # Case: Cash Div Reinvest (on last year's position, buy at annual avg price)
+            total_cash_div = current_shares * cash_div_per_share
+            if total_cash_div > 0 and p_avg > 0:
+                shares_add = total_cash_div / p_avg
+                current_shares += shares_add
+            
+            # 2. Invest Capital (AFTER dividends — new shares don't get this year's dividend)
             if i == 0:
                 # Initial Principal + Extra Input
                 amt = principal + annual_investment 
@@ -219,33 +254,6 @@ class ROICalculator:
                 shares_bought = amt / p_action
                 current_shares += shares_bought
                 total_invested_cash += amt
-            
-            # 2. Dividends
-            # Default from passed data or 0
-            div_info = {'cash': 0.0, 'stock': 0.0}
-            
-            if dividend_data:
-                # Handle string/int key mismatch
-                data_y = dividend_data.get(year) or dividend_data.get(str(year))
-                if data_y:
-                    div_info.update(data_y)
-            
-            # Calculate dividends
-            cash_div_per_share = div_info.get('cash', 0)
-            stock_div_dollar = div_info.get('stock', 0)
-            
-            # Case: Stock Div
-            if stock_div_dollar > 0:
-                # Based on Current Shares (Buy at Open qualifies for Mid-Year Div)
-                stock_shares_add = current_shares * (stock_div_dollar / 10.0)
-                current_shares += stock_shares_add
-            
-            # Case: Cash Div Reinvest
-            # Based on Current Shares
-            total_cash_div = current_shares * cash_div_per_share
-            if total_cash_div > 0 and p_avg > 0:
-                shares_add = total_cash_div / p_avg
-                current_shares += shares_add
 
             # 3. Valuation — with nominal prices, no further adjustment needed.
             # current_shares is already in post-split terms.

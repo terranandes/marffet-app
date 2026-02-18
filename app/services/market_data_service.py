@@ -340,7 +340,7 @@ def update_price_cache(stock_id: str):
         for date, row in hist.iterrows():
             month_str = date.strftime('%Y-%m')
             close = row['Close']
-            if pd.na(close):
+            if pd.notna(close):
                 data_to_insert.append((final_id, month_str, float(close)))
 
         with get_db() as conn:
@@ -457,7 +457,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                         successful_orig_ids.add(original_id) 
                         
                         for date, price in series.items():
-                            if pd.na(price):
+                            if pd.notna(price):
                                 to_insert.append((col_ticker, date.strftime('%Y-%m'), float(price)))
                 
                 if to_insert:
@@ -503,7 +503,7 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                          successful_orig_ids_2.add(original_id)
                          
                          for date, price in series.items():
-                            if pd.na(price):
+                            if pd.notna(price):
                                 to_insert2.append((col_ticker, date.strftime('%Y-%m'), float(price)))
                                 
                 if to_insert2:

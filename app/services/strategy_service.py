@@ -178,7 +178,8 @@ class MarsStrategy:
                 else:
                     metrics['cagr_std'] = 999.0
 
-                metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years, NOT daily rows
+                metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years
+                metrics['end_year'] = last_valid_y
                 results.append(metrics)
                     
             except Exception as e:
@@ -189,9 +190,67 @@ class MarsStrategy:
             if processed_count % 500 == 0:
                 logger.info(f"  Processed {processed_count}/{total_stocks} stocks...")
 
+        # 8. Apply Filters
+        filtered_results = self.apply_filters(results)
+
         duration = (datetime.now() - start_time).total_seconds()
-        logger.info(f"Mars Analysis complete for {len(results)} stocks in {duration:.2f}s")
-        return results
+        logger.info(f"Mars Analysis complete. Raw: {len(results)} -> Filtered: {len(filtered_results)} in {duration:.2f}s")
+        return filtered_results
+
+    def apply_filters(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Apply strict filters to ensure quality of results.
+        1. Active: End Year == Current Year
+        2. Duration: > 3 Years
+        3. Volatility: < 3x TSMC Volatility
+        4. Stability: CAGR Std < 20
+        5. ETF: No 'L' suffix (Leveraged)
+        """
+        if not results:
+            return []
+            
+        current_year = datetime.now().year
+        
+        # Find TSMC (2330) Baseline
+        tsmc = next((r for r in results if r['stock_code'] == '2330'), None)
+        tsmc_vol = tsmc['volatility_pct'] if tsmc else None
+        
+        filtered = []
+        rejected_counts = {'active': 0, 'duration': 0, 'volatility': 0, 'stability': 0, 'etf': 0}
+        
+        for r in results:
+            code = str(r['stock_code'])
+            
+            # 1. Active Check (Must have data in current year)
+            if r.get('end_year', 0) < current_year:
+                rejected_counts['active'] += 1
+                continue
+            
+            # 5. ETF Check
+            if code.endswith('L'):
+                rejected_counts['etf'] += 1
+                continue
+
+            # 2. Duration Check (> 3 Years)
+            if r.get('valid_lasting_years', 0) <= 3:
+                rejected_counts['duration'] += 1
+                continue
+                
+            # 4. Stability Check (Std < 20)
+            if r.get('cagr_std', 999) > 20:
+                rejected_counts['stability'] += 1
+                continue
+
+            # 3. Volatility Check (< 3x TSMC)
+            if tsmc_vol and r.get('volatility_pct', 0) > (3 * tsmc_vol):
+                rejected_counts['volatility'] += 1
+                continue
+            
+            # Passed all checks (Active check pending implementation of end_year)
+            filtered.append(r)
+            
+        logger.info(f"Filter Stats: {rejected_counts}")
+        return filtered
 
     def export_to_excel(self, data: List[Dict]) -> bytes:
         import pandas as pd

@@ -14,6 +14,14 @@ The **Mars Strategy** is the primary analysis engine for the Martian Investment 
 *   **Output**: Ranked table of stocks with Final Wealth, CAGR %, and Volatility %.
 *   **Detail View**: Interactive modal showing a 20+ year wealth accumulation chart and comparison between `Buy At Open (BAO)`, `Buy At High (BAH)`, and `Buy At Low (BAL)` strategies.
 
+#### 1.1.1 Filter Logic (Quality Control)
+To ensure high-quality recommendations, the system applies the following filters:
+1.  **Active Status**: Stock must have data in the current year.
+2.  **Duration**: Simulation must validly cover > 3 years.
+3.  **Volatility**: Volatility must be < 3x TSMC (2330).
+4.  **Stability**: CAGR Standard Deviation must be <= 20.
+5.  **ETF Exclusion**: Excludes Leveraged ETFs (ending with 'L').
+
 ### 1.2 BCR (Bar Chart Race) Tab
 The **Bar Chart Race** provides a dynamic, animated visualization of the wealth trajectories for the top candidates identified in the Mars Strategy.
 

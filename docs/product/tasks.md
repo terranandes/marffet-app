@@ -105,6 +105,7 @@
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
 - [x] **Fix BUG-111: Next.js API Proxy 500 Error** (Resolved: Port mismatch fixed .env -> 8000) <!-- id: bug-111 -->
+- [ ] **BUG-114-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
 
 ## 15. Phase 15: DuckDB Optimization & Dividend Migration - [COMPLETED]
 - [x] **Dividend Migration (Single Source of Truth)**
@@ -142,20 +143,23 @@
     - [x] Compare `s2006e2026bao` (MoneyCome CAGR) vs our BAO CAGR
     - [x] Report: match rate 62.9% (±1.5%), 78.8% (±3.0%), MAE=2.17%
     - [x] Output `correlation_report_full.csv` saved to `docs/product/`
-- [x] **Fix split double-counting** in `calculator.py`
+    - [x] Fix split double-counting in `calculator.py`
     - [x] SplitDetector falsely detected stock dividends as splits → added guard
 - [x] **Fix dividend timing** (去年留倉部位 rule)
     - [x] Dividends calculated on last year's position, before new investment
 - [x] **Fix CAGR year alignment** — use `s2006e2026bao` to match reference
-- [ ] **Fix TWT49U `權息` parser** (crawler.py L850-855 zeroes combined dividends)
-    - [ ] 50+ stocks missing ≥5 years of dividends due to this bug
-    - [ ] Re-run reimport after parser fix → expected match rate improvement
-- [ ] **Re-run Grand Correlation v5** after dividend data fix
+- [x] **Fix TWT49U `權息` parser** (crawler.py — combined flag logic + Goodinfo patches for 426 stocks)
+    - [x] 50+ stocks missing ≥5 years of dividends — RESOLVED
+    - [x] KY/DR normalization: YFinance patches for 90 stocks (650 records)
+    - [x] Re-run reimport → Grand Correlation v8 (Uncapped): **71.20% (±1.5%) / 82.09% (±3.0%)**
+- [x] **Revert Split Cap** (Value Destruction risk confirmed)
+    - [x] Removed 20.0 cap in `generate_ky_patches.py` — Splits are neutral events.
 
 ### Part B: Local Web App Verification (BOSS)
-- [ ] Start backend: `uvicorn app.main:app --port 8000`
-- [ ] Start frontend: `cd frontend && bun run dev`
-- [ ] BOSS verifies: Mars tab, BCR tab, Export Excel, Compound Interest tab
+- [x] Start backend: `uvicorn app.main:app --port 8000` (Running via `./start_app.sh`)
+- [x] Start frontend: `cd frontend && bun run dev` (Running via `./start_app.sh`)
+- [/] BOSS verifies: Mars tab, BCR tab, Export Excel, Compound Interest tab
+    - *Found:* **9958 Data Discrepancy** (Fixed via reload), **Name Display Bug** (Fixed via fallback), **YFinance Adjusted Dividend Mismatch** (Filed BUG-115)
 
 ### Part C: Zeabur Deployment (Persistent DuckDB)
 - [ ] **Zeabur Volume Mount**: Configure persistent volume at `/data/`
@@ -183,7 +187,11 @@
 - [x] **Commit Phase 16 scripts to `master`**
 - [x] **Clean up 6 stale branches** (Local branches deleted; remote kept due to SSH issue)
 - [x] **Kill lingering zombie Python processes**
-- [x] **Remove redundant `SAVE_INTERVAL`** at L755 in `market_data_service.py`
+- [x] **Mars Strategy Filters** (Restored based on user request)
+    - [x] Active (Current Year), Duration (>3yrs), Volatility (<3x TSMC), Stability (Std<20), No 'L' ETFs.
+- [x] **Clean up redundant code**
+    - [x] Remove `SAVE_INTERVAL` (handled by DuckDB) at L755 in `market_data_service.py`
 - [x] **Gate debug prints** (Commented out high-volume prints)
 - [x] **Fix bare `except` clauses** (L909, L919) in `market_data_service.py`
-
+- [ ] **BUG-114-CV**: Mobile Portfolio Card Click Timeout (E2E Test Issue) <!-- id: bug-114 -->
+- [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch (Data Accuracy) <!-- id: bug-115 -->

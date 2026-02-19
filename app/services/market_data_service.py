@@ -151,7 +151,7 @@ def fetch_stock_name(stock_id: str) -> Optional[str]:
             STOCK_NAME_CACHE[stock_id] = cht_name
             print(f"[Fetch] Used API for {stock_id}: {cht_name}")
             return cht_name
-    except:
+    except Exception:
         pass
 
     # 3. YFinance Fallback
@@ -358,7 +358,7 @@ def update_price_cache(stock_id: str):
         try:
             with get_db() as conn:
                 conn.execute("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", (stock_id,))
-        except: pass
+        except Exception: pass
         return None
 
 def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
@@ -829,8 +829,7 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
         div_results_to_save.clear()
         gc.collect()
 
-    SAVE_INTERVAL = 10 if IS_CLOUD else 20  # 20 stocks ≈ 20k rows per flush (200 caused DuckDB hangs)
-    processed_in_buffer = 0
+
 
     for i in range(0, total_tickers, chunk_size):
         chunk = all_tickers[i:i+chunk_size]
@@ -921,12 +920,10 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                         # print(f"[Error] Summary calc error: {e}")
                         pass
 
-                processed_in_buffer += 1
+                # End of Ticker Loop
             
-            # Check if we should flush to disk
-            if processed_in_buffer >= SAVE_INTERVAL:
-                flush_results(results, div_results)
-                processed_in_buffer = 0
+            # Flush at end of chunk
+            flush_results(results, div_results)
 
         except Exception as e:
             print(f"[Backfill] Chunk Error: {e}")

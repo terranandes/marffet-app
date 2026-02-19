@@ -476,7 +476,7 @@ async def get_results(start_year: int = 2006, principal: float = 1_000_000, cont
         for res in raw_results:
             sid = str(res['stock_code'])
             res['id'] = sid
-            res['name'] = name_map.get(sid, sid)
+            res['name'] = name_map.get(sid, res.get('stock_name', sid))
             res['valid_years'] = res.get('valid_lasting_years', 0)
             results.append(res)
             

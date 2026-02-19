@@ -21,7 +21,8 @@ echo "📅 Years: $START_YEAR to $END_YEAR"
 echo "📝 Log: $LOG_FILE"
 
 # Run command based on mode
-CMD="uv run python tests/ops_scripts/crawl_fast.py --start-year $START_YEAR --end-year $END_YEAR --output-dir data/raw"
+# Run command based on mode
+CMD="uv run python scripts/ops/crawl_fast.py --start-year $START_YEAR --end-year $END_YEAR --output-dir data/raw"
 
 if [ "$RUN_MODE" == "foreground" ]; then
     # Run in foreground, still logging to file but also waiting

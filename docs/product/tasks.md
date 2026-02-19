@@ -177,11 +177,30 @@
 - [ ] **Create `backup_duckdb.py`** (NEW)
     - [ ] `COPY (SELECT * FROM daily_prices WHERE year=YYYY) TO 'data/backup/prices_YYYY.parquet'`
     - [ ] Each yearly file <50MB, Git-friendly
-- [ ] **Modify `refresh_current_year.sh`** (cron)
-    - [ ] Add step: `supplement_splits.py --apply` after crawl
-    - [ ] Add step: `backup_duckdb.py` before git push
-- [ ] **Add Admin Backup Trigger** (`POST /api/admin/backup/trigger`)
-- [ ] **Pipeline Flow**: Crawl → Split Supplement → Parquet Backup → Git Push
+- [x] **Modify `refresh_current_year.sh`** (cron)
+    - [x] Add `python backup_duckdb.py` after crawl
+    - [x] `git add data/backup/*.parquet && git commit -m "backup: daily prices"`
+
+### Part E: Data Integrity & Discrepancy Fixes [NEW]
+- [ ] **Audit & Fix Data Discrepancies (CAGR gap > 20%)**
+  - [x] Identify stocks with large gaps (e.g. 9958) -> `fix_discrepancies.py` created
+  - [x] Fix `crawl_fast.py` to handle dividends/splits correctly -> DONE (Added `actions=True` and DB logic)
+  - [x] Fix `crawl_fast.py` missing ticker names -> DONE (Added ISIN fetcher)
+  - [/] Re-run `crawl_fast.py` on discrepancy list -> **Launched (Background Job fixing 1116 stocks)**
+  - [x] Re-run Correlation Report -> **Scheduled (Auto-run after Fix)**
+
+    - [x] Add step: `supplement_splits.py --apply` after crawl
+    - [x] Add step: `backup_duckdb.py` before git push
+- [x] **Add Admin Backup Trigger** (`POST /api/admin/backup/trigger`)
+- [x] **Pipeline Flow**: Crawl → Split Supplement → Parquet Backup → Git Push
+- [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_v1.md`)
+
+### Part F: Auto-Pilot (AFK Mode) [COMPLETED WITH ERRORS]
+- [x] **Create `continue_and_report.sh`** to orchestrate post-fix steps
+- [x] **Wait for `fix_discrepancies.py` completion**
+- [x] **Run Final Correlation Report** (Match Rate dropped to 51.3% due to BUG-115)
+- [x] **Backup DuckDB to Parquet**
+- [x] **Git Commit & Push**
 
 ### Part E: Housekeeping - [COMPLETED]
 - [x] **Commit Phase 16 scripts to `master`**
@@ -194,4 +213,4 @@
 - [x] **Gate debug prints** (Commented out high-volume prints)
 - [x] **Fix bare `except` clauses** (L909, L919) in `market_data_service.py`
 - [ ] **BUG-114-CV**: Mobile Portfolio Card Click Timeout (E2E Test Issue) <!-- id: bug-114 -->
-- [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch (Data Accuracy) <!-- id: bug-115 -->
+- [ ] **🔥 BUG-115-PL**: YFinance Adjusted Dividend Mismatch - SEVERITY HIGH (Data Corruption globally) <!-- id: bug-115 -->

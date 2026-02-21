@@ -88,9 +88,11 @@
     - [x] Grand Correlation v4 (>90% target — needs MoneyCome ref recalibration)
     - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch)
 
-## 7. Phase 8: Premium UI & Remote Stabilization - [PAUSED]
+## 7. Phase 8: Premium UI & Remote Stabilization - [IN PROGRESS]
 - [ ] **Zeabur Volume Persistence**
+    - [x] Generated deployment PRD `docs/plan/2026_02_22_zeabur_duckdb_deployment.md`.
     - [ ] Configure volume mount for `/data` to persist `market.duckdb`
+    - [ ] Develop `scripts/ops/backup_duckdb.py` and `app/main.py` Database Parquet Rehydration.
     - [ ] Final Remote Verification of TSMC CAGR (~19%)
 - [ ] **Interactive Backfill Dashboard**
 - [ ] **Mobile Premium Overhaul**
@@ -259,6 +261,9 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Achieved 84.71% Grand Correlation match rate (up from 67%).
     - Handled V-shape glitch artifacts with a 5-day backward scan.
     - Neutralized false compounding in exotic par reductions.
+- [x] **Final File Cleanup & Phase 8 Planning** (Ref: `docs/meeting/meeting_notes_2026_02_22_sync_0205.md`)
+    - Executed `rm -rf` on 206 obsolete legacy brainstorming and code review documents.
+    - Completed `@[/plan]` formulation for Zeabur Parquet-assisted Volume DB Bootstrapping.
 
 ## 20. Phase 19/20/21: Correlation Math Tuning - [COMPLETED]
 - [x] Tested Bankrupt/M&A exclusion -> Reverted, kept in calculation as terminal math is mathematically correct.

@@ -1,0 +1,214 @@
+     |
+
+E701 Multiple statements on one line (colon)
+  --> app/project_tw/crawler_tpex.py:91:20
+--
+   |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/crawler_tpex.py:123:26
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/crawler_tpex.py:198:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+  --> app/project_tw/probe_cb_source.py:36:38
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/project_tw/run_analysis.py:67:23
+--
+   |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:110:37
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:117:86
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:122:86
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:125:86
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:128:38
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:129:38
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/project_tw/strategies/mars.py:200:27
+--
+    |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:51:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:56:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:61:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:67:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:72:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:83:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+  --> app/routers/portfolio.py:88:16
+--
+   |
+
+E701 Multiple statements on one line (colon)
+   --> app/routers/portfolio.py:99:16
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/routers/portfolio.py:105:16
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/calculation_service.py:197:18
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/calculation_service.py:251:40
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/calculation_service.py:295:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/calculation_service.py:421:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:291:39
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:567:31
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:601:58
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:617:54
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:662:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:665:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:745:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:775:59
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:830:16
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:831:34
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:893:54
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:898:39
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:932:47
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/market_data_service.py:955:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/portfolio_service.py:360:54
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/portfolio_service.py:392:25
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/portfolio_service.py:425:31
+--
+    |
+
+E701 Multiple statements on one line (colon)
+   --> app/services/strategy_service.py:171:28

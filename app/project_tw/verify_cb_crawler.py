@@ -29,7 +29,7 @@ async def verify():
         
         sample = issuance[0]
         bond_code = sample.get('BondCode')
-        stock_code = sample.get('StockCode') # Might differ key name
+        sample.get('StockCode') # Might differ key name
         
         if not bond_code:
             # Try finding one with BondCode

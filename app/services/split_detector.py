@@ -12,9 +12,8 @@ Usage:
     adjusted_shares = detector.adjust_shares("0050", shares, buy_year, current_year)
 """
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass

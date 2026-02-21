@@ -51,3 +51,8 @@ include = [
     "app/project_tw/*.csv",
     "app/static/**/*",
 ]
+[tool.mypy]
+exclude = [
+    '^.*\.agent/.*',
+    '^.*\.agents/.*',
+]

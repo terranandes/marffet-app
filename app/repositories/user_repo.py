@@ -181,6 +181,6 @@ def get_user_settings(conn: sqlite3.Connection, user_id: str) -> Optional[Dict[s
         row = cursor.fetchone()
         if row:
             return {"settings": row["settings"], "api_key": row["api_key"]}
-    except:
+    except Exception:
         return None
     return None

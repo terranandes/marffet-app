@@ -1,5 +1,4 @@
 from typing import Optional
-import asyncio
 import os
 import glob
 import datetime
@@ -95,7 +94,8 @@ class CrawlerService:
                                 try:
                                     os.remove(f)
                                     count += 1
-                                except: pass
+                                except Exception:
+                                    pass
                         return count
 
                     # Run file deletion in threadpool
@@ -110,9 +110,12 @@ class CrawlerService:
                     cls._progress_pct = pct
                 else:
                     # Fallback Heuristic
-                    if "Analyzing" in msg: cls._progress_pct = 20
-                    elif "Processing" in msg: cls._progress_pct = 80
-                    elif "Saving" in msg: cls._progress_pct = 90
+                    if "Analyzing" in msg:
+                        cls._progress_pct = 20
+                    elif "Processing" in msg:
+                        cls._progress_pct = 80
+                    elif "Saving" in msg:
+                        cls._progress_pct = 90
                 print(f"[CrawlerService Status] ({cls._progress_pct}%) {msg}")
 
             await run_analysis_main(status_callback=update_status)

@@ -60,7 +60,7 @@ class RuthlessManager:
             for t in valid_targets:
                 sid = t['stock_id']
                 name = t['stock_name'] or sid
-                price = t['_current_price']
+                t['_current_price']
                 cap = t['_market_cap']
                 asset_type = t.get('asset_type', 'stock')
                 

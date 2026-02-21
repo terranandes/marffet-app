@@ -3,10 +3,8 @@ import secrets
 from datetime import datetime
 from authlib.integrations.starlette_client import OAuth
 from starlette.config import Config
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
-from pydantic import BaseModel
 
 # Configuration (Load from Env or default for dev)
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
@@ -106,7 +104,7 @@ async def login(request: Request):
         # Next.js proxy connects via 127.0.0.1 but cookies are set on localhost domain
         if "127.0.0.1" in redirect_uri:
             redirect_uri = redirect_uri.replace("127.0.0.1", "localhost")
-            print(f"[AUTH] Normalized 127.0.0.1 to localhost for cookie compatibility")
+            print("[AUTH] Normalized 127.0.0.1 to localhost for cookie compatibility")
         
         # PROD FIX: Force HTTPS if we are in production (Legacy API access)
         # request.url_for might return http if proxy headers aren't perfect yet
@@ -288,7 +286,8 @@ async def get_me(request: Request):
         print("[AUTH] /me Check: No user in session.")
 
     user = request.session.get('user')
-    if not user: return {"id": None}
+    if not user:
+        return {"id": None}
     
     # Fetch fresh DB data (e.g. nickname)
     from app.database import get_db
@@ -307,7 +306,8 @@ async def get_me(request: Request):
     
     # Merge DB data into session data for response
     # Handle None profile
-    if not db_profile: db_profile = {}
+    if not db_profile:
+        db_profile = {}
     return {**user, **db_profile, "is_admin": is_admin, "has_gemini_key": has_gemini_key}
 
 

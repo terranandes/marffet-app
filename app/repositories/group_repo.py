@@ -1,7 +1,7 @@
 
 import sqlite3
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 def create_group(conn: sqlite3.Connection, user_id: str, name: str) -> Dict[str, Any]:
     """Create a new portfolio group."""

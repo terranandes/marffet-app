@@ -107,14 +107,14 @@ class BackupService:
                     logger.info(f"[BackupCheck] Last backup was {age} ago ({last_backup_time})")
                     
                     if age > timedelta(hours=20):
-                        logger.info(f"[BackupCheck] Backup is stale (>20h). Triggering immediate backup...")
+                        logger.info("[BackupCheck] Backup is stale (>20h). Triggering immediate backup...")
                         BackupService.backup_db()
                     else:
-                        logger.info(f"[BackupCheck] Backup is fresh. Skipping.")
+                        logger.info("[BackupCheck] Backup is fresh. Skipping.")
                         
                 else:
                      # File likely doesn't exist or no commits, try backup
-                     logger.info(f"[BackupCheck] No history found. Triggering backup.")
+                     logger.info("[BackupCheck] No history found. Triggering backup.")
                      BackupService.backup_db()
             else:
                  logger.warning(f"[BackupCheck] Failed to check history: {resp.status_code}")

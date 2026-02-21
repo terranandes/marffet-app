@@ -2,7 +2,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import os
 import sys
 import asyncio
@@ -85,7 +84,8 @@ with tabs[1]:
                             'Value': val,
                             'Label': f"{row['name']} ({row['id']})" 
                         })
-                except: pass
+                except Exception:
+                    pass
                 
         df_race = pd.DataFrame(race_data)
         

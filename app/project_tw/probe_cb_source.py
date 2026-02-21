@@ -1,7 +1,6 @@
 
 import httpx
 import asyncio
-import json
 
 async def probe_cb_source():
     # Attempt 2: Check stk_quote_result (Main Board) for CBs (5 digits)
@@ -21,9 +20,11 @@ async def probe_cb_source():
             data = resp.json()
             
             raw_rows = []
-            if data.get('aaData'): raw_rows = data['aaData']
+            if data.get('aaData'):
+                raw_rows = data['aaData']
             elif data.get('tables'): 
-                 for t in data['tables']: raw_rows.extend(t.get('data', []))
+                 for t in data['tables']:
+                     raw_rows.extend(t.get('data', []))
             
             cb_count = 0
             sample = None
@@ -32,7 +33,8 @@ async def probe_cb_source():
                     code = row[0].strip()
                     if len(code) == 5 and code.isdigit():
                         cb_count += 1
-                        if not sample: sample = row
+                        if not sample:
+                            sample = row
                         
             print(f"Found {cb_count} 5-digit codes (Likely CBs).")
             if sample:

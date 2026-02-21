@@ -111,7 +111,7 @@ class StockInfoService:
                         "industry": industry,
                         "market_type": row['type']
                     })
-            except:
+            except Exception:
                 continue
                 
         return pd.DataFrame(data)

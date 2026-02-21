@@ -1,4 +1,3 @@
-import asyncio
 from app.project_tw.crawler_cb import CBCrawler
 
 class CBStrategy:
@@ -79,7 +78,6 @@ class CBStrategy:
                 
                 # Try to parse from ISSBD5 if possible.
                 # Iterate all issuance
-                matched_issuance = None
                 for record in self.issuance_data:
                     # check if IssuerCode ends with StockCode
                     # e.g. 00045988 (No), 6533 (Yes).
@@ -94,12 +92,12 @@ class CBStrategy:
                         
                         # Let's assume if we find *any* issuance for this stock, use its Conv Price
                         # Refine later.
-                        matched_issuance = record
                         cb_name = record.get('ShortName', cb_name)
                         try:
                             cp_str = record.get('Conversion/ExchangePriceAtIssuance', '0')
                             conv_price = float(cp_str)
-                        except: pass
+                        except Exception:
+                            pass
                         break
                 
                 if conv_price == 0:
@@ -179,7 +177,8 @@ class CBStrategy:
                     try:
                         cp_str = record.get('Conversion/ExchangePriceAtIssuance', '0')
                         conv_price = float(cp_str)
-                    except: pass
+                    except Exception:
+                        pass
                     break
             
             if conv_price == 0:

@@ -1,9 +1,17 @@
+from google import genai
+from urllib.parse import urlparse
+import time
+from fastapi.responses import StreamingResponse
+from app.feedback_db import (
+    submit_feedback, get_all_feedback, update_feedback, 
+    get_feedback_stats, get_feature_categories
+)
 from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks
 from contextlib import asynccontextmanager
-from typing import List, Dict, Any, Optional
+from typing import Optional
 from pydantic import BaseModel
 
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
@@ -24,8 +32,11 @@ from app.project_tw.strategies.cb import CBStrategy
 from app.project_tw.calculator import ROICalculator
 from app.services.notifications import NotificationEngine
 from app.services.market_data_provider import MarketDataProvider
-from app.auth import router as auth_router, get_current_user, get_admin_user
+from app.auth import router as auth_router, get_current_user
 from app.database import get_db, init_db
+from app.services import portfolio_service
+from app.services import market_data_service
+from app.services import calculation_service
 from app.services.portfolio_service import (
     get_all_targets_by_type, 
     update_user_stats, 
@@ -62,7 +73,7 @@ async def lifespan(app: FastAPI):
         
         global _STARTUP_RAN
         _STARTUP_RAN = True
-        print(f"[Startup] MarketDataProvider: Background warming initiated.")
+        print("[Startup] MarketDataProvider: Background warming initiated.")
         
         # 2. Start Scheduler for Backup
         from apscheduler.schedulers.background import BackgroundScheduler
@@ -104,7 +115,8 @@ async def lifespan(app: FastAPI):
         if hasattr(app.state, 'scheduler'):
             app.state.scheduler.shutdown()
             print("[Shutdown] Scheduler Stopped")
-    except: pass
+    except Exception:
+        pass
 
 _STARTUP_RAN = False  # Flag to track lifespan startup execution
 
@@ -134,23 +146,25 @@ if "localhost" in FRONTEND_URL_FOR_DETECTION or "127.0.0.1" in FRONTEND_URL_FOR_
     IS_PRODUCTION = False
 
 # OR allow explicit override
-if os.getenv("dev_mode"): IS_PRODUCTION = False
+if os.getenv("dev_mode"):
+    IS_PRODUCTION = False
 
 # Derive Domain for Cookie
 # CRITICAL: Since we are behind a Next.js Rewrite, the Host header is likely rewritten to 'martian-api'
 # But the Browser is on 'martian-app'.
 # We MUST explicitly set the domain to the Frontend's hostname (e.g. 'martian-app.zeabur.app')
 # Otherwise, 'Domain=None' defaults to 'martian-api', and the browser ignores it.
-from urllib.parse import urlparse
+
 
 # Shared Simulation Cache
 # Key: (start_year, principal, contribution) -> { "timestamp": float, "data": [...] }
 SIM_CACHE = {}
-import time
+
 
 def get_domain_from_url(url):
     """Robustly extract hostname from URL, handling missing scheme."""
-    if not url: return None
+    if not url:
+        return None
     try:
         if not url.startswith("http"):
             url = "https://" + url
@@ -259,7 +273,6 @@ async def debug_cache_info():
     }
 
 # ---------------- Notification Engine (Premium) ----------------
-from app.engines import RuthlessManager
 
 # Notifications moved to app/routers/notifications.py if exists, or handled in user router.
 # (Leaving these for now if they are used by frontend at these paths)
@@ -270,7 +283,6 @@ from app.engines import RuthlessManager
 
 # ---------------- API Endpoints ----------------
 
-from pydantic import BaseModel
 
 class LogMessage(BaseModel):
     level: str
@@ -283,7 +295,7 @@ async def client_log(log: LogMessage):
     return {"status": "ok"}
 
 # ---------------- AI Copilot ----------------
-from google import genai
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -333,10 +345,7 @@ async def chat_with_mars(req: ChatRequest):
             "USER PORTFOLIO CONTEXT:\n"
             f"{req.context}"
         )
-        history = [
-            {"role": "user", "parts": system_prompt},
-            {"role": "model", "parts": "Understood. I am ready to serve per my tier instructions."}
-        ]
+
 
         # Helper for blocking GenAI call
         def generate_response():
@@ -376,7 +385,8 @@ async def chat_with_mars(req: ChatRequest):
             try:
                 # Fallback key logic
                 api_key = req.apiKey or os.getenv("GEMINI_API_KEY")
-                if not api_key: raise Exception("No API Key")
+                if not api_key:
+                    raise Exception("No API Key")
 
                 client = genai.Client(api_key=api_key)
                 for m in client.models.list():
@@ -471,7 +481,8 @@ async def get_results(start_year: int = 2006, principal: float = 1_000_000, cont
                 name_df = pd.read_excel(SOURCE_FILE)
                 for _, row in name_df.iterrows():
                     name_map[str(row['id'])] = row['name']
-            except: pass
+            except Exception:
+                pass
 
         for res in raw_results:
             sid = str(res['stock_code'])
@@ -519,12 +530,10 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
             return SIM_CACHE[cache_key]
         from app.project_tw.calculator import ROICalculator
         import pandas as pd
-        import json
         
         calc = ROICalculator()
         
         rows = []
-        current_max_year = 2026
         
         # Prepare Dataframe for ROICalculator
         # Prepare Dataframe for ROICalculator (Optimized via MarketDataProvider)
@@ -545,7 +554,8 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
                     'close': h['c'],
                     'volume': h['v']
                 })
-            except: pass
+            except Exception:
+                pass
 
         if not rows:
             return {"error": "No data found for stock"}
@@ -638,7 +648,8 @@ async def get_race_data(start_year: int = 2006, principal: float = 1_000_000, co
                     name_df = pd.read_excel(SOURCE_FILE)
                     for _, row in name_df.iterrows():
                         name_map[str(row['id'])] = row['name']
-                except: pass
+                except Exception:
+                    pass
             
             results = []
             for res in raw_results:
@@ -683,8 +694,7 @@ async def get_race_data(start_year: int = 2006, principal: float = 1_000_000, co
         traceback.print_exc()
         return []
 
-from io import BytesIO
-from fastapi.responses import StreamingResponse
+
 
 @app.get("/api/export/excel")
 async def api_export_excel(mode: str = "filtered", start_year: int = 2006, principal: float = 1000000, contribution: float = 60000):
@@ -722,7 +732,8 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
                     name_df = pd.read_excel(SOURCE_FILE)
                     for _, row in name_df.iterrows():
                         name_map[str(row['id'])] = row['name']
-                except: pass
+                except Exception:
+                    pass
             
             sim_results = []
             for res in raw_results:
@@ -823,7 +834,8 @@ def get_stock_history(stock_id: str):
         # For simplify, we call a new provider method or reuse get_daily_history
         # This endpoint is mostly for a legacy detailed view.
         daily_history = MarketDataProvider.get_daily_history(sid)
-        if not daily_history: return []
+        if not daily_history:
+            return []
         
         # Group by year to get yearly summary (mimicking MarketCache behavior)
         import pandas as pd
@@ -866,8 +878,7 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
     REFACTORED: Now uses the detailed ROICalculator for precision alignment.
     """
     import pandas as pd
-    import time
-    from app.project_tw.calculator import ROICalculator
+    
     
     # MarketDataProvider is now a top-level import
     
@@ -899,7 +910,8 @@ def run_mars_simulation(df, prices_db, dividends_db, start_year: int, principal:
                     'close': h['c'],
                     'volume': h['v']
                 })
-            except: pass
+            except Exception:
+                pass
 
         if not history_rows:
             continue
@@ -1009,9 +1021,8 @@ class ProfileUpdate(BaseModel):
 
 @app.post("/api/auth/profile")
 async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_user)):
-    if not user: raise HTTPException(status_code=401, detail="Unauthorized")
-    from app.database import get_db
-    from app.repositories import user_repo
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     
     with get_db() as conn:
         success = user_repo.update_user_nickname(conn, user['id'], data.nickname)
@@ -1022,7 +1033,6 @@ async def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_u
 @app.get("/api/public/profile/{user_id}")
 async def get_public_profile_api(user_id: str):
     """Get sanitized public profile data for any user"""
-    from app.services.portfolio_service import get_public_portfolio
     try:
         data = get_public_portfolio(user_id)
         if not data:
@@ -1034,9 +1044,9 @@ async def get_public_profile_api(user_id: str):
 @app.post("/api/portfolio/sync-stats")
 async def sync_stats(user: dict = Depends(get_current_user)):
     """Trigger update of cached wealth/ROI stats for leaderboard"""
-    if not user: return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+    if not user:
+        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
     
-    from app.services.portfolio_service import update_user_stats
     result = update_user_stats(user['id'])
     if not result:
         return JSONResponse(status_code=500, content={"error": "Failed to sync stats"})
@@ -1045,8 +1055,6 @@ async def sync_stats(user: dict = Depends(get_current_user)):
 @app.get("/api/leaderboard")
 async def fetch_leaderboard(limit: int = 50):
     """Get public leaderboard from cached stats"""
-    from app.database import get_db
-    from app.repositories import user_repo
     with get_db() as conn:
         return user_repo.get_leaderboard(conn, limit)
 
@@ -1070,7 +1078,7 @@ def api_list_groups(user: dict = Depends(get_current_user)):
     """List all portfolio groups"""
     try:
         user_id = user['id'] if user else "default"
-        return list_groups(user_id)
+        return portfolio_service.list_groups(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1081,7 +1089,7 @@ def api_create_group(data: GroupCreate, user: dict = Depends(get_current_user)):
         # Require login for creating groups? Or allow default?
         # User requested isolation, so we should likely require login or default to "default"
         user_id = user['id'] if user else "default"
-        return create_group(data.name, user_id)
+        return portfolio_service.create_group(data.name, user_id)
     except ValueError as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
     except Exception as e:
@@ -1092,7 +1100,7 @@ def api_delete_group(group_id: str, user: dict = Depends(get_current_user)):
     """Delete a portfolio group"""
     # TODO: Check ownership
     try:
-        success = delete_group(group_id)
+        success = portfolio_service.delete_group(group_id)
         return {"deleted": success}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -1102,7 +1110,7 @@ def api_delete_group(group_id: str, user: dict = Depends(get_current_user)):
 def api_list_targets(group_id: str):
     """List targets in a group"""
     try:
-        return list_targets(group_id)
+        return portfolio_service.list_targets(group_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1110,7 +1118,7 @@ def api_list_targets(group_id: str):
 def api_add_target(group_id: str, data: TargetCreate):
     """Add a target (stock/ETF) to a group"""
     try:
-        return add_target(group_id, data.stock_id, data.stock_name, data.asset_type or "stock")
+        return portfolio_service.add_target(group_id, data.stock_id, data.stock_name, data.asset_type or "stock")
     except ValueError as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
     except Exception as e:
@@ -1120,7 +1128,7 @@ def api_add_target(group_id: str, data: TargetCreate):
 def api_delete_target(target_id: str):
     """Delete a target"""
     try:
-        success = delete_target(target_id)
+        success = portfolio_service.delete_target(target_id)
         return {"deleted": success}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -1130,7 +1138,7 @@ def api_delete_target(target_id: str):
 def api_list_transactions(target_id: str):
     """List transactions for a target"""
     try:
-        return list_transactions(target_id)
+        return portfolio_service.list_transactions(target_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1138,7 +1146,7 @@ def api_list_transactions(target_id: str):
 def api_add_transaction(target_id: str, data: TransactionCreate):
     """Add a transaction"""
     try:
-        return add_transaction(target_id, data.type, data.shares, data.price, data.date)
+        return portfolio_service.add_transaction(target_id, data.type, data.shares, data.price, data.date)
     except ValueError as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
     except Exception as e:
@@ -1158,7 +1166,7 @@ def api_update_transaction(tx_id: str, data: TransactionCreate):
 def api_delete_transaction(tx_id: str):
     """Delete a transaction"""
     try:
-        success = delete_transaction(tx_id)
+        success = portfolio_service.delete_transaction(tx_id)
         return {"deleted": success}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -1168,7 +1176,7 @@ def api_delete_transaction(tx_id: str):
 def api_target_summary(target_id: str, current_price: Optional[float] = None):
     """Get P/L summary for a target"""
     try:
-        return get_target_summary(target_id, current_price)
+        return calculation_service.get_target_summary(target_id, current_price)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1184,7 +1192,7 @@ def api_live_prices(stock_ids: str):
         ids = [s.strip() for s in stock_ids.split(",") if s.strip()]
         if not ids:
             return {}
-        return fetch_live_prices(ids)
+        return market_data_service.fetch_live_prices(ids)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1195,7 +1203,7 @@ def api_portfolio_trend(months: int = 12, user: dict = Depends(get_current_user)
     """Get monthly portfolio cost history for trend chart"""
     try:
         user_id = user['id'] if user else "default"
-        return get_portfolio_history(user_id=user_id, months=months)
+        return calculation_service.get_portfolio_history(user_id=user_id, months=months)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1215,7 +1223,7 @@ def api_portfolio_race(user: dict = Depends(get_current_user)):
     """Get race data for live portfolio BCR animation"""
     try:
         user_id = user['id'] if user else "default"
-        return get_portfolio_race_data(user_id)
+        return calculation_service.get_portfolio_race_data(user_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1226,7 +1234,7 @@ def api_sync_dividends(user: dict = Depends(get_current_user)):
     """Sync dividends for all user's targets"""
     try:
         user_id = user['id'] if user else "default"
-        result = sync_all_dividends(user_id)
+        result = portfolio_service.sync_all_dividends(user_id)
         return result
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -1236,7 +1244,7 @@ def api_sync_dividends(user: dict = Depends(get_current_user)):
 def api_target_dividends(target_id: str):
     """Get dividend history for a target"""
     try:
-        return get_dividend_history(target_id)
+        return portfolio_service.get_dividend_history(target_id)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -1283,9 +1291,8 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
     Get admin dashboard metrics.
     Protected: Only accessible by GM emails configured in .env
     """
-    from app.auth import get_admin_user, GM_EMAILS
+    from app.auth import GM_EMAILS
     from app.database import get_db
-    from app.repositories import user_repo
     
     # Check admin access
     if not user:
@@ -1341,10 +1348,7 @@ async def admin_get_crawl_status(
 
 
 # ---------------- User Feedback System ----------------
-from app.feedback_db import (
-    submit_feedback, get_all_feedback, update_feedback, 
-    get_feedback_stats, get_feature_categories
-)
+
 
 class FeedbackSubmit(BaseModel):
     feature_category: str

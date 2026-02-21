@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 import json
@@ -31,7 +31,7 @@ async def get_settings(user: dict = Depends(get_current_user)):
     if data.get('settings'):
         try:
             settings_obj = json.loads(data['settings'])
-        except:
+        except Exception:
             settings_obj = {}
             
     return {

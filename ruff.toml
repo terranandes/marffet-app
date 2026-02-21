@@ -1,0 +1,5 @@
+# Ignore agent framework tools from scanning 
+exclude = [
+    ".agent",
+    ".agents",
+]

@@ -1,13 +1,11 @@
 
 import httpx
-import sqlite3
 # import pandas as pd # Lazy Import
 # import yfinance as yf # Lazy Import
 import gc
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any, Callable
 from pathlib import Path
-import json
 import os
 
 from app.database import get_db
@@ -69,8 +67,10 @@ def fetch_chinese_name_from_api(stock_id: str) -> Optional[str]:
         # but usually using a known recent date or just 'latest' if API supports
         # TWSE needs specific date. Let's use yesterday.
         offset = 1
-        if today.weekday() == 0: offset = 3 # Monday -> Friday
-        elif today.weekday() == 6: offset = 2 # Sunday -> Friday
+        if today.weekday() == 0:
+            offset = 3 # Monday -> Friday
+        elif today.weekday() == 6:
+            offset = 2 # Sunday -> Friday
         
         date_obj = today - timedelta(days=offset)
         date_str = date_obj.strftime("%Y%m%d")
@@ -183,7 +183,8 @@ def fetch_live_prices(stock_ids: list) -> dict:
     
     Used by Portfolio Tab for real-time (~30s delayed) price display.
     """
-    if not stock_ids: return {}
+    if not stock_ids:
+        return {}
     
     unique_ids = list(set(stock_ids))
     
@@ -210,7 +211,8 @@ def fetch_live_prices(stock_ids: list) -> dict:
             yf_tickers.append(t)
             id_map[t] = sid
                 
-    if not yf_tickers: return {}
+    if not yf_tickers:
+        return {}
     
     result = {}
     try:
@@ -284,8 +286,10 @@ def update_price_cache(stock_id: str):
             
         # 2. Check Alternates in DB
         alternates = []
-        if stock_id.endswith('.TW'): alternates.append(stock_id.replace('.TW', '.TWO'))
-        elif stock_id.endswith('.TWO'): alternates.append(stock_id.replace('.TWO', '.TW'))
+        if stock_id.endswith('.TW'):
+            alternates.append(stock_id.replace('.TW', '.TWO'))
+        elif stock_id.endswith('.TWO'):
+            alternates.append(stock_id.replace('.TWO', '.TW'))
         else:
             alternates.append(f"{stock_id}.TW")
             alternates.append(f"{stock_id}.TWO")
@@ -295,7 +299,7 @@ def update_price_cache(stock_id: str):
             row = cursor.fetchone()
             if row:
                 if row[0] == 'ERROR':
-                     continue 
+                     continue
                 # print(f"[Race Cache] Found alternate in DB: {alt}")
                 return alt
 
@@ -309,6 +313,7 @@ def update_price_cache(stock_id: str):
                 return h
             except Exception as e:
                 print(f"[Race Cache] YF Fetch Error for {sid}: {e}")
+                import pandas as pd
                 return pd.DataFrame()
 
         hist = try_fetch(stock_id)
@@ -358,7 +363,8 @@ def update_price_cache(stock_id: str):
         try:
             with get_db() as conn:
                 conn.execute("INSERT OR REPLACE INTO race_cache (stock_id, month, close_price) VALUES (?, 'ERROR', 0)", (stock_id,))
-        except Exception: pass
+        except Exception:
+            pass
         return None
 
 def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
@@ -368,7 +374,8 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
     """
     import pandas as pd
     import yfinance as yf
-    if not stock_ids: return {}
+    if not stock_ids:
+        return {}
     
     unique_ids = list(set(stock_ids))
     mapping = {sid: sid for sid in unique_ids} # Default map
@@ -450,7 +457,8 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                 if not data1.empty:
                     for col_ticker in data1.columns:
                         series = data1[col_ticker]
-                        if series.dropna().empty: continue
+                        if series.dropna().empty:
+                            continue 
                         
                         original_id = batch1_map.get(col_ticker, col_ticker)
                         mapping[original_id] = col_ticker
@@ -496,7 +504,8 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
                 if not data2.empty:
                     for col_ticker in data2.columns:
                          series = data2[col_ticker]
-                         if series.dropna().empty: continue
+                         if series.dropna().empty:
+                             continue 
                          
                          original_id = batch2_map.get(col_ticker, col_ticker)
                          mapping[original_id] = col_ticker
@@ -530,7 +539,8 @@ def get_cached_prices_batch(stock_ids: list, start_date: str = None) -> Dict[str
     Returns: { "2330": pd.Series(index=Date, data=Price) }
     """
     import pandas as pd
-    if not stock_ids: return {}
+    if not stock_ids:
+        return {}
     
     unique_ids = list(set(stock_ids))
     placeholders = ','.join(['?'] * len(unique_ids))
@@ -554,8 +564,10 @@ def get_cached_prices_batch(stock_ids: list, start_date: str = None) -> Dict[str
     data_map = {}
     for r in rows:
         sid, month, price = r
-        if month == 'ERROR': continue
-        if sid not in data_map: data_map[sid] = {'dates': [], 'prices': []}
+        if month == 'ERROR':
+            continue 
+        if sid not in data_map:
+            data_map[sid] = {'dates': [], 'prices': []}
         
         # Month to Date (End of Month?)
         # race_cache stores 'YYYY-MM'.
@@ -586,15 +598,18 @@ def fetch_history_series(ticker: str, period: str = "1y") -> Any:
         # Check if it's a valid ticker format (e.g. 4-6 chars + .TW/.TWO or just digits)
         # Avoid UUIDs or session IDs
         if '-' in ticker or len(ticker) > 20:
+             import pandas as pd
              return pd.DataFrame()
 
         if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
-             if len(ticker) >= 4 and ticker[:4].isdigit(): ticker += '.TW'
+             if len(ticker) >= 4 and ticker[:4].isdigit():
+                 ticker += '.TW'
         
         t = yf.Ticker(ticker)
         return t.history(period=period)
     except Exception as e:
         print(f"[MarketData] Fetch History Error for {ticker}: {e}")
+        import pandas as pd
         return pd.DataFrame()
 
 def fetch_stock_info(ticker: str) -> dict:
@@ -605,7 +620,8 @@ def fetch_stock_info(ticker: str) -> dict:
     """
     try:
         if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
-             if len(ticker) == 4 and ticker.isdigit(): ticker += '.TW'
+             if len(ticker) == 4 and ticker.isdigit():
+                 ticker += '.TW'
         
         t = yf.Ticker(ticker)
         fi = t.fast_info
@@ -621,7 +637,7 @@ def fetch_stock_info(ticker: str) -> dict:
         print(f"[MarketData] Fetch Info Error for {ticker}: {e}")
         return {}
 
-    return result
+    # return result
 
 # Atomic JSON saving removed in favor of DuckDB
 
@@ -650,10 +666,12 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     Uses chunking to avoid memory issues and rate limits.
     """
 
-    if progress_callback: progress_callback("Loading dependencies...", 2)
+    if progress_callback:
+        progress_callback("Loading dependencies...", 2)
     import pandas as pd
     import yfinance as yf
-    if progress_callback: progress_callback("Dependencies loaded. Reading stock list...", 5)
+    if progress_callback:
+        progress_callback("Dependencies loaded. Reading stock list...", 5)
     """
     Backfill historical data for all stocks in the cache.
     Saves to data/raw/Market_{Year}_Prices.json and TPEx_Market_{Year}_Prices.json.
@@ -733,7 +751,8 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     print(f"[Backfill] Found {len(tasks)} stocks to process.")
 
     print(f"[Backfill] Found {len(tasks)} stocks to process.")
-    if progress_callback: progress_callback("Initializing backfill...", 5)
+    if progress_callback:
+        progress_callback("Initializing backfill...", 5)
 
     # 4. Batch Processing
     market_map = {t[0]: t[1] for t in tasks}
@@ -745,13 +764,11 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     
     if IS_CLOUD:
         # TANK MODE: Ultra-stable for 512MB RAM
-        CHUNK_SIZE = 1
         # SAVE_INTERVAL = 20 # Redundant, removed
         BATCH_DELAY = 0.5
         print("[Backfill] Adaptive Mode: TANK (Cloud Detected - 512MB Safety)")
     else:
         # FAST MODE: Performance for local dev (8GB+ RAM)
-        CHUNK_SIZE = 50
         # SAVE_INTERVAL = 20  # Reduced: 200 stocks × 1000 rows was too large for ON CONFLICT upserts
         BATCH_DELAY = 0
         print("[Backfill] Adaptive Mode: FAST (Local Environment)")
@@ -765,8 +782,9 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
     def flush_results(results_to_save, div_results_to_save):
         """Helper to save current batch and clear memory."""
-        if not results_to_save and not div_results_to_save: return
-        print(f"[Backfill] Flushing data to DuckDB...")
+        if not results_to_save and not div_results_to_save:
+            return
+        print("[Backfill] Flushing data to DuckDB...")
         # DEBUG
         # print(f"[DEBUG] Flushing {len(results_to_save)} years. Keys: {results_to_save.keys()}", flush=True)
         
@@ -820,8 +838,10 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
 
         except Exception as e:
             print(f"[Backfill] DuckDB Save Error: {e}")
-            try: conn.execute("ROLLBACK")
-            except Exception as e: pass
+            try:
+                conn.execute("ROLLBACK")
+            except Exception as e:
+                pass
         finally:
             conn.close()
             
@@ -854,16 +874,19 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
             
             print(f"[Debug] Batch {batch}: Downloaded {len(data)} rows for {chunk}.", flush=True)
             
-            if data.empty: continue
+            if data.empty:
+                continue 
             
             for ticker in chunk:
                 # Robust extraction for Yfinance 1.0+ which returns MultiIndex even for single ticker
                 df_ticker = data
                 if isinstance(data.columns, pd.MultiIndex) and ticker in data.columns:
                     df_ticker = data[ticker]
-                if df_ticker.empty: continue
+                if df_ticker.empty:
+                    continue 
                 df_ticker = df_ticker.dropna(how='all')
-                if df_ticker.empty: continue
+                if df_ticker.empty:
+                    continue 
                 
                 market = market_map.get(ticker, 'TWSE')
                 code = original_code_map.get(ticker, ticker)
@@ -876,33 +899,40 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                     actions = df_ticker[(df_ticker.get('Dividends', 0) > 0) | (df_ticker.get('Stock Splits', 0) > 0)]
                     for idx, row in actions.iterrows():
                         y = idx.year
-                        if y < 2000: continue
-                        if y not in div_results: div_results[y] = {}
-                        if code not in div_results[y]: div_results[y][code] = {'cash': 0.0, 'stock': 0.0}
+                        if y < 2000:
+                            continue 
+                        if y not in div_results:
+                            div_results[y] = {}
+                        if code not in div_results[y]:
+                            div_results[y][code] = {'cash': 0.0, 'stock': 0.0}
                         
                         div_val = float(row.get('Dividends', 0))
                         split_val = float(row.get('Stock Splits', 0))
                         
-                        if div_val > 0: div_results[y][code]['cash'] += div_val
+                        if div_val > 0:
+                            div_results[y][code]['cash'] += div_val
                         if split_val > 0 and split_val != 1.0:
                             # yfinance Stock Splits: 1.1 ratio means 10% stock div -> 0.1 in our format
                             div_results[y][code]['stock'] += (split_val - 1.0)
 
                 # 4.2. Process Prices with Smart Merge logic
-                if not isinstance(df_ticker.index, pd.DatetimeIndex): continue
+                if not isinstance(df_ticker.index, pd.DatetimeIndex):
+                    continue 
                 
                 df_ticker['Year'] = df_ticker.index.year
                 for year, group in df_ticker.groupby('Year'):
-                    if year < 2000: continue
+                    if year < 2000:
+                        continue 
                     daily_data = []
                     for idx, row in group.iterrows():
                         try:
-                            o, h, l, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
-                            if pd.isna(c) or (v == 0 and o == 0 and c == 0): continue
+                            o, h, low_val, c, v = row['Open'], row['High'], row['Low'], row['Close'], row['Volume']
+                            if pd.isna(c) or (v == 0 and o == 0 and c == 0):
+                                continue 
                             daily_data.append({
                                 "d": idx.strftime('%Y-%m-%d'), 
                                 "o": round(float(o), 2), "h": round(float(h), 2), 
-                                "l": round(float(l), 2), "c": round(float(c), 2), 
+                                "l": round(float(low_val), 2), "c": round(float(c), 2), 
                                 "v": int(v)
                             })
                         except Exception as e:
@@ -914,9 +944,10 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                         high_val, low_val = max(d['h'] for d in daily_data), min(d['l'] for d in daily_data)
                         summary = {"start": daily_data[0]['o'], "end": daily_data[-1]['c'], "high": high_val, "low": low_val}
                         
-                        if year not in results: results[year] = {'TWSE': {}, 'TPEx': {}}
+                        if year not in results:
+                            results[year] = {'TWSE': {}, 'TPEx': {}}
                         results[year][market][code] = {"daily": daily_data, "summary": summary}
-                    except Exception as e:
+                    except Exception:
                         # print(f"[Error] Summary calc error: {e}")
                         pass
 
@@ -937,5 +968,6 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     # 5. Final Flush
     flush_results(results, div_results)
     
-    if progress_callback: progress_callback("Backfill complete!", 100)
+    if progress_callback:
+        progress_callback("Backfill complete!", 100)
     return {"status": "ok", "stocks_processed": total_tickers}

@@ -17,9 +17,7 @@ class TPEXCrawler:
         return f"{roc_year}/{date_obj.month:02d}/{date_obj.day:02d}"
 
     async def fetch_market_prices_batch(self, years: list, progress_callback=None):
-        import asyncio
         import datetime
-        import json
         
         results = {}
         sem = asyncio.Semaphore(12)
@@ -73,7 +71,8 @@ class TPEXCrawler:
                 total = len(yf_tickers)
                 for i in range(0, total, batch_size):
                     batch = yf_tickers[i:i+batch_size]
-                    if i > 0: await asyncio.sleep(0.3)
+                    if i > 0:
+                        await asyncio.sleep(0.3)
                     batch_data = await asyncio.to_thread(_fetch_batch, batch)
                     year_data.update(batch_data)
                     
@@ -89,14 +88,17 @@ class TPEXCrawler:
             nonlocal completed
             completed += 1
             if progress_callback:
-                try: progress_callback(completed, total)
-                except: pass
+                try:
+                    progress_callback(completed, total)
+                except Exception:
+                    pass
             return res
 
         tasks = [fetch_wrapper(y) for y in years]
         results_list = await asyncio.gather(*tasks)
         for y, r in results_list:
-            if r: results[y] = r
+            if r:
+                results[y] = r
 
         return results
 
@@ -119,7 +121,8 @@ class TPEXCrawler:
                 tables = data.get('tables', [])
                 
                 raw_rows = []
-                if aaData: raw_rows = aaData
+                if aaData:
+                    raw_rows = aaData
                 elif tables:
                      for t in tables:
                          raw_rows.extend(t.get('data', []))
@@ -145,8 +148,6 @@ class TPEXCrawler:
         """
         import yfinance as yf
         import logging
-        import asyncio
-        import json
         
         # Silence yfinance "possibly delisted" spam
         logging.getLogger('yfinance').setLevel(logging.CRITICAL)
@@ -196,7 +197,8 @@ class TPEXCrawler:
             batch = yf_tickers[i:i+batch_size]
             
             try:
-                if i > 0: await asyncio.sleep(0.3)  # Reduced from duplicate 0.5+0.5
+                if i > 0:
+                    await asyncio.sleep(0.3)  # Reduced from duplicate 0.5+0.5
                 
                 # Define scope vars for interior function
                 s_date = f"{year}-01-01"
@@ -211,7 +213,8 @@ class TPEXCrawler:
                          try:
                              # Sync call
                              hist = ticker_obj.history(start=s_date, end=e_date, actions=True)
-                             if hist.empty: continue
+                             if hist.empty:
+                                 continue 
                              
                              code = ticker_id.replace('.TWO', '')
                              

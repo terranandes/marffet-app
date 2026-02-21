@@ -42,7 +42,7 @@ class TWSECrawler:
             # HTML parsing (handling Big5 encoding if simple decoding fails)
             try:
                 content = resp.content.decode('big5')
-            except:
+            except Exception:
                 content = resp.text # Fallback
                 
             # Needs BeautifulSoup
@@ -50,7 +50,7 @@ class TWSECrawler:
             # Use 'ignore' in case of minor encoding bytes issues
             try:
                 content = resp.content.decode('big5', errors='ignore')
-            except:
+            except Exception:
                 content = resp.text
 
             soup = BeautifulSoup(content, 'html.parser')
@@ -67,11 +67,13 @@ class TWSECrawler:
             
             for row in rows:
                 cols = row.find_all('td')
-                if len(cols) < 4: continue
+                if len(cols) < 4:
+                    continue 
                 
                 # Header Check
                 first_text = cols[0].get_text(strip=True)
-                if "有價證券代號" in first_text: continue
+                if "有價證券代號" in first_text:
+                    continue 
                 
                 # Data Row Structure:
                 # Col 0: 1101 台泥 (Code + Name)
@@ -88,7 +90,8 @@ class TWSECrawler:
                 code_name = cols[0].get_text(strip=True)
                 # Split "1101 台泥" -> ["1101", "台泥"]
                 parts = code_name.split()
-                if not parts: continue
+                if not parts:
+                    continue 
                 
                 code = parts[0]
                 
@@ -148,7 +151,7 @@ class TWSECrawler:
                     # Historical months are immutable
                     with open(file_path, 'r', encoding='utf-8') as f:
                         return json.load(f)
-            except:
+            except Exception:
                 pass # corrupted file, refetch
 
         params = {
@@ -256,11 +259,9 @@ class TWSECrawler:
         
         async with httpx.AsyncClient() as client:
             for year in years:
-                y_res = {}
                 # 1. Start Price (Jan)
                 # Try Jan 2 to Jan 10
                 start_dates = [f"{year}01{d:02d}" for d in range(2, 11)] 
-                start_p = {}
                 
                 # Identify first valid trading day
                 for d in start_dates:
@@ -294,7 +295,7 @@ class TWSECrawler:
                             # This gives ALL stocks.
                             # I'll use MI_INDEX.
                             break
-                    except:
+                    except Exception:
                         pass
                 
                 # Wait, I wrote code but realized BWIBBU might lack price.
@@ -394,7 +395,7 @@ class TWSECrawler:
                                             return (nearest - 1) * 10.0
                                 
                                 prev_close = close_p
-                            except:
+                            except Exception:
                                 pass
                 except Exception as e:
                     print(f"  Error scan {date_str}: {e}")
@@ -526,14 +527,16 @@ class TWSECrawler:
             if progress_callback:
                 try:
                     progress_callback(completed, total)
-                except: pass
+                except Exception:
+                    pass
             return res
 
         tasks = [fetch_wrapper(y) for y in years]
         results_list = await asyncio.gather(*tasks)
         
         for y, r in results_list:
-            if r: results[y] = r
+            if r:
+                results[y] = r
 
         return results
 
@@ -595,7 +598,8 @@ class TWSECrawler:
                     for row in raw_rows:
                         # Row: Code(0), Name(1), Vol, Trans, Val, Open(5), High, Low, Close(8)
                         # Check length? 
-                        if len(row) < 9: continue
+                        if len(row) < 9:
+                            continue 
                         
                         code = row[0]
                         price_str = row[8] # Close is usually index 8 check fields?
@@ -605,7 +609,7 @@ class TWSECrawler:
                         # Handle '--' or ','
                         try:
                             p = float(price_str.replace(',', ''))
-                        except:
+                        except Exception:
                             p = 0.0
                         prices[code] = p
                     
@@ -613,7 +617,7 @@ class TWSECrawler:
                         return prices
                         try:
                             p = float(price_str.replace(',', ''))
-                        except:
+                        except Exception:
                             p = 0.0
                         prices[code] = p
                     
@@ -637,7 +641,7 @@ class TWSECrawler:
             with open(file_path, 'r', encoding='utf-8') as f:
                 try:
                     data = json.load(f)
-                except:
+                except Exception:
                     pass
         
         async with httpx.AsyncClient() as client:
@@ -658,7 +662,6 @@ class TWSECrawler:
         
         if data and data.get('stat') == 'OK':
             # Parse
-            rows = []
             for r in data['data']:
                 # ["112", "...", "...", "Open", "High", "Low", "Close", "Avg", ...]
                 # Index 0: Year (ROC)
@@ -690,25 +693,20 @@ class TWSECrawler:
                 # Actually, I'll log variables.
                 
                 # Let's map dynamically:
-                fields = data.get('fields', [])
+                data.get('fields', [])
                 # Map fields
                 try:
                     y_roc = int(r[0])
-                    y_ad = y_roc + 1911
+                    y_roc + 1911
                     
                     # Def vals
-                    o_val = 0.0
-                    h_val = 0.0
-                    l_val = 0.0
-                    c_val = 0.0
-                    avg_val = 0.0
                     
                     # Parse by index if fields align?
                     # Typical: Year, Vol, Val, High, Low, Avg, Close ...
                     # But I should verify.
                     # Just enable robust parsing.
                     pass 
-                except:
+                except Exception:
                     pass
             # For now, return raw data or DataFrame
             return data
@@ -809,9 +807,9 @@ class TWSECrawler:
                                         cash_val = float(c_val)
                                         
                                     if isinstance(r_val, str):
-                                        rights_val = float(r_val.replace(',', '')) if r_val != '-' else 0.0
+                                        float(r_val.replace(',', '')) if r_val != '-' else 0.0
                                     else:
-                                        rights_val = float(r_val)
+                                        float(r_val)
                                 
                                     # Derive Stock Rate from Rights Val
                                     # Formula: Ref = (Prior - Cash) / (1 + Rate)
@@ -868,7 +866,8 @@ class TWSECrawler:
                                         continue # Skip standard accumulation below to avoid double-adding if logic changes
 
                                 # Sanity Check
-                                if stock_rate < 0.0001: stock_rate = 0.0
+                                if stock_rate < 0.0001:
+                                    stock_rate = 0.0
                                 stock_div_par = stock_rate * 10.0
                                 
                                 if code not in results:
@@ -876,7 +875,7 @@ class TWSECrawler:
                                 results[code]['cash'] += cash_val
                                 results[code]['stock'] += stock_div_par
                                 
-                            except Exception as e:
+                            except Exception:
                                 # quiet log unless debugging
                                 # print(f"Error parse row {row}: {e}")
                                 pass

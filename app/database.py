@@ -3,7 +3,6 @@ import sqlite3
 import shutil
 from pathlib import Path
 from contextlib import contextmanager
-from datetime import datetime
 
 # Database file location
 # Use persistent storage on Zeabur, fallback to local for dev
@@ -62,44 +61,44 @@ def init_db():
         # Migration: Add nickname if not exists
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN nickname TEXT")
-        except:
+        except Exception:
             pass
 
         # Migration: Add auth_provider if not exists
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'google'")
-        except:
+        except Exception:
             pass
 
         # Migration: Add last_login_at if not exists
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP")
-        except:
+        except Exception:
             pass
 
         # Migration: Add picture if not exists
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN picture TEXT")
-        except:
+        except Exception:
             pass
 
         # Migration: Add Leaderboard Stats columns
         for col in ["total_wealth REAL DEFAULT 0", "total_cost REAL DEFAULT 0", "total_roi REAL DEFAULT 0", "last_synced TEXT"]:
             try:
                 cursor.execute(f"ALTER TABLE users ADD COLUMN {col}")
-            except:
+            except Exception:
                 pass
 
         # Migration: Add User Settings (JSON)
         try:
              cursor.execute("ALTER TABLE users ADD COLUMN settings TEXT")
-        except:
+        except Exception:
              pass
              
         # Migration: Add API Key (Encrypted/Raw)
         try:
              cursor.execute("ALTER TABLE users ADD COLUMN api_key TEXT")
-        except:
+        except Exception:
              pass
 
         # User Groups
@@ -130,7 +129,7 @@ def init_db():
         # Migration: Add asset_type column if not exists (for existing DBs)
         try:
             cursor.execute("ALTER TABLE group_targets ADD COLUMN asset_type TEXT DEFAULT 'stock'")
-        except:
+        except Exception:
             pass  # Column already exists
         
         # Transactions (buy, sell, dividend)
@@ -205,19 +204,19 @@ def init_db():
         # Migration: Add link column to notifications (for existing DBs)
         try:
             cursor.execute("ALTER TABLE notifications ADD COLUMN link TEXT")
-        except:
+        except Exception:
             pass  # Column already exists
         
         # Migration: Add subscription_tier to users
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN subscription_tier INTEGER DEFAULT 0")
-        except:
+        except Exception:
             pass  # Column already exists
 
         # Migration: Add is_initialized to users (for default portfolio)
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN is_initialized BOOLEAN DEFAULT 0")
-        except:
+        except Exception:
             pass
         
         # --- Performance Indices ---

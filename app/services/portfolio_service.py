@@ -1,5 +1,5 @@
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import sqlite3
 
 from app.database import get_db
@@ -10,7 +10,7 @@ from app.services import market_data_service, calculation_service
 def create_group(user_id: str, name: str) -> Dict[str, Any]:
     with get_db() as conn:
         # Check tier limits
-        profile = user_repo.get_user_profile(conn, user_id)
+        user_repo.get_user_profile(conn, user_id)
         # Assuming profile has subscription_tier? user_repo.get_user_profile returns dict.
         # But 'subscription_tier' might not be in the select list of get_user_profile?
         # Checked user_repo: select nickname, picture, total_wealth, total_cost, total_roi, last_synced.
@@ -38,7 +38,8 @@ def list_groups(user_id: str) -> List[Dict[str, Any]]:
     with get_db() as conn:
         groups = group_repo.list_groups(conn, user_id)
         
-        if user_id == "guest": return groups
+        if user_id == "guest":
+            return groups
         
         is_init = group_repo.check_initialized(conn, user_id)
         
@@ -83,7 +84,8 @@ def get_target_summary(target_id: str) -> Dict[str, Any]:
     with get_db() as conn:
         target = target_repo.get_target(conn, target_id)
         
-    if not target: return {}
+    if not target:
+        return {}
     
     prices = market_data_service.fetch_live_prices([target['stock_id']])
     current_price = prices.get(target['stock_id'], {}).get('price')
@@ -173,7 +175,8 @@ def get_public_portfolio(user_id: str) -> Dict[str, Any]:
     with get_db() as conn:
         profile = user_repo.get_user_profile(conn, user_id)
         
-    if not profile: return None
+    if not profile:
+        return None
     
     snapshot = calculation_service.get_portfolio_snapshot(user_id)
     holdings = snapshot['holdings']
@@ -187,9 +190,12 @@ def get_public_portfolio(user_id: str) -> Dict[str, Any]:
     for h in holdings:
         val = h['value']
         atype = h['asset_type']
-        if atype == 'etf': type_values["ETF"] += val
-        elif atype == 'cb': type_values["CB"] += val
-        else: type_values["Stock"] += val
+        if atype == 'etf':
+            type_values["ETF"] += val
+        elif atype == 'cb':
+            type_values["CB"] += val
+        else:
+            type_values["Stock"] += val
         
         holdings_value.append({
             "symbol": h['stock_id'],
@@ -295,7 +301,6 @@ def sync_all_dividends(user_id: str) -> Dict[str, Any]:
         targets = target_repo.get_targets_by_user(conn, user_id)
         
     synced = []
-    import yfinance as yf
     
     # We need to fetch dividends and update DB.
     # Logic in portfolio_db was: sync_dividends_for_target
@@ -331,7 +336,8 @@ def _sync_dividends_for_target(target_id: str, stock_id: str) -> List[Dict[str, 
         try:
             ticker = yf.Ticker(f"{stock_id}{suffix}")
             dividends = ticker.dividends
-            if dividends.empty: continue
+            if dividends.empty:
+                continue 
             
             with get_db() as conn:
                 txs = transaction_repo.list_transactions(conn, target_id)
@@ -349,8 +355,10 @@ def _sync_dividends_for_target(target_id: str, stock_id: str) -> List[Dict[str, 
                     shares_held = 0
                     for tx in txs:
                         if tx['date'] < ex_date_str:
-                            if tx['type'] == 'buy': shares_held += tx['shares']
-                            elif tx['type'] == 'sell': shares_held -= tx['shares']
+                            if tx['type'] == 'buy':
+                                shares_held += tx['shares']
+                            elif tx['type'] == 'sell':
+                                shares_held -= tx['shares']
                     
                     # Check DB
                     # We need access to check individual dividend record.
@@ -382,7 +390,8 @@ def _sync_dividends_for_target(target_id: str, stock_id: str) -> List[Dict[str, 
                             new_dividends.append({"status": "new", "ex_date": ex_date_str})
             
             break # Success
-        except Exception: continue
+        except Exception:
+            continue
         
     return new_dividends
 
@@ -415,7 +424,8 @@ def get_all_targets_by_type(user_id: str) -> Dict[str, List[Dict[str, Any]]]:
                      target_repo.update_target_name(conn, t['id'], new_name)
                      
         atype = t.get('asset_type', 'stock')
-        if atype not in result: atype = 'stock'
+        if atype not in result:
+            atype = 'stock'
         result[atype].append(t)
         
     return result

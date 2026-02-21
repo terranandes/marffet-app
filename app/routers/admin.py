@@ -1,7 +1,8 @@
-from typing import Optional, Callable
+from pathlib import Path
+from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse
-from app.auth import get_admin_user, get_current_user, GM_EMAILS
+from app.auth import get_admin_user, GM_EMAILS
 from app.services.market_data_provider import MarketDataProvider
 from app.services.backup import BackupService
 from app.services.crawler_service import CrawlerService
@@ -32,7 +33,6 @@ async def supplement_market_data(background_tasks: BackgroundTasks, user: dict =
     Uses Background Task to run the python supplement script.
     """
     import subprocess
-    import sys
     from pathlib import Path
     
     def run_supplement():
@@ -66,7 +66,8 @@ async def backfill_market_data(
     )
     
     msg = "Universe Backfill started."
-    if push: msg += " Will push to GitHub upon completion."
+    if push:
+        msg += " Will push to GitHub upon completion."
     
     return {
         "status": "accepted", 
@@ -178,7 +179,6 @@ async def upload_duckdb(file: UploadFile = File(...), user: dict = Depends(get_a
     """
     from app.services.market_db import DB_PATH
     import shutil
-    import tempfile
 
     if not file.filename or not file.filename.endswith('.duckdb'):
         raise HTTPException(status_code=400, detail="File must be a .duckdb file")

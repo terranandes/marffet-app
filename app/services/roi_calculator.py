@@ -2,7 +2,7 @@
 
 # import pandas as pd # Lazy Import
 # import numpy as np # Lazy Import
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 
 # Split Detector for handling stock splits
 try:
@@ -23,7 +23,6 @@ class ROICalculator:
         pass
 
     def calculate_metrics(self, df: Any) -> Optional[Dict[str, Any]]:
-        import pandas as pd
         import numpy as np
         """
         Calculate key metrics for Mars Strategy:
@@ -96,7 +95,7 @@ class ROICalculator:
              # Try to convert if it's not
              try:
                  df.index = pd.to_datetime(df.index)
-             except:
+             except Exception:
                  pass
 
         if isinstance(df.index, pd.DatetimeIndex):
@@ -174,12 +173,13 @@ class ROICalculator:
                 ratio_2026 = detector.get_cumulative_ratio(str(stock_code), first_year, 2026)
                 if ratio_2026 > 2.0 and first_price < 20.0:
                     is_pre_adjusted = True
-            except: pass
+            except Exception:
+                pass
             
         if precomputed_yearly_stats is not None:
             # Use pre-aggregated data (much faster)
             df_yearly = precomputed_yearly_stats
-            yearly_avg_prices = df_yearly.set_index('year')['avg_price']
+            df_yearly.set_index('year')['avg_price']
             yearly_end_prices = df_yearly.set_index('year')['end_price']
             yearly_action_prices = df_yearly.set_index('year')['action_price']
             sorted_years = sorted([y for y in df_yearly['year'].unique() if y >= start_year])
@@ -193,7 +193,7 @@ class ROICalculator:
                     return {}
                     
             years = df['year'].unique()
-            yearly_avg_prices = df.groupby('year')['close'].mean()
+            df.groupby('year')['close'].mean()
             
             if buy_logic == 'YEAR_HIGH':
                 yearly_action_prices = df.groupby('year')['high'].max()
@@ -220,7 +220,7 @@ class ROICalculator:
             # The detector needs open/close/high prices + year for each row.
             # We build a minimal list only with needed columns using zip (10x faster).
             if stock_code not in detector._cache:
-                reset_df = df.reset_index()
+                df.reset_index()
                 close_vals = df['close'].values
                 open_vals = df['open'].values
                 high_vals = df['high'].values if 'high' in df.columns else open_vals
@@ -253,9 +253,9 @@ class ROICalculator:
             
             # MoneyCome Methodology: Reinvestment Price = (Start + End) / 2
             p_reinvest = (p_action + p_end) / 2.0
-            p_avg = p_reinvest # Use midpoint for all reinvestments
             
-            if p_action == 0: continue
+            if p_action == 0:
+                continue 
             
             # 1. Invest Capital & Calculate Multi-Year Effects
             if i == 0:

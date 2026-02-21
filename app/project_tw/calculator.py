@@ -47,7 +47,6 @@ class ROICalculator:
         pass
 
     def calculate_metrics(self, df):
-        import pandas as pd
         import numpy as np
         """
         Calculate key metrics for Mars Strategy:
@@ -94,7 +93,6 @@ class ROICalculator:
         }
 
     def simulate_dca(self, df, monthly_investment: float):
-        import pandas as pd
         """
         Simulate Dollar Cost Averaging.
         Buy 'monthly_investment' amount on the first trading day of each month.
@@ -218,7 +216,8 @@ class ROICalculator:
             p_end = yearly_end_prices.get(year, 0)
             p_avg = yearly_avg_prices.get(year, 0)
             
-            if p_action == 0: continue
+            if p_action == 0:
+                continue 
             
             # 0. Apply Split FIRST (before buying new shares this year)
             # With nominal prices, a split causes price to drop (e.g., $60 → $15 for 1:4)
@@ -360,7 +359,6 @@ class ROICalculator:
         return results
 
     def calculate_yearly_cumulative_cagr(self, df, start_year: int):
-        import pandas as pd
         """
         Calculate cumulative CAGR (Compound Annual Growth Rate) from start_year to each year end.
         Output keys: 's{start_year}e{year}bao' (e.g., s2006e2025bao)

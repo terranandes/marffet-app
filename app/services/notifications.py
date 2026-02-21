@@ -8,7 +8,6 @@ class NotificationEngine:
         pass
 
     async def fetch_history(self, ticker: str, period="2y") -> Any:
-        import pandas as pd
         """Fetch historical data for SMA calculation"""
         # Clean Code: Use MarketDataService
         return await asyncio.to_thread(market_data_service.fetch_history_series, ticker, period)
@@ -60,7 +59,8 @@ class NotificationEngine:
             # 30% Exchange Calculation
             shares_to_sell = int(sell['shares'] * 0.3)
             # Avoid selling 0 shares
-            if shares_to_sell < 1: shares_to_sell = 1
+            if shares_to_sell < 1:
+                shares_to_sell = 1
             
             sell_value = shares_to_sell * sell['price']
             shares_to_buy = int(sell_value / buy['price'])
@@ -82,7 +82,6 @@ class NotificationEngine:
         """
         alerts = []
         caps = {}
-        prices = {}
         
         # 1. Fetch Caps and Prices
         for target in targets:
@@ -104,7 +103,7 @@ class NotificationEngine:
                 
                 if mcap:
                     caps[target['id']] = {'cap': mcap, 'price': price, 'shares': target.get('shares', 0), 'name': target['name']}
-            except:
+            except Exception:
                 continue
                 
         if not caps:
@@ -132,7 +131,8 @@ class NotificationEngine:
             
             # 30% Exchange
             shares_to_sell = int(sell['shares'] * 0.3)
-            if shares_to_sell < 1: shares_to_sell = 1
+            if shares_to_sell < 1:
+                shares_to_sell = 1
             
             sell_value = shares_to_sell * sell['price']
             shares_to_buy = int(sell_value / buy['price'])
@@ -195,7 +195,7 @@ class NotificationEngine:
                 
                 cb_price = res.get('cb_price', 0)
                 stock_price = res.get('stock_price', 0)
-                conv_price = res.get('conv_price', 0)
+                res.get('conv_price', 0)
                 
                 # === Rebalancing Logic (Target: Equal Weight 50/50) ===
                 current_cb_val = cb_shares * (cb_price * 1000) # CB is 1000/share? usually 100 TWD face value, quoted as e.g. 105. 
@@ -217,7 +217,7 @@ class NotificationEngine:
                 target_val = total_val / 2
                 
                 # Deviation
-                diff_val = target_val - current_stock_val # If positive, buy stock. If negative, sell stock.
+                target_val - current_stock_val # If positive, buy stock. If negative, sell stock.
                 
                 rebalance_msg = ""
                 

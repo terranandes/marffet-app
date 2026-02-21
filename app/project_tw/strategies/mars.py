@@ -23,7 +23,8 @@ class MarsStrategy:
         # 1. Load Dividend Data from DuckDB (Single Source of Truth)
         msg = "Loading Dividend Data from DuckDB..."
         print(msg)
-        if status_callback: status_callback(msg)
+        if status_callback:
+            status_callback(msg)
         
         # Format: {stock_id: {year: {'cash': x, 'stock': y}}}
         all_dividends = MarketDataProvider.load_dividends_dict()
@@ -34,7 +35,8 @@ class MarsStrategy:
         # 2. Fetch Market Prices (Nominal from DuckDB)
         msg = f"Fetching Market Prices ({start_year}-{end_year}) from DuckDB..."
         print(msg)
-        if status_callback: status_callback(msg, 20)
+        if status_callback:
+            status_callback(msg, 20)
         
         # Determine Universe
         if stock_codes == ["ALL"]:
@@ -64,7 +66,8 @@ class MarsStrategy:
         # Helper to get DF
         def get_df(code):
             if use_bulk:
-                if bulk_df.empty: return pd.DataFrame()
+                if bulk_df.empty:
+                    return pd.DataFrame()
                 # Filter by stock_id
                 return bulk_df[bulk_df['stock_id'] == code].copy()
             else:
@@ -102,23 +105,34 @@ class MarsStrategy:
                 # PATCH: TSMC, 0050, 2881 (Preserve legacy patches)
                 # PATCH: TSMC
                 if code == '2330':
-                    if 2006 in years: stock_divs[2006] = {'cash': 2.5, 'stock': 0.3}
-                    if 2007 in years: stock_divs[2007] = {'cash': 3.0, 'stock': 0.05}
+                    if 2006 in years:
+                        stock_divs[2006] = {'cash': 2.5, 'stock': 0.3}
+                    if 2007 in years:
+                        stock_divs[2007] = {'cash': 3.0, 'stock': 0.05}
                 # PATCH: 0050
                 if code == '0050':
-                    if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 2.5, 'stock': 0.0}
-                    if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 2.0, 'stock': 0.0}
-                    if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.0, 'stock': 0.0}
-                    if 2025 in years: stock_divs[2025] = {'cash': 1.035, 'stock': 0.0}
+                    if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0:
+                        stock_divs[2006] = {'cash': 2.5, 'stock': 0.0}
+                    if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0:
+                        stock_divs[2007] = {'cash': 2.0, 'stock': 0.0}
+                    if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0:
+                        stock_divs[2008] = {'cash': 1.0, 'stock': 0.0}
+                    if 2025 in years:
+                        stock_divs[2025] = {'cash': 1.035, 'stock': 0.0}
                 # PATCH: 2881
                 if code == '2881':
-                    if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0: stock_divs[2006] = {'cash': 1.15, 'stock': 0.0}
-                    if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0: stock_divs[2007] = {'cash': 1.00, 'stock': 0.0}
-                    if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0: stock_divs[2008] = {'cash': 1.50, 'stock': 0.0}
+                    if 2006 not in stock_divs or stock_divs[2006].get('cash', 0) == 0:
+                        stock_divs[2006] = {'cash': 1.15, 'stock': 0.0}
+                    if 2007 not in stock_divs or stock_divs[2007].get('cash', 0) == 0:
+                        stock_divs[2007] = {'cash': 1.00, 'stock': 0.0}
+                    if 2008 not in stock_divs or stock_divs[2008].get('cash', 0) == 0:
+                        stock_divs[2008] = {'cash': 1.50, 'stock': 0.0}
                 # PATCH: 00937B
                 if code == '00937B':
-                     if 2024 in years: stock_divs[2024] = {'cash': 1.02, 'stock': 0.0}
-                     if 2025 in years: stock_divs[2025] = {'cash': 1.02, 'stock': 0.0}
+                     if 2024 in years:
+                         stock_divs[2024] = {'cash': 1.02, 'stock': 0.0}
+                     if 2025 in years:
+                         stock_divs[2025] = {'cash': 1.02, 'stock': 0.0}
 
                 # Run Simulation
                 metrics = self.calculator.calculate_complex_simulation(df, start_year, dividend_data=stock_divs, stock_code=code)
@@ -165,7 +179,8 @@ class MarsStrategy:
                         if val is not None:
                             try:
                                 traj_values.append(float(val))
-                            except: pass
+                            except Exception:
+                                pass
                     
                     if len(traj_values) > 1:
                         metrics['cagr_std'] = pd.Series(traj_values).std()
@@ -176,7 +191,7 @@ class MarsStrategy:
                     
                     results.append(metrics)
                     
-            except Exception as e:
+            except Exception:
                 # print(f"Error {code}: {e}")
                 pass
             
@@ -188,7 +203,8 @@ class MarsStrategy:
                     status_callback(f"Analyzed {code} ({completed_count}/{total_stocks})...", progress)
                     await asyncio.sleep(0) # Yield
 
-        if status_callback: status_callback("Stock analysis complete.", 95)
+        if status_callback:
+            status_callback("Stock analysis complete.", 95)
         return results
 
     def filter_and_rank(self, metrics_list, stock_dict=None):
@@ -247,22 +263,28 @@ class MarsStrategy:
                 # Leveraged ETF: '正2', '反1'.
                 pass
 
-            if code.endswith('L'): return False
+            if code.endswith('L'):
+                return False
 
-            if 'DR' in name: return False
-            if '正2' in name or '反1' in name or 'R' in name: return False
+            if 'DR' in name:
+                return False
+            if '正2' in name or '反1' in name or 'R' in name:
+                return False
             
             # Heuristic: 6 digits. Starts with 03-08, 7. Or name contains warrant terms.
             # Safe Heuristic: If 6 digits and NOT an ETF (starts with 00) and NOT a new stock (4 digits)?
             # Better: Warrants usually start with 03, 04, 05, 06, 07, 08 + 6 digits.
             if len(code) == 6:
-                if code.startswith(('03', '04', '05', '06', '07', '08')): return False
+                if code.startswith(('03', '04', '05', '06', '07', '08')):
+                    return False
                 # Just stick to User request: "Filter out Warrants"
                 # If name has '購' or '售' (Call/Put)?
-                if '購' in name or '售' in name: return False
+                if '購' in name or '售' in name:
+                    return False
             
             # D. Valid Years > 3
-            if row.get('valid_lasting_years', 0) <= 3: return False
+            if row.get('valid_lasting_years', 0) <= 3:
+                return False
             
             # E. Volatility Filter (CAGR Trajectory StdDev)
             # User Requirement: "Filter out stocks that have higher Standard Deviation than TSMC" (of accumulated returns)
@@ -270,7 +292,8 @@ class MarsStrategy:
             
             # If Stock has NaN or 999 (insufficient data), exclude? Or include?
             # Safe to exclude if we demand stability.
-            if stock_cagr_std > tsmc_cagr_std_limit: return False
+            if stock_cagr_std > tsmc_cagr_std_limit:
+                return False
             
             # F. Price Volatility (Legacy)?
             # User seems to want TO REPLACE the logic.
@@ -337,19 +360,20 @@ class MarsStrategy:
         # User said: "add a column s{start_year}e{end_year}yrs"
         # I'll try to find the 's...bao' columns to guess the range.
         
-        start, end = 2006, 2025 # Default
+        _start, _end = 2006, 2025 # Default
         bao_cols = [c for c in df.columns if 'bao' in c]
         if bao_cols:
             # s2006e2025bao
              try:
                  example = bao_cols[-1]
                  # s2006e2025bao -> 2006, 2025
-                 parts = example.split('e') # s2006, 2025bao
+                 example.split('e') # s2006, 2025bao
                  # Logic bit fragile, let's hardcode or pass in save? 
                  # save_to_excel doesn't take year.
                  # Let's just name it `valid_lasting_yrs` to be safe/clear.
                  pass
-             except: pass
+             except Exception:
+                 pass
         
         # Rename valid_lasting_years to sStarteEndYrs?
         # Let's name it 'valid_years' for clarity.

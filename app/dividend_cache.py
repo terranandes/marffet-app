@@ -10,7 +10,6 @@ Write: Both file + DB
 """
 
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -223,7 +222,7 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
             if not stock_name:
                 try:
                     stock_name = ticker.info.get("shortName", clean_id)
-                except:
+                except Exception:
                     stock_name = clean_id
         
         # WRITE TO BOTH: File + DB + DuckDB
@@ -239,7 +238,8 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
             yearly_divs = {}
             for d in dividends:
                 y = int(d['date'][:4])
-                if y not in yearly_divs: yearly_divs[y] = 0.0
+                if y not in yearly_divs:
+                    yearly_divs[y] = 0.0
                 yearly_divs[y] += d['amount']
             
             div_rows = []

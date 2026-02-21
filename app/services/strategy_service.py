@@ -5,14 +5,13 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from io import BytesIO
-import asyncio
 from datetime import datetime
 
 # Import existing Services/Crawlers
 from app.services.market_data_provider import MarketDataProvider
-from app.services.roi_calculator import ROICalculator, _get_detector
+from app.services.roi_calculator import ROICalculator
 from app.project_tw.crawler_cb import CBCrawler
 
 # Setup Logging
@@ -26,7 +25,6 @@ class MarsStrategy:
         # Dividends are now fetched from MarketDataProvider (DuckDB)
 
     async def analyze(self, stock_ids: List[str], start_year: int = 2006, principal: float = 1_000_000, contribution: float = 60_000) -> List[Dict[str, Any]]:
-        import pandas as pd
         import numpy as np
         """
         Analyze stocks using bulk data loading for high performance.
@@ -79,7 +77,7 @@ class MarsStrategy:
                 self.dividend_patches = {}
 
         # 4. Pre-calculate Yearly Statistics (The Second Big Optimization)
-        logger.info(f"Pre-calculating yearly statistics for all stocks...")
+        logger.info("Pre-calculating yearly statistics for all stocks...")
         all_prices_df['year'] = all_prices_df['date'].dt.year
         
         # We need first-open, mean-close, last-close, max-high, min-low per year per stock
@@ -170,8 +168,10 @@ class MarsStrategy:
                 for y in years:
                     val = metrics.get(f"s{start_year}e{y}bao")
                     if val is not None:
-                        try: traj_values.append(float(val))
-                        except: pass
+                        try:
+                            traj_values.append(float(val))
+                        except Exception:
+                            pass
                 
                 if len(traj_values) > 1:
                     metrics['cagr_std'] = np.std(traj_values)
@@ -182,7 +182,7 @@ class MarsStrategy:
                 metrics['end_year'] = last_valid_y
                 results.append(metrics)
                     
-            except Exception as e:
+            except Exception:
                 # Silently catch per-stock errors to avoid crashing full run
                 continue
             
@@ -336,7 +336,8 @@ class CBStrategy:
                                 conv_price = cp_val
                                 cb_name = record.get('ShortName', cb_name)
                                 break
-                        except: pass
+                        except Exception:
+                            pass
                 
                 if conv_price == 0:
                     continue

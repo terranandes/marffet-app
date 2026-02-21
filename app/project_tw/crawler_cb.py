@@ -79,7 +79,8 @@ class CBCrawler:
                             series = df[t]['Close'].dropna()
                             if not series.empty:
                                 return float(series.iloc[-1])
-                        except: pass
+                        except Exception:
+                            pass
                 return 0.0
 
             cb_price = get_price([f"{cb_code}.TWO", f"{cb_code}.TW"], data)
@@ -102,7 +103,6 @@ class CBCrawler:
         Note: ISSBD5 'IssuerCode' might differ from 'StockCode'. 
         E.g. Andes 6533, IssuerCode might be 6533?
         """
-        candidates = []
         for row in issuance_data:
             # Check Issuer Code
             ic = row.get('IssuerCode', '')

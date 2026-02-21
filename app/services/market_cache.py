@@ -71,7 +71,8 @@ class MarketCache:
                             corrupt_path = p_file.with_suffix(".json.corrupted")
                             os.replace(p_file, corrupt_path)
                             logging.warning(f"[MarketCache] Moved corrupted {p_file.name} to {corrupt_path.name}")
-                        except: pass
+                        except Exception:
+                            pass
 
                 # 2. TPEx Market (OTC)
                 tpex_file = cls.DATA_DIR / f"TPEx_Market_{year}_Prices.json"
@@ -88,7 +89,8 @@ class MarketCache:
                             corrupt_path = tpex_file.with_suffix(".json.corrupted")
                             os.replace(tpex_file, corrupt_path)
                             logging.warning(f"[MarketCache] Moved corrupted {tpex_file.name} to {corrupt_path.name}")
-                        except: pass
+                        except Exception:
+                            pass
                 
                 if year_data:
                     _PRICES_CACHE[year] = year_data
@@ -114,7 +116,6 @@ class MarketCache:
         Returns list of daily dicts: [{'date': '2010-01-01', 'close': 50.0, ...}, ...]
         Note: SQLite stores Month-End Close. This is sufficient for CAGR but not Daily Backtest.
         """
-        import pandas as pd
         from datetime import datetime
         
         # 1. Get what we have in RAM (Fast, Recent)
@@ -135,7 +136,8 @@ class MarketCache:
         db_history = []
         try:
              # We reuse get_cached_prices_batch logic but for single stock
-            with cls.BASE_DIR.joinpath("data/portfolio.db").open('rb') as f: pass # Check exists
+            with cls.BASE_DIR.joinpath("data/portfolio.db").open('rb'):
+                pass # Check exists
             
             import sqlite3
             with sqlite3.connect(cls.BASE_DIR / "data/portfolio.db") as conn:
@@ -148,7 +150,8 @@ class MarketCache:
                 
                 for r in rows:
                     m_str, price = r
-                    if m_str == 'ERROR': continue
+                    if m_str == 'ERROR':
+                        continue 
                     # Create a dummy daily object for the Strategy
                     # Mars uses: {'year': 2024, 'close': 100, 'date': ...}
                     dt = datetime.strptime(m_str + "-01", "%Y-%m-%d")
@@ -171,7 +174,7 @@ class MarketCache:
         
         # First fill with DB (Lower quality)
         for h in db_history:
-             d_str = h['date'].strftime("%Y-%m-%d")
+             h['date'].strftime("%Y-%m-%d")
              # Actually, we can just use Year-Month as key to overwrite?
              # No, strategy might look for specific dates.
              # MarsStrategy iterates by Year.
@@ -188,7 +191,8 @@ class MarketCache:
                         h_copy = h.copy()
                         h_copy['date'] = dt
                         merged[dt] = h_copy
-                     except: pass
+                     except Exception:
+                         pass
                 elif isinstance(h['date'], datetime):
                      merged[h['date']] = h 
                 

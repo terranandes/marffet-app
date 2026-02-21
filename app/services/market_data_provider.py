@@ -1,8 +1,5 @@
-import duckdb
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Union
-from pathlib import Path
+from typing import Dict, List, Optional, Any
 
 # Import DB connection helper
 from app.services.market_db import get_connection

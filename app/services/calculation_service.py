@@ -1,15 +1,11 @@
 
-import json
-import os
 # import pandas as pd # Lazy Import
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from app.database import get_db
-from app.config import STOCK_NAME_CACHE
-from app.repositories import transaction_repo, target_repo, group_repo
+from app.repositories import transaction_repo, target_repo
 from app.services import market_data_service
 from app import dividend_cache
 from app.services.market_data_provider import MarketDataProvider
@@ -120,11 +116,13 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
              target = target_repo.get_target(conn, target_id)
              stock_id = target['stock_id'] if target else None
              
-        if not stock_id: return 0.0
+        if not stock_id:
+            return 0.0
         
         # Load from DuckDB via Provider
         div_history = MarketDataProvider.get_dividends(stock_id)
-        if not div_history: return 0.0
+        if not div_history:
+            return 0.0
         
         # Build year map for lookup
         div_db = {str(d['year']): d['cash'] for d in div_history}
@@ -137,15 +135,19 @@ def _calculate_legacy_dividend_fallback(target_id: str, transactions: List[Dict]
         for y in range(start_year, current_year + 1):
             year_str = str(y)
             u_cash = div_db.get(year_str, 0)
-            if u_cash <= 0: continue
+            if u_cash <= 0:
+                continue 
             
             ex_date = f"{y}-07-01"
             shares_on_ex = 0
             for t in sorted_tx:
                 if t['date'] <= ex_date:
-                    if t['type'] == 'buy': shares_on_ex += t['shares']
-                    elif t['type'] == 'sell': shares_on_ex -= t['shares']
-                else: break
+                    if t['type'] == 'buy':
+                        shares_on_ex += t['shares']
+                    elif t['type'] == 'sell':
+                        shares_on_ex -= t['shares']
+                else:
+                    break
             
             if shares_on_ex > 0:
                 total_div_cash += shares_on_ex * u_cash
@@ -175,7 +177,7 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     else:
         start_date = end_date - relativedelta(months=months)
         
-    start_month_str = start_date.strftime("%Y-%m")
+    start_date.strftime("%Y-%m")
     
     # Fetch Data
     with get_db() as conn:
@@ -192,7 +194,8 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     cached_divs = {}
     for sid in stock_ids:
         c_data = dividend_cache.get_cached_dividends(sid)
-        if c_data: cached_divs[sid] = c_data
+        if c_data:
+            cached_divs[sid] = c_data
         
     # Build Events
     events = []
@@ -216,7 +219,7 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     if stock_ids:
         try:
             # Clean Code: Use MarketDataProvider (Single Source of Truth)
-            s_date_str = start_date.strftime("%Y-%m-%d")
+            start_date.strftime("%Y-%m-%d")
             # For portfolio history, we can use monthly closes if we only need month-end points
             price_history = _fetch_prices_from_market_cache(stock_ids, use_daily=False)
 
@@ -240,12 +243,14 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
         
         while event_idx < total_events:
             event = events[event_idx]
-            if event['date'] > month_end_str: break
+            if event['date'] > month_end_str:
+                break 
             
             if event['type'] == 'tx':
                 tx = event['data']
                 sid = tx['stock_id']
-                if sid not in portfolio: portfolio[sid] = {'shares': 0, 'total_cost': 0}
+                if sid not in portfolio:
+                    portfolio[sid] = {'shares': 0, 'total_cost': 0}
                 
                 if tx['type'] == 'buy':
                     portfolio[sid]['shares'] += tx['shares']
@@ -286,11 +291,16 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
                         idx = ph.index.get_indexer([month_end_date], method='nearest')[0]
                         if idx != -1:
                             val = ph.iloc[idx]
-                            price = val if pd.notna(val) else (data['total_cost']/shares)
-                        else: price = (data['total_cost']/shares)
-                    else: price = (data['total_cost']/shares)
+                            if pd.notna(val):
+                                price = val
+                            else:
+                                price = (data['total_cost']/shares)
+                        else:
+                            price = (data['total_cost']/shares)
+                    else:
+                        price = (data['total_cost']/shares)
                     total_value += shares * price
-                except:
+                except Exception:
                     total_value += data['total_cost']
         
         monthly_data[month_key] = {
@@ -328,7 +338,8 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
         # Create map: target_id -> {stock_name, asset_type}
         target_map = {t['id']: {'name': t['stock_name'], 'type': t['asset_type']} for t in targets}
     
-    if not txs: return []
+    if not txs:
+        return []
     
     # Enrich txs with metadata
     for tx in txs:
@@ -352,7 +363,7 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     price_history = {}
     try:
         # Clean Code: Use MarketDataProvider (Single Source of Truth)
-        s_date_str = start_date.strftime("%Y-%m-%d")
+        start_date.strftime("%Y-%m-%d")
         # For race data, monthly (specifically quarter-end) is sufficient
         price_history = _fetch_prices_from_market_cache(stock_ids, use_daily=False)
 
@@ -377,7 +388,8 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
         
         while event_idx < len(txs):
             tx = txs[event_idx]
-            if tx['date'] > month_end_str: break
+            if tx['date'] > month_end_str:
+                break 
             
             sid = tx['stock_id']
             if tx['type'] == 'buy':
@@ -395,7 +407,8 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
             
         for sid, data in portfolio.items():
             shares = data['shares']
-            if shares <= 0: continue
+            if shares <= 0:
+                continue 
             
             market_val = 0
             ph = price_history.get(sid)
@@ -408,9 +421,11 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
                         if pd.notna(p):
                             market_val = shares * float(p)
                             found = True
-                except: pass
+                except Exception:
+                    pass
             
-            if not found: market_val = data['total_cost']
+            if not found:
+                market_val = data['total_cost']
             
             # Find metadata (any target with this stock_id)
             # We have target_map keyed by TARGET ID, not Stock ID.
@@ -493,7 +508,8 @@ def _fetch_prices_from_market_cache(stock_ids: List[str], use_daily: bool = Fals
         # Fetch full daily history for each stock
         for sid in stock_ids:
             history = MarketDataProvider.get_daily_history(sid)
-            if not history: continue
+            if not history:
+                continue 
             
             dates = [pd.to_datetime(h['d']) for h in history]
             prices = [float(h['c']) for h in history]
@@ -504,7 +520,8 @@ def _fetch_prices_from_market_cache(stock_ids: List[str], use_daily: bool = Fals
         # Use efficient batch monthly closes
         all_data = MarketDataProvider.get_monthly_closes(stock_ids, start_year=2000)
         for sid, history in all_data.items():
-            if not history: continue
+            if not history:
+                continue 
             
             dates = [pd.to_datetime(h['date']) for h in history]
             prices = [float(h['close']) for h in history]

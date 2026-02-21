@@ -3,14 +3,14 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 0051,元大中型100,8.5,8.8,0.3,Match,OK
 0052,富邦科技,2.5,13.0,10.5,Mismatch,OK
 0053,元大電子,10.7,11.1,0.4,Match,OK
-0054,元大台商50,3.3,1.7,-1.6,Close,OK
+0054,元大台商50,3.3,2.5,-0.8,Match,OK
 0055,元大MSCI金融,5.6,6.0,0.4,Match,OK
 0056,元大高股息,5.8,6.3,0.5,Match,OK
 0057,富邦摩台,10.0,10.2,0.2,Match,OK
-0058,富邦發達,4.4,4.4,0.0,Match,OK
-0059,富邦金融,4.6,1.9,-2.7,Close,OK
-0061,元大寶滬深,1.4,1.4,0.0,Match,OK
-1101,台泥,4.7,0.0,-4.7,No Data,No Data
+0058,富邦發達,4.4,2.8,-1.6,Close,OK
+0059,富邦金融,4.6,2.8,-1.8,Close,OK
+0061,元大寶滬深,1.4,2.3,0.9,Match,OK
+1101,台泥,4.7,3.8,-0.9,Match,OK
 1102,亞泥,7.2,6.4,-0.8,Match,OK
 1103,嘉泥,2.5,2.3,-0.2,Match,OK
 1104,環泥,8.2,7.5,-0.7,Match,OK
@@ -20,7 +20,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1201,味全,1.4,1.4,0.0,Match,OK
 1203,味王,7.7,7.6,-0.1,Match,OK
 1210,大成,12.7,12.5,-0.2,Match,OK
-1213,大飲,1.0,3.7,2.7,Close,OK
+1213,大飲,1.0,4.2,3.2,Mismatch,OK
 1215,卜蜂,20.9,20.1,-0.8,Match,OK
 1216,統一,10.7,10.5,-0.2,Match,OK
 1217,愛之味,1.8,2.0,0.2,Match,OK
@@ -29,18 +29,18 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1220,台榮,4.6,4.6,0.0,Match,OK
 1225,福懋油,8.8,8.7,-0.1,Match,OK
 1227,佳格,9.2,12.8,3.6,Mismatch,OK
-1229,聯華,12.7,12.3,-0.4,Match,OK
+1229,聯華,12.7,13.3,0.6,Match,OK
 1231,聯華食,16.6,16.2,-0.4,Match,OK
 1232,大統益,13.8,13.6,-0.2,Match,OK
 1233,天仁,3.6,3.4,-0.2,Match,OK
 1234,黑松,8.1,7.8,-0.3,Match,OK
-1235,興泰,10.7,9.4,-1.3,Match,OK
+1235,興泰,10.7,10.8,0.1,Match,OK
 1236,宏亞,5.2,4.8,-0.4,Match,OK
 1240,茂生農經,5.8,0.0,-5.8,No Data,No Data
 1256,鮮活果汁-KY,8.3,3.2,-5.1,Mismatch,OK
 1258,其祥-KY,0.1,0.0,-0.1,No Data,No Data
 1259,安心,-1.0,0.0,1.0,No Data,No Data
-1262,綠悅-KY,-14.7,-4.8,9.9,Mismatch,OK
+1262,綠悅-KY,-14.7,-4.1,10.6,Mismatch,OK
 1264,德麥,6.3,0.0,-6.3,No Data,No Data
 1268,漢來美食,2.8,0.0,-2.8,No Data,No Data
 1294,漢田生技,-7.2,0.0,7.2,No Data,No Data
@@ -48,16 +48,16 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1301,台塑,3.0,2.0,-1.0,Match,OK
 1303,南亞,5.6,5.0,-0.6,Match,OK
 1304,台聚,4.6,3.7,-0.9,Match,OK
-1305,華夏,4.1,3.4,-0.7,Match,OK
+1305,華夏,4.1,4.8,0.7,Match,OK
 1307,三芳,6.4,6.5,0.1,Match,OK
 1308,亞聚,5.4,4.4,-1.0,Match,OK
 1309,台達化,3.9,3.3,-0.6,Match,OK
-1310,台苯,0.2,0.2,0.0,Match,OK
-1312,國喬,3.1,6.0,2.9,Close,OK
+1310,台苯,0.2,2.0,1.8,Close,OK
+1312,國喬,3.1,5.9,2.8,Close,OK
 1313,聯成,3.2,2.5,-0.7,Match,OK
-1314,中石化,1.6,1.5,-0.1,Match,OK
+1314,中石化,1.6,3.7,2.1,Close,OK
 1315,達新,11.2,11.1,-0.1,Match,OK
-1316,上曜,6.7,10.1,3.4,Mismatch,OK
+1316,上曜,6.7,10.4,3.7,Mismatch,OK
 1319,東陽,8.0,11.3,3.3,Mismatch,OK
 1321,大洋,4.3,4.1,-0.2,Match,OK
 1323,永裕,6.1,6.3,0.2,Match,OK
@@ -66,10 +66,10 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1326,台化,2.2,5.0,2.8,Close,OK
 1333,恩得利,-11.4,0.0,11.4,No Data,No Data
 1336,台翰,-0.3,0.0,0.3,No Data,No Data
-1337,再生-KY,-6.8,-4.2,2.6,Close,OK
+1337,再生-KY,-6.8,-5.1,1.7,Close,OK
 1338,廣華-KY,-5.2,0.5,5.7,Mismatch,OK
 1339,昭輝,4.6,4.1,-0.5,Match,OK
-1340,勝悅-KY,-10.4,-2.3,8.1,Mismatch,OK
+1340,勝悅-KY,-10.4,-2.2,8.2,Mismatch,OK
 1341,富林-KY,3.1,3.6,0.5,Match,OK
 1342,八貫,8.9,9.7,0.8,Match,OK
 1402,遠東新,4.5,4.1,-0.4,Match,OK
@@ -78,20 +78,20 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1410,南染,9.0,8.9,-0.1,Match,OK
 1413,宏洲,5.2,5.2,0.0,Match,OK
 1414,東和,8.7,8.9,0.2,Match,OK
-1416,廣豐,6.4,6.6,0.2,Match,OK
+1416,廣豐,6.4,7.6,1.2,Match,OK
 1417,嘉裕,2.5,2.2,-0.3,Match,OK
-1418,東華,7.5,7.4,-0.1,Match,OK
+1418,東華,7.5,10.9,3.4,Mismatch,OK
 1419,新紡,8.7,8.1,-0.6,Match,OK
 1423,利華,10.3,10.2,-0.1,Match,OK
-1432,大魯閣,11.8,14.5,2.7,Close,OK
+1432,大魯閣,11.8,16.9,5.1,Mismatch,OK
 1434,福懋,2.7,2.4,-0.3,Match,OK
-1435,中福,4.4,6.7,2.3,Close,OK
-1436,華友聯,13.9,22.2,8.3,Mismatch,OK
+1435,中福,4.4,8.4,4.0,Mismatch,OK
+1436,華友聯,13.9,21.6,7.7,Mismatch,OK
 1437,勤益控,5.2,5.3,0.1,Match,OK
-1438,三地開發,15.5,15.7,0.2,Match,OK
-1439,雋揚,6.8,5.9,-0.9,Match,OK
+1438,三地開發,15.5,18.5,3.0,Close,OK
+1439,雋揚,6.8,7.2,0.4,Match,OK
 1440,南紡,4.0,3.6,-0.4,Match,OK
-1441,大東,7.2,10.7,3.5,Mismatch,OK
+1441,大東,7.2,9.6,2.4,Close,OK
 1442,名軒,9.1,9.1,0.0,Match,OK
 1443,立益物流,9.9,9.9,0.0,Match,OK
 1444,力麗,3.8,3.2,-0.6,Match,OK
@@ -104,10 +104,10 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1453,大將,7.3,7.3,0.0,Match,OK
 1454,台富,5.5,5.9,0.4,Match,OK
 1455,集盛,2.2,1.6,-0.6,Match,OK
-1456,怡華,8.5,8.5,0.0,Match,OK
-1457,宜進,8.0,8.0,0.0,Match,OK
+1456,怡華,8.5,11.1,2.6,Close,OK
+1457,宜進,8.0,8.9,0.9,Match,OK
 1459,聯發,3.7,3.7,0.0,Match,OK
-1460,宏遠,0.8,4.0,3.2,Mismatch,OK
+1460,宏遠,0.8,3.9,3.1,Mismatch,OK
 1463,強盛新,7.1,7.4,0.3,Match,OK
 1464,得力,5.6,8.9,3.3,Mismatch,OK
 1465,偉全,5.7,5.3,-0.4,Match,OK
@@ -115,21 +115,21 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1467,南緯,0.0,-0.4,-0.4,Match,OK
 1468,昶和,0.3,0.3,0.0,Match,OK
 1470,大統新創,8.1,8.1,0.0,Match,OK
-1471,首利,-0.1,2.1,2.2,Close,OK
-1472,三洋實業,13.3,21.5,8.2,Mismatch,OK
+1471,首利,-0.1,2.8,2.9,Close,OK
+1472,三洋實業,13.3,22.9,9.6,Mismatch,OK
 1473,台南,1.7,1.3,-0.4,Match,OK
 1474,弘裕,3.1,2.7,-0.4,Match,OK
-1475,業旺,3.6,7.5,3.9,Mismatch,OK
+1475,業旺,3.6,9.4,5.8,Mismatch,OK
 1476,儒鴻,19.7,19.4,-0.3,Match,OK
 1477,聚陽,13.5,13.6,0.1,Match,OK
 1503,士電,12.5,11.5,-1.0,Match,OK
 1504,東元,12.4,12.1,-0.3,Match,OK
-1506,正道,0.6,0.6,0.0,Match,OK
-1507,永大,9.3,6.3,-3.0,Mismatch,OK
+1506,正道,0.6,1.7,1.1,Match,OK
+1507,永大,9.3,7.1,-2.2,Close,OK
 1512,瑞利,0.5,0.3,-0.2,Match,OK
 1513,中興電,13.9,12.9,-1.0,Match,OK
-1514,亞力,18.3,21.2,2.9,Close,OK
-1515,力山,6.4,10.0,3.6,Mismatch,OK
+1514,亞力,18.3,21.9,3.6,Mismatch,OK
+1515,力山,6.4,10.8,4.4,Mismatch,OK
 1516,川飛,10.1,9.1,-1.0,Match,OK
 1517,利奇,4.2,3.7,-0.5,Match,OK
 1519,華城,27.0,31.4,4.4,Mismatch,OK
@@ -137,10 +137,10 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1522,堤維西,6.8,6.2,-0.6,Match,OK
 1524,耿鼎,6.1,5.8,-0.3,Match,OK
 1525,江申,6.8,6.6,-0.2,Match,OK
-1526,日馳,8.4,8.2,-0.2,Match,OK
+1526,日馳,8.4,10.6,2.2,Close,OK
 1527,鑽全,2.0,4.6,2.6,Close,OK
 1528,恩德,6.8,5.5,-1.3,Match,OK
-1529,樂事綠能,9.0,8.5,-0.5,Match,OK
+1529,樂事綠能,9.0,10.4,1.4,Match,OK
 1530,亞崴,2.5,2.0,-0.5,Match,OK
 1531,高林股,0.1,2.7,2.6,Close,OK
 1532,勤美,4.4,4.0,-0.4,Match,OK
@@ -148,7 +148,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1535,中宇,9.2,8.2,-1.0,Match,OK
 1536,和大,5.4,10.3,4.9,Mismatch,OK
 1537,廣隆,13.4,13.0,-0.4,Match,OK
-1538,正峰,2.8,5.5,2.7,Close,OK
+1538,正峰,2.8,5.8,3.0,Close,OK
 1539,巨庭,5.6,5.2,-0.4,Match,OK
 1540,喬福,7.2,6.7,-0.5,Match,OK
 1541,錩泰,5.9,5.7,-0.2,Match,OK
@@ -169,28 +169,28 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1589,永冠-KY,-5.6,-6.6,-1.0,Match,OK
 1590,亞德客-KY,12.7,13.6,0.9,Match,OK
 1591,駿吉-KY,5.6,0.0,-5.6,No Data,No Data
-1592,英瑞-KY,-24.3,1.7,26.0,Mismatch,OK
+1592,英瑞-KY,-24.3,1.5,25.8,Mismatch,OK
 1593,祺驊,3.7,0.0,-3.7,No Data,No Data
 1595,川寶,1.6,0.0,-1.6,No Data,No Data
 1597,直得,7.9,-0.6,-8.5,Mismatch,OK
 1598,岱宇,-4.6,-4.7,-0.1,Match,OK
 1599,宏佳騰,1.4,0.0,-1.4,No Data,No Data
-1603,華電,10.2,9.7,-0.5,Match,OK
+1603,華電,10.2,11.0,0.8,Match,OK
 1604,聲寶,10.1,9.9,-0.2,Match,OK
-1605,華新,8.6,7.4,-1.2,Match,OK
-1606,歌林,-58.0,-58.6,-0.6,Match,OK
-1608,華榮,11.1,10.0,-1.1,Match,OK
-1609,大亞,10.4,9.4,-1.0,Match,OK
+1605,華新,8.6,8.2,-0.4,Match,OK
+1606,歌林,-58.0,-11.8,46.2,Mismatch,OK
+1608,華榮,11.1,11.3,0.2,Match,OK
+1609,大亞,10.4,11.0,0.6,Match,OK
 1611,中電,1.9,1.8,-0.1,Match,OK
 1612,宏泰,9.2,8.3,-0.9,Match,OK
-1613,台一,-0.7,-0.7,0.0,Match,OK
+1613,台一,-0.7,-0.4,0.3,Match,OK
 1614,三洋電,4.5,4.1,-0.4,Match,OK
 1615,大山,16.2,15.1,-1.1,Match,OK
-1616,億泰,7.2,10.7,3.5,Mismatch,OK
+1616,億泰,7.2,11.1,3.9,Mismatch,OK
 1617,榮星,4.7,4.4,-0.3,Match,OK
 1618,合機,10.5,13.7,3.2,Mismatch,OK
 1626,艾美特-KY,-6.3,-7.2,-0.9,Match,OK
-1701,中化,4.8,4.3,-0.5,Match,OK
+1701,中化,4.8,3.9,-0.9,Match,OK
 1702,南僑,10.0,10.3,0.3,Match,OK
 1707,葡萄王,14.1,14.2,0.1,Match,OK
 1708,東鹼,9.3,9.1,-0.2,Match,OK
@@ -200,21 +200,21 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1712,興農,13.2,12.9,-0.3,Match,OK
 1713,國化,9.4,9.5,0.1,Match,OK
 1714,和桐,3.1,3.0,-0.1,Match,OK
-1715,萬洲,5.7,5.1,-0.6,Match,OK
-1716,永信藥品,11.8,10.8,-1.0,Match,OK
+1715,萬洲,5.7,2.9,-2.8,Close,OK
+1716,永信藥品,11.8,2.5,-9.3,Mismatch,OK
 1717,長興,9.3,8.4,-0.9,Match,OK
-1718,中纖,0.3,0.2,-0.1,Match,OK
+1718,中纖,0.3,1.5,1.2,Match,OK
 1720,生達,8.2,7.7,-0.5,Match,OK
 1721,三晃,5.2,4.9,-0.3,Match,OK
 1722,台肥,3.0,2.6,-0.4,Match,OK
 1723,中碳,5.3,4.7,-0.6,Match,OK
-1724,台硝,4.2,2.5,-1.7,Close,OK
+1724,台硝,4.2,2.3,-1.9,Close,OK
 1725,元禎,6.8,5.9,-0.9,Match,OK
 1726,永記,6.0,5.7,-0.3,Match,OK
 1727,中華化,10.0,9.4,-0.6,Match,OK
 1730,花仙子,10.7,10.2,-0.5,Match,OK
 1731,美吾華,5.4,5.6,0.2,Match,OK
-1732,毛寶,3.7,3.4,-0.3,Match,OK
+1732,毛寶,3.7,4.0,0.3,Match,OK
 1733,五鼎,3.9,3.5,-0.4,Match,OK
 1734,杏輝,3.4,3.3,-0.1,Match,OK
 1735,日勝化,3.3,3.3,0.0,Match,OK
@@ -239,7 +239,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1796,金穎生技,0.1,0.0,-0.1,No Data,No Data
 1799,易威,4.8,0.0,-4.8,No Data,No Data
 1802,台玻,5.7,5.2,-0.5,Match,OK
-1805,寶徠,9.6,10.6,1.0,Match,OK
+1805,寶徠,9.6,11.9,2.3,Close,OK
 1806,冠軍,2.2,2.1,-0.1,Match,OK
 1808,潤隆,14.2,13.2,-1.0,Match,OK
 1809,中釉,6.5,6.2,-0.3,Match,OK
@@ -247,30 +247,30 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 1813,寶利徠,-2.5,0.0,2.5,No Data,No Data
 1815,富喬,9.6,0.0,-9.6,No Data,No Data
 1817,凱撒衛,3.9,4.3,0.4,Match,OK
-1902,台紙,7.6,5.0,-2.6,Close,OK
-1903,士紙,3.3,3.0,-0.3,Match,OK
+1902,台紙,7.6,4.5,-3.1,Mismatch,OK
+1903,士紙,3.3,3.7,0.4,Match,OK
 1904,正隆,5.8,6.0,0.2,Match,OK
 1905,華紙,1.5,1.1,-0.4,Match,OK
 1906,寶隆,5.3,8.6,3.3,Mismatch,OK
 1907,永豐餘,6.1,5.8,-0.3,Match,OK
-1909,榮成,3.1,8.3,5.2,Mismatch,OK
+1909,榮成,3.1,7.8,4.7,Mismatch,OK
 2002,中鋼,2.7,1.8,-0.9,Match,OK
 2006,東和鋼鐵,10.2,9.5,-0.7,Match,OK
-2007,燁興,3.0,2.6,-0.4,Match,OK
+2007,燁興,3.0,3.4,0.4,Match,OK
 2008,高興昌,7.2,7.2,0.0,Match,OK
-2009,第一銅,9.8,8.5,-1.3,Match,OK
+2009,第一銅,9.8,9.5,-0.3,Match,OK
 2010,春源,6.1,6.3,0.2,Match,OK
-2012,春雨,6.1,5.8,-0.3,Match,OK
+2012,春雨,6.1,6.5,0.4,Match,OK
 2013,中鋼構,7.4,7.3,-0.1,Match,OK
 2014,中鴻,4.4,3.8,-0.6,Match,OK
 2015,豐興,8.1,8.3,0.2,Match,OK
 2017,官田鋼,3.5,2.7,-0.8,Match,OK
 2020,美亞,7.6,7.7,0.1,Match,OK
-2022,聚亨,2.4,2.5,0.1,Match,OK
+2022,聚亨,2.4,4.1,1.7,Close,OK
 2023,燁輝,4.6,3.8,-0.8,Match,OK
 2024,志聯,6.9,6.8,-0.1,Match,OK
-2025,千興,5.1,4.6,-0.5,Match,OK
-2027,大成鋼,9.3,7.4,-1.9,Close,OK
+2025,千興,5.1,6.4,1.3,Match,OK
+2027,大成鋼,9.3,8.5,-0.8,Match,OK
 2028,威致,7.8,6.9,-0.9,Match,OK
 2029,盛餘,2.6,2.2,-0.4,Match,OK
 2030,彰源,4.3,3.3,-1.0,Match,OK
@@ -279,7 +279,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2033,佳大,4.3,3.8,-0.5,Match,OK
 2034,允強,6.8,5.6,-1.2,Match,OK
 2035,唐榮,0.6,0.0,-0.6,No Data,No Data
-2038,海光,1.6,1.0,-0.6,Match,OK
+2038,海光,1.6,1.5,-0.1,Match,OK
 2049,上銀,12.4,11.5,-0.9,Match,OK
 2059,川湖,16.5,21.2,4.7,Mismatch,OK
 2061,風青,1.5,0.0,-1.5,No Data,No Data
@@ -295,7 +295,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2101,南港,4.5,3.2,-1.3,Match,OK
 2102,泰豐,3.0,2.7,-0.3,Match,OK
 2103,台橡,3.1,2.5,-0.6,Match,OK
-2104,國際中橡,2.6,5.4,2.8,Close,OK
+2104,國際中橡,2.6,6.3,3.7,Mismatch,OK
 2105,正新,5.9,5.7,-0.2,Match,OK
 2106,建大,5.1,4.6,-0.5,Match,OK
 2107,厚生,6.2,6.1,-0.1,Match,OK
@@ -319,7 +319,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2236,百達-KY,11.6,16.5,4.9,Mismatch,OK
 2239,英利-KY,-10.1,-3.2,6.9,Mismatch,OK
 2241,艾姆勒,-7.0,-8.0,-1.0,Match,OK
-2243,宏旭-KY,-7.6,-1.5,6.1,Mismatch,OK
+2243,宏旭-KY,-7.6,-0.7,6.9,Mismatch,OK
 2247,汎德永業,2.7,3.4,0.7,Match,OK
 2248,華勝-KY,-10.3,-10.1,0.2,Match,OK
 2250,IKKA-KY,-8.2,-9.0,-0.8,Match,OK
@@ -329,40 +329,40 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2303,聯電,9.9,9.8,-0.1,Match,OK
 2305,全友,4.7,4.4,-0.3,Match,OK
 2308,台達電,16.8,16.5,-0.3,Match,OK
-2311,日月光,10.9,5.3,-5.6,Mismatch,OK
+2311,日月光,10.9,4.8,-6.1,Mismatch,OK
 2312,金寶,5.4,4.7,-0.7,Match,OK
 2313,華通,13.7,14.3,0.6,Match,OK
-2314,台揚,2.6,2.4,-0.2,Match,OK
+2314,台揚,2.6,3.7,1.1,Match,OK
 2316,楠梓電,11.4,11.3,-0.1,Match,OK
 2317,鴻海,8.6,7.8,-0.8,Match,OK
 2321,東訊,4.7,4.9,0.2,Match,OK
-2323,中環,2.0,2.0,0.0,Match,OK
+2323,中環,2.0,3.6,1.6,Close,OK
 2324,仁寶,4.9,4.7,-0.2,Match,OK
-2325,矽品,6.5,3.6,-2.9,Close,OK
+2325,矽品,6.5,3.3,-3.2,Mismatch,OK
 2327,國巨*,18.8,25.1,6.3,Mismatch,OK
 2328,廣宇,3.5,2.8,-0.7,Match,OK
 2329,華泰,11.8,16.7,4.9,Mismatch,OK
 2330,台積電,19.1,19.1,0.0,Match,OK
 2331,精英,5.7,5.2,-0.5,Match,OK
 2332,友訊,0.2,-0.4,-0.6,Match,OK
-2337,旺宏,16.0,16.1,0.1,Match,OK
+2337,旺宏,16.0,17.2,1.2,Match,OK
 2338,光罩,7.6,6.2,-1.4,Match,OK
 2340,台亞,5.3,4.8,-0.5,Match,OK
-2342,茂矽,6.9,8.9,2.0,Close,OK
+2342,茂矽,6.9,9.9,3.0,Close,OK
 2344,華邦電,14.3,13.1,-1.2,Match,OK
 2345,智邦,24.5,30.0,5.5,Mismatch,OK
 2347,聯強,7.1,7.1,0.0,Match,OK
-2348,海悅,18.2,19.8,1.6,Close,OK
+2348,海悅,18.2,21.9,3.7,Mismatch,OK
 2349,錸德,2.8,2.6,-0.2,Match,OK
 2351,順德,10.4,9.9,-0.5,Match,OK
 2352,佳世達,3.5,3.1,-0.4,Match,OK
-2353,宏碁,-0.1,0.4,0.5,Match,OK
+2353,宏碁,-0.1,0.8,0.9,Match,OK
 2354,鴻準,0.6,3.3,2.7,Close,OK
 2355,敬鵬,5.0,8.2,3.2,Mismatch,OK
 2356,英業達,8.8,8.4,-0.4,Match,OK
 2357,華碩,13.2,12.3,-0.9,Match,OK
-2358,廷鑫,-3.2,3.1,6.3,Mismatch,OK
-2359,所羅門,16.3,15.5,-0.8,Match,OK
+2358,廷鑫,-3.2,3.6,6.8,Mismatch,OK
+2359,所羅門,16.3,16.4,0.1,Match,OK
 2360,致茂,20.4,19.9,-0.5,Match,OK
 2362,藍天,7.2,7.7,0.5,Match,OK
 2363,矽統,8.6,13.5,4.9,Mismatch,OK
@@ -371,7 +371,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2367,燿華,7.9,8.1,0.2,Match,OK
 2368,金像電,20.8,28.3,7.5,Mismatch,OK
 2369,菱生,6.0,5.1,-0.9,Match,OK
-2371,大同,6.6,6.5,-0.1,Match,OK
+2371,大同,6.6,8.9,2.3,Close,OK
 2373,震旦行,8.2,7.7,-0.5,Match,OK
 2374,佳能,9.6,8.7,-0.9,Match,OK
 2375,凱美,12.8,12.4,-0.4,Match,OK
@@ -379,20 +379,20 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2377,微星,11.3,10.2,-1.1,Match,OK
 2379,瑞昱,15.7,14.6,-1.1,Match,OK
 2380,虹光,-3.7,-3.9,-0.2,Match,OK
-2381,華宇,-15.7,-30.2,-14.5,Mismatch,OK
+2381,華宇,-15.7,-6.6,9.1,Mismatch,OK
 2382,廣達,12.9,16.1,3.2,Mismatch,OK
 2383,台光電,28.9,33.9,5.0,Mismatch,OK
-2384,勝華,-25.7,-26.2,-0.5,Match,OK
+2384,勝華,-25.7,-11.6,14.1,Mismatch,OK
 2385,群光,11.1,15.0,3.9,Mismatch,OK
 2387,精元,4.1,3.6,-0.5,Match,OK
-2388,威盛,4.9,8.0,3.1,Mismatch,OK
-2390,云辰,1.1,0.7,-0.4,Match,OK
+2388,威盛,4.9,9.4,4.5,Mismatch,OK
+2390,云辰,1.1,3.8,2.7,Close,OK
 2392,正崴,0.4,-0.2,-0.6,Match,OK
 2393,億光,2.7,2.5,-0.2,Match,OK
 2395,研華,10.3,9.5,-0.8,Match,OK
-2396,精碟科技,-35.5,-32.1,3.4,Mismatch,OK
+2396,精碟科技,-35.5,-5.4,30.1,Mismatch,OK
 2397,友通,6.3,5.7,-0.6,Match,OK
-2399,映泰,4.6,3.7,-0.9,Match,OK
+2399,映泰,4.6,5.8,1.2,Match,OK
 2401,凌陽,1.7,1.1,-0.6,Match,OK
 2402,毅嘉,6.1,9.3,3.2,Mismatch,OK
 2404,漢唐,24.6,24.0,-0.6,Match,OK
@@ -409,24 +409,24 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2420,新巨,9.3,8.4,-0.9,Match,OK
 2421,建準,14.4,17.7,3.3,Mismatch,OK
 2423,固緯,10.3,10.0,-0.3,Match,OK
-2424,隴華,6.4,5.2,-1.2,Match,OK
-2425,承啟,8.7,11.6,2.9,Close,OK
+2424,隴華,6.4,8.8,2.4,Close,OK
+2425,承啟,8.7,11.3,2.6,Close,OK
 2426,鼎元,3.3,3.2,-0.1,Match,OK
 2427,三商電,6.7,10.4,3.7,Mismatch,OK
 2428,興勤,12.4,12.1,-0.3,Match,OK
-2429,銘旺科,16.5,17.7,1.2,Match,OK
+2429,銘旺科,16.5,25.4,8.9,Mismatch,OK
 2430,燦坤,1.8,1.7,-0.1,Match,OK
-2431,聯昌,2.5,2.2,-0.3,Match,OK
+2431,聯昌,2.5,3.2,0.7,Match,OK
 2433,互盛電,10.9,10.3,-0.6,Match,OK
 2434,統懋,4.4,4.3,-0.1,Match,OK
 2436,偉詮電,7.3,7.7,0.4,Match,OK
-2438,翔耀,7.2,7.4,0.2,Match,OK
-2439,美律,5.3,8.3,3.0,Mismatch,OK
-2440,太空梭,5.5,5.4,-0.1,Match,OK
+2438,翔耀,7.2,9.0,1.8,Close,OK
+2439,美律,5.3,8.2,2.9,Close,OK
+2440,太空梭,5.5,6.7,1.2,Match,OK
 2441,超豐,9.8,8.4,-1.4,Match,OK
-2442,新美齊,6.1,5.6,-0.5,Match,OK
+2442,新美齊,6.1,7.9,1.8,Close,OK
 2443,昶虹,-0.8,-0.8,0.0,Match,OK
-2444,兆勁,1.2,6.1,4.9,Mismatch,OK
+2444,兆勁,1.2,6.5,5.3,Mismatch,OK
 2448,晶電,-0.6,0.3,0.9,Match,OK
 2449,京元電子,16.9,19.9,3.0,Close,OK
 2450,神腦,5.1,5.3,0.2,Match,OK
@@ -434,84 +434,84 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2453,凌群,11.2,10.3,-0.9,Match,OK
 2454,聯發科,11.3,11.3,0.0,Match,OK
 2455,全新,15.2,19.6,4.4,Mismatch,OK
-2456,奇力新,13.8,11.3,-2.5,Close,OK
+2456,奇力新,13.8,10.1,-3.7,Mismatch,OK
 2457,飛宏,4.5,3.9,-0.6,Match,OK
 2458,義隆,12.4,11.9,-0.5,Match,OK
 2459,敦吉,7.5,6.9,-0.6,Match,OK
-2460,建通,4.2,4.4,0.2,Match,OK
+2460,建通,4.2,6.8,2.6,Close,OK
 2461,光群雷,2.5,2.7,0.2,Match,OK
-2462,良得電,6.3,5.7,-0.6,Match,OK
+2462,良得電,6.3,6.8,0.5,Match,OK
 2464,盟立,8.8,8.0,-0.8,Match,OK
-2465,麗臺,8.6,11.4,2.8,Close,OK
+2465,麗臺,8.6,10.5,1.9,Close,OK
 2466,冠西電,5.7,5.1,-0.6,Match,OK
 2467,志聖,18.5,18.1,-0.4,Match,OK
 2468,華經,9.5,8.7,-0.8,Match,OK
 2471,資通,11.4,10.9,-0.5,Match,OK
 2472,立隆電,12.3,11.8,-0.5,Match,OK
 2474,可成,4.5,3.1,-1.4,Match,OK
-2475,華映,-18.6,-1.0,17.6,Mismatch,OK
+2475,華映,-18.6,-0.9,17.7,Mismatch,OK
 2476,鉅祥,10.4,9.4,-1.0,Match,OK
-2477,美隆電,5.3,5.1,-0.2,Match,OK
+2477,美隆電,5.3,6.1,0.8,Match,OK
 2478,大毅,8.1,7.1,-1.0,Match,OK
 2480,敦陽科,15.7,16.0,0.3,Match,OK
 2481,強茂,10.1,9.2,-0.9,Match,OK
 2482,連宇,1.2,0.9,-0.3,Match,OK
 2483,百容,3.6,3.6,0.0,Match,OK
 2484,希華,5.1,3.7,-1.4,Match,OK
-2485,兆赫,4.0,3.5,-0.5,Match,OK
+2485,兆赫,4.0,6.3,2.3,Close,OK
 2486,一詮,10.5,11.2,0.7,Match,OK
 2488,漢平,9.7,9.2,-0.5,Match,OK
-2489,瑞軒,6.4,7.3,0.9,Match,OK
+2489,瑞軒,6.4,8.6,2.2,Close,OK
 2491,吉祥全,11.4,10.8,-0.6,Match,OK
 2492,華新科,10.8,9.9,-0.9,Match,OK
 2493,揚博,15.6,15.0,-0.6,Match,OK
 2495,普安,3.8,2.7,-1.1,Match,OK
-2496,卓越,18.9,25.8,6.9,Mismatch,OK
+2496,卓越,18.9,27.9,9.0,Mismatch,OK
 2497,怡利電,4.9,4.4,-0.5,Match,OK
-2498,宏達電,-4.1,-3.2,0.9,Match,OK
-2499,東貝,-10.3,-3.1,7.2,Mismatch,OK
+2498,宏達電,-4.1,-1.7,2.4,Close,OK
+2499,東貝,-10.3,-2.8,7.5,Mismatch,OK
 2501,國建,5.2,5.2,0.0,Match,OK
 2504,國產,8.5,8.9,0.4,Match,OK
 2505,國揚,3.4,3.4,0.0,Match,OK
 2506,太設,6.3,6.6,0.3,Match,OK
-2509,全坤建,5.8,5.7,-0.1,Match,OK
+2509,全坤建,5.8,6.8,1.0,Match,OK
 2511,太子,4.3,3.7,-0.6,Match,OK
-2514,龍邦,1.2,3.6,2.4,Close,OK
+2514,龍邦,1.2,4.0,2.8,Close,OK
 2515,中工,6.5,6.8,0.3,Match,OK
-2516,新建,6.9,10.4,3.5,Mismatch,OK
+2516,新建,6.9,11.5,4.6,Mismatch,OK
 2520,冠德,8.9,9.2,0.3,Match,OK
 2524,京城,3.5,3.0,-0.5,Match,OK
 2527,宏璟,11.0,10.6,-0.4,Match,OK
-2528,皇普,17.8,22.2,4.4,Mismatch,OK
+2528,皇普,17.8,23.3,5.5,Mismatch,OK
 2530,華建,9.5,13.3,3.8,Mismatch,OK
 2534,宏盛,4.7,4.1,-0.6,Match,OK
 2535,達欣工,16.0,15.7,-0.3,Match,OK
 2536,宏普,3.9,3.8,-0.1,Match,OK
-2537,聯上發,8.4,7.9,-0.5,Match,OK
-2538,基泰,6.1,5.7,-0.4,Match,OK
-2539,櫻花建,20.4,19.9,-0.5,Match,OK
-2540,愛山林,21.6,20.5,-1.1,Match,OK
-2542,興富發,13.2,11.6,-1.6,Close,OK
+2537,聯上發,8.4,9.3,0.9,Match,OK
+2538,基泰,6.1,6.7,0.6,Match,OK
+2539,櫻花建,20.4,25.2,4.8,Mismatch,OK
+2540,愛山林,21.6,28.6,7.0,Mismatch,OK
+2542,興富發,13.2,12.5,-0.7,Match,OK
 2543,皇昌,13.1,19.5,6.4,Mismatch,OK
 2545,皇翔,7.9,7.8,-0.1,Match,OK
-2546,根基,17.7,16.9,-0.8,Match,OK
+2546,根基,17.7,18.0,0.3,Match,OK
 2547,日勝生,1.6,1.7,0.1,Match,OK
 2548,華固,12.6,12.6,0.0,Match,OK
 2596,綠意,6.2,0.0,-6.2,No Data,No Data
 2597,潤弘,17.0,17.1,0.1,Match,OK
 2601,益航,-0.2,-0.4,-0.2,Match,OK
-2603,長榮,15.5,19.7,4.2,Mismatch,OK
+2603,長榮,15.5,18.7,3.2,Mismatch,OK
 2605,新興,4.3,3.6,-0.7,Match,OK
 2606,裕民,6.6,6.3,-0.3,Match,OK
 2607,榮運,8.3,8.0,-0.3,Match,OK
 2608,嘉里大榮,7.4,7.2,-0.2,Match,OK
-2609,陽明,9.6,8.2,-1.4,Match,OK
-2610,華航,3.1,3.1,0.0,Match,OK
-2611,志信,5.3,4.7,-0.6,Match,OK
+2609,陽明,9.6,9.4,-0.2,Match,OK
+2610,華航,3.1,3.7,0.6,Match,OK
+2611,志信,5.3,5.8,0.5,Match,OK
 2612,中航,8.6,7.7,-0.9,Match,OK
-2613,中櫃,5.0,4.8,-0.2,Match,OK
-2614,東森,6.3,5.9,-0.4,Match,OK
-2615,萬海,11.1,9.4,-1.7,Close,OK
+2613,中櫃,5.0,6.3,1.3,Match,OK
+2614,東森,6.3,7.9,1.6,Close,OK
+2615,萬海,11.1,11.3,0.2,Match,OK
 2616,山隆,3.5,3.2,-0.3,Match,OK
 2617,台航,5.7,4.7,-1.0,Match,OK
 2618,長榮航,6.2,6.4,0.2,Match,OK
@@ -529,7 +529,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2701,萬企,1.6,1.4,-0.2,Match,OK
 2702,華園,0.2,-1.3,-1.5,Match,OK
 2704,國賓,2.5,2.3,-0.2,Match,OK
-2705,六福,0.2,0.2,0.0,Match,OK
+2705,六福,0.2,0.6,0.4,Match,OK
 2706,第一店,1.7,1.5,-0.2,Match,OK
 2707,晶華,9.9,10.2,0.3,Match,OK
 2712,遠雄來,-2.7,-2.7,0.0,Match,OK
@@ -558,26 +558,26 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2756,聯發國際,-0.4,0.0,0.4,No Data,No Data
 2762,世界健身-KY,-12.1,-12.4,-0.3,Match,OK
 2801,彰銀,5.0,5.0,0.0,Match,OK
-2807,渣打銀行,24.9,20.3,-4.6,Mismatch,OK
-2809,京城銀,10.0,10.0,0.0,Match,OK
-2812,台中銀,8.6,8.8,0.2,Match,OK
-2816,旺旺保,7.3,10.8,3.5,Mismatch,OK
+2807,渣打銀行,24.9,1.8,-23.1,Mismatch,OK
+2809,京城銀,10.0,10.4,0.4,Match,OK
+2812,台中銀,8.6,9.7,1.1,Match,OK
+2816,旺旺保,7.3,13.3,6.0,Mismatch,OK
 2820,華票,6.4,6.2,-0.2,Match,OK
-2823,凱基人壽,10.8,9.1,-1.7,Close,OK
+2823,凱基人壽,10.8,8.2,-2.6,Close,OK
 2832,台產,9.4,9.2,-0.2,Match,OK
-2833,台壽保,2.6,1.2,-1.4,Match,OK
+2833,台壽保,2.6,0.6,-2.0,Close,OK
 2834,臺企銀,6.0,6.1,0.1,Match,OK
 2836,高雄銀,2.3,2.2,-0.1,Match,OK
-2837,凱基銀行,7.0,6.1,-0.9,Match,OK
+2837,凱基銀行,7.0,2.6,-4.4,Mismatch,OK
 2838,聯邦銀,7.1,7.0,-0.1,Match,OK
-2841,台開,-5.0,2.3,7.3,Mismatch,OK
+2841,台開,-5.0,2.1,7.1,Mismatch,OK
 2845,遠東銀,3.6,3.4,-0.2,Match,OK
 2849,安泰銀,2.9,2.7,-0.2,Match,OK
 2850,新產,15.0,14.8,-0.2,Match,OK
-2851,中再保,7.5,7.8,0.3,Match,OK
+2851,中再保,7.5,9.2,1.7,Close,OK
 2852,第一保,7.4,7.1,-0.3,Match,OK
 2855,統一證,7.5,7.5,0.0,Match,OK
-2856,元富證,2.7,0.4,-2.3,Close,OK
+2856,元富證,2.7,1.5,-1.2,Match,OK
 2867,三商壽,-1.8,4.9,6.7,Mismatch,OK
 2880,華南金,7.3,7.1,-0.2,Match,OK
 2881,富邦金,9.6,9.1,-0.5,Match,OK
@@ -600,7 +600,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2906,高林,3.7,3.4,-0.3,Match,OK
 2908,特力,2.8,2.8,0.0,Match,OK
 2910,統領,-1.0,-0.7,0.3,Match,OK
-2911,麗嬰房,-3.9,-1.1,2.8,Close,OK
+2911,麗嬰房,-3.9,-1.4,2.5,Close,OK
 2912,統一超,7.1,6.4,-0.7,Match,OK
 2913,農林,3.2,3.1,-0.1,Match,OK
 2915,潤泰全,9.5,9.3,-0.2,Match,OK
@@ -609,8 +609,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 2924,宏太-KY,-4.3,0.0,4.3,No Data,No Data
 2926,誠品生活,-6.9,0.0,6.9,No Data,No Data
 2928,紅馬-KY,-5.4,0.0,5.4,No Data,No Data
-2929,淘帝-KY,-10.8,1.0,11.8,Mismatch,OK
-2936,客思達-KY,4.6,0.3,-4.3,Mismatch,OK
+2929,淘帝-KY,-10.8,1.3,12.1,Mismatch,OK
+2936,客思達-KY,4.6,2.7,-1.9,Close,OK
 2937,集雅社,8.3,0.0,-8.3,No Data,No Data
 2939,永邑-KY,-13.6,-12.7,0.9,Match,OK
 2941,米斯特,-19.2,0.0,19.2,No Data,No Data
@@ -625,18 +625,18 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3006,晶豪科,10.0,8.9,-1.1,Match,OK
 3008,大立光,8.5,11.4,2.9,Close,OK
 3010,華立,8.2,8.2,0.0,Match,OK
-3011,今皓,0.6,3.4,2.8,Close,OK
+3011,今皓,0.6,2.8,2.2,Close,OK
 3013,晟銘電,11.4,14.6,3.2,Mismatch,OK
 3014,聯陽,10.5,13.5,3.0,Close,OK
 3015,全漢,7.5,7.5,0.0,Match,OK
 3016,嘉晶,5.7,4.9,-0.8,Match,OK
 3017,奇鋐,26.0,33.0,7.0,Mismatch,OK
-3018,隆銘綠能,1.5,9.8,8.3,Mismatch,OK
+3018,隆銘綠能,1.5,12.7,11.2,Mismatch,OK
 3019,亞光,4.2,3.7,-0.5,Match,OK
 3021,鴻名,12.4,11.8,-0.6,Match,OK
 3022,威強電,8.2,7.6,-0.6,Match,OK
 3023,信邦,14.1,13.9,-0.2,Match,OK
-3024,憶聲,0.0,-0.4,-0.4,Match,OK
+3024,憶聲,0.0,0.1,0.1,Match,OK
 3025,星通,10.0,8.3,-1.7,Close,OK
 3026,禾伸堂,8.2,7.5,-0.7,Match,OK
 3027,盛達,4.0,3.4,-0.6,Match,OK
@@ -652,9 +652,9 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3037,欣興,13.4,13.5,0.1,Match,OK
 3038,全台,4.8,4.2,-0.6,Match,OK
 3040,遠見,9.9,9.3,-0.6,Match,OK
-3041,揚智,0.2,-0.2,-0.4,Match,OK
+3041,揚智,0.2,1.9,1.7,Close,OK
 3042,晶技,9.7,8.9,-0.8,Match,OK
-3043,科風,4.4,5.5,1.1,Match,OK
+3043,科風,4.4,6.7,2.3,Close,OK
 3044,健鼎,11.7,14.7,3.0,Close,OK
 3045,台灣大,8.9,8.6,-0.3,Match,OK
 3046,建碁,8.2,8.0,-0.2,Match,OK
@@ -666,9 +666,9 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3052,夆典,6.9,6.9,0.0,Match,OK
 3054,立萬利,7.2,7.3,0.1,Match,OK
 3055,蔚華科,7.9,6.9,-1.0,Match,OK
-3056,富華新,10.8,10.5,-0.3,Match,OK
+3056,富華新,10.8,14.6,3.8,Mismatch,OK
 3057,喬鼎,2.3,1.4,-0.9,Match,OK
-3058,立德,0.9,1.2,0.3,Match,OK
+3058,立德,0.9,2.7,1.8,Close,OK
 3059,華晶科,2.4,1.7,-0.7,Match,OK
 3060,銘異,2.1,0.6,-1.5,Match,OK
 3062,建漢,0.5,0.3,-0.2,Match,OK
@@ -702,14 +702,14 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3141,晶宏,7.4,0.0,-7.4,No Data,No Data
 3144,新揚科,8.5,0.0,-8.5,No Data,No Data
 3147,大綜,28.0,0.0,-28.0,No Data,No Data
-3149,正達,3.4,3.3,-0.1,Match,OK
+3149,正達,3.4,4.7,1.3,Match,OK
 3150,鈺寶,-22.4,-24.0,-1.6,Close,OK
 3152,璟德,5.5,0.0,-5.5,No Data,No Data
 3158,嘉實,-5.2,0.0,5.2,No Data,No Data
 3162,精確,8.4,0.0,-8.4,No Data,No Data
 3163,波若威,21.0,0.0,-21.0,No Data,No Data
 3164,景岳,0.2,-4.1,-4.3,Mismatch,OK
-3167,大量,18.3,18.8,0.5,Match,OK
+3167,大量,18.3,20.2,1.9,Close,OK
 3168,眾福科,-11.1,-11.4,-0.3,Match,OK
 3169,亞信,7.4,0.0,-7.4,No Data,No Data
 3171,炎洲流通,7.8,0.0,-7.8,No Data,No Data
@@ -792,26 +792,26 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3376,新日興,5.1,4.4,-0.7,Match,OK
 3379,彬台,6.5,0.0,-6.5,No Data,No Data
 3380,明泰,4.0,2.9,-1.1,Match,OK
-3383,新世紀,-11.3,-6.3,5.0,Mismatch,OK
+3383,新世紀,-11.3,-5.3,6.0,Mismatch,OK
 3388,崇越電,2.1,0.0,-2.1,No Data,No Data
 3390,旭軟,3.0,0.0,-3.0,No Data,No Data
 3402,漢科,12.9,0.0,-12.9,No Data,No Data
 3406,玉晶光,5.3,5.1,-0.2,Match,OK
 3413,京鼎,14.8,14.6,-0.2,Match,OK
 3416,融程電,8.8,10.1,1.3,Match,OK
-3419,譁裕,-2.1,-1.2,0.9,Match,OK
+3419,譁裕,-2.1,-0.5,1.6,Close,OK
 3426,台興,2.8,0.0,-2.8,No Data,No Data
 3430,奇鈦科,5.0,0.0,-5.0,No Data,No Data
 3431,長天,-12.8,0.0,12.8,No Data,No Data
 3432,台端,0.5,0.1,-0.4,Match,OK
 3434,哲固,6.5,0.0,-6.5,No Data,No Data
-3437,榮創,-6.6,-7.0,-0.4,Match,OK
+3437,榮創,-6.6,-2.5,4.1,Mismatch,OK
 3438,類比科,0.3,0.0,-0.3,No Data,No Data
 3441,聯一光,3.0,0.0,-3.0,No Data,No Data
 3443,創意,20.8,24.0,3.2,Mismatch,OK
 3444,利機,10.1,0.0,-10.1,No Data,No Data
 3447,展達,1.4,-3.0,-4.4,Mismatch,OK
-3450,聯鈞,14.9,17.8,2.9,Close,OK
+3450,聯鈞,14.9,18.1,3.2,Mismatch,OK
 3452,益通,-15.8,0.0,15.8,No Data,No Data
 3454,晶睿,3.5,4.0,0.5,Match,OK
 3455,由田,9.9,0.0,-9.9,No Data,No Data
@@ -826,7 +826,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3490,單井,1.1,0.0,-1.1,No Data,No Data
 3491,昇達科,19.9,0.0,-19.9,No Data,No Data
 3492,長盛,4.1,0.0,-4.1,No Data,No Data
-3494,誠研,-1.1,1.5,2.6,Close,OK
+3494,誠研,-1.1,1.1,2.2,Close,OK
 3498,陽程,2.1,0.0,-2.1,No Data,No Data
 3499,環天科,-1.1,0.0,1.1,No Data,No Data
 3501,維熹,3.5,3.0,-0.5,Match,OK
@@ -837,7 +837,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3515,華擎,6.6,5.7,-0.9,Match,OK
 3516,亞帝歐,1.1,0.0,-1.1,No Data,No Data
 3518,柏騰,-3.7,-1.1,2.6,Close,OK
-3519,綠能,-31.9,-3.2,28.7,Mismatch,OK
+3519,綠能,-31.9,-2.3,29.6,Mismatch,OK
 3520,華盈,-1.0,0.0,1.0,No Data,No Data
 3521,鴻翊,-2.5,0.0,2.5,No Data,No Data
 3522,御嵿,-1.5,0.0,1.5,No Data,No Data
@@ -846,12 +846,12 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3527,聚積,-1.5,0.0,1.5,No Data,No Data
 3528,安馳,9.3,11.5,2.2,Close,OK
 3529,力旺,19.3,0.0,-19.3,No Data,No Data
-3530,晶相光,-5.3,-6.8,-1.5,Match,OK
+3530,晶相光,-5.3,-4.9,0.4,Match,OK
 3531,先益,1.2,0.0,-1.2,No Data,No Data
 3532,台勝科,3.5,3.3,-0.2,Match,OK
 3533,嘉澤,20.7,21.3,0.6,Match,OK
 3535,晶彩科,10.2,9.6,-0.6,Match,OK
-3536,誠創,-8.3,3.6,11.9,Mismatch,OK
+3536,誠創,-8.3,3.2,11.5,Mismatch,OK
 3537,堡達,8.6,0.0,-8.6,No Data,No Data
 3540,曜越,2.1,0.0,-2.1,No Data,No Data
 3541,西柏,3.2,0.0,-3.2,No Data,No Data
@@ -859,30 +859,30 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3545,敦泰,0.9,-0.1,-1.0,Match,OK
 3546,宇峻,5.0,0.0,-5.0,No Data,No Data
 3548,兆利,5.2,0.0,-5.2,No Data,No Data
-3550,聯穎,1.6,2.1,0.5,Match,OK
+3550,聯穎,1.6,3.3,1.7,Close,OK
 3551,世禾,10.1,0.0,-10.1,No Data,No Data
 3552,同致,6.6,0.0,-6.6,No Data,No Data
 3555,博士旺,6.1,0.0,-6.1,No Data,No Data
 3556,禾瑞亞,3.4,0.0,-3.4,No Data,No Data
-3557,嘉威,4.9,5.0,0.1,Match,OK
+3557,嘉威,4.9,5.4,0.5,Match,OK
 3558,神準,1.9,0.0,-1.9,No Data,No Data
 3562,頂晶科,-2.6,0.0,2.6,No Data,No Data
 3563,牧德,21.8,6.9,-14.9,Mismatch,OK
 3564,其陽,1.1,0.0,-1.1,No Data,No Data
 3567,逸昌,7.4,0.0,-7.4,No Data,No Data
 3570,大塚,13.3,0.0,-13.3,No Data,No Data
-3573,穎台,-11.9,-11.9,0.0,Match,OK
+3573,穎台,-11.9,-4.9,7.0,Mismatch,OK
 3576,聯合再生,-3.6,-2.0,1.6,Close,OK
 3577,泓格,8.5,0.0,-8.5,No Data,No Data
-3579,尚志,-24.0,-4.4,19.6,Mismatch,OK
+3579,尚志,-24.0,-3.9,20.1,Mismatch,OK
 3580,友威科,7.6,0.0,-7.6,No Data,No Data
 3581,博磊,12.1,0.0,-12.1,No Data,No Data
 3583,辛耘,14.0,19.3,5.3,Mismatch,OK
 3587,閎康,14.2,0.0,-14.2,No Data,No Data
-3588,通嘉,0.3,-0.4,-0.7,Match,OK
+3588,通嘉,0.3,1.1,0.8,Match,OK
 3591,艾笛森,-2.7,-3.2,-0.5,Match,OK
 3592,瑞鼎,-9.5,-10.8,-1.3,Match,OK
-3593,力銘,-0.5,-0.8,-0.3,Match,OK
+3593,力銘,-0.5,0.0,0.5,Match,OK
 3594,磐儀,3.8,0.0,-3.8,No Data,No Data
 3596,智易,9.4,9.1,-0.3,Match,OK
 3597,映興,8.1,0.0,-8.1,No Data,No Data
@@ -891,7 +891,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3609,三一東林,2.1,0.0,-2.1,No Data,No Data
 3611,鼎翰,14.9,0.0,-14.9,No Data,No Data
 3615,安可,-1.9,0.0,1.9,No Data,No Data
-3617,碩天,6.1,10.2,4.1,Mismatch,OK
+3617,碩天,6.1,9.8,3.7,Mismatch,OK
 3622,洋華,2.6,1.8,-0.8,Match,OK
 3623,富晶通,0.0,0.0,0.0,No Data,No Data
 3624,光頡,4.6,0.0,-4.6,No Data,No Data
@@ -914,11 +914,11 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3666,光耀,-1.0,0.0,1.0,No Data,No Data
 3669,圓展,3.3,2.6,-0.7,Match,OK
 3672,康聯訊,-7.3,0.0,7.3,No Data,No Data
-3673,TPK-KY,-5.5,-1.3,4.2,Mismatch,OK
+3673,TPK-KY,-5.5,-0.5,5.0,Mismatch,OK
 3675,德微,13.1,0.0,-13.1,No Data,No Data
 3679,新至陞,9.1,9.4,0.3,Match,OK
 3680,家登,18.3,0.0,-18.3,No Data,No Data
-3682,亞太電,-4.9,-2.6,2.3,Close,OK
+3682,亞太電,-4.9,-2.2,2.7,Close,OK
 3684,榮昌,5.9,0.0,-5.9,No Data,No Data
 3685,元創精密,1.4,0.0,-1.4,No Data,No Data
 3686,達能,0.4,0.3,-0.1,Match,OK
@@ -926,9 +926,9 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 3689,湧德,7.3,0.0,-7.3,No Data,No Data
 3691,碩禾,-1.8,0.0,1.8,No Data,No Data
 3693,營邦,11.2,0.0,-11.2,No Data,No Data
-3694,海華,5.3,9.7,4.4,Mismatch,OK
-3698,隆達,4.2,3.9,-0.3,Match,OK
-3701,大眾控,11.5,10.6,-0.9,Match,OK
+3694,海華,5.3,9.6,4.3,Mismatch,OK
+3698,隆達,4.2,3.4,-0.8,Match,OK
+3701,大眾控,11.5,14.3,2.8,Close,OK
 3702,大聯大,12.7,12.2,-0.5,Match,OK
 3703,欣陸,6.3,6.7,0.4,Match,OK
 3704,合勤控,4.7,3.7,-1.0,Match,OK
@@ -950,7 +950,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4105,東洋,10.3,0.0,-10.3,No Data,No Data
 4106,雃博,3.9,3.6,-0.3,Match,OK
 4107,邦特,13.8,0.0,-13.8,No Data,No Data
-4108,懷特,-4.5,-3.7,0.8,Match,OK
+4108,懷特,-4.5,-2.9,1.6,Close,OK
 4109,加捷生醫,1.4,0.0,-1.4,No Data,No Data
 4111,濟生,5.2,0.0,-5.2,No Data,No Data
 4113,聯上,10.7,0.0,-10.7,No Data,No Data
@@ -970,9 +970,9 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4137,麗豐-KY,-2.8,-2.3,0.5,Match,OK
 4138,曜亞,2.0,0.0,-2.0,No Data,No Data
 4139,馬光-KY,-2.0,0.0,2.0,No Data,No Data
-4141,龍燈-KY,-4.7,-3.3,1.4,Match,OK
+4141,龍燈-KY,-4.7,-2.9,1.8,Close,OK
 4142,國光生,-3.4,-3.6,-0.2,Match,OK
-4144,康聯-KY,0.9,-2.0,-2.9,Close,OK
+4144,康聯-KY,0.9,-1.8,-2.7,Close,OK
 4147,中裕,-6.6,0.0,6.6,No Data,No Data
 4148,全宇生技-KY,-3.1,2.7,5.8,Mismatch,OK
 4152,台微體,-6.3,0.0,6.3,No Data,No Data
@@ -1008,19 +1008,19 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4402,郡都開發,8.1,0.0,-8.1,No Data,No Data
 4406,新昕纖,1.8,0.0,-1.8,No Data,No Data
 4413,飛寶企業,12.3,0.0,-12.3,No Data,No Data
-4414,如興,2.6,10.5,7.9,Mismatch,OK
+4414,如興,2.6,11.6,9.0,Mismatch,OK
 4415,台原藥,-18.8,0.0,18.8,No Data,No Data
 4416,三圓,-1.8,0.0,1.8,No Data,No Data
 4417,金洲,12.6,0.0,-12.6,No Data,No Data
 4419,皇家美食,7.6,0.0,-7.6,No Data,No Data
 4420,光明,11.1,0.0,-11.1,No Data,No Data
-4426,利勤,3.8,7.8,4.0,Mismatch,OK
+4426,利勤,3.8,9.2,5.4,Mismatch,OK
 4429,聚紡,1.1,0.0,-1.1,No Data,No Data
 4430,耀億,-3.3,0.0,3.3,No Data,No Data
 4432,銘旺實,-2.0,0.0,2.0,No Data,No Data
 4433,興采,-0.1,0.0,0.1,No Data,No Data
 4438,廣越,-4.5,-5.0,-0.5,Match,OK
-4439,冠星-KY,-2.7,-5.1,-2.4,Close,OK
+4439,冠星-KY,-2.7,-2.5,0.2,Match,OK
 4440,宜新實業,-6.2,-8.8,-2.6,Close,OK
 4441,振大環球,3.4,1.9,-1.5,Match,OK
 4442,竣邦-KY,16.9,0.0,-16.9,No Data,No Data
@@ -1057,7 +1057,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4558,寶緯,-11.0,0.0,11.0,No Data,No Data
 4560,強信-KY,0.7,0.5,-0.2,Match,OK
 4561,健椿,2.7,0.0,-2.7,No Data,No Data
-4562,穎漢,2.3,12.1,9.8,Mismatch,OK
+4562,穎漢,2.3,11.2,8.9,Mismatch,OK
 4563,百德,0.7,0.0,-0.7,No Data,No Data
 4564,元翎,-9.5,-9.9,-0.4,Match,OK
 4566,時碩工業,0.0,-0.3,-0.3,Match,OK
@@ -1084,7 +1084,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4720,德淵,2.4,2.0,-0.4,Match,OK
 4721,美琪瑪,8.9,0.0,-8.9,No Data,No Data
 4722,國精化,16.6,18.1,1.5,Match,OK
-4725,信昌化,-4.9,-1.5,3.4,Mismatch,OK
+4725,信昌化,-4.9,-1.3,3.6,Mismatch,OK
 4726,永昕,-2.7,0.0,2.7,No Data,No Data
 4728,雙美,18.2,0.0,-18.2,No Data,No Data
 4729,熒茂,1.3,0.0,-1.3,No Data,No Data
@@ -1113,7 +1113,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4803,VHQ-KY,-37.3,0.0,37.3,No Data,No Data
 4804,大略-KY,-10.5,0.0,10.5,No Data,No Data
 4806,桂田文創,-8.9,0.0,8.9,No Data,No Data
-4807,日成-KY,-7.0,1.1,8.1,Mismatch,OK
+4807,日成-KY,-7.0,1.2,8.2,Mismatch,OK
 4903,聯光通,10.9,0.0,-10.9,No Data,No Data
 4904,遠傳,7.6,7.1,-0.5,Match,OK
 4905,台聯電,9.5,0.0,-9.5,No Data,No Data
@@ -1129,7 +1129,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4923,力士,-7.8,0.0,7.8,No Data,No Data
 4924,欣厚-KY,-3.0,0.0,3.0,No Data,No Data
 4927,泰鼎-KY,2.6,0.3,-2.3,Close,OK
-4930,燦星網,2.9,2.7,-0.2,Match,OK
+4930,燦星網,2.9,3.4,0.5,Match,OK
 4931,新盛力,22.8,0.0,-22.8,No Data,No Data
 4933,友輝,4.8,0.0,-4.8,No Data,No Data
 4934,太極,0.2,0.2,0.0,Match,OK
@@ -1137,7 +1137,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4938,和碩,6.4,6.3,-0.1,Match,OK
 4939,亞電,7.4,0.0,-7.4,No Data,No Data
 4942,嘉彰,2.9,2.1,-0.8,Match,OK
-4943,康控-KY,-9.0,18.3,27.3,Mismatch,OK
+4943,康控-KY,-9.0,18.5,27.5,Mismatch,OK
 4944,兆遠,-6.6,0.0,6.6,No Data,No Data
 4945,陞達科技,8.2,0.0,-8.2,No Data,No Data
 4946,辣椒,3.0,0.0,-3.0,No Data,No Data
@@ -1153,7 +1153,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 4961,天鈺,17.3,25.7,8.4,Mismatch,OK
 4966,譜瑞-KY,8.7,0.0,-8.7,No Data,No Data
 4967,十銓,30.9,26.7,-4.2,Mismatch,OK
-4968,立積,7.6,7.3,-0.3,Match,OK
+4968,立積,7.6,9.8,2.2,Close,OK
 4971,IET-KY,14.4,0.0,-14.4,No Data,No Data
 4972,湯石照明,0.2,0.0,-0.2,No Data,No Data
 4973,廣穎,7.8,0.0,-7.8,No Data,No Data
@@ -1200,9 +1200,9 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5245,智晶,-2.1,0.0,2.1,No Data,No Data
 5251,天鉞電,2.3,0.0,-2.3,No Data,No Data
 5258,虹堡,6.0,4.6,-1.4,Match,OK
-5259,奕智博,-11.0,-1.7,9.3,Mismatch,OK
+5259,奕智博,-11.0,-1.4,9.6,Mismatch,OK
 5263,智崴,4.2,0.0,-4.2,No Data,No Data
-5264,鎧勝-KY,-0.9,0.6,1.5,Match,OK
+5264,鎧勝-KY,-0.9,0.5,1.4,Match,OK
 5266,F*AS,-7.4,0.0,7.4,No Data,No Data
 5269,祥碩,20.3,24.9,4.6,Mismatch,OK
 5272,笙科,-2.0,0.0,2.0,No Data,No Data
@@ -1222,7 +1222,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5301,寶得利,3.3,0.0,-3.3,No Data,No Data
 5302,太欣,1.3,0.0,-1.3,No Data,No Data
 5304,鼎創達,3.7,0.0,-3.7,No Data,No Data
-5305,敦南,6.1,4.2,-1.9,Close,OK
+5305,敦南,6.1,3.8,-2.3,Close,OK
 5306,桂盟,16.2,-9.6,-25.8,Mismatch,OK
 5309,系統電,7.0,0.0,-7.0,No Data,No Data
 5310,天剛,10.9,0.0,-10.9,No Data,No Data
@@ -1277,7 +1277,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5478,智冠,6.1,0.0,-6.1,No Data,No Data
 5481,新華,2.2,0.0,-2.2,No Data,No Data
 5483,中美晶,6.4,0.0,-6.4,No Data,No Data
-5484,慧友,5.5,4.6,-0.9,Match,OK
+5484,慧友,5.5,7.7,2.2,Close,OK
 5487,通泰,6.2,0.0,-6.2,No Data,No Data
 5488,松普,0.7,0.0,-0.7,No Data,No Data
 5489,彩富,7.0,0.0,-7.0,No Data,No Data
@@ -1292,13 +1292,13 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5516,雙喜,3.0,0.0,-3.0,No Data,No Data
 5519,隆大,9.3,5.5,-3.8,Mismatch,OK
 5520,力泰,12.6,0.0,-12.6,No Data,No Data
-5521,工信,3.5,10.7,7.2,Mismatch,OK
+5521,工信,3.5,9.5,6.0,Mismatch,OK
 5522,遠雄,6.2,6.0,-0.2,Match,OK
 5523,豐謙,5.4,0.0,-5.4,No Data,No Data
 5525,順天,7.6,7.0,-0.6,Match,OK
 5529,鉅陞,6.6,0.0,-6.6,No Data,No Data
 5530,龍巖,4.3,0.0,-4.3,No Data,No Data
-5531,鄉林,2.0,1.0,-1.0,Match,OK
+5531,鄉林,2.0,1.7,-0.3,Match,OK
 5533,皇鼎,3.1,1.7,-1.4,Match,OK
 5534,長虹,10.2,9.0,-1.2,Match,OK
 5536,聖暉*,17.1,0.0,-17.1,No Data,No Data
@@ -1309,7 +1309,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5601,台聯櫃,5.8,0.0,-5.8,No Data,No Data
 5603,陸海,5.9,0.0,-5.9,No Data,No Data
 5604,中連,6.9,0.0,-6.9,No Data,No Data
-5607,遠雄港,5.5,5.6,0.1,Match,OK
+5607,遠雄港,5.5,6.7,1.2,Match,OK
 5608,四維航,2.2,1.5,-0.7,Match,OK
 5609,中菲行,13.1,0.0,-13.1,No Data,No Data
 5701,劍湖山,-2.3,0.0,2.3,No Data,No Data
@@ -1318,7 +1318,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5706,鳳凰,5.0,3.8,-1.2,Match,OK
 5820,日盛金,6.7,0.0,-6.7,No Data,No Data
 5864,致和證,16.4,0.0,-16.4,No Data,No Data
-5871,中租-KY,12.9,12.8,-0.1,Match,OK
+5871,中租-KY,12.9,15.3,2.4,Close,OK
 5876,上海商銀,2.9,2.7,-0.2,Match,OK
 5878,台名,4.3,0.0,-4.3,No Data,No Data
 5880,合庫金,6.3,5.8,-0.5,Match,OK
@@ -1326,8 +1326,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 5903,全家,7.3,0.0,-7.3,No Data,No Data
 5904,寶雅,18.1,0.0,-18.1,No Data,No Data
 5905,南仁湖,-0.7,0.0,0.7,No Data,No Data
-5906,台南-KY,9.6,14.3,4.7,Mismatch,OK
-5907,大洋-KY,-10.0,-6.5,3.5,Mismatch,OK
+5906,台南-KY,9.6,14.4,4.8,Mismatch,OK
+5907,大洋-KY,-10.0,-6.3,3.7,Mismatch,OK
 6005,群益證,8.3,7.7,-0.6,Match,OK
 6008,凱基證,3.7,0.0,-3.7,No Data,No Data
 6015,宏遠證,5.2,0.0,-5.2,No Data,No Data
@@ -1348,7 +1348,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6113,亞矽,5.4,0.0,-5.4,No Data,No Data
 6114,久威,7.9,0.0,-7.9,No Data,No Data
 6115,鎰勝,7.8,6.7,-1.1,Match,OK
-6116,彩晶,2.8,2.9,0.1,Match,OK
+6116,彩晶,2.8,3.5,0.7,Match,OK
 6117,迎廣,8.5,16.8,8.3,Mismatch,OK
 6118,建達,3.1,0.0,-3.1,No Data,No Data
 6120,達運,-0.9,1.9,2.8,Close,OK
@@ -1362,7 +1362,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6128,上福,6.5,6.2,-0.3,Match,OK
 6129,普誠,0.7,0.0,-0.7,No Data,No Data
 6130,上亞科技,15.1,0.0,-15.1,No Data,No Data
-6131,鈞泰,-6.8,7.1,13.9,Mismatch,OK
+6131,鈞泰,-6.8,6.3,13.1,Mismatch,OK
 6133,金橋,4.3,3.3,-1.0,Match,OK
 6134,萬旭,3.6,0.0,-3.6,No Data,No Data
 6136,富爾特,8.2,7.9,-0.3,Match,OK
@@ -1388,14 +1388,14 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6161,捷波,9.6,0.0,-9.6,No Data,No Data
 6163,華電網,10.9,0.0,-10.9,No Data,No Data
 6164,華興,-0.2,2.5,2.7,Close,OK
-6165,浪凡,6.1,6.3,0.2,Match,OK
+6165,浪凡,6.1,6.9,0.8,Match,OK
 6166,凌華,7.5,6.5,-1.0,Match,OK
 6167,久正,3.4,0.0,-3.4,No Data,No Data
 6168,宏齊,1.9,0.7,-1.2,Match,OK
 6169,昱泉,2.1,0.0,-2.1,No Data,No Data
 6170,統振,6.6,0.0,-6.6,No Data,No Data
 6171,大城地產,7.5,0.0,-7.5,No Data,No Data
-6172,互億,4.4,6.3,1.9,Close,OK
+6172,互億,4.4,4.8,0.4,Match,OK
 6173,信昌電,10.5,0.0,-10.5,No Data,No Data
 6174,安碁,6.6,0.0,-6.6,No Data,No Data
 6175,立敦,9.8,0.0,-9.8,No Data,No Data
@@ -1443,7 +1443,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6222,立軒,3.2,0.0,-3.2,No Data,No Data
 6223,旺矽,21.2,0.0,-21.2,No Data,No Data
 6224,聚鼎,1.8,2.5,0.7,Match,OK
-6225,天瀚,4.8,6.3,1.5,Match,OK
+6225,天瀚,4.8,7.7,2.9,Close,OK
 6226,光鼎,-0.8,0.5,1.3,Match,OK
 6227,茂綸,10.9,0.0,-10.9,No Data,No Data
 6228,全譜,7.0,0.0,-7.0,No Data,No Data
@@ -1452,7 +1452,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6231,系微,10.4,0.0,-10.4,No Data,No Data
 6233,旺玖,0.6,0.0,-0.6,No Data,No Data
 6234,高僑,1.6,0.0,-1.6,No Data,No Data
-6235,華孚,6.5,6.5,0.0,Match,OK
+6235,華孚,6.5,7.3,0.8,Match,OK
 6236,中湛,5.5,0.0,-5.5,No Data,No Data
 6237,驊訊,-0.1,0.0,0.1,No Data,No Data
 6238,勝麗,31.3,0.0,-31.3,No Data,No Data
@@ -1466,7 +1466,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6246,臺龍,4.8,0.0,-4.8,No Data,No Data
 6247,淇譽電,-0.6,0.0,0.6,No Data,No Data
 6248,沛波,3.8,0.0,-3.8,No Data,No Data
-6251,定穎,3.6,3.7,0.1,Match,OK
+6251,定穎,3.6,2.4,-1.2,Match,OK
 6257,矽格,13.7,12.8,-0.9,Match,OK
 6259,百徽,4.7,0.0,-4.7,No Data,No Data
 6261,久元,5.4,0.0,-5.4,No Data,No Data
@@ -1485,12 +1485,12 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6279,胡連,9.3,0.0,-9.3,No Data,No Data
 6281,全國電,6.5,5.8,-0.7,Match,OK
 6282,康舒,8.3,7.7,-0.6,Match,OK
-6283,淳安,1.2,4.8,3.6,Mismatch,OK
+6283,淳安,1.2,5.8,4.6,Mismatch,OK
 6284,佳邦,5.0,0.0,-5.0,No Data,No Data
 6285,啟碁,10.1,12.8,2.7,Close,OK
 6287,元隆,3.7,0.0,-3.7,No Data,No Data
 6288,聯嘉,0.1,0.1,0.0,Match,OK
-6289,華上,-7.2,-4.0,3.2,Mismatch,OK
+6289,華上,-7.2,-3.5,3.7,Mismatch,OK
 6290,良維,12.0,0.0,-12.0,No Data,No Data
 6291,沛亨,16.3,0.0,-16.3,No Data,No Data
 6292,迅德,9.5,0.0,-9.5,No Data,No Data
@@ -1519,8 +1519,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6446,藥華藥,12.6,34.0,21.4,Mismatch,OK
 6449,鈺邦,13.1,12.8,-0.3,Match,OK
 6451,訊芯-KY,3.2,8.1,4.9,Mismatch,OK
-6452,康友-KY,-9.5,11.1,20.6,Mismatch,OK
-6456,GIS-KY,-6.4,2.1,8.5,Mismatch,OK
+6452,康友-KY,-9.5,10.6,20.1,Mismatch,OK
+6456,GIS-KY,-6.4,2.7,9.1,Mismatch,OK
 6457,紘康,7.7,0.0,-7.7,No Data,No Data
 6461,益得,-5.1,0.0,5.1,No Data,No Data
 6462,神盾,0.7,0.0,-0.7,No Data,No Data
@@ -1578,7 +1578,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6568,宏觀,2.3,0.0,-2.3,No Data,No Data
 6569,醫揚,2.2,0.0,-2.2,No Data,No Data
 6570,維田,6.6,0.0,-6.6,No Data,No Data
-6573,虹揚-KY,-5.7,6.5,12.2,Mismatch,OK
+6573,虹揚-KY,-5.7,6.9,12.6,Mismatch,OK
 6574,霈方,-0.9,0.0,0.9,No Data,No Data
 6576,逸達,3.0,0.0,-3.0,No Data,No Data
 6577,勁豐,6.6,0.0,-6.6,No Data,No Data
@@ -1610,7 +1610,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6617,共信-KY,-15.2,0.0,15.2,No Data,No Data
 6620,漢達,-3.2,0.0,3.2,No Data,No Data
 6624,萬年清,3.5,0.0,-3.5,No Data,No Data
-6625,必應,4.6,12.2,7.6,Mismatch,OK
+6625,必應,4.6,14.5,9.9,Mismatch,OK
 6629,泰金-KY,18.3,0.0,-18.3,No Data,No Data
 6637,醫影,-8.1,0.0,8.1,No Data,No Data
 6640,均華,42.4,0.0,-42.4,No Data,No Data
@@ -1641,10 +1641,10 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6684,安格,-13.0,0.0,13.0,No Data,No Data
 6689,伊雲谷,-13.3,-14.0,-0.7,Match,OK
 6690,安碁資訊,4.7,0.0,-4.7,No Data,No Data
-6691,洋基工程,33.9,27.6,-6.3,Mismatch,OK
+6691,洋基工程,33.9,42.6,8.7,Mismatch,OK
 6692,進能服,3.2,0.0,-3.2,No Data,No Data
 6693,廣閎科,-2.9,0.0,2.9,No Data,No Data
-6695,芯鼎,3.7,2.9,-0.8,Match,OK
+6695,芯鼎,3.7,10.4,6.7,Mismatch,OK
 6697,東捷資訊,2.8,0.0,-2.8,No Data,No Data
 6698,旭暉應材,-6.2,-6.9,-0.7,Match,OK
 6703,軒郁,5.3,0.0,-5.3,No Data,No Data
@@ -1666,7 +1666,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6739,竹陞科技,78.2,0.0,-78.2,No Data,No Data
 6741,91APP*-KY,-11.8,0.0,11.8,No Data,No Data
 6742,澤米,-4.0,-6.0,-2.0,Close,OK
-6743,安普新,-12.5,-13.8,-1.3,Match,OK
+6743,安普新,-12.5,-12.3,0.2,Match,OK
 6747,亨泰光,11.1,0.0,-11.1,No Data,No Data
 6751,智聯服務,-0.7,0.0,0.7,No Data,No Data
 6752,叡揚,14.9,0.0,-14.9,No Data,No Data
@@ -1743,7 +1743,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 6914,阜爾運通,-7.0,-6.8,0.2,Match,OK
 6916,華凌,-6.4,-9.5,-3.1,Mismatch,OK
 6918,愛派司,-20.0,-20.4,-0.4,Match,OK
-6919,康霈*,-29.3,36.9,66.2,Mismatch,OK
+6919,康霈*,-29.3,37.4,66.7,Mismatch,OK
 6922,宸曜,12.1,0.0,-12.1,No Data,No Data
 6923,中台,2.6,2.1,-0.5,Match,OK
 6925,意藍,8.3,0.0,-8.3,No Data,No Data
@@ -1803,7 +1803,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 7757,金色三麥,-8.8,0.0,8.8,No Data,No Data
 7765,中華資安,-10.0,-10.4,-0.4,Match,OK
 7769,鴻勁,12.5,21.1,8.6,Mismatch,OK
-7780,大研生醫*,-64.8,-2.6,62.2,Mismatch,OK
+7780,大研生醫*,-64.8,-2.1,62.7,Mismatch,OK
 7782,光速火箭,-7.5,0.0,7.5,No Data,No Data
 7786,東方風能,1.8,1.4,-0.4,Match,OK
 7788,松川精密,30.5,20.7,-9.8,Mismatch,OK
@@ -1844,7 +1844,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8074,鉅橡,9.6,0.0,-9.6,No Data,No Data
 8076,伍豐,-1.8,0.0,1.8,No Data,No Data
 8077,洛碁,10.2,0.0,-10.2,No Data,No Data
-8078,華寶,-2.9,-3.1,-0.2,Match,OK
+8078,華寶,-2.9,-1.3,1.6,Close,OK
 8080,泰霖,5.4,0.0,-5.4,No Data,No Data
 8081,致新,5.8,9.4,3.6,Mismatch,OK
 8083,瑞穎,13.0,0.0,-13.0,No Data,No Data
@@ -1880,11 +1880,11 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8176,智捷,-1.2,0.0,1.2,No Data,No Data
 8182,加高,3.3,0.0,-3.3,No Data,No Data
 8183,精星,6.4,0.0,-6.4,No Data,No Data
-8201,無敵,-1.8,-2.3,-0.5,Match,OK
+8201,無敵,-1.8,-1.0,0.8,Match,OK
 8210,勤誠,23.3,32.1,8.8,Mismatch,OK
 8213,志超,2.6,2.5,-0.1,Match,OK
 8215,明基材,1.5,1.3,-0.2,Match,OK
-8222,寶一,7.0,6.4,-0.6,Match,OK
+8222,寶一,7.0,7.9,0.9,Match,OK
 8227,巨有科技,7.0,0.0,-7.0,No Data,No Data
 8234,新漢,6.7,0.0,-6.7,No Data,No Data
 8240,華宏,0.9,0.0,-0.9,No Data,No Data
@@ -1906,12 +1906,12 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8354,冠好,3.8,0.0,-3.8,No Data,No Data
 8358,金居,17.7,0.0,-17.7,No Data,No Data
 8367,建新國際,9.6,8.7,-0.9,Match,OK
-8374,羅昇,8.3,9.5,1.2,Match,OK
+8374,羅昇,8.3,10.5,2.2,Close,OK
 8383,千附,5.4,0.0,-5.4,No Data,No Data
 8390,金益鼎,7.3,0.0,-7.3,No Data,No Data
 8401,白紗科,6.5,0.0,-6.5,No Data,No Data
 8403,盛弘,0.5,0.0,-0.5,No Data,No Data
-8404,百和興業-KY,2.7,8.9,6.2,Mismatch,OK
+8404,百和興業-KY,2.7,9.9,7.2,Mismatch,OK
 8406,金可-KY,3.3,0.0,-3.3,No Data,No Data
 8409,商之器,-2.5,0.0,2.5,No Data,No Data
 8410,森田,0.9,0.0,-0.9,No Data,No Data
@@ -1925,8 +1925,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8423,保綠-KY,-0.3,0.0,0.3,No Data,No Data
 8424,惠普,10.5,0.0,-10.5,No Data,No Data
 8426,紅木-KY,0.6,0.0,-0.6,No Data,No Data
-8427,基勝-KY,4.6,4.6,0.0,Match,OK
-8429,金麗-KY,-7.2,-4.0,3.2,Mismatch,OK
+8427,基勝-KY,4.6,3.8,-0.8,Match,OK
+8429,金麗-KY,-7.2,-3.4,3.8,Mismatch,OK
 8431,匯鑽科,2.3,0.0,-2.3,No Data,No Data
 8432,東生華,0.5,0.0,-0.5,No Data,No Data
 8433,弘帆,7.4,0.0,-7.4,No Data,No Data
@@ -1940,25 +1940,25 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8444,綠河-KY,-12.0,0.0,12.0,No Data,No Data
 8446,華研,2.6,0.0,-2.6,No Data,No Data
 8450,霹靂,-9.4,0.0,9.4,No Data,No Data
-8454,富邦媒,3.4,0.3,-3.1,Mismatch,OK
+8454,富邦媒,3.4,3.9,0.5,Match,OK
 8455,大拓-KY,2.0,0.0,-2.0,No Data,No Data
 8462,柏文,10.8,-0.0,-10.8,Mismatch,OK
 8463,潤泰材,0.1,0.2,0.1,Match,OK
 8464,億豐,7.5,6.1,-1.4,Match,OK
 8466,美吉吉-KY,-9.6,-4.8,4.8,Mismatch,OK
-8467,波力-KY,11.2,17.0,5.8,Mismatch,OK
+8467,波力-KY,11.2,18.2,7.0,Mismatch,OK
 8472,夠麻吉,0.3,0.0,-0.3,No Data,No Data
 8473,山林水,-0.2,4.8,5.0,Mismatch,OK
 8476,台境*,-5.6,-8.7,-3.1,Mismatch,OK
 8477,創業家,-9.4,0.0,9.4,No Data,No Data
 8478,東哥遊艇,12.9,9.8,-3.1,Mismatch,OK
-8480,泰昇-KY,0.4,4.5,4.1,Mismatch,OK
+8480,泰昇-KY,0.4,3.6,3.2,Mismatch,OK
 8481,政伸,2.3,1.1,-1.2,Match,OK
 8482,商億-KY,-4.9,-4.9,0.0,Match,OK
 8487,愛爾達,2.3,3.8,1.5,Match,OK
-8488,吉源-KY,-8.2,-3.3,4.9,Mismatch,OK
+8488,吉源-KY,-8.2,-3.6,4.6,Mismatch,OK
 8489,三貝德,-5.7,0.0,5.7,No Data,No Data
-8497,格威傳媒,14.8,12.8,-2.0,Close,OK
+8497,格威傳媒,14.8,4.1,-10.7,Mismatch,OK
 8499,鼎炫-KY,11.0,10.2,-0.8,Match,OK
 8905,裕國,7.1,0.0,-7.1,No Data,No Data
 8906,花王,8.6,0.0,-8.6,No Data,No Data
@@ -1982,7 +1982,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 8936,國統,11.3,0.0,-11.3,No Data,No Data
 8937,合騏,10.0,0.0,-10.0,No Data,No Data
 8938,明安,5.7,0.0,-5.7,No Data,No Data
-8940,新天地,0.5,-0.1,-0.6,Match,OK
+8940,新天地,0.5,0.9,0.4,Match,OK
 8941,關中,9.2,0.0,-9.2,No Data,No Data
 8942,森鉅,5.5,0.0,-5.5,No Data,No Data
 8996,高力,20.5,24.3,3.8,Mismatch,OK
@@ -1990,13 +1990,13 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 9902,台火,4.2,3.9,-0.3,Match,OK
 9904,寶成,4.8,4.0,-0.8,Match,OK
 9905,大華,4.8,4.4,-0.4,Match,OK
-9906,欣巴巴,21.9,21.8,-0.1,Match,OK
+9906,欣巴巴,21.9,24.0,2.1,Close,OK
 9907,統一實,6.1,6.0,-0.1,Match,OK
 9908,大台北,6.3,6.0,-0.3,Match,OK
-9910,豐泰,10.8,9.4,-1.4,Match,OK
+9910,豐泰,10.8,11.2,0.4,Match,OK
 9911,櫻花,14.5,14.6,0.1,Match,OK
-9912,偉聯,3.3,6.1,2.8,Close,OK
-9914,美利達,8.8,7.3,-1.5,Close,OK
+9912,偉聯,3.3,6.9,3.6,Mismatch,OK
+9914,美利達,8.8,8.4,-0.4,Match,OK
 9917,中保科,6.4,6.5,0.1,Match,OK
 9918,欣天然,5.7,5.4,-0.3,Match,OK
 9919,康那香,2.9,2.4,-0.5,Match,OK
@@ -2005,8 +2005,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 9925,新保,6.4,6.0,-0.4,Match,OK
 9926,新海,9.2,8.5,-0.7,Match,OK
 9927,泰銘,10.5,13.3,2.8,Close,OK
-9928,中視,2.7,3.3,0.6,Match,OK
-9929,秋雨,4.0,7.2,3.2,Mismatch,OK
+9928,中視,2.7,4.7,2.0,Close,OK
+9929,秋雨,4.0,7.7,3.7,Mismatch,OK
 9930,中聯資源,8.8,8.1,-0.7,Match,OK
 9931,欣高,7.3,6.9,-0.4,Match,OK
 9933,中鼎,6.8,6.5,-0.3,Match,OK
@@ -2015,8 +2015,8 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 9937,全國,7.0,6.6,-0.4,Match,OK
 9938,百和,7.4,10.5,3.1,Mismatch,OK
 9939,宏全,10.6,10.1,-0.5,Match,OK
-9940,信義,4.6,3.9,-0.7,Match,OK
-9941,裕融,10.8,9.1,-1.7,Close,OK
+9940,信義,4.6,7.2,2.6,Close,OK
+9941,裕融,10.8,10.0,-0.8,Match,OK
 9942,茂順,9.7,9.5,-0.2,Match,OK
 9943,好樂迪,8.1,8.1,0.0,Match,OK
 9944,新麗,1.6,1.6,0.0,Match,OK
@@ -2025,7 +2025,7 @@ code,name,ref_cagr,mars_cagr,diff,status,note
 9949,琉園,3.2,0.0,-3.2,No Data,No Data
 9950,萬國通,1.3,0.0,-1.3,No Data,No Data
 9951,皇田,6.2,0.0,-6.2,No Data,No Data
-9955,佳龍,1.3,0.4,-0.9,Match,OK
-9958,世紀鋼,13.1,16.6,3.5,Mismatch,OK
+9955,佳龍,1.3,1.2,-0.1,Match,OK
+9958,世紀鋼,13.1,18.1,5.0,Mismatch,OK
 9960,邁達康,6.0,0.0,-6.0,No Data,No Data
 9962,有益,2.8,0.0,-2.8,No Data,No Data

@@ -1,6 +1,8 @@
-description = "Create project plan, reiview the plan and generate Ralph loop PRD"
-prompt = """
-# /ralph_plan - Project Planning Mode with a long-series/comprehensive coverage <br>
+---
+description: Create project plan, reiview the plan and generate Ralph loop PRD
+---
+
+# /ralph-plan - Project Planning Mode with a long-series/comprehensive coverage <br>
 No code writing - only plan file generation.
 
 $ARGUMENTS
@@ -14,4 +16,3 @@ Do strictly follow the following Steps:
 5. `MUST` Write down current plan-review at `./docs/plan`
 6. Use skill `ralph_loop_prd` to transform the plan considering plan-review into {plan}_PRD.md for Ralph Loop
 7. `MIST` Write down the {plan}_PRD.md at `./docs/plan`
-"""

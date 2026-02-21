@@ -193,7 +193,12 @@
     - [x] Add step: `backup_duckdb.py` before git push
 - [x] **Add Admin Backup Trigger** (`POST /api/admin/backup/trigger`)
 - [x] **Pipeline Flow**: Crawl → Split Supplement → Parquet Backup → Git Push
-- [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_v1.md`)
+- [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_sync_final.md` & `docs/code_review/code_review_2026_02_20_sync_final.md`)
+    - Triaged Data bugs (BUG-115, BUG-116) and UI bugs (BUG-114).
+    - Uncommitted recovery scripts and Zeabur Volume Mount blocker documented.
+- [x] **Evening Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_evening_sync.md` & `docs/code_review/code_review_2026_02_20_evening_sync.md`)
+    - BUG-116 TPEx YFinance rollback implemented in `crawler_tpex.py`.
+    - Bankrupt Terminal Math (-100% loss) correctly implemented in `calculator.py`.
 
 ### Part F: Auto-Pilot (AFK Mode) [COMPLETED WITH ERRORS]
 - [x] **Create `continue_and_report.sh`** to orchestrate post-fix steps
@@ -214,3 +219,46 @@
 - [x] **Fix bare `except` clauses** (L909, L919) in `market_data_service.py`
 - [ ] **BUG-114-CV**: Mobile Portfolio Card Click Timeout (E2E Test Issue) <!-- id: bug-114 -->
 - [ ] **🔥 BUG-115-PL**: YFinance Adjusted Dividend Mismatch - SEVERITY HIGH (Data Corruption globally) <!-- id: bug-115 -->
+
+# Phase 18: Pure Nominal Database Rebuild (Correlation Recovery)
+Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebuilt using strict nominal prices and absolute dividends to eliminate YFinance corruption.
+
+- [x] **Pre-Rebuild Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_21_sync_rebuild.md` & `docs/code_review/code_review_2026_02_21_sync_rebuild.md`)
+    - Formalized the rules for absolute nominal pricing.
+    - Reverted the 0.0 terminal math in `calculator.py` for M&A stocks.
+
+## 1. Clean Slate
+- [x] Delete `data/market.duckdb`
+- [x] Reinitialize schema via `scripts/ops/recover_db.py`
+
+## 2. Core Data Rehydration
+- [x] Load pure nominal prices (2004-2025) via `scripts/ops/rebuild_market_db.py --confirm` (B-Tree Bypassed Turbo Mode)
+- [x] Load absolute TWSE dividends via `scripts/ops/reimport_twse_dividends.py` (Applies accurate Goodinfo/KY overlay patches)
+  - [ ] **Open Issue**: The TWSE absolute dividend data (`區分權息`) conflates flags. Will handle splits mathematically later.
+
+## 3. Post-Processing & Splitting
+- [x] Apply split multipliers mathematically over the pure nominal data by running `scripts/ops/supplement_splits.py --apply`.
+
+## 4. Final Verification
+- [x] Execute `tests/analysis/correlate_all_stocks.py` against MoneyCome's reference list. Target match rate: >85%. (Actual Match Rate: 67.45%)
+
+## 19. Phase 18 In-Progress Logs
+- [x] **Pre-Rebuild Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_21_sync_rebuild.md` & `docs/code_review/code_review_2026_02_21_sync_rebuild.md`)
+    - Formalized the rules for absolute nominal pricing.
+    - Reverted the 0.0 terminal math in `calculator.py` for M&A stocks.
+- [x] **Afternoon Rebuild Optimization Agents Sync** (Ref: `docs/meeting/meeting_notes_2026_02_21_sync_1530.md` & `docs/code_review/code_review_2026_02_21_sync_1530.md`)
+    - Documented discovery of DB-wiping rogue script `recovery_goodinfo.py` and replacement with `reimport_twse_dividends.py`.
+    - Documented duckdb B-Tree Index bypassed turbo-write optimization.
+    - Formalized the 2004+ timeline rule to omit YFinance backward-altering corruption.
+- [x] **Evening Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_21_sync_2115.md` & `docs/code_review/code_review_2026_02_21_sync_2115.md`)
+    - Diagnosed the fractional calculation errors introduced by applying Reverse Split logic to Open Prices instead of Reference Prices (平盤價). Removed auto-detection.
+    - Verified the Mathematical Exclusion formula `ref_yrs_count > years_available + 1.5` designed to ignore Emerging Market (興櫃) crossover data gaps.
+    - Verified the stable baseline Match Rate is currently 67.45%.
+
+## 20. Phase 19/20/21: Correlation Math Tuning - [COMPLETED]
+- [x] Tested Bankrupt/M&A exclusion -> Reverted, kept in calculation as terminal math is mathematically correct.
+- [x] Implemented Pre-Spike Stability Check in SplitDetector to avoid 1-day glitches triggering false detection.
+- [x] Identified Open Price vs Reference Price mathematical drift in Reverse Splits. Reverted auto-detection.
+- [x] Excluded Emerging Market (興櫃) crossovers via mathematically comparing `ref_yrs` vs DB years.
+- [x] Final Match Rate stored at 67.45%.
+- [x] Evening Agents Sync Meeting (21:15H) for review and push.

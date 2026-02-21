@@ -116,8 +116,7 @@ def download_batch(tickers: List[str], start_date: str, end_date: str, batch_id:
             auto_adjust=False,
             threads=True,
             progress=False,
-            group_by='ticker',
-            actions=True  # ENABLE ACTIONS
+            group_by='ticker'
         )
         
         elapsed = time.time() - start_time
@@ -125,20 +124,15 @@ def download_batch(tickers: List[str], start_date: str, end_date: str, batch_id:
         # Parse MultiIndex into per-ticker DataFrames
         # Parse results
         result_prices = {}
-        result_actions = {}
         failed_tickers = []
         
         def extract_ticker(df, t):
-            # df columns: Open, High, Low, Close, Volume, Dividends, Stock Splits
+            # df columns: Open, High, Low, Close, Volume
             cols = df.columns
             p_cols = [c for c in cols if c in ['Open', 'High', 'Low', 'Close', 'Volume']]
-            a_cols = [c for c in cols if c in ['Dividends', 'Stock Splits']]
             
             if not df[p_cols].dropna(how='all').empty:
                 result_prices[t] = df[p_cols]
-            
-            if not df[a_cols].dropna(how='all').empty:
-                result_actions[t] = df[a_cols]
 
         if len(tickers) == 1:
             full_ticker = tickers[0]
@@ -170,7 +164,7 @@ def download_batch(tickers: List[str], start_date: str, end_date: str, batch_id:
 
         elapsed = time.time() - start_time
         logger.info(f"✅ Batch {batch_id}: {len(result_prices)}/{len(tickers)} succeeded in {elapsed:.1f}s")
-        return result_prices, result_actions
+        return result_prices
         
     except Exception as e:
         logger.error(f"❌ Batch {batch_id} failed: {e}")
@@ -219,18 +213,14 @@ def download_all_prices(
     logger.info(f"📦 Split into {len(batches)} batches of up to {BATCH_SIZE} tickers")
     
     all_prices = {}
-    all_actions = {}
     
     for i, batch in enumerate(batches):
         batch_id = i + 1
         try:
-            p, a = download_batch(batch, start_date, end_date, batch_id)
+            p = download_batch(batch, start_date, end_date, batch_id)
             
             for ticker, df in p.items():
                 all_prices[ticker_to_code.get(ticker, ticker)] = df
-            
-            for ticker, df in a.items():
-                all_actions[ticker_to_code.get(ticker, ticker)] = df
             
             if i < len(batches) - 1:
                 time.sleep(2.0)
@@ -249,7 +239,7 @@ def download_all_prices(
     logger.info(f"✨ Download completed in {total_time:.1f}s")
     logger.info(f"📊 Successfully downloaded prices: {len(all_prices)} stocks")
     
-    return all_prices, all_actions
+    return all_prices
 
 
 def update_prices_in_db(all_data: Dict[str, pd.DataFrame]):
@@ -316,51 +306,6 @@ def update_prices_in_db(all_data: Dict[str, pd.DataFrame]):
         conn.close()
     except Exception as e:
         logger.error(f"❌ DB Insert Failed: {e}")
-
-def update_dividends_in_db(all_actions: Dict[str, pd.DataFrame], year: int):
-    """
-    Process Dividend/Split actions and upsert into 'dividends' table.
-    Schema: stock_id, year, cash, stock
-    """
-    if not all_actions:
-        return
-
-    logger.info(f"🔍 Processing dividends for {len(all_actions)} stocks in {year}...")
-    
-    conn = get_connection()
-    batch = []
-    
-    for code, df in all_actions.items():
-        if df.empty: continue
-        df_year = df[df.index.year == year]
-        if df_year.empty: continue
-        
-        total_cash = 0.0
-        total_stock = 0.0 
-        
-        if 'Dividends' in df_year.columns:
-            total_cash = df_year['Dividends'].sum()
-            
-        if 'Stock Splits' in df_year.columns:
-            splits = df_year['Stock Splits']
-            splits = splits[splits > 0]
-            if not splits.empty:
-                cumulative_split = splits.prod() # Use product for splits
-                if cumulative_split > 1.0:
-                     # Convert to Stock Dividend Amount (e.g. 1.1 -> 1.0 TWD)
-                     total_stock = (cumulative_split - 1.0) * 10.0
-        
-        if total_cash > 0 or total_stock > 0:
-            batch.append((code, year, total_cash, total_stock))
-            
-    if batch:
-        logger.info(f"📥 Inserting {len(batch)} dividend records into DuckDB...")
-        try:
-            conn.executemany("INSERT OR REPLACE INTO dividends (stock_id, year, cash, stock) VALUES (?, ?, ?, ?)", batch)
-        except Exception as e:
-            logger.error(f"❌ DB Dividend Insert Failed: {e}")
-    conn.close()
-
 
 
 # === TASK 3: Process Data into Cache Format ===
@@ -599,16 +544,15 @@ async def main():
         else:
             current_start = f"{year}-01-01"
             current_end = f"{year}-12-31"
-        
         # Download
         if args.sample:
             logger.info(f"📥 Downloading Sample (10 stocks) for {year}...")
             twse_subset = twse_list[:5]
             tpex_subset = tpex_list[:5]
-            all_prices, all_actions = download_all_prices(twse_subset, tpex_subset, start_date=current_start, end_date=current_end)
+            all_prices = download_all_prices(twse_subset, tpex_subset, start_date=current_start, end_date=current_end)
         else:
             logger.info(f"📥 Downloading ALL {len(twse_list) + len(tpex_list)} stocks for {year}...")
-            all_prices, all_actions = download_all_prices(twse_list, tpex_list, start_date=current_start, end_date=current_end)
+            all_prices = download_all_prices(twse_list, tpex_list, start_date=current_start, end_date=current_end)
         
         if not all_prices:
             logger.error(f"❌ Download failed for {year}. Skipping.")
@@ -620,11 +564,6 @@ async def main():
         logger.info(f"💾 Saving {year} prices to DuckDB...")
         update_prices_in_db(all_prices)
         
-        # Update DB Dividends
-        if all_actions:
-            logger.info(f"💾 Saving {year} dividends to DuckDB...")
-            update_dividends_in_db(all_actions, year)
-        
         # Process to cache (uses prices only)
         logger.info(f"🔄 Processing {year} to Cache Format...")
         counts = process_to_cache(all_prices, output_dir=args.output_dir, incremental=is_incremental)
@@ -634,7 +573,6 @@ async def main():
         
         # Cleanup to free memory
         all_prices.clear()
-        all_actions.clear()
         import gc
         gc.collect()
         

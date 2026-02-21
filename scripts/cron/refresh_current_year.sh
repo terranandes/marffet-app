@@ -7,10 +7,11 @@ echo "---------------------------------------------------"
 echo "🕒 Starting Nightly Refresh: $(date)"
 echo "📂 Working Directory: $(pwd)"
 
-# 1. Run Full Universe Nightly Supplement (ALL stocks, period=3d)
-# This ensures the Mars tab has T-0 close data for all 1,629 stocks
-echo "🕷️  Running Full Universe Supplement (ALL stocks, 3d)..."
-uv run python scripts/cron/nightly_full_supplement.py
+# 1. Run Ultra-Fast Crawler (Current Year)
+# This includes Name Fixing and Dividend Updates
+echo "🕷️  Running Ultra-Fast Crawler (Current Year)..."
+CURRENT_YEAR=$(date +%Y)
+uv run python scripts/ops/crawl_fast.py --start-year $CURRENT_YEAR
 
 CRAWL_EXIT_CODE=$?
 if [ $CRAWL_EXIT_CODE -ne 0 ]; then

@@ -1,6 +1,6 @@
 description = "Execute the plan"
 prompt = """
-# /execute_plan - Execute the plan just finalized
+# /execute-plan - Execute the plan just finalized
 
 $ARGUMENTS
 

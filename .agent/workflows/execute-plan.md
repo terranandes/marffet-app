@@ -2,7 +2,7 @@
 description: Execute the plan
 ---
 
-# /execute_plan - Execute the plan just finalized
+# /execute-plan - Execute the plan just finalized
 
 $ARGUMENTS
 

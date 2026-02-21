@@ -360,17 +360,10 @@ class MIIndexMassFetcher:
                 batch,
             )
 
-            # Upsert: MI_INDEX (Nominal) takes priority over existing data
+            # Raw Insert Without ON CONFLICT because DB is clean and indexes are dropped for speed
             conn.execute("""
                 INSERT INTO daily_prices
                 SELECT * FROM _tmp_nominal
-                ON CONFLICT (stock_id, date) DO UPDATE SET
-                    open    = EXCLUDED.open,
-                    high    = EXCLUDED.high,
-                    low     = EXCLUDED.low,
-                    close   = EXCLUDED.close,
-                    volume  = EXCLUDED.volume,
-                    market  = EXCLUDED.market
             """)
             conn.execute("DROP TABLE IF EXISTS _tmp_nominal")
             logger.info("  💾 Flushed %d records.", len(batch))

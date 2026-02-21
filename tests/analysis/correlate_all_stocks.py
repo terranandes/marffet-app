@@ -25,6 +25,11 @@ START_YEAR   = 2006
 MATCH_TIGHT  = 1.5   # ±1.5% → "Match"
 MATCH_LOOSE  = 3.0   # ±3.0% → "Close"
 
+def calculate_cagr(start_price, end_price, num_years):
+    if start_price == 0 or num_years == 0:
+        return 0.0
+    return ((end_price / start_price) ** (1 / num_years) - 1) * 100.0
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def load_reference() -> pd.DataFrame:
@@ -62,7 +67,7 @@ def load_reference() -> pd.DataFrame:
 def fetch_prices(con: duckdb.DuckDBPyConnection, stock_id: str) -> pd.DataFrame:
     """Fetch daily price data from DuckDB for a stock from START_YEAR onward."""
     df = con.execute("""
-        SELECT date, open, high, low, close
+        SELECT date, YEAR(date) AS year, open, high, low, close
         FROM daily_prices
         WHERE stock_id = ?
           AND YEAR(date) >= ?
@@ -74,7 +79,6 @@ def fetch_prices(con: duckdb.DuckDBPyConnection, stock_id: str) -> pd.DataFrame:
 
     df["date"] = pd.to_datetime(df["date"])
     df = df.set_index("date")
-    df["year"] = df.index.year
     return df
 
 
@@ -90,19 +94,23 @@ def fetch_dividends(con: duckdb.DuckDBPyConnection, stock_id: str) -> dict:
     return {int(r[0]): {"cash": float(r[1] or 0), "stock": float(r[2] or 0)} for r in rows}
 
 
-def calc_mars_cagr(con: duckdb.DuckDBPyConnection, stock_id: str) -> tuple[float, str]:
+def calc_mars_cagr(con: duckdb.DuckDBPyConnection, stock_id: str, ref_yrs_count: float) -> tuple[float, str, pd.DataFrame]:
     """
     Run ROICalculator.calculate_complex_simulation for a stock.
-    Returns (cagr_pct, note).
+    Returns (cagr_pct, note, df_prices).
     """
     df = fetch_prices(con, stock_id)
     if df.empty:
-        return 0.0, "No Data"
+        return 0.0, "No Data", df
 
     # Need at least 2 years of data
     years_available = df["year"].nunique()
     if years_available < 2:
-        return 0.0, f"Insufficient Data ({years_available} yr)"
+        return 0.0, f"Insufficient Data ({years_available} yr)", df
+
+    # Exclude 興櫃 (Emerging Market) gaps by checking length disparity
+    if ref_yrs_count > years_available + 1.5:
+        return 0.0, "Emerging Market (興櫃)", df
 
     div_dict = fetch_dividends(con, stock_id)
 
@@ -118,17 +126,17 @@ def calc_mars_cagr(con: duckdb.DuckDBPyConnection, stock_id: str) -> tuple[float
     )
 
     if not result:
-        return 0.0, "Calc Failed"
+        return 0.0, "Calc Failed", df
 
     # Find the latest available year's CAGR key (s2006eYYYYbao)
     cagr_keys = sorted([k for k in result if k.startswith(f"s{START_YEAR}e") and k.endswith("bao")])
     if not cagr_keys:
-        return 0.0, "No CAGR Key"
+        return 0.0, "No CAGR Key", df
 
     # Prefer s2006e2026bao to match reference Excel column
     preferred = f"s{START_YEAR}e2026bao"
     key = preferred if preferred in result else cagr_keys[-1]
-    return float(result[key]), "OK"
+    return float(result[key]), "OK", df
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -161,15 +169,46 @@ def run_correlation():
         ref_cagr  = float(row["ref_cagr"])
 
         try:
-            mars_cagr, note = calc_mars_cagr(con, stock_id)
+            ref_yrs = row.get("s2006e2026yrs", 0)
+            mars_cagr, note, df_prices = calc_mars_cagr(con, stock_id, float(ref_yrs)) # Modified to get df_prices
         except Exception as e:
-            mars_cagr, note = 0.0, f"Error: {e}"
+            mars_cagr, note, df_prices = 0.0, f"Error: {e}", pd.DataFrame() # Ensure df_prices is defined
 
         if note == "No Data":
             no_data_count += 1
 
         diff     = mars_cagr - ref_cagr
         abs_diff = abs(diff)
+
+        # Debugging prints for large discrepancies
+        if note == "OK" and abs_diff > 20.0:
+            # Attempt to calculate a simpler CAGR for comparison
+            simple_mars_cagr = 0.0
+            num_years = 0
+            start_price = 0.0
+            end_price = 0.0
+            valid_years = 0
+
+            if not df_prices.empty:
+                first_year = df_prices.index.min().year
+                last_year = df_prices.index.max().year
+                valid_years = last_year - first_year + 1
+
+                if valid_years >= 2:
+                    start_price = float(df_prices.iloc[0]['close'])
+                    end_price = float(df_prices.iloc[-1]['close'])
+                    num_years = last_year - first_year # This is typically (end_year - start_year) for CAGR
+                    if num_years > 0:
+                        simple_mars_cagr = calculate_cagr(start_price, end_price, num_years)
+
+            print(f"DEBUG {stock_id}: Large difference ({abs_diff:.2f}%)")
+            print(f"  Valid Years in data: {valid_years}")
+            print(f"  Prices: Start={start_price:.2f} (date={df_prices.index.min().year if not df_prices.empty else 'N/A'}), End={end_price:.2f} (date={df_prices.index.max().year if not df_prices.empty else 'N/A'})")
+            print(f"  CAGR: Ref={ref_cagr:.2f}%, Mars_Complex={mars_cagr:.2f}%")
+            if num_years > 0:
+                print(f"  CAGR: Simple_Calc={simple_mars_cagr:.2f}% ({num_years}yrs)")
+            print(f"  Note: {note}")
+
 
         if note == "OK" and abs_diff <= MATCH_TIGHT:
             status = "Match"

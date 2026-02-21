@@ -100,7 +100,9 @@ def calculate_roi_sim(stock_id, start_year, end_year, prices_db):
         
         if isinstance(div_info, dict):
             cash_div = div_info.get('cash', 0)
-            stock_div = div_info.get('stock_split', 1.0)
+            # 'stock' in DB is usually TWD par value (e.g. 0.5). Split factor = 1 + (0.5/10)
+            stock_val = div_info.get('stock', 0)
+            stock_div = 1.0 + (stock_val / 10.0)
         elif isinstance(div_info, (int, float)):
             cash_div = div_info
             

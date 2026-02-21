@@ -207,7 +207,7 @@ class ROICalculator:
                 # Year-over-year ratio: only splits that happened THIS year
                 prev_year = sorted_years[i - 1] if i > 0 else start_year - 1
                 yr_split = detector.get_cumulative_ratio(stock_code, prev_year, year)
-                if yr_split > 1.0:
+                if yr_split != 1.0:
                     # Check for overlapping stock dividend — avoid double-counting
                     has_stock_div = False
                     if dividend_data:
@@ -293,6 +293,40 @@ class ROICalculator:
             if year == sorted_years[-1]:
                 results["finalValue"] = round(total_asset_value, 0)
                 results["totalCost"] = round(total_invested_cash, 0)
+
+        # Handle Bankrupt / Delisted / Acquired Stocks (Fill timeline to 2026 for Grand Correlation)
+        # If the stock ceases to trade (e.g., Kolin 1606 ends in 2008, SPIL 2325 ends in 2018), 
+        # MoneyCome calculates terminal CAGR up to the target year (e.g., 2026) using the final salvaged/buyout value.
+        # We simulate the remaining years by FREEZING the last known total_asset_value and total_invested_cash.
+        target_max_year = 2026
+        if sorted_years[-1] < target_max_year:
+            # FREEZE AT LAST KNOWN VALUE (Do not force 0.0)
+            terminal_value = total_asset_value 
+            for year in range(sorted_years[-1] + 1, target_max_year + 1):
+                n_yrs = year - sorted_years[0] + 1
+                
+                # Investment capital remains frozen at the last known amount.
+                cagr_raw = (terminal_value / total_invested_cash) ** (1 / n_yrs) - 1 if total_invested_cash > 0 else 0
+                cagr_val = round(cagr_raw * 100, 1)
+                
+                roi_raw = (terminal_value - total_invested_cash) / total_invested_cash if total_invested_cash > 0 else 0
+                roi_val = round(roi_raw * 100, 1)
+                
+                results[f"s{start_year}e{year}bao"] = cagr_val
+                
+                history.append({
+                    "year": year,
+                    "value": round(terminal_value, 0),
+                    "dividend": 0.0,
+                    "invested": round(total_invested_cash, 0),
+                    "roi": roi_val,
+                    "cagr": cagr_val
+                })
+                
+                if year == target_max_year:
+                     results["finalValue"] = round(terminal_value, 0)
+                     results["totalCost"] = round(total_invested_cash, 0)
+
                 
         results[f"s{start_year}e{sorted_years[-1]}yrs"] = len(sorted_years)
         results["history"] = history

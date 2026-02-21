@@ -47,7 +47,7 @@ Keep clean room.
     - **Rule:** Must be updated dynamically. `[PL]` ensures this reflects the live status of all agents.
 
 ### Meeting Records
-- `./docs/meeting/meeting_notes_YYYY_MM_DD_v{version}.md`
+- `./docs/meeting/meeting_notes_YYYY_MM_DD_[topic_]v{version}.md`
     - **Format:** Strict ISO date format.
     - **Trigger:** Auto-generated after any multi-agent synchronization session.
 

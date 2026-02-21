@@ -15,14 +15,14 @@ are starting a brief discussion on or follow the rules/workflows below:
 - discrepancy between Local-Run and Deployment (currently in Zeabur only)
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
-- recall artifact used at the latest/last session: `Implementation Plan`/`Task`/`Walkthrough`...etc
 - review/renew product related files that agents owns at `./docs/product` by demand
 - review the mobile Web layout, whereas UI components shall be elegant and feasible
 - trace worktree/branch status, continue?/finished?/can be cleaned-up?
-- do workflow `code_review`
+- do workflow `code-review`
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
 - adjust plans in `./docs/plan` as necessary
 - integrate necessary current artifact `Implementation Plan`/`Task`/`Walkthrough` into `docs/product/tasks.md`
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.
 And save the meeting note at "./docs/meeting" and code-review note at "./docs/code_review". We always trace the notes.
+At last, do workflow `commit-but-push`.

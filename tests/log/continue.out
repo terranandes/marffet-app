@@ -1,0 +1,60 @@
+nohup: ignoring input
+🕒 Script started at Thu Feb 19 20:48:16 CST 2026
+💤 Waiting for fix_discrepancies.py (PID 6ca21010)...
+✅ fix_discrepancies.py finished.
+📊 Running Final Correlation Report...
+
+==================================================
+PHASE 17-A: GRAND CORRELATION ANALYSIS
+Started: 2026-02-19 20:48:17
+==================================================
+
+Loading reference: /home/terwu01/github/martian/app/project_tw/references/stock_list_s2006e2026_unfiltered.xlsx
+  → code_col='id', name_col='name', cagr_col='s2006e2026bao'
+  → 2030 valid reference stocks loaded.
+Traceback (most recent call last):
+  File "/home/terwu01/github/martian/tests/analysis/correlate_all_stocks.py", line 246, in <module>
+    run_correlation()
+  File "/home/terwu01/github/martian/tests/analysis/correlate_all_stocks.py", line 150, in run_correlation
+    con = duckdb.connect(str(DB_PATH), read_only=True)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.IOException: IO Error: Could not set lock on file "/home/terwu01/github/martian/data/market.duckdb": Conflicting lock is held in /usr/bin/python3.12 (PID 40386). See also https://duckdb.org/docs/stable/connect/concurrency
+💾 Backing up DuckDB to Parquet...
+Traceback (most recent call last):
+  File "/home/terwu01/github/martian/scripts/ops/backup_duckdb.py", line 5, in <module>
+    conn = duckdb.connect('data/market.duckdb', read_only=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.IOException: IO Error: Could not set lock on file "/home/terwu01/github/martian/data/market.duckdb": Conflicting lock is held in /usr/bin/python3.12 (PID 40386). See also https://duckdb.org/docs/stable/connect/concurrency
+📤 Committing backups...
+fatal: pathspec 'data/backup/*.parquet' did not match any files
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .agent/workflows/agents-sync-meeting.md
+	modified:   .agent/workflows/agents-sync-meeting.toml
+	modified:   docs/meeting/meeting_notes_2026_02_19_v2.md
+	typechange: docs/product/correlation_report_full.csv
+	modified:   docs/product/tasks.md
+	modified:   scripts/cron/refresh_current_year.sh
+	modified:   scripts/ops/crawl_fast.py
+	modified:   scripts/ops/run_crawler_prod.sh
+	modified:   tests/analysis/correlation_report_full.csv
+	modified:   tests/integration/verify_roi_correlation.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	data/market.duckdb.wal
+	docs/meeting/meeting_notes_2026_02_19_v3.md
+	scripts/ops/backup_duckdb.py
+	scripts/ops/continue_and_report.sh
+	scripts/ops/fix_discrepancies.py
+	tests/debug_tools/test_debug_columns.py
+	tests/debug_tools/test_yahoo_1101_2000.py
+	tests/log/continue.out
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Everything up-to-date
+🎉 All Done at Thu Feb 19 20:48:25 CST 2026

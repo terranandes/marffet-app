@@ -2,7 +2,7 @@
 description: execute code-review
 ---
 
-# /code_review - review the code
+# /code-review - review the code
 
 $ARGUMENTS
 

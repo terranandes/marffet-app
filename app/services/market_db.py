@@ -50,6 +50,7 @@ def init_schema():
                 high DOUBLE,
                 low DOUBLE,
                 close DOUBLE,
+                change DOUBLE,
                 volume BIGINT,
                 market VARCHAR,
                 PRIMARY KEY (stock_id, date)

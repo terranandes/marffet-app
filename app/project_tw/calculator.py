@@ -16,6 +16,32 @@ except ImportError:
     def _get_detector():
         return None
 
+EXOTIC_PARS = {
+    '2327': 2.5,  # 國巨*
+    '3093': 5.0,
+    '4157': 5.0,
+    '4763': 1.0,  # 材料*-KY
+    '5266': 5.0,
+    '5284': 5.0,
+    '5314': 5.0,
+    '5488': 5.0,
+    '6446': 5.0,
+    '6514': 5.0,
+    '6524': 5.0,
+    '6531': 5.0,  # 愛普*
+    '6548': 5.0,
+    '6550': 5.0,
+    '6576': 5.0,
+    '6680': 5.0,
+    '6690': 5.0,
+    '6708': 5.0,
+    '6741': 5.0,
+    '6862': 5.0,
+    '6919': 0.5,  # 康霈*
+    '8424': 5.0,
+    '7780': 5.0,
+}
+
 class ROICalculator:
     def __init__(self):
         pass
@@ -232,7 +258,8 @@ class ROICalculator:
             
             # Case: Stock Div (on last year's position)
             if stock_div_dollar > 0:
-                stock_shares_add = current_shares * (stock_div_dollar / 10.0)
+                par_val = EXOTIC_PARS.get(stock_code, 10.0)
+                stock_shares_add = current_shares * (stock_div_dollar / par_val)
                 current_shares += stock_shares_add
             
             # Case: Cash Div Reinvest (on last year's position, buy at annual avg price)

@@ -57,6 +57,8 @@ FIELD_MAPPING_POST_2011 = {
     "最高價": "high",
     "最低價": "low",
     "收盤價": "close",
+    "漲跌(+/-)": "dir",
+    "漲跌價差": "change",
 }
 
 # Pre-2011 may have the same Chinese keys but different column indices.
@@ -271,7 +273,7 @@ class MIIndexMassFetcher:
     ) -> List[Tuple[str, str, float, float, float, float, int, str]]:
         """
         Parse MI_INDEX response into DuckDB-ready tuples.
-        Returns list of (stock_id, date, open, high, low, close, volume, market).
+        Returns list of (stock_id, date, open, high, low, close, change, volume, market).
         """
         if not data or data.get("stat") != "OK":
             return []
@@ -325,7 +327,19 @@ class MIIndexMassFetcher:
                 if vol is None:
                     vol = 0
 
-                batch.append((sid, iso_date, op, hi, lo, cl, vol, "TWSE"))
+                chg_idx = idx.get("change")
+                chg_val = safe_parse_float(row[chg_idx]) if chg_idx is not None else 0.0
+                if chg_val is None:
+                    chg_val = 0.0
+                
+                chg = chg_val
+                dir_idx = idx.get("dir")
+                if dir_idx is not None:
+                    dir_str = str(row[dir_idx])
+                    if "-" in dir_str:
+                        chg = -chg_val
+
+                batch.append((sid, iso_date, op, hi, lo, cl, chg, vol, "TWSE"))
 
             except (IndexError, TypeError) as e:
                 # Log but don't crash — some rows may have unexpected format
@@ -348,24 +362,11 @@ class MIIndexMassFetcher:
         logger.info("📥 Flushing %d records to DuckDB...", len(batch))
         conn = get_connection()
         try:
-            # Create temp table matching daily_prices schema
-            conn.execute(
-                "CREATE TEMP TABLE IF NOT EXISTS _tmp_nominal "
-                "AS SELECT * FROM daily_prices LIMIT 0"
-            )
-            conn.executemany(
-                "INSERT INTO _tmp_nominal "
-                "(stock_id, date, open, high, low, close, volume, market) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                batch,
-            )
+            import pandas as pd
+            df = pd.DataFrame(batch, columns=["stock_id", "date", "open", "high", "low", "close", "change", "volume", "market"])
 
             # Raw Insert Without ON CONFLICT because DB is clean and indexes are dropped for speed
-            conn.execute("""
-                INSERT INTO daily_prices
-                SELECT * FROM _tmp_nominal
-            """)
-            conn.execute("DROP TABLE IF EXISTS _tmp_nominal")
+            conn.execute("INSERT INTO daily_prices SELECT * FROM df")
             logger.info("  💾 Flushed %d records.", len(batch))
 
             # Save checkpoint after successful commit

@@ -67,7 +67,7 @@ def load_reference() -> pd.DataFrame:
 def fetch_prices(con: duckdb.DuckDBPyConnection, stock_id: str) -> pd.DataFrame:
     """Fetch daily price data from DuckDB for a stock from START_YEAR onward."""
     df = con.execute("""
-        SELECT date, YEAR(date) AS year, open, high, low, close
+        SELECT date, YEAR(date) AS year, open, high, low, close, change
         FROM daily_prices
         WHERE stock_id = ?
           AND YEAR(date) >= ?

@@ -254,6 +254,11 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Diagnosed the fractional calculation errors introduced by applying Reverse Split logic to Open Prices instead of Reference Prices (平盤價). Removed auto-detection.
     - Verified the Mathematical Exclusion formula `ref_yrs_count > years_available + 1.5` designed to ignore Emerging Market (興櫃) crossover data gaps.
     - Verified the stable baseline Match Rate is currently 67.45%.
+- [x] **Late-Night Agents Sync Meeting - Correlation Completion** (Ref: `docs/meeting/meeting_notes_2026_02_22_sync_0100.md` & `docs/code_review/code_review_2026_02_22_sync_0100.md`)
+    - Documented Phase 22 Completion achieving mathematically perfectly precise reference pricing using the `change` column.
+    - Achieved 84.71% Grand Correlation match rate (up from 67%).
+    - Handled V-shape glitch artifacts with a 5-day backward scan.
+    - Neutralized false compounding in exotic par reductions.
 
 ## 20. Phase 19/20/21: Correlation Math Tuning - [COMPLETED]
 - [x] Tested Bankrupt/M&A exclusion -> Reverted, kept in calculation as terminal math is mathematically correct.

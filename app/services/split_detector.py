@@ -79,48 +79,74 @@ class SplitDetector:
         
         detected = []
         
-        # Check for price drops between consecutive data points
+        # Check for price drops/spikes between consecutive data points
         for i in range(1, len(history)):
             prev = history[i-1]
             curr = history[i]
             
             prev_close = prev.get('close', 0)
-            curr_open = curr.get('open', 0)
+            curr_close = curr.get('close', 0)
+            curr_change = curr.get('change', 0)
             
-            if prev_close > 0 and curr_open > 0:
-                change = (curr_open - prev_close) / prev_close
+            if prev_close > 0 and curr_close > 0:
+                # Calculate True Reference Price using exact change
+                ref_price = curr_close - curr_change
+                if ref_price <= 0:
+                    continue
+                    
+                # Perfect mathematical split ratio:
+                # Prev Close = 100, Ref Price = 25 -> 100/25 = 4.0 (Normal Split)
+                # Prev Close = 10, Ref Price = 20 -> 10/20 = 0.5 (Reverse Split)
+                exact_ratio = prev_close / ref_price
                 
-                if change < self.SPLIT_THRESHOLD:
+                is_split = exact_ratio > 1.4
+                is_reverse_split = exact_ratio < 0.7
+                
+                if is_split or is_reverse_split:
+                    # Glitch defense: scan backward up to 5 days. 
+                    # If the stock was recently (before the anomaly) trading near this new ref_price,
+                    # it means we are just returning to normal after a data glitch (false drop/spike).
+                    is_glitch_recovery = False
+                    for k in range(2, 6):
+                        if i - k >= 0:
+                            historical_close = history[i-k].get('close', 0)
+                            if historical_close > 0:
+                                if 0.8 < ref_price / historical_close < 1.25:
+                                    is_glitch_recovery = True
+                                    break
+                    if is_glitch_recovery:
+                        continue
+
                     # Persistence Check: Ensure it's not a single-day fluke
-                    # Price should stay in the new range for the next few days
                     is_persistent = True
                     for j in range(1, 4): # Check next 3 days
                         if i + j < len(history):
-                            next_open = history[i+j].get('open', 0)
-                            # If next price is back near prev_close, it's a spike
-                            if next_open > prev_close * 0.7:
+                            next_close = history[i+j].get('close', 0)
+                            if next_close == 0:
+                                continue
+                            if is_split and next_close > prev_close * 0.75:
+                                is_persistent = False
+                                break
+                            elif is_reverse_split and next_close < prev_close * 1.25:
                                 is_persistent = False
                                 break
                     
                     if not is_persistent:
                         continue
-                    
-                    # New: Check for High-Low spread to avoid outlier data gaps
-                    curr_high = curr.get('high', curr_open)
-                    if curr_high > curr_open * 1.5:
-                        # Massive intraday spike is likely a data outlier, not a split
-                        continue
                         
-                    # Estimate split ratio
-                    ratio = round(prev_close / curr_open)
-                    if ratio >= 2:  # Must be at least 1:2
-                        detected.append(SplitEvent(
-                            stock_id=stock_id,
-                            year=curr.get('year', 0),
-                            month=0,  # Unknown from yearly data
-                            ratio=float(ratio),
-                            source='detected'
-                        ))
+                    # Estimate integer/fractional ratio
+                    # Do NOT round. We must preserve TWSE's exact wealth calculation reference price
+                    # to perfectly zero out the wealth effect of the event, regardless of complex
+                    # internal corporate actions (like Par Reduction + Cash injection simultaneously).
+                    ratio = float(exact_ratio)
+                        
+                    detected.append(SplitEvent(
+                        stock_id=stock_id,
+                        year=curr.get('year', 0),
+                        month=0,  # Unknown from yearly data
+                        ratio=float(ratio),
+                        source='detected'
+                    ))
         
         # Merge with known splits (prefer known over detected for same year)
         known = KNOWN_SPLITS.get(stock_id, [])

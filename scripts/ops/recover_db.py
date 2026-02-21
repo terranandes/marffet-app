@@ -40,8 +40,8 @@ def recover_prices():
     # Use INSERT OR REPLACE if there's a unique constraint, otherwise just INSERT. 
     # daily_prices has (stock_id, date) Primary Key in schema (or should).
     conn.execute("""
-        INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume)
-        SELECT stock_id, date, open, high, low, close, volume FROM temp_prices
+        INSERT INTO daily_prices (stock_id, date, open, high, low, close, change, volume)
+        SELECT stock_id, date, open, high, low, close, change, volume FROM temp_prices
     """)
 
     new_count = conn.execute("SELECT COUNT(*) FROM daily_prices").fetchone()[0]

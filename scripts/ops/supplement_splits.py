@@ -34,6 +34,14 @@ import duckdb
 import pandas as pd
 import argparse
 import os
+import sys
+from pathlib import Path
+
+# Add project root to path
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from app.project_tw.calculator import EXOTIC_PARS
 
 def main():
     parser = argparse.ArgumentParser()
@@ -78,10 +86,9 @@ def main():
             print(f"Skipping invalid ratio {ratio} for {stock_id}")
             continue
             
-        # Calculate Stock Dividend
-        # Ratio = (1 + stock_div/10)
-        # stock_div = (Ratio - 1) * 10
-        stock_div = (ratio - 1.0) * 10.0
+        # Calculate Stock Dividend using EXACT Par Value
+        par_value = EXOTIC_PARS.get(stock_id, 10.0)
+        stock_div = (ratio - 1.0) * par_value
         
         # Cap/Sanity check
         if stock_div > 1000: # 100-for-1 split limit

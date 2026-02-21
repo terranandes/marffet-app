@@ -9,11 +9,11 @@ The Martian Crawler is designed for **Market-Wide Batch Analysis**. It prioritiz
 
 ### Key Components
 - **`StockInfoService`**: O(1) Fetcher for official TWSE/TPEX stock list & names.
-- **`TWSECrawler`**: Handles TWSE (Exchange) interactions, specifically **TWT49U** (Dividends) and **MI_INDEX** (Prices).
+- **`fetch_mi_index_mass.py`**: **[PRIMARY PRICE]** Heavy-lifting batch processor ingesting absolute pristine nominal daily prices directly from official TWSE JSON snapshots 2004-Present to populate DuckDB.
 - **`Hybrid Dividend Crawler`** (`scripts/ops/reimport_twse_dividends.py`): 
   - **Primary**: Fetches nominal dividends from TWSE TWT49U (2003-Present).
   - **Fallback**: Applies hardcoded patches for outliers (e.g., 2327, 1808) and pre-2003 data gaps.
-- **DuckDB**: **[NEW]** Primary storage for all crawled data (`market.duckdb`), replacing raw JSON files for production queries.
+- **DuckDB**: Primary storage for all crawled data (`market.duckdb`), replacing raw JSON files for production queries.
 
 ### Tech Stack
 - **AsyncIO / HTTPX**: Concurrency and connection pooling.

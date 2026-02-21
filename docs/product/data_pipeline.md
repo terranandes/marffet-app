@@ -4,10 +4,9 @@
 
 | Market | Data Type | Source | URL / API | Granularity | Usage |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **TWSE** (Listed) | Market Prices (Start/End) | Official TWSE Website | `www.twse.com.tw` (MI_INDEX) | Daily (Sampled at Jan/Dec) | Calculating Annual ROI |
-| **TWSE** | Dividends | Official TWSE Website | `TWT49U` report | Annual | ROI Calculation (Yield) |
-| **TPEx** (OTC) | Market Prices | Yahoo Finance | `yfinance` | Daily (Full History) | ROI Calculation |
-| **TPEx** | Dividends | Official TPEx Website | `web.tpex.org.tw` | Annual | ROI Calculation |
+| **TWSE/TPEx** | Absolute Dividends | Official TWSE/TPEx | `TWT49U` / TPEx API | Annual/Quarterly | ROI Calculation (Yield) |
+| **TWSE** | Historical Prices (Nominal) | Official TWSE | `MI_INDEX` (Mass Fetch) | Daily (Full History) | ROI Calculation & Split Math |
+| **TPEx** | Historical Prices (Nominal) | Yahoo Finance / TPEx | `yfinance` / TPEx API | Daily (Full History) | ROI Calculation |
 
 ## 2. Concurrency & Parallelism
 
@@ -67,9 +66,9 @@ For the Mars Strategy, the "Start Price" is typically the price on the first tra
 | Feature | Data Source | Freshness | Implementation |
 |---------|-------------|-----------|----------------|
 | **Portfolio Tab** | `fetch_live_prices()` | ~30 seconds | On-demand yfinance API |
-| **Analysis Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
-| **History Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
-| **Compare Tab** | `Market_{Year}_Prices.json` | T-1 (EOD) | RAM Cache |
+| **Analysis Tab** | `market.duckdb` | T-1 (EOD) | DuckDB via MarketCache |
+| **History Tab** | `market.duckdb` | T-1 (EOD) | DuckDB via MarketCache |
+| **Compare Tab** | `market.duckdb` | T-1 (EOD) | DuckDB via MarketCache |
 
 ### Live Price Fetching
 
@@ -91,11 +90,11 @@ prices = fetch_live_prices(["2330", "2317", "2454"])
 
 ### Cached Data Loading
 
-**Path**: `data/raw/Market_{Year}_Prices.json`
+**Path**: `data/market.duckdb` (Bootstrapped via Parquets on Zeabur)
 
 **Refresh Schedule**:
-- **Historical Years (2000-2025)**: Static. Loaded once at server startup.
-- **Current Year (2026)**: Nightly cron job runs `run_crawler_prod.sh 2026 2026`.
+- **Historical Years (2000-2025)**: Static. Loaded once into DuckDB.
+- **Current Year (2026)**: Nightly cron job runs `refresh_current_year.sh`.
 
 ### Architecture Diagram
 
@@ -111,10 +110,10 @@ prices = fetch_live_prices(["2330", "2317", "2454"])
      ┌─────────────────────┼─────────────────────┐
      ▼                     ▼                     ▼
  /portfolio            /analysis             /history
- (LIVE API)           (JSON Cache)         (JSON Cache)
+ (LIVE API)         (DuckDB Engine)       (DuckDB Engine)
      │                     │                     │
      ▼                     ▼                     ▼
-fetch_live_prices()   RAM Cache            RAM Cache
-  (yfinance)          (Market_*)           (Market_*)
+fetch_live_prices()   MarketCache          MarketCache
+  (yfinance)          (market.duckdb)      (market.duckdb)
 ```
 

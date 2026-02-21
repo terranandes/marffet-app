@@ -14,8 +14,9 @@ As of v3.0, the Martian system has transitioned from a JSON-based memory cache t
 ```mermaid
 graph TD
     subgraph "External Sources"
-        YF["yfinance (Standard/Nominal)"]
-        TWSE["TWSE/TPEx APIs"]
+        TWSE_MI["TWSE MI_INDEX (Nominal Prices)"]
+        YF["yfinance (TPEx Fallback)"]
+        TWSE["TWSE/TPEx Dividend APIs"]
     end
 
     subgraph "Data Acquisition"
@@ -34,6 +35,7 @@ graph TD
         API["FastAPI Endpoints"]
     end
 
+    TWSE_MI --> Backfill
     YF --> Backfill
     TWSE --> Backfill
     Backfill --> DuckDB
@@ -50,7 +52,7 @@ graph TD
 Optimized for time-series range queries. Columns are compressed using DuckDB's default encodings.
 - `stock_id`: VARCHAR (TICKER)
 - `date`: DATE
-- `open`, `high`, `low`, `close`: DOUBLE
+- `open`, `high`, `low`, `close`, `change`: DOUBLE
 - `volume`: BIGINT
 - `market`: VARCHAR (TWSE/TPEx)
 

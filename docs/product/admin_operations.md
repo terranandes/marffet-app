@@ -29,8 +29,8 @@ Located at `/admin` on the Martian Frontend.
 | Action | Control Label | Purpose | Key Script / Method |
 | :--- | :--- | :--- | :--- |
 | **Full Run** | 🕷️ **Crawler Analysis (Full)** | Re-calculates ROI/Strategy for current year universe. | `run_analysis.main()` |
-| **Cold Reset** | 🔥 **Force Rebuild (Cold)** | Clears current year JSON cache and re-crawls from source. | `CrawlerService.run_market_analysis(force=True)` |
-| **Global Push** | 📦 **Rebuild Pre-warm Data** | Forced rebuild of all 25 years of persistence files + Upload. | `BackupService.annual_prewarm_with_rebuild()` |
+| **Cold Reset** | 🔥 **Force Rebuild (Cold)** | Drops the DuckDB and recreates it from MI_INDEX snapshot checkpoints. | `scripts/ops/rebuild_market_db.py` |
+| **Global Push** | 📦 **Rebuild Pre-warm Data** | Forced rebuild of Parquet persistence files + Upload to git. | `backup_duckdb.py` |
 
 ---
 
@@ -38,8 +38,8 @@ Located at `/admin` on the Martian Frontend.
 
 | Action | Control Label | Technical Context |
 | :--- | :--- | :--- |
-| **RAM Reload** | 🔋 **Reload Price Cache (Force)** | Re-loads all price JSON files into the FastAPI process memory (O(1) access). |
-| **Backfill** | 🚀 **Universe Backfill (2000+)** | Downloads history from 2000 to Present for the entire universe. Note: Toggle **Push to GitHub** to make changes permanent on Zeabur. |
+| **RAM Reload** | 🔋 **Reload Price Cache (Force)** | Instructs the `MarketCache` singleton to re-query DuckDB and refresh in-memory tables. |
+| **Backfill** | 🚀 **Universe Backfill (2000+)** | Downloads history from 2000 to Present for the entire universe. Note: Toggle **Push to GitHub** to make changes permanent on Zeabur via Parquets. |
 
 ---
 

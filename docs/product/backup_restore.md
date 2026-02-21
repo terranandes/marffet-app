@@ -1,11 +1,13 @@
 # Database Backup & Recovery Specification
 
 ## 1. Overview
-The Martian Investment System uses a lightweight SQLite database (`portfolio.db`) to store user data (portfolios, groups, transactions). 
+The Martian Investment System uses two primary databases:
+1. **SQLite (`portfolio.db`)**: Stores user-specific data (portfolios, groups, transactions).
+2. **DuckDB (`market.duckdb`)**: Stores the massive >5 Million row nominal price simulation universe.
 
 Since the application runs on **Ephemeral Cloud Containers** (e.g., Zeabur, Render), the filesystem is not persistent across deployments or crashes unless a specific Persistent Volume is mounted.
 
-To ensure **Data Resilience** without complex external database services (like AWS RDS), we implemented a **"Uni-directional Git Backup Loop"**.
+To ensure **Data Resilience** without complex external database services (like AWS RDS), we implemented a **"Volumetric Git Backup Loop"** utilizing Zeabur Persistent Volumes and partitioned Parquet files for DuckDB.
 
 ---
 
@@ -31,16 +33,17 @@ sequenceDiagram
 
     Note over App, Repo: Disaster Recovery / Redeploy
     Repo->>App: Zeabur/Cloud Builds New Image (git pull)
-    Note right of App: Includes latest portfolio.db from backup
+    Note right of App: Includes latest portfolio.db + Parquets
     
     App->>App: Startup (lifespan)
-    App->>Vol: Check if /data/portfolio.db exists?
+    App->>Vol: Check if /data/portfolio.db & /data/market.duckdb exists?
     
     alt Volume Empty (Crash/New Node)
         App->>Vol: COPY app/portfolio.db -> /data/portfolio.db
+        App->>Vol: Read data/backup/*.parquet -> /data/market.duckdb
         Note left of Vol: DATA RESTORED
     else Volume Exists
-        App->>Vol: Use existing /data/portfolio.db
+        App->>Vol: Use existing /data databases
     end
 ```
 
@@ -54,12 +57,15 @@ sequenceDiagram
 - **Risk**: If the volume mapping disconnects, breaks, or the deployment moves to a region where the volume isn't synced, `/data` might be empty on startup.
 
 ### Phase B: Automated Backup (The Safety Net)
-- **Trigger**: `APScheduler` runs daily at **09:00 Taipei Time (01:00 UTC)**.
-- **Action**: 
+- **SQLite Trigger**: `APScheduler` runs daily at **09:00 Taipei Time (01:00 UTC)**.
     1. Reads the binary file `/data/portfolio.db`.
     2. Encodes it to Base64.
     3. Uses the **GitHub Content API** to commit the file directly to your repository at path `app/portfolio.db`.
-- **Result**: Your GitHub repository always contains a snapshot of the database from the last backup.
+- **DuckDB Trigger**: Local/Admin CRON job runs `scripts/ops/backup_duckdb.py`.
+    1. Reads `/data/market.duckdb`.
+    2. Executes `COPY` converting memory to highly compressed, Git-friendly partitioned `.parquet` files (`data/backup/prices_YYYY.parquet`).
+    3. Pushed manually or via GH actions.
+- **Result**: Your GitHub repository always contains a snapshot of the user database and the massive market DB safely encoded.
 
 ### Phase C: Crash Recovery (Restore on Startup)
 - **Scenario**: The application crashes and restarts, or is redeployed.

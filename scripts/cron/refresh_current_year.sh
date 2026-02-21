@@ -18,6 +18,13 @@ if [ $CRAWL_EXIT_CODE -ne 0 ]; then
     echo "❌ Full supplement failed with exit code $CRAWL_EXIT_CODE"
     exit $CRAWL_EXIT_CODE
 fi
+# 1.5 Backup DuckDB to Parquet
+echo "💾 Backing up DuckDB to Parquet..."
+uv run python scripts/ops/backup_duckdb.py
+BACKUP_EXIT_CODE=$?
+if [ $BACKUP_EXIT_CODE -ne 0 ]; then
+    echo "⚠️ Parquet backup failed, but continuing..."
+fi
 
 # 2. Trigger Admin Webhook via curl
 # Validates using X-API-KEY (added to app/auth.py)

@@ -165,21 +165,21 @@
     - *Found:* **9958 Data Discrepancy** (Fixed via reload), **Name Display Bug** (Fixed via fallback), **YFinance Adjusted Dividend Mismatch** (Filed BUG-115)
 
 ### Part C: Zeabur Deployment (Persistent DuckDB)
-- [ ] **Zeabur Volume Mount**: Configure persistent volume at `/data/`
-- [ ] **Rehydration Logic in `app/main.py`** (MODIFY)
-    - [ ] On startup: check if `/data/market.duckdb` exists
-    - [ ] If missing → REHYDRATE from `data/backup/*.parquet` (bundled in image)
-    - [ ] If exists → use existing (preserves daily updates)
-- [ ] **Parquet Backup for Git** (Part D prerequisite)
-    - [ ] Create `backup_duckdb.py` — Export DuckDB → yearly `data/backup/prices_YYYY.parquet` (<50MB each)
-    - [ ] Check in `data/backup/*.parquet` to Git (DO NOT check in `market.duckdb`)
-- [ ] **Push to `origin/master`** (after Parquet backup)
+- [x] **Zeabur Volume Mount**: Configure persistent volume at `/data/`
+- [x] **Rehydration Logic in `app/main.py`** (MODIFY)
+    - [x] On startup: check if `/data/market.duckdb` exists
+    - [x] If missing → REHYDRATE from `data/backup/*.parquet` (bundled in image)
+    - [x] If exists → use existing (preserves daily updates)
+- [x] **Parquet Backup for Git** (Part D prerequisite)
+    - [x] Create `backup_duckdb.py` — Export DuckDB → yearly `data/backup/prices_YYYY.parquet` (<50MB each)
+    - [x] Check in `data/backup/*.parquet` to Git (DO NOT check in `market.duckdb`)
+- [x] **Push to `origin/master`** (after Parquet backup)
 - [ ] **Verify Zeabur Remote**: TSMC CAGR ~19%, Mars tab, Auth flow
 
 ### Part D: Nightly Pipeline & Backup
-- [ ] **Create `backup_duckdb.py`** (NEW)
-    - [ ] `COPY (SELECT * FROM daily_prices WHERE year=YYYY) TO 'data/backup/prices_YYYY.parquet'`
-    - [ ] Each yearly file <50MB, Git-friendly
+- [x] **Create `backup_duckdb.py`** (NEW)
+    - [x] `COPY (SELECT * FROM daily_prices WHERE year=YYYY) TO 'data/backup/prices_YYYY.parquet'`
+    - [x] Each yearly file <50MB, Git-friendly
 - [x] **Modify `refresh_current_year.sh`** (cron)
     - [x] Add `python backup_duckdb.py` after crawl
     - [x] `git add data/backup/*.parquet && git commit -m "backup: daily prices"`

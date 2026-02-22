@@ -482,8 +482,14 @@ def ensure_price_cache_batch(stock_ids: list, start_date: str = None) -> dict:
     if leftovers:
         batch2_map = {}
         for sid in leftovers:
-            base = sid.replace('.TW', '').replace('.TWO', '')
-            ticker = f"{base}.TWO"
+            if sid.endswith('.TWO'):
+                ticker = sid.replace('.TWO', '.TW')
+            elif sid.endswith('.TW'):
+                ticker = sid.replace('.TW', '.TWO')
+            elif len(sid) == 4 and sid.isdigit():
+                ticker = f"{sid}.TWO"  # If default TW failed, try TWO
+            else:
+                ticker = f"{sid}.TWO"  # If default TW array failed, try fallback
             batch2_map[ticker] = sid
         
         all_tickers2 = list(batch2_map.keys())
@@ -602,6 +608,27 @@ def fetch_history_series(ticker: str, period: str = "1y") -> Any:
              return pd.DataFrame()
 
         if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
+             # Auto-detect correctly if missing using DB
+             try:
+                 from app.services.market_db import get_connection
+                 conn = get_connection(read_only=True)
+                 cat = conn.execute("SELECT market_type FROM stocks WHERE stock_id = ?", (ticker,)).fetchone()
+                 if cat and cat[0] == "TPEx":
+                     ticker += '.TWO'
+                 else:
+                     ticker += '.TW'
+                 conn.close()
+             except Exception:
+                 ticker += '.TW'
+        
+        t = yf.Ticker(ticker)
+        return t.history(period=period)
+    except Exception as e:
+        print(f"[MarketData] Fetch History Error for {ticker}: {e}")
+        import pandas as pd
+        return pd.DataFrame()
+
+        if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
              if len(ticker) >= 4 and ticker[:4].isdigit():
                  ticker += '.TW'
         
@@ -620,7 +647,16 @@ def fetch_stock_info(ticker: str) -> dict:
     """
     try:
         if not (ticker.endswith('.TW') or ticker.endswith('.TWO')):
-             if len(ticker) == 4 and ticker.isdigit():
+             try:
+                 from app.services.market_db import get_connection
+                 conn = get_connection(read_only=True)
+                 cat = conn.execute("SELECT market_type FROM stocks WHERE stock_id = ?", (ticker,)).fetchone()
+                 if cat and cat[0] == "TPEx":
+                     ticker += '.TWO'
+                 else:
+                     ticker += '.TW'
+                 conn.close()
+             except Exception:
                  ticker += '.TW'
         
         t = yf.Ticker(ticker)

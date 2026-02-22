@@ -182,18 +182,26 @@ def sync_dividend_cache(stock_id: str, stock_name: str = None) -> dict:
     import yfinance as yf
     
     clean_id = _normalize_stock_id(stock_id)
-    ticker_symbol = f"{clean_id}.TW"
+    
+    # Intelligently determine suffix via DuckDB local cache if possible
+    ticker_suffix = ".TW"
+    try:
+        from app.services.market_db import get_connection
+        conn = get_connection(read_only=True)
+        cat = conn.execute("SELECT market_type FROM stocks WHERE stock_id = ?", (clean_id,)).fetchone()
+        if cat and cat[0] == "TPEx":
+            ticker_suffix = ".TWO"
+        conn.close()
+    except Exception:
+        pass
+        
+    ticker_symbol = f"{clean_id}{ticker_suffix}"
     
     try:
         ticker = yf.Ticker(ticker_symbol)
         div_series = ticker.dividends
         
-        if div_series.empty:
-            # Try .TWO for OTC stocks
-            ticker_symbol = f"{clean_id}.TWO"
-            ticker = yf.Ticker(ticker_symbol)
-            div_series = ticker.dividends
-        
+        # We no longer do blind fallbacks to prevent overlapping tickers
         if div_series.empty:
             return {"success": False, "message": f"No dividend data found for {clean_id}", "records": 0}
         

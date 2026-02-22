@@ -142,20 +142,20 @@ class MarsStrategy:
                         if not metrics:
                             continue
                             
-                        metrics['stock_code'] = code
+                        metrics['stock_code'] = str(code)
                         metrics['stock_name'] = str(code) 
-                        metrics['price'] = df_group.iloc[-1]['close'] if not df_group.empty else 0
+                        metrics['price'] = float(df_group.iloc[-1]['close']) if not df_group.empty else 0.0
                         
                         if len(df_group) > 1:
                             # Vectorized volatility (much faster)
                             close_prices = df_group['close'].values
                             pct_change = np.diff(close_prices) / close_prices[:-1]
-                            metrics['volatility_pct'] = np.std(pct_change) * 100
+                            metrics['volatility_pct'] = float(np.std(pct_change) * 100)
                         else:
                             metrics['volatility_pct'] = 0.0
 
                         last_valid_y = df_group.iloc[-1]['year']
-                        metrics['cagr_pct'] = metrics.get(f"s{start_year}e{last_valid_y}bao", 0)
+                        metrics['cagr_pct'] = float(metrics.get(f"s{start_year}e{last_valid_y}bao", 0.0))
                         
                         # CAGR StdDev Calculation
                         traj_values = []
@@ -168,12 +168,18 @@ class MarsStrategy:
                                     pass
                         
                         if len(traj_values) > 1:
-                            metrics['cagr_std'] = np.std(traj_values)
+                            metrics['cagr_std'] = float(np.std(traj_values))
                         else:
                             metrics['cagr_std'] = 999.0
 
-                        metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years
-                        metrics['end_year'] = last_valid_y
+                        metrics['valid_lasting_years'] = int(len(stock_yearly_stats))  # Number of distinct years
+                        metrics['end_year'] = int(last_valid_y)
+                        
+                        # Globally cast all NumPy scalars to native Python primitives for FastAPI JSON
+                        for k, v in metrics.items():
+                            if hasattr(v, 'item'):
+                                metrics[k] = v.item()
+                                
                         results.append(metrics)
                             
                     except Exception:

@@ -1,5 +1,3 @@
-
-
 # import pandas as pd # Lazy Import
 # import numpy as np # Lazy Import
 import json
@@ -16,6 +14,15 @@ from app.project_tw.crawler_cb import CBCrawler
 
 # Setup Logging
 logger = logging.getLogger(__name__)
+
+def sanitize_numpy(obj):
+    if isinstance(obj, dict):
+        return {k: sanitize_numpy(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_numpy(v) for v in obj]
+    elif hasattr(obj, 'item'):
+        return obj.item()
+    return obj
 
 class MarsStrategy:
     def __init__(self):
@@ -175,10 +182,8 @@ class MarsStrategy:
                         metrics['valid_lasting_years'] = int(len(stock_yearly_stats))  # Number of distinct years
                         metrics['end_year'] = int(last_valid_y)
                         
-                        # Globally cast all NumPy scalars to native Python primitives for FastAPI JSON
-                        for k, v in metrics.items():
-                            if hasattr(v, 'item'):
-                                metrics[k] = v.item()
+                        # Globally cast all nested NumPy scalars to native Python primitives for FastAPI JSON
+                        metrics = sanitize_numpy(metrics)
                                 
                         results.append(metrics)
                             

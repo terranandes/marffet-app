@@ -98,6 +98,14 @@
     - [x] **Empty Volume Guard** — Added `_is_db_empty()` to force rehydration on phantom `.duckdb` files
     - [x] **NumPy Serialization Fix** — Deep recursive `sanitize_numpy()` for FastAPI `jsonable_encoder` compatibility
     - [x] Final Remote Verification — Mars Strategy API returns HTTP 200 with 1,066 results on Zeabur
+- [x] **Remote Verification Plan Execution** (Ref: `docs/plan/2026_02_23_remote_verification_plan.md`)
+    - [x] Task 1: Environment & Auth Parity — ✅ Health endpoints + Guest login both pass
+    - [x] Task 2: Data Component Rendering (DuckDB) — ✅ Mars Strategy (962 stocks) + BCR render on Zeabur
+    - [x] Task 3: AI Copilot Inference — ❌ GCP API disabled (BUG-111-CV) — Config-only fix needed
+    - [x] Task 4: Portfolio ROICalculator — ✅ 2330 parsed in 0.28s, invalid tickers handled gracefully
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_0245.md` & `docs/code_review/code_review_2026_02_23_sync_0245.md`)
+- [ ] **BUG-111-CV: Zeabur AI Copilot GCP API Disabled** — Boss needs to enable Generative Language API <!-- id: bug-111-cv -->
+- [ ] **BUG-110-CV: Local Worktree Frontend .env.local Missing** — Auto-generate in /full-test workflow <!-- id: bug-110-cv -->
 - [ ] **Interactive Backfill Dashboard**
 - [ ] **Mobile Premium Overhaul**
 

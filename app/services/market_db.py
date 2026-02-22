@@ -20,6 +20,11 @@ def _rehydrate_from_parquet(target_db: Path):
     target_db.parent.mkdir(parents=True, exist_ok=True)
     conn = duckdb.connect(str(target_db))
     try:
+        # Enforce strict RAM & CPU limits to prevent Zeabur free-tier OOMkills during startup parsing
+        conn.execute("PRAGMA memory_limit='256MB'")
+        conn.execute("PRAGMA threads=1")
+        conn.execute("PRAGMA preserve_insertion_order=false")
+        
         # 1. daily_prices
         conn.execute("""
             CREATE TABLE IF NOT EXISTS daily_prices (

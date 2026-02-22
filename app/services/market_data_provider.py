@@ -268,11 +268,11 @@ class MarketDataProvider:
         logger.info("Warming latest price cache from DuckDB...")
         conn = get_connection(read_only=True)
         try:
-            # SQL to get latest price for every stock
+            # SQL to get latest price for every stock using O(N) ARGMAX to prevent Zeabur 512MB RAM OOM Kills
             query = """
-                SELECT stock_id, close
+                SELECT stock_id, ARGMAX(close, date)
                 FROM daily_prices
-                QUALIFY ROW_NUMBER() OVER (PARTITION BY stock_id ORDER BY date DESC) = 1
+                GROUP BY stock_id
             """
             results = conn.execute(query).fetchall()
             cls._latest_price_cache = {r[0]: r[1] for r in results}

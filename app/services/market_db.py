@@ -109,11 +109,17 @@ DB_PATH = _resolve_db_path()
 
 def get_connection(read_only: bool = False):
     """
-    Get a connection to the DuckDB database.
+    Get a connection to the DuckDB database with strict Zeabur container limits.
     """
     # Ensure directory exists
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return duckdb.connect(str(DB_PATH), read_only=read_only)
+    
+    # Pass config dictionary to prevent Host RAM scaling
+    config = {
+        'memory_limit': '256MB',
+        'threads': '1'
+    }
+    return duckdb.connect(str(DB_PATH), read_only=read_only, config=config)
 
 def init_schema():
     """

@@ -28,19 +28,6 @@ async def analyze_mars(request: MarsAnalyzeRequest):
         logger.info(f"Analyzing Mars Strategy for start_year={request.start_year}")
         strategy = MarsStrategy()
         results = await strategy.analyze(request.stock_ids, request.start_year)
-        
-        # Manually verify JSON serialization to catch NumPy exceptions before FastAPI 500s
-        import json
-        import traceback
-        try:
-            json.dumps(results)
-        except Exception as je:
-            return {
-                "error": "JSON Serialization Failed",
-                "message": str(je),
-                "trace": traceback.format_exc()
-            }
-            
         return results
     except Exception as e:
         logger.error(f"Error in analyze_mars: {e}")

@@ -14,6 +14,6 @@ Do strictly follow the following Steps:
 3. `MUST` Write down current plan at `./docs/plan`
 4. Use skill `multi-agent-brainstorming` to review preciously created plan
 5. `MUST` Write down current plan-review at `./docs/plan`
-6. `MUST` Update current plan at `./docs/plan`
-7. Use skill `ralph_loop_prd` to transform the plan considering plan-review into {plan}_PRD.md for Ralph Loop
-7. `MIST` Write down the {plan}_PRD.md at `./docs/plan`
+6. `MUST` Update current plan at `./docs/plan` according to plan-review
+7. Use skill `ralph_loop_prd` to transform the current plan into {plan}_PRD.md for Ralph Loop
+8. `MIST` Write down the {plan}_PRD.md at `./docs/plan`

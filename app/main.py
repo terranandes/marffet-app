@@ -120,7 +120,7 @@ async def lifespan(app: FastAPI):
 
 _STARTUP_RAN = False  # Flag to track lifespan startup execution
 
-app = FastAPI(title="Martian Investment System", lifespan=lifespan, debug=True)
+app = FastAPI(title="Martian Investment System", lifespan=lifespan)
 
 # Health Check (no auth, no deps — if this responds, the app is alive)
 @app.get("/healthz")

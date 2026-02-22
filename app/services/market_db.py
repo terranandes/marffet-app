@@ -92,9 +92,11 @@ def _is_db_empty(db_path: Path) -> bool:
         return True
     try:
         conn = duckdb.connect(str(db_path), read_only=True)
-        res = conn.execute("SELECT count(*) FROM stocks").fetchone()
-        conn.close()
-        return res[0] == 0
+        try:
+            res = conn.execute("SELECT count(*) FROM stocks").fetchone()
+            return res[0] == 0
+        finally:
+            conn.close()
     except Exception:
         return True
 

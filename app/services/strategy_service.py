@@ -41,27 +41,16 @@ class MarsStrategy:
         else:
             is_full_universe = False
 
-        # 2. Bulk Fetch Data (The Big Optimization)
-        logger.info(f"Bulk loading market data for {len(stock_ids)} stocks...")
+        # 2. Bulk Fetch Data (Memory-Safe Chunked Optimization)
+        logger.info(f"Loading market data in memory-safe chunks for {len(stock_ids)} stocks...")
         start_date = f"{start_year}-01-01"
         
-        # We fetch all if full universe OR specific list if provided
-        # For simplicity, if full universe we use the optimized get_all_*
-        # If specific list, for now we still fetch all and filter in memory if list is large
-        # or use standard if list is small. 
-        # But if user is on Mars tab, it's usually ALL.
-        
-        all_prices_df = MarketDataProvider.get_all_daily_history_df(start_date)
+        # Dividends are extremely lightweight (~30k rows), fetching all is safe
         all_dividends_df = MarketDataProvider.get_all_dividends_df(start_year)
-        
-        # Filter prices if not full universe
-        if not is_full_universe:
-            all_prices_df = all_prices_df[all_prices_df['stock_id'].isin(stock_ids)]
-            all_dividends_df = all_dividends_df[all_dividends_df['stock_id'].isin(stock_ids)]
-
-        if all_prices_df.empty:
-            logger.warning("No price data found for analysis.")
-            return []
+        if hasattr(all_dividends_df, 'groupby'):
+            div_groups = all_dividends_df.groupby('stock_id')
+        else:
+            div_groups = {}
 
         # 3. Load patches once
         if not hasattr(self, 'dividend_patches'):
@@ -76,119 +65,128 @@ class MarsStrategy:
                 logger.error(f"Error loading dividend patches: {e}")
                 self.dividend_patches = {}
 
-        # 4. Pre-calculate Yearly Statistics (The Second Big Optimization)
-        logger.info("Pre-calculating yearly statistics for all stocks...")
-        all_prices_df['year'] = all_prices_df['date'].dt.year
-        
-        # We need first-open, mean-close, last-close, max-high, min-low per year per stock
-        # This one-time bulk aggregation saves 3+ groupbies per stock in the loop
-        yearly_agg = all_prices_df.groupby(['stock_id', 'year']).agg(
-            action_price=('open', 'first'),
-            avg_price=('close', 'mean'),
-            end_price=('close', 'last')
-        ).reset_index()
-        
-        # Group the aggregated data for easy lookup
-        yearly_agg_groups = yearly_agg.groupby('stock_id')
-
-        # 5. Group by stock_id for raw history access
-        price_groups = all_prices_df.groupby('stock_id')
-        div_groups = all_dividends_df.groupby('stock_id')
-        
+        # 4 & 5 & 6. Setup Iteration across DuckDB in Chunks of 200 stocks (~40MB RAM max)
         results = []
         end_year = datetime.now().year
         years = list(range(start_year, end_year + 1))
-
-        # 6. Process each stock
+        
+        from app.services.market_db import get_connection
+        conn = get_connection(read_only=True)
+        chunk_size = 200
         processed_count = 0
-        total_stocks = len(price_groups)
-        logger.info(f"Processing {total_stocks} stocks...")
-
-        for code, df_group in price_groups:
-            try:
-                # Prepare pre-calculated yearly data for this stock
-                if code not in yearly_agg_groups.groups:
-                    # logger.warning(f"Stock {code} not in yearly_agg_groups")
-                    continue
+        total_stocks = len(stock_ids)
+        
+        logger.info(f"Processing {total_stocks} stocks in chunks of {chunk_size}...")
+        
+        try:
+            for i in range(0, total_stocks, chunk_size):
+                chunk = stock_ids[i:i+chunk_size]
                 
-                stock_yearly_stats = yearly_agg_groups.get_group(code)
+                # Fetch price chunk directly from DuckDB (avoid holding 500MB globally)
+                q = f"SELECT stock_id, date, open, high, low, close, volume FROM daily_prices WHERE stock_id IN ({','.join(['?']*len(chunk))}) AND date >= ?"
+                params = chunk + [start_date]
+                chunk_df = conn.execute(q, params).df()
                 
-                # NOTE: Split detection is handled internally by calculate_complex_simulation
-                # (via detector.detect_splits). Do NOT call it here — it duplicates the
-                # expensive df.to_dict('records') conversion for 1,578 stocks.
-                
-                stock_divs = {}
-                if code in div_groups.groups:
-                    div_df = div_groups.get_group(code)
-                    for _, row in div_df.iterrows():
-                        y = int(row['year'])
-                        stock_divs[y] = {
-                            'cash': float(row['cash']),
-                            'stock': float(row['stock'])
-                        }
-                
-                # Apply Patches
-                if str(code) in self.dividend_patches:
-                    patches = self.dividend_patches[str(code)]
-                    for y_str, data in patches.items():
-                        stock_divs[int(y_str)] = data
-
-                # 7. Run Logic (Highly Optimized with Pre-computed Stats)
-                metrics = self.calculator.calculate_complex_simulation(
-                    df_group, 
-                    start_year, 
-                    principal=principal,
-                    annual_investment=contribution,
-                    dividend_data=stock_divs, 
-                    stock_code=code,
-                    buy_logic='YEAR_START_OPEN',
-                    precomputed_yearly_stats=stock_yearly_stats
-                )
-                
-                if not metrics:
+                if chunk_df.empty:
                     continue
                     
-                metrics['stock_code'] = code
-                metrics['stock_name'] = str(code) 
-                metrics['price'] = df_group.iloc[-1]['close'] if not df_group.empty else 0
+                chunk_df['year'] = chunk_df['date'].dt.year
                 
-                if len(df_group) > 1:
-                    # Vectorized volatility (much faster)
-                    close_prices = df_group['close'].values
-                    pct_change = np.diff(close_prices) / close_prices[:-1]
-                    metrics['volatility_pct'] = np.std(pct_change) * 100
-                else:
-                    metrics['volatility_pct'] = 0.0
-
-                last_valid_y = df_group.iloc[-1]['year']
-                metrics['cagr_pct'] = metrics.get(f"s{start_year}e{last_valid_y}bao", 0)
+                # Pre-calculate yearly stats for this specific chunk (saves massive groupby time)
+                yearly_agg = chunk_df.groupby(['stock_id', 'year']).agg(
+                    action_price=('open', 'first'),
+                    avg_price=('close', 'mean'),
+                    end_price=('close', 'last')
+                ).reset_index()
                 
-                # CAGR StdDev Calculation
-                traj_values = []
-                for y in years:
-                    val = metrics.get(f"s{start_year}e{y}bao")
-                    if val is not None:
-                        try:
-                            traj_values.append(float(val))
-                        except Exception:
-                            pass
+                yearly_agg_groups = yearly_agg.groupby('stock_id')
+                price_groups = chunk_df.groupby('stock_id')
                 
-                if len(traj_values) > 1:
-                    metrics['cagr_std'] = np.std(traj_values)
-                else:
-                    metrics['cagr_std'] = 999.0
-
-                metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years
-                metrics['end_year'] = last_valid_y
-                results.append(metrics)
+                # Process each stock in the current chunk
+                for code in chunk:
+                    if code not in price_groups.groups: continue
+                    df_group = price_groups.get_group(code)
                     
-            except Exception:
-                # Silently catch per-stock errors to avoid crashing full run
-                continue
-            
-            processed_count += 1
-            if processed_count % 500 == 0:
-                logger.info(f"  Processed {processed_count}/{total_stocks} stocks...")
+                    if code not in yearly_agg_groups.groups: continue
+                    stock_yearly_stats = yearly_agg_groups.get_group(code)
+                    
+                    stock_divs = {}
+                    if hasattr(div_groups, 'groups') and code in div_groups.groups:
+                        div_df = div_groups.get_group(code)
+                        for _, row in div_df.iterrows():
+                            y = int(row['year'])
+                            stock_divs[y] = {
+                                'cash': float(row['cash']),
+                                'stock': float(row['stock'])
+                            }
+                    
+                    # Apply Patches
+                    if str(code) in self.dividend_patches:
+                        patches = self.dividend_patches[str(code)]
+                        for y_str, data in patches.items():
+                            stock_divs[int(y_str)] = data
+
+                    # 7. Run Logic (Highly Optimized with Pre-computed Stats)
+                    try:
+                        metrics = self.calculator.calculate_complex_simulation(
+                            df_group, 
+                            start_year, 
+                            principal=principal,
+                            annual_investment=contribution,
+                            dividend_data=stock_divs, 
+                            stock_code=code,
+                            buy_logic='YEAR_START_OPEN',
+                            precomputed_yearly_stats=stock_yearly_stats
+                        )
+                        
+                        if not metrics:
+                            continue
+                            
+                        metrics['stock_code'] = code
+                        metrics['stock_name'] = str(code) 
+                        metrics['price'] = df_group.iloc[-1]['close'] if not df_group.empty else 0
+                        
+                        if len(df_group) > 1:
+                            # Vectorized volatility (much faster)
+                            close_prices = df_group['close'].values
+                            pct_change = np.diff(close_prices) / close_prices[:-1]
+                            metrics['volatility_pct'] = np.std(pct_change) * 100
+                        else:
+                            metrics['volatility_pct'] = 0.0
+
+                        last_valid_y = df_group.iloc[-1]['year']
+                        metrics['cagr_pct'] = metrics.get(f"s{start_year}e{last_valid_y}bao", 0)
+                        
+                        # CAGR StdDev Calculation
+                        traj_values = []
+                        for y in years:
+                            val = metrics.get(f"s{start_year}e{y}bao")
+                            if val is not None:
+                                try:
+                                    traj_values.append(float(val))
+                                except Exception:
+                                    pass
+                        
+                        if len(traj_values) > 1:
+                            metrics['cagr_std'] = np.std(traj_values)
+                        else:
+                            metrics['cagr_std'] = 999.0
+
+                        metrics['valid_lasting_years'] = len(stock_yearly_stats)  # Number of distinct years
+                        metrics['end_year'] = last_valid_y
+                        results.append(metrics)
+                            
+                    except Exception:
+                        # Silently catch per-stock errors to avoid crashing full run
+                        continue
+                        
+                    processed_count += 1
+                    
+                if processed_count > 0 and (processed_count % 500 == 0 or processed_count == total_stocks):
+                    logger.info(f"  Processed {processed_count}/{total_stocks} stocks...")
+                    
+        finally:
+            conn.close()
 
         # 8. Apply Filters
         filtered_results = self.apply_filters(results)

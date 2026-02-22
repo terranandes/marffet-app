@@ -86,13 +86,26 @@ def _rehydrate_from_parquet(target_db: Path):
         raise
     finally:
         conn.close()
+def _is_db_empty(db_path: Path) -> bool:
+    """Check if the duckdb file is empty (missing tables or zero rows)."""
+    if not db_path.exists():
+        return True
+    try:
+        conn = duckdb.connect(str(db_path), read_only=True)
+        res = conn.execute("SELECT count(*) FROM stocks").fetchone()
+        conn.close()
+        return res[0] == 0
+    except Exception:
+        return True
 
 def _resolve_db_path() -> Path:
     """Resolve the best DuckDB path, with copy-on-startup for Zeabur."""
     # If /data/ volume exists (Zeabur), use it
     if _VOLUME_DB_PATH.parent.exists() and _VOLUME_DB_PATH.parent.is_dir():
-        if not _VOLUME_DB_PATH.exists():
-            if _LOCAL_DB_PATH.exists():
+        if _is_db_empty(_VOLUME_DB_PATH):
+            if _VOLUME_DB_PATH.exists():
+                _VOLUME_DB_PATH.unlink()  # Delete empty/corrupted shell
+            if _LOCAL_DB_PATH.exists() and not _is_db_empty(_LOCAL_DB_PATH):
                 logging.info(f"[MarketDB] Copying {_LOCAL_DB_PATH} → {_VOLUME_DB_PATH}")
                 shutil.copy2(str(_LOCAL_DB_PATH), str(_VOLUME_DB_PATH))
             else:
@@ -100,7 +113,9 @@ def _resolve_db_path() -> Path:
         return _VOLUME_DB_PATH
     
     # Fallback: local development path
-    if not _LOCAL_DB_PATH.exists():
+    if _is_db_empty(_LOCAL_DB_PATH):
+        if _LOCAL_DB_PATH.exists():
+            _LOCAL_DB_PATH.unlink()
         _rehydrate_from_parquet(_LOCAL_DB_PATH)
     return _LOCAL_DB_PATH
 

@@ -133,3 +133,20 @@ uv run tests/unit/test_mobile_portfolio.py
 | BUG-011 (Transaction Edit) | Medium | Fixed in master, verification deferred |
 | Zeabur frontend 404 | High | Resolved (Port Fix) |
 | Favicon 404 on legacy | Low | Cosmetic |
+
+## 5. Automated Heuristic Bug Hunt
+**Executed by**: `[CV]` via Playwright MCP (`tests/e2e/mcp_bug_hunt.py`)
+
+### 5.1 Local Verification Scenarios
+*   **Mars Strategy Loading**: Navigate to `/mars`, verify that the data table populates correctly (checking for the 0-results regression).
+*   **BCR Loading**: Navigate to `/race`, verify that the chart renders.
+*   **Portfolio Groups**: Navigate to `/portfolio`, verify group creation or correct fetching.
+*   **Admin Dashboard**: Verify the dashboard shows up correctly (if logged in as GM).
+
+### 5.2 Remote Verification Scenarios
+*   **Same as 5.1**, but executed against `https://martian-api.zeabur.app` and `https://martian-app.zeabur.app`.
+*   Verify API health endpoint.
+
+### 5.3 Evidence Capture
+*   Screenshots will be saved to `tests/evidence/`.
+*   Bugs will be filed to `docs/jira/BUG-<ID>-CV_<desc>.md`.

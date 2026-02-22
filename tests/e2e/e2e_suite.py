@@ -118,8 +118,8 @@ def run_e2e():
             page.locator('input[type="number"]').nth(0).fill("1000")
             page.locator('input[type="number"]').nth(1).fill("500")
             
-            # Click Confirm and Wait for UI
-            page.get_by_text("Confirm").click()
+            # Click Save and Wait for UI
+            page.get_by_role("button", name="Save").click()
             
             # Wait for Modal to Close (implies success)
             try:

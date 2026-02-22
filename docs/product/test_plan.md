@@ -35,7 +35,11 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-16 | Daily Data | High Res Data | Verify 2330 has Daily Data (200+ rows/year) |
 | TC-17 | Mars Strategy | Split Detector | 0050 CAGR > 12% (Split Adjusted) |
 | TC-18 | Mars Strategy | Logic Compliance | Buy Logic = First Close |
+| TC-19 | DuckDB Rehydration | Persistence | `/health` returns healthy on empty volume |
 | TC-20 | Cache Singleton | Performance | Verify All Tabs load in <0.5s via Shared RAM |
+| TC-21 | Mars Memory | Zeabur Stability | `/mars/analyze` doesn't 502 with >5M rows |
+| TC-22 | JSON Serialization | FastAPI Compliance | No 500 errors from nested NumPy types |
+| TC-23 | Data Accuracy | Nominal Consistency | TSMC CAGR 2010-2025 ~19.4% |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
@@ -104,6 +108,15 @@ uv run tests/unit/test_mobile_portfolio.py
 | Split Logic | Unit tests cover 2:1, reverse splits | ✅ |
 | Integration Suite | `test_main_refactor.py` passes | ✅ |
 | E2E Compliance | TSMC CAGR ~22.2% | ✅ |
+
+### v3.2 (2026-02-22) - Zeabur Stabilization & DuckDB Rehydration
+| Test | Expected | Status |
+|------|----------|--------|
+| DuckDB Rehydration | _is_db_empty logic triggers on boot | ✅ PASSED |
+| Mars Chunked Stream | Peak RAM < 100MB | ✅ PASSED |
+| NumPy Sanitizer | Deep recursion avoids 500 errors | ✅ PASSED |
+| TSMC CAGR (2010) | 19.4% (Nominal Baseline) | ✅ Verified (19.41%) |
+| Match Rate | >84% Correlation vs MoneyCome | ✅ 84.71% |
 
 ### v3.0 (2026-02-07) - Phase 3 Verification
 | Test | Expected | Status |

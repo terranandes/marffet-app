@@ -14,3 +14,4 @@ Do strictly follow the following Steps:
 3. `MUST` Write down current plan at `./docs/plan`
 4. Use skill `multi-agent-brainstorming` to review preciously created plan
 5. `MUST` Write down current plan-review at `./docs/plan`
+6. `MUST` Update current plan at `./docs/plan`

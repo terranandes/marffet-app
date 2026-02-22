@@ -1,10 +1,14 @@
+import sys
 import duckdb
 import os
 from pathlib import Path
 import logging
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = BASE_DIR / "data/market.duckdb"
+sys.path.insert(0, str(BASE_DIR))
+
+# Dynamically resolve live DB path to support Zeabur Persistent Volume
+from app.services.market_db import DB_PATH
 BACKUP_DIR = BASE_DIR / "data/backup"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

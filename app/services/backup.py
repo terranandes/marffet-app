@@ -187,6 +187,11 @@ class BackupService:
         files_to_upload = []
         for pattern in patterns:
             files_to_upload.extend(data_dir.glob(pattern))
+            
+        # Also include DuckDB Parquet schemas
+        backup_dir = Path("data/backup")
+        if backup_dir.exists():
+            files_to_upload.extend(backup_dir.glob("*.parquet"))
         
         if not files_to_upload:
             return {"status": "error", "reason": "no_files_found"}
@@ -229,7 +234,7 @@ class BackupService:
                 
                 blob_sha = blob_resp.json()["sha"]
                 tree_entries.append({
-                    "path": f"data/raw/{file_path.name}",
+                    "path": str(file_path),
                     "mode": "100644",  # Regular file
                     "type": "blob",
                     "sha": blob_sha

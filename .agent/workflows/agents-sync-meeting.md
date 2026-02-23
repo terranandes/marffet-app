@@ -17,7 +17,7 @@ are starting a brief discussion on or follow the rules/workflows below:
 - process for feedback by end-user
 - review/renew product related files that agents owns at `./docs/product` by demand
 - review the mobile Web layout, whereas UI components shall be elegant and feasible
-- trace worktree/branch status, continue?/finished?/can be cleaned-up? If clean, remove them out(local and remote)
+- trace worktree/branch/stash status, continue?/finished?/can be cleaned-up? If clean, remove them (local and remote)
 - do workflow `code-review`
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
 - adjust plans in `./docs/plan` as necessary

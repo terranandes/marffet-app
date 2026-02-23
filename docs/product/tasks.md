@@ -106,6 +106,7 @@
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_0245.md` & `docs/code_review/code_review_2026_02_23_sync_0245.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_0300.md` & `docs/code_review/code_review_2026_02_23_sync_0300.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_1715.md` & `docs/code_review/code_review_2026_02_23_sync_1715.md`)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_24_sync_0204.md` & `docs/code_review/code_review_2026_02_24_sync_0204.md`)
 - [ ] **BUG-111-CV: Zeabur AI Copilot GCP API Disabled** — Boss needs to enable Generative Language API <!-- id: bug-111-cv -->
 - [ ] **BUG-110-CV: Local Worktree Frontend .env.local Missing** — Auto-generate in /full-test workflow <!-- id: bug-110-cv -->
 - [ ] **Interactive Backfill Dashboard**

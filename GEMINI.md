@@ -1,4 +1,5 @@
-Only for GEMINI CLI IDE agents, if you are not, you are prohibited from access of this file.
+Only for GEMINI CLI agents, if you are not, you are prohibited from access of this file.
 
-Currently, if you are GEMINI CLI IDE agents, you shall also refer to ../.agents/rules/*.md
-
+If you are GEMINI CLI agents
+- you shall also refer to ../.agents/rules/*.md
+- you are the agent [GCV]

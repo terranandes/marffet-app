@@ -528,7 +528,7 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
         if cache_key in SIM_CACHE:
             print(f"[Detail] Cache Hit for {stock_id}")
             return SIM_CACHE[cache_key]
-        from app.project_tw.calculator import ROICalculator
+        from app.services.roi_calculator import ROICalculator
         import pandas as pd
         
         calc = ROICalculator()
@@ -561,17 +561,40 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
             return {"error": "No data found for stock"}
 
         df = pd.DataFrame(rows)
-        div_data = MarketDataProvider.load_dividends_dict().get(stock_id, {})
+        # Use new DuckDB dividend format (all years for stock_id)
+        div_data = MarketDataProvider.get_all_dividends_df(start_year)
+        if hasattr(div_data, "groupby"):
+            stock_divs = {}
+            # filter for just this stock
+            my_divs = div_data[div_data['stock_id'] == str(stock_id)]
+            for _, r in my_divs.iterrows():
+                stock_divs[int(r['year'])] = {'cash': float(r['cash']), 'stock': float(r['stock'])}
+        else:
+            stock_divs = {}
+
+        # Apply dividend_patches.json
+        import json
+        from pathlib import Path
+        try:
+            patch_file = Path("data/dividend_patches.json")
+            if patch_file.exists():
+                with open(patch_file, 'r') as f:
+                    patches = json.load(f)
+                if str(stock_id) in patches:
+                    for y_str, data in patches[str(stock_id)].items():
+                        stock_divs[int(y_str)] = data
+        except Exception as e:
+            print(f"Error applying dividend patches: {e}")
 
         # Run 3 Simulations
         res_bao = calc.calculate_complex_simulation(
-            df, start_year, principal, contribution, div_data, stock_id, buy_logic='FIRST_OPEN'
+            df, start_year, principal, contribution, stock_divs, stock_id, buy_logic='YEAR_START_OPEN'
         )
         res_bah = calc.calculate_complex_simulation(
-            df, start_year, principal, contribution, div_data, stock_id, buy_logic='YEAR_HIGH'
+            df, start_year, principal, contribution, stock_divs, stock_id, buy_logic='YEAR_HIGH'
         )
         res_bal = calc.calculate_complex_simulation(
-            df, start_year, principal, contribution, div_data, stock_id, buy_logic='YEAR_LOW'
+            df, start_year, principal, contribution, stock_divs, stock_id, buy_logic='YEAR_LOW'
         )
         
         result = {

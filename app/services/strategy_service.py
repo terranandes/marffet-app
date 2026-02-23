@@ -90,7 +90,7 @@ class MarsStrategy:
                 chunk = stock_ids[i:i+chunk_size]
                 
                 # Fetch price chunk directly from DuckDB (avoid holding 500MB globally)
-                q = f"SELECT stock_id, date, open, high, low, close, volume FROM daily_prices WHERE stock_id IN ({','.join(['?']*len(chunk))}) AND date >= ?"
+                q = f"SELECT stock_id, date, open, high, low, close, volume FROM daily_prices WHERE stock_id IN ({','.join(['?']*len(chunk))}) AND date >= ? ORDER BY stock_id, date ASC"
                 params = chunk + [start_date]
                 chunk_df = conn.execute(q, params).df()
                 

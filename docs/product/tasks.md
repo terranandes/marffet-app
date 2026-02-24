@@ -108,6 +108,7 @@
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_1715.md` & `docs/code_review/code_review_2026_02_23_sync_1715.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_24_sync_0204.md` & `docs/code_review/code_review_2026_02_24_sync_0204.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_24_sync_0206.md` & `docs/code_review/code_review_2026_02_24_sync_0206.md`)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_25_sync_0310.md` & `docs/code_review/code_review_2026_02_25_sync_0310.md`)
 - [ ] **BUG-111-CV: Zeabur AI Copilot GCP API Disabled** — Boss needs to enable Generative Language API <!-- id: bug-111-cv -->
 - [ ] **BUG-110-CV: Local Worktree Frontend .env.local Missing** — Auto-generate in /full-test workflow <!-- id: bug-110-cv -->
 - [ ] **Interactive Backfill Dashboard**
@@ -124,6 +125,7 @@
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
 - [x] **Fix BUG-111: Next.js API Proxy 500 Error** (Resolved: Port mismatch fixed .env -> 8000) <!-- id: bug-111 -->
+- [x] **Fix Mars Tab Discrepancy** (Aligned detail `/api/results/detail` output with `/api/results` tabular output by unifying `ROICalculator` mathematically)
 - [ ] **BUG-114-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
 
 ## 15. Phase 15: DuckDB Optimization & Dividend Migration - [COMPLETED]
@@ -232,7 +234,7 @@
 
 ### Part E: Housekeeping - [COMPLETED]
 - [x] **Commit Phase 16 scripts to `master`**
-- [x] **Clean up 6 stale branches** (Local branches deleted; remote kept due to SSH issue)
+- [x] **Clean up stale branches and stashes** (Deleted 11 remote branches and 2 local stashes per `agents-sync-meeting` updates)
 - [x] **Kill lingering zombie Python processes**
 - [x] **Mars Strategy Filters** (Restored based on user request)
     - [x] Active (Current Year), Duration (>3yrs), Volatility (<3x TSMC), Stability (Std<20), No 'L' ETFs.

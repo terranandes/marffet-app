@@ -109,6 +109,16 @@ uv run tests/unit/test_mobile_portfolio.py
 | Integration Suite | `test_main_refactor.py` passes | ✅ |
 | E2E Compliance | TSMC CAGR ~22.2% | ✅ |
 
+### v3.3 (2026-02-25) - Mars Tab Unification & Branch Cleanup
+| Test | Expected | Status |
+|------|----------|--------|
+| Detail API Alignment | `/api/results/detail` uses same ROICalculator as `/api/results` | ✅ PASSED |
+| DuckDB ORDER BY | `strategy_service.py` query has `ORDER BY stock_id, date ASC` | ✅ PASSED |
+| Dividend Patches | `dividend_patches.json` applied in detail API | ✅ PASSED |
+| TSMC Final Value Match | Summary (90,629,825) == Detail BAO (90,629,825) | ✅ PASSED |
+| Branch Cleanup | Only `master` exists locally and remotely | ✅ PASSED |
+| Stash Cleanup | `git stash list` returns empty | ✅ PASSED |
+
 ### v3.2 (2026-02-22) - Zeabur Stabilization & DuckDB Rehydration
 | Test | Expected | Status |
 |------|----------|--------|

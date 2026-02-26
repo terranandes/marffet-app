@@ -236,9 +236,9 @@ class ROICalculator:
         results = {}
         history = []
         
-        # Initial Point
+        # Initial Point (year before simulation starts — pre-investment baseline)
         history.append({
-            "year": start_year,
+            "year": start_year - 1,
             "value": round(principal, 0),
             "dividend": 0,
             "invested": round(principal, 0),

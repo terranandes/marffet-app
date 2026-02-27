@@ -236,6 +236,9 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
     event_idx = 0
     total_events = len(events)
     
+    live_prices = market_data_service.fetch_live_prices(stock_ids)
+    current_real_month = datetime.now().strftime("%Y-%m")
+
     while current_iter_date <= end_date:
         month_key = current_iter_date.strftime("%Y-%m")
         month_end_date = (current_iter_date + relativedelta(months=1)) - relativedelta(days=1)
@@ -287,7 +290,9 @@ def get_portfolio_history(user_id: str = "default", months: int = 12) -> List[Di
                 try:
                     ph = price_history.get(sid)
                     price = 0
-                    if ph is not None and not ph.empty:
+                    if month_key == current_real_month and sid in live_prices:
+                        price = live_prices[sid].get("price", 0)
+                    elif ph is not None and not ph.empty:
                         idx = ph.index.get_indexer([month_end_date], method='nearest')[0]
                         if idx != -1:
                             val = ph.iloc[idx]
@@ -336,7 +341,7 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
         # We need target details.
         targets = target_repo.get_targets_by_user(conn, user_id)
         # Create map: target_id -> {stock_name, asset_type}
-        target_map = {t['id']: {'name': t['stock_name'], 'type': t['asset_type']} for t in targets}
+        target_map = {t['id']: {'stock_id': t['stock_id'], 'name': t['stock_name'], 'type': t['asset_type']} for t in targets}
     
     if not txs:
         return []
@@ -357,8 +362,6 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
     earliest_date_str = min(t['date'] for t in txs)
     start_date = datetime.strptime(earliest_date_str[:7] + "-01", "%Y-%m-%d")
 
-    # Fetch Prices
-    price_history = {}
     # Fetch Prices
     price_history = {}
     try:
@@ -428,14 +431,10 @@ def get_portfolio_race_data(user_id: str = "default") -> List[Dict[str, Any]]:
                 market_val = data['total_cost']
             
             # Find metadata (any target with this stock_id)
-            # We have target_map keyed by TARGET ID, not Stock ID.
-            # Need stock metadata map.
-            # Lazy way: search txs? Or build map earlier.
-            # We built target_map. We can build stock_meta from it.
             name = sid
             atype = 'stock'
             for t in target_map.values(): # optimization possible
-                if t['name'] and t['name'] != sid: 
+                if t.get('stock_id') == sid and t.get('name') and t.get('name') != sid: 
                      name = t['name']
                      atype = t['type']
                      break

@@ -152,15 +152,20 @@ def delete_transaction(tx_id: str) -> bool:
 
 def update_user_stats(user_id: str):
     """Recalculate and save user stats."""
-    snapshot = calculation_service.get_portfolio_snapshot(user_id)
-    with get_db() as conn:
-        user_repo.upsert_user_stats(
-            conn, 
-            user_id, 
-            snapshot['total_wealth'], 
-            snapshot['total_cost'], 
-            snapshot['total_roi']
-        )
+    try:
+        snapshot = calculation_service.get_portfolio_snapshot(user_id)
+        with get_db() as conn:
+            user_repo.upsert_user_stats(
+                conn, 
+                user_id, 
+                snapshot['total_wealth'], 
+                snapshot['total_cost'], 
+                snapshot['total_roi']
+            )
+        return {"roi": round(snapshot['total_roi'], 2)}
+    except Exception as e:
+        print(f"Error updating user stats: {e}")
+        return None
 
 def get_portfolio_history(user_id: str, months: int = 12) -> List[Dict[str, Any]]:
     return calculation_service.get_portfolio_history(user_id, months)
@@ -208,11 +213,11 @@ def get_public_portfolio(user_id: str) -> Dict[str, Any]:
         for k, v in type_values.items():
             if v > 0:
                 pct = round((v / total_value) * 100, 1)
-                allocation.append({"label": k, "pct": pct})
+                allocation.append({"name": k, "pct": pct})
                 
     holdings_value.sort(key=lambda x: x['value'], reverse=True)
     top_holdings = [
-        {"symbol": h['symbol'], "name": h['name']} 
+        {"stock_id": h['symbol'], "stock_name": h['name']} 
         for h in holdings_value[:5]
     ]
     
@@ -220,9 +225,9 @@ def get_public_portfolio(user_id: str) -> Dict[str, Any]:
         "nickname": profile.get("nickname") or "User",
         "picture": profile.get("picture"),
         "joined_at": str(profile.get("created_at"))[:10] if profile.get("created_at") else "2024-01-01",
-        "roi_pct": round(snapshot['total_roi'], 2),
+        "roi": round(snapshot['total_roi'], 2),
         "allocation": allocation,
-        "top_holdings": top_holdings
+        "holdings": top_holdings
     }
 
 def initialize_default_portfolio(user_id: str, conn: sqlite3.Connection) -> None:

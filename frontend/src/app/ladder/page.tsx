@@ -193,7 +193,7 @@ export default function LadderPage() {
             <div className="fixed bottom-6 right-6 z-40 md:static md:text-center md:mt-4">
                 <ShareButton
                     text="Check out the Martian Investment Leaderboard! 🏆"
-                    label="📤 Share Rankings"
+                    label="Share Rankings"
                 />
             </div>
 

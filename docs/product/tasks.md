@@ -128,6 +128,7 @@
 - [x] **Fix Mars Tab Discrepancy** (Aligned detail `/api/results/detail` output with `/api/results` tabular output by unifying `ROICalculator` mathematically)
 - [x] **Fix BUG-120-PL: Trend Portfolio Value Mismatch** (Stitched Live Prices to the trailing month in DuckDB timeline to perfectly match Portfolio $97M)
 - [x] **Fix BUG-121-PL: My Race Target Merge Name Bug** (Fixed strict `stock_id` matching in Python grouping to prevent target name hallucination/collision)
+- [x] **Fix BUG-122-PL: Cash Ladder UI Bugs** (Sync Stats 500 fixed, Profile Allocation names fixed, Share icon duplication removed)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_1903.md` & `docs/code_review/code_review_2026_02_27_sync_1903.md`)
 - [ ] **BUG-114-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
 

@@ -1267,7 +1267,18 @@ def api_sync_dividends(user: dict = Depends(get_current_user)):
 def api_target_dividends(target_id: str):
     """Get dividend history for a target"""
     try:
-        return portfolio_service.get_dividend_history(target_id)
+        raw_divs = portfolio_service.get_dividend_history(target_id)
+        formatted = []
+        for d in raw_divs:
+            formatted.append({
+                "date": d.get("ex_date"),
+                "payment_date": None,
+                "cash_dividend": d.get("amount_per_share", 0),
+                "stock_dividend": 0,
+                "held_shares": d.get("shares_held", 0),
+                "amount": d.get("total_cash", 0)
+            })
+        return formatted
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

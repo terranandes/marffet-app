@@ -82,6 +82,7 @@ export function TransactionFormModal({
                                 type="date"
                                 value={txData.date}
                                 onChange={(e) => onChange({ ...txData, date: e.target.value })}
+                                style={{ colorScheme: "dark" }}
                                 className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 focus:border-[var(--color-cta)] outline-none text-sm h-[46px]"
                             />
                         </div>

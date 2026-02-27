@@ -2,7 +2,7 @@
 **Reporter:** [PL]
 **Component:** Backend (Portfolio Service - Trend)
 **Severity:** Medium
-**Status:** OPEN
+**Status:** CLOSED
 
 ## Description
 User reports that the final coordinate on the "Portfolio Trend" chart displays a Market Value of $93,983,073, whereas the "My Portfolio" dashboard Live Market Value shows $97,082,769. The Cost Basis on the tip of the Trend Chart is identical to the Portfolio Cost Basis ($36,626,440), proving that transaction parsing is correct. 

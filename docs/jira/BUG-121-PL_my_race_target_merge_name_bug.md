@@ -2,7 +2,7 @@
 **Reporter:** [PL]
 **Component:** Backend (Portfolio Service - Race)
 **Severity:** High
-**Status:** OPEN
+**Status:** CLOSED
 
 ## Description
 In the "My Race" tab, the timeline bars are hallucinating incorrect names across different assets. The user has TSMC (2330), 6533, and 65331. However, the Race chart displays three bars all named variations of "晶心科...". E.g., TSMC's $82M bar is erroneously labeled as "晶心科...", effectively stripping "台積電" from the UI.

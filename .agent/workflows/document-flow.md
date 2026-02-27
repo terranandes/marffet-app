@@ -17,6 +17,7 @@ Please prepare/update tiny-up product datasheet and README for the end-users who
 - ./docs/product/datasheet.md
 - ./docs/product/README.md, audiences are end-users who use the APP (not ME/Terran/BOSS/Agents)
 - ./README.md, audiences are users who watch project or repository, located at GitHub
+. ./docs/product/social_media_promo.md, promotion to audience on social media
 
 ## [PL][CODE][UI] own
 Please prepare/update tiny-up software-perspective document, the software_stack.

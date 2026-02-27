@@ -3,7 +3,7 @@
 **Reporter:** [PL]
 **Component:** Frontend (Portfolio) & Backend (Dividend Sync / Calculation)
 **Severity:** High
-**Status:** OPEN
+**Status:** CLOSED
 
 ## Description
 When the user goes to the Portfolio tab and clicks "Sync Dividends", the dividend receipt remains empty or displays `NaN` in the UI (specifically within the Dividend History modal and the Target list). Despite having valid transactions (e.g., buying 40,000 shares of TSMC in 2010), the dividend sync process fails to populate historical dividends, and the calculation engine yields `NaN` for total cash.

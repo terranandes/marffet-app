@@ -3,7 +3,7 @@
 **Reporter:** [PL]
 **Component:** Frontend (BCR) & Backend (ROICalculator)
 **Severity:** Medium
-**Status:** FIXED
+**Status:** CLOSED
 
 ## Description
 In the Bar Chart Race (BCR) tab, users observed duplicate bars rendering for the initial simulation year (e.g., year 2006). This caused phantom bars to appear, skewed the rank calculations, and caused jitter in the UI animation for the first frame. 

@@ -21,17 +21,17 @@ export default function ClientProviders({ children }: { children: React.ReactNod
                     // Fetch Context if logged in
                     try {
                         const [pRes, cRes] = await Promise.all([
-                            fetch(`${API_BASE}/api/portfolio/by-type`, { credentials: "include" }),
-                            fetch(`${API_BASE}/api/portfolio/cash`, { credentials: "include" })
+                            fetch(`${API_BASE}/api/portfolio/by-type`, { credentials: "include" }).catch(() => null),
+                            fetch(`${API_BASE}/api/portfolio/dividends/total`, { credentials: "include" }).catch(() => null)
                         ]);
 
-                        if (pRes.ok && cRes.ok) {
-                            const pData = await pRes.json();
-                            const cData = await cRes.json();
+                        const pData = pRes && pRes.ok ? await pRes.json() : null;
+                        const cData = cRes && cRes.ok ? await cRes.json() : 0;
 
+                        if (pData || cData !== null) {
                             const summary = {
-                                cash: cData,
-                                holdings: pData
+                                dividend_cash: cData?.total_dividends || cData || 0,
+                                holdings: pData || "None"
                             };
                             setContext(JSON.stringify(summary, null, 2));
                         }

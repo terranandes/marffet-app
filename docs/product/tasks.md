@@ -133,6 +133,8 @@
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_2237.md` & `docs/code_review/code_review_2026_02_27_sync_2237.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_2253.md` & `docs/code_review/code_review_2026_02_27_sync_2253.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_0254.md` & `docs/code_review/code_review_2026_02_28_sync_0254.md`)
+- [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_0311.md` & `docs/code_review/code_review_2026_02_28_sync_0311.md`)
+- [x] **Fix BUG-111-CV: AI Copilot Context & API** (Configured Tier 1 Gemini Key, updated backend model logic to 2.5-flash, and fixed frontend context injection promises)
 - [ ] **BUG-114-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
 
 ## 15. Phase 15: DuckDB Optimization & Dividend Migration - [COMPLETED]

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AICopilot from "./AICopilot";
+import ToasterProvider from "./ToasterProvider";
 
 const API_BASE = "";
 
@@ -50,6 +51,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
         <>
             {children}
             <AICopilot user={user} portfolioContext={context} />
+            <ToasterProvider />
         </>
     );
 }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 
+/* ─── Types ─── */
 interface AdminMetrics {
     total_users: number;
     active_users_web: number;
@@ -42,9 +45,98 @@ interface CrawlerStatus {
     elapsed_seconds: number;
 }
 
-// Use relative paths to proxy via Next.js rewrites (preserves session cookies on Zeabur)
 const API_BASE = "";
 
+/* ─── Collapsible Section ─── */
+function CollapsibleSection({
+    id,
+    title,
+    icon,
+    defaultOpen = false,
+    accentColor = "cyan",
+    children,
+}: {
+    id: string;
+    title: string;
+    icon: string;
+    defaultOpen?: boolean;
+    accentColor?: string;
+    children: React.ReactNode;
+}) {
+    const [isOpen, setIsOpen] = useState(() => {
+        if (typeof window === "undefined") return defaultOpen;
+        const saved = localStorage.getItem(`admin-section-${id}`);
+        return saved !== null ? saved === "true" : defaultOpen;
+    });
+
+    const toggle = () => {
+        const next = !isOpen;
+        setIsOpen(next);
+        localStorage.setItem(`admin-section-${id}`, String(next));
+    };
+
+    const borderColor = {
+        cyan: "border-cyan-700/40",
+        amber: "border-amber-700/40",
+        red: "border-red-700/40",
+        emerald: "border-emerald-700/40",
+        gray: "border-gray-700/40",
+    }[accentColor] || "border-gray-700/40";
+
+    const headerText = {
+        cyan: "text-cyan-400",
+        amber: "text-amber-400",
+        red: "text-red-400",
+        emerald: "text-emerald-400",
+        gray: "text-gray-400",
+    }[accentColor] || "text-gray-400";
+
+    return (
+        <div className={`bg-[#0d0d1a] border ${borderColor} rounded-sm overflow-hidden`}>
+            <button
+                onClick={toggle}
+                className={`w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors ${headerText}`}
+            >
+                <span className="flex items-center gap-2 text-base font-semibold tracking-wide uppercase">
+                    <span>{icon}</span>
+                    {title}
+                </span>
+                <motion.span
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs opacity-60"
+                >
+                    ▼
+                </motion.span>
+            </button>
+            <AnimatePresence initial={false}>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-5 pt-2 border-t border-white/5">{children}</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+/* ─── Inline Spinner ─── */
+function Spinner() {
+    return (
+        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+    );
+}
+
+/* ─── Main Page ─── */
 export default function AdminPage() {
     const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
@@ -54,25 +146,24 @@ export default function AdminPage() {
     const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({ new: 0, reviewing: 0, confirmed: 0, fixed: 0, wontfix: 0 });
     const [loadingFeedback, setLoadingFeedback] = useState(true);
 
-    // Crawler Status
     const [crawlerStatus, setCrawlerStatus] = useState<CrawlerStatus | null>(null);
     const [lastRunDuration, setLastRunDuration] = useState<string | null>(null);
     const [syncProgress, setSyncProgress] = useState<number | null>(null);
     const [monitorPrewarm, setMonitorPrewarm] = useState(false);
     const [hasStartedRunning, setHasStartedRunning] = useState(false);
-    const [safeMode, setSafeMode] = useState(true); // Phase 4: Safe Mode for Backfill (default ON)
-    const [pushToGithub, setPushToGithub] = useState(false); // Phase 7: GitHub Push for Backfill
-    const [deepUniverse, setDeepUniverse] = useState(false); // Deep Universe (Include Warrants)
+    const [safeMode, setSafeMode] = useState(true);
+    const [pushToGithub, setPushToGithub] = useState(false);
+    const [deepUniverse, setDeepUniverse] = useState(false);
 
-    // Set initial Deep Universe default based on environment
+    // Loading states for buttons
+    const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
+
     useEffect(() => {
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        if (isLocal) {
-            setDeepUniverse(true);
-        }
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        if (isLocal) setDeepUniverse(true);
     }, []);
 
-    // Fetch Metrics
+    /* ─── Fetchers ─── */
     const fetchMetrics = useCallback(async () => {
         setLoadingMetrics(true);
         setError(null);
@@ -91,15 +182,13 @@ export default function AdminPage() {
         setLoadingMetrics(false);
     }, []);
 
-    // Fetch Feedback
     const fetchFeedback = useCallback(async () => {
         setLoadingFeedback(true);
         try {
             const [listRes, statsRes] = await Promise.all([
                 fetch(`${API_BASE}/api/feedback`, { credentials: "include" }),
-                fetch(`${API_BASE}/api/feedback/stats`, { credentials: "include" })
+                fetch(`${API_BASE}/api/feedback/stats`, { credentials: "include" }),
             ]);
-
             if (listRes.ok) setFeedbackList(await listRes.json());
             if (statsRes.ok) setFeedbackStats(await statsRes.json());
         } catch {
@@ -108,25 +197,19 @@ export default function AdminPage() {
         setLoadingFeedback(false);
     }, []);
 
-    // Fetch Crawler Status
     const fetchCrawlerStatus = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE}/api/admin/crawl/status?key=secret`, { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 setCrawlerStatus(prev => {
-                    // Update duration if:
-                    // 1. Just finished (Running -> Not Running)
-                    // 2. Or Loading page and already finished (prev is null & status=success)
                     const isJustFinished = prev?.is_running && !data.is_running;
-                    const isAlreadyFinished = !prev && data.status === 'success'; // status could be 'success'
-
+                    const isAlreadyFinished = !prev && data.status === "success";
                     if ((isJustFinished || isAlreadyFinished) && data.elapsed_seconds > 0) {
                         const m = Math.floor(data.elapsed_seconds / 60);
                         const s = data.elapsed_seconds % 60;
                         setLastRunDuration(`${m}m ${s}s`);
                     }
-                    // Reset duration on new start
                     if (!prev?.is_running && data.is_running) {
                         setLastRunDuration(null);
                     }
@@ -138,45 +221,192 @@ export default function AdminPage() {
         }
     }, []);
 
-    // Handle Sync All Dividends with Simulated Progress
-    const handleSyncAllDividends = async () => {
-        if (!confirm("Sync dividend cache for ALL stocks held by ALL users?\nThis may take a few minutes.")) return;
-
-        setSyncProgress(0);
-        const progressInterval = setInterval(() => {
-            setSyncProgress(prev => {
-                if (prev === null || prev >= 90) return prev;
-                return prev + Math.floor(Math.random() * 5) + 1; // Increment 1-5%
-            });
-        }, 800);
-
+    /* ─── Handlers (with toast) ─── */
+    const withLoading = async (key: string, fn: () => Promise<void>) => {
+        setLoadingBtn(key);
         try {
-            const res = await fetch(`${API_BASE}/api/sync/all-users-dividends`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
-
-            clearInterval(progressInterval);
-            setSyncProgress(100);
-
-            if (res.ok) {
-                // Short delay to show 100%
-                await new Promise(r => setTimeout(r, 500));
-                alert(`✅ ${data.message}\nTotal Records: ${data.total_records}\n\nGit Backup: ${data.git_backup?.status === 'success' ? '✅ Success' : '⚠️ ' + (data.git_backup?.reason || 'Skipped')}`);
-            } else {
-                alert(`❌ ${data.detail || 'Sync failed'}`);
-            }
-        } catch {
-            clearInterval(progressInterval);
-            alert('❌ Network error during sync');
+            await fn();
         } finally {
-            setSyncProgress(null);
+            setLoadingBtn(null);
         }
     };
 
+    const handleSyncAllDividends = async () => {
+        if (!confirm("Sync dividend cache for ALL stocks held by ALL users?\nThis may take a few minutes.")) return;
+        await withLoading("sync-div", async () => {
+            setSyncProgress(0);
+            const progressInterval = setInterval(() => {
+                setSyncProgress(prev => {
+                    if (prev === null || prev >= 90) return prev;
+                    return prev + Math.floor(Math.random() * 5) + 1;
+                });
+            }, 800);
+            try {
+                const res = await fetch(`${API_BASE}/api/sync/all-users-dividends`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                clearInterval(progressInterval);
+                setSyncProgress(100);
+                await new Promise(r => setTimeout(r, 500));
+                if (res.ok) {
+                    toast.success(`Synced! Total Records: ${data.total_records}`);
+                } else {
+                    toast.error(data.detail || "Sync failed");
+                }
+            } catch {
+                clearInterval(progressInterval);
+                toast.error("Network error during sync");
+            } finally {
+                setSyncProgress(null);
+            }
+        });
+    };
+
+    const handleInitializeCache = async () => {
+        await withLoading("init-cache", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/system/initialize`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success("Cache Initialized!");
+                    fetchCrawlerStatus();
+                } else {
+                    toast.error(`Init failed: ${data.detail || data.error || "Unknown error"}`);
+                }
+            } catch {
+                toast.error("Network error during cache initialization.");
+            }
+        });
+    };
+
+    const handleSupplementalRefresh = async () => {
+        await withLoading("supp-refresh", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/market-data/supplemental`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success(`Smart Refresh initiated! ${data.message}`);
+                    fetchCrawlerStatus();
+                } else {
+                    toast.error(`Refresh failed: ${data.detail || data.message || "Unknown error"}`);
+                }
+            } catch {
+                toast.error("Network error during supplemental refresh.");
+            }
+        });
+    };
+
+    const handleSyncDividends = async () => {
+        if (!confirm("🔄 Sync Dividends for ALL targets in the UNIVERSE?\nThis will update history and push to GitHub.")) return;
+        await withLoading("sync-univ-div", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/market-data/sync-dividends`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success(`Global Dividend Sync initiated! ${data.message}`);
+                } else {
+                    toast.error(`Sync failed: ${data.detail || data.message || "Unknown error"}`);
+                }
+            } catch {
+                toast.error("Network error during dividend sync.");
+            }
+        });
+    };
+
+    const handleCrawl = async (force: boolean) => {
+        const key = force ? "crawl-force" : "crawl-full";
+        await withLoading(key, async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/crawl?key=secret&force=${force}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success(`Crawl initiated! ${data.message}`);
+                    fetchCrawlerStatus();
+                } else {
+                    toast.error(`Crawl failed: ${data.error || data.message}`);
+                }
+            } catch {
+                toast.error("Network error during crawl initiation.");
+            }
+        });
+    };
+
+    const handleBackfill = async () => {
+        const mode = safeMode ? "SAFE (Incremental)" : "⚠️ OVERWRITE";
+        const pushMsg = pushToGithub ? "\n📤 WILL PUSH TO GITHUB ON COMPLETION" : "";
+        if (
+            !confirm(
+                `🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}${pushMsg}\n\nThis will fetch historical Prices + Dividends (2000-Present).\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}`
+            )
+        )
+            return;
+
+        await withLoading("backfill", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}&push=${pushToGithub}&deep=${deepUniverse}`, {
+                    method: "POST",
+                    credentials: "include",
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success(`Backfill initiated! ${data.message}`);
+                    fetchCrawlerStatus();
+                } else {
+                    toast.error(`Backfill failed: ${data.detail || data.message}`);
+                }
+            } catch {
+                toast.error("Network error during backfill initiation.");
+            }
+        });
+    };
+
+    const handleRebuildPrewarm = async () => {
+        if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
+        await withLoading("rebuild", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    setHasStartedRunning(false);
+                    setMonitorPrewarm(true);
+                    toast.success(`Job Started! ${data.message}`);
+                    fetchCrawlerStatus();
+                } else {
+                    toast.error("Failed: " + (data.detail || "Unknown error"));
+                }
+            } catch {
+                toast.error("Network Error");
+            }
+        });
+    };
+
+    const handleDbBackup = async () => {
+        if (!confirm("Trigger manual database backup to GitHub?")) return;
+        await withLoading("db-backup", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/backup`, { method: "POST", credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success("Backup Successful!");
+                } else {
+                    toast.error("Backup Failed: " + (data.detail || "Unknown error"));
+                }
+            } catch {
+                toast.error("Network Error during backup.");
+            }
+        });
+    };
+
+    const handleCopyMetrics = () => {
+        const url = `${API_BASE}/api/admin/metrics`;
+        navigator.clipboard.writeText(url);
+        toast.success("Metrics URL copied!");
+    };
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchMetrics();
         fetchFeedback();
         fetchCrawlerStatus();
@@ -184,573 +414,406 @@ export default function AdminPage() {
         return () => clearInterval(interval);
     }, [fetchMetrics, fetchFeedback, fetchCrawlerStatus]);
 
-    // Update Feedback Status
     const updateFeedbackStatus = async (id: number, status: string) => {
         try {
             await fetch(`${API_BASE}/api/feedback/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),
-                credentials: "include"
+                credentials: "include",
             });
+            toast.success(`Status → ${status}`);
             const statsRes = await fetch(`${API_BASE}/api/feedback/stats`, { credentials: "include" });
             if (statsRes.ok) setFeedbackStats(await statsRes.json());
             const listRes = await fetch(`${API_BASE}/api/feedback`, { credentials: "include" });
             if (listRes.ok) setFeedbackList(await listRes.json());
-        } catch { alert("Failed to update status"); }
+        } catch {
+            toast.error("Failed to update status");
+        }
     };
 
-    // Update Feedback Notes
     const updateFeedbackNotes = async (id: number, notes: string) => {
         try {
             await fetch(`${API_BASE}/api/feedback/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ agent_notes: notes }),
-                credentials: "include"
+                credentials: "include",
             });
-        } catch { console.error("Failed to update notes"); }
+            toast.success("Notes saved");
+        } catch {
+            console.error("Failed to update notes");
+        }
     };
 
-    // Helper functions
     const getTypeColor = (type: string) => {
         switch (type) {
-            case 'bug': return 'bg-red-900/50 text-red-200 border border-red-800';
-            case 'feature': return 'bg-blue-900/50 text-blue-200 border border-blue-800';
-            case 'content': return 'bg-green-900/50 text-green-200 border border-green-800';
-            default: return 'bg-gray-800 text-gray-300 border border-gray-700';
+            case "bug": return "bg-red-900/50 text-red-200 border border-red-800";
+            case "feature": return "bg-cyan-900/50 text-cyan-200 border border-cyan-800";
+            case "content": return "bg-emerald-900/50 text-emerald-200 border border-emerald-800";
+            default: return "bg-gray-800 text-gray-300 border border-gray-700";
         }
     };
 
     const getTypeIcon = (type: string) => {
         switch (type) {
-            case 'bug': return '🐛';
-            case 'feature': return '✨';
-            case 'content': return '📝';
-            default: return '🗨️';
+            case "bug": return "🐛";
+            case "feature": return "✨";
+            case "content": return "📝";
+            default: return "🗨️";
         }
     };
 
-    const copyFeedback = (item: FeedbackItem) => {
-        const text = `[${item.feedback_type.toUpperCase()}] ${item.feature_category}\nFrom: ${item.user_email || 'Anon'}\nMessage: ${item.message}\n(ID: ${item.id})`;
-        navigator.clipboard.writeText(text);
-        alert("Copied to clipboard!");
-    };
-
-    // Handle Cache Initialize (Phase 4)
-    const handleInitializeCache = async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/system/initialize`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ Cache Initialized! ${data.status === 'ok' ? 'Success' : 'Error: ' + data.error}`);
-                fetchCrawlerStatus();
-            } else {
-                alert(`❌ Initialization failed: ${data.detail || data.error || 'Unknown error'}`);
-            }
-        } catch {
-            alert('❌ Network error during cache initialization.');
-        }
-    };
-
-    // Handle Smart Supplemental Refresh (Held Stocks) - New Phase 6
-    const handleSupplementalRefresh = async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/supplemental`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ Smart Supplemental Refresh initiated! ${data.message}`);
-                fetchCrawlerStatus();
-            } else {
-                alert(`❌ Supplemental refresh failed: ${data.detail || data.message || 'Unknown error'}`);
-            }
-        } catch {
-            alert('❌ Network error during supplemental refresh.');
-        }
-    };
-
-    // Handle Dividend Sync (Universe) - Updated Phase 7
-    const handleSyncDividends = async () => {
-        if (!confirm("🔄 Sync Dividends for ALL targets in the UNIVERSE?\nThis will update history and push to GitHub.")) return;
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/sync-dividends`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ Global Dividend Sync initiated! ${data.message}`);
-            } else {
-                alert(`❌ Sync failed: ${data.detail || data.message || 'Unknown error'}`);
-            }
-        } catch {
-            alert('❌ Network error during dividend sync.');
-        }
-    };
-
-    // Handle Crawl Trigger
-    const handleCrawl = async (force: boolean) => {
-        const endpoint = `${API_BASE}/api/admin/crawl?key=secret&force=${force}`;
-        try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ Crawl initiated! ${data.message}`);
-                fetchCrawlerStatus(); // Refresh status immediately
-            } else {
-                alert(`❌ Crawl failed: ${data.error || data.message}`);
-            }
-        } catch {
-            alert('❌ Network error during crawl initiation.');
-        }
-    };
-
-    // Handle Universe Backfill (Phase 4 / Updated Phase 7)
-    const handleBackfill = async () => {
-        const mode = safeMode ? 'SAFE (Incremental)' : '⚠️ OVERWRITE';
-        const pushMsg = pushToGithub ? '\n📤 WILL PUSH TO GITHUB ON COMPLETION' : '';
-        if (!confirm(`🚀 START UNIVERSE BACKFILL?\n\nMode: ${mode}${pushMsg}\n\nThis will fetch historical Prices + Dividends (2000-Present) for all stocks from Yahoo Finance.\n${safeMode ? "Safe Mode ON: Won't overwrite existing data." : "⚠️ DANGER: Will overwrite ALL existing data!"}\n\nThis is a heavy background task. Watch progress in the Crawler Status bar.`)) return;
-
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/market-data/backfill?overwrite=${!safeMode}&push=${pushToGithub}&deep=${deepUniverse}`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ Backfill initiated! ${data.message}`);
-                fetchCrawlerStatus();
-            } else {
-                alert(`❌ Backfill failed: ${data.detail || data.message}`);
-            }
-        } catch {
-            alert('❌ Network error during backfill initiation.');
-        }
-    };
-
-    // Handle Rebuild & Push Prewarm
-    const handleRebuildPrewarm = async () => {
-        if (!confirm("📦 Rebuild & Push Pre-warm Data to GitHub?\n\nThis will:\n1. Rebuild All (Cold Run) ~5-6 min\n2. Push ~60 cache files to GitHub")) return;
-
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/refresh-prewarm`, {
-                method: "POST",
-                credentials: "include"
-            });
-            const data = await res.json();
-
-            if (res.ok) {
-                // Reset states to ensure we don't trigger "Success" based on old status
-                setHasStartedRunning(false);
-                setMonitorPrewarm(true);
-
-                alert(`🚀 Job Started!\n${data.message}\n\nYou can watch the 'Crawler Speed Test' progress bar. You will be notified when it completes.`);
-                fetchCrawlerStatus(); // Force update
-            } else {
-                alert("❌ Failed: " + (data.detail || "Unknown error"));
-            }
-        } catch {
-            alert("❌ Network Error");
-        }
-    };
-
-    // Handle DB Backup
-    const handleDbBackup = async () => {
-        if (!confirm("Trigger manual database backup to GitHub?")) return;
-        try {
-            const res = await fetch(`${API_BASE}/api/admin/backup`, {
-                method: "POST",
-                credentials: "include"
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert("✅ Backup Successful!\n" + JSON.stringify(data.details, null, 2));
-            } else {
-                alert("❌ Backup Failed: " + (data.detail || "Unknown error"));
-            }
-        } catch {
-            alert("❌ Network Error during backup.");
-        }
-    };
-
-    // Handle Copy Link
-    const handleCopyMetrics = () => {
-        const url = `${API_BASE}/api/admin/metrics`;
-        navigator.clipboard.writeText(url);
-        alert("Metrics URL copied to clipboard!");
+    const copyFeedbackToJira = (item: FeedbackItem) => {
+        const md = `## [${item.feedback_type.toUpperCase()}] ${item.feature_category}\n\n**Reporter:** ${item.user_email || "Anonymous"}\n**Date:** ${item.created_at?.substring(0, 10) || "N/A"}\n**Status:** ${item.status}\n\n### Description\n${item.message}\n\n---\n*Feedback ID: ${item.id}*`;
+        navigator.clipboard.writeText(md);
+        toast.success("Copied as JIRA markdown!");
     };
 
     // Monitor Prewarm Completion
     useEffect(() => {
         if (!monitorPrewarm || !crawlerStatus) return;
-
-        // 1. Detect Start (Transition to Running)
-        if (crawlerStatus.is_running) {
-            setHasStartedRunning(true);
-        }
-
-        // 2. Detect Completion (Only if we saw it running previously)
-        if (hasStartedRunning && !crawlerStatus.is_running && crawlerStatus.status === 'success') {
-            alert("✅ Rebuild & Push Operation Completed!");
+        if (crawlerStatus.is_running) setHasStartedRunning(true);
+        if (hasStartedRunning && !crawlerStatus.is_running && crawlerStatus.status === "success") {
+            toast.success("Rebuild & Push Operation Completed!");
             setMonitorPrewarm(false);
             setHasStartedRunning(false);
         }
     }, [crawlerStatus, monitorPrewarm, hasStartedRunning]);
 
-    if (loadingMetrics) return <div className="p-8 text-[var(--color-text-muted)] animate-pulse">Loading Admin Dashboard...</div>;
-    if (error) return <div className="p-8 text-red-500">{error}</div>;
+    /* ─── Render ─── */
+    if (loadingMetrics) {
+        return (
+            <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
+                <div className="flex items-center gap-3 text-[var(--color-text-muted)]">
+                    <Spinner />
+                    <span className="text-sm tracking-widest uppercase">Loading Dashboard...</span>
+                </div>
+            </div>
+        );
+    }
+    if (error) return <div className="p-8 text-red-500 font-mono text-sm">{error}</div>;
+
+    const btnBase = "px-4 py-2 rounded-sm transition-all duration-150 flex items-center gap-2 text-sm font-medium border disabled:opacity-50 disabled:cursor-not-allowed";
 
     return (
-        <div className="min-h-screen bg-[var(--color-background)] p-8">
-            <div className="max-w-6xl mx-auto space-y-8">
-
+        <div className="min-h-screen bg-[var(--color-background)] p-4 md:p-8">
+            <div className="max-w-6xl mx-auto space-y-4">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-8">
+                <div className="flex items-center gap-3 mb-6">
                     <span className="text-3xl">⚡</span>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
+                    <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-400">
                         GM Dashboard
                     </h1>
                 </div>
 
-                {/* METRICS CARDS */}
-                {metrics && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Unified User Metrics Card */}
-                        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 col-span-1 lg:col-span-3">
-                            <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-4 uppercase tracking-wider">User Metrics</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Total Users */}
-                                <div className="bg-white/5 rounded-lg p-4">
-                                    <p className="text-sm text-[var(--color-text-muted)]">Total Registered</p>
-                                    <p className="text-3xl font-bold text-[var(--color-active)]">{metrics.total_users}</p>
-                                </div>
-                                {/* Active Web */}
-                                <div className="bg-cyan-900/20 border border-cyan-700/30 rounded-lg p-4">
-                                    <p className="text-sm text-cyan-400">Active Users (Web)</p>
-                                    <p className="text-3xl font-bold text-cyan-300">{metrics.active_users_web}</p>
-                                    <p className="text-xs text-cyan-500/70 mt-1">Last 30 days</p>
-                                </div>
-                                {/* Active Mobile */}
-                                <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
-                                    <p className="text-sm text-green-400">Active Users (Mobile)</p>
-                                    <p className="text-3xl font-bold text-green-300">{metrics.active_users_mobile}</p>
-                                    <p className="text-xs text-green-500/70 mt-1">Last 30 days</p>
-                                </div>
-                            </div>
+                {/* ── Crawler Global Status Bar ── */}
+                {crawlerStatus && (
+                    <div className="bg-[#0d0d1a] border border-white/5 rounded-sm p-3 flex items-center gap-3 text-xs font-mono">
+                        <div
+                            className={`px-2 py-1 rounded-sm border flex items-center gap-2 transition-all ${crawlerStatus.is_running
+                                    ? "bg-amber-900/30 border-amber-500 text-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                                    : crawlerStatus.status === "success"
+                                        ? "bg-emerald-900/30 border-emerald-500 text-emerald-400"
+                                        : crawlerStatus.status === "error"
+                                            ? "bg-red-900/30 border-red-500 text-red-400"
+                                            : "bg-gray-800 border-gray-600 text-gray-400"
+                                }`}
+                        >
+                            {crawlerStatus.is_running ? (
+                                <>
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                    Running... {crawlerStatus.elapsed_seconds ? `(${Math.floor(crawlerStatus.elapsed_seconds / 60)}m ${crawlerStatus.elapsed_seconds % 60}s)` : ""}
+                                </>
+                            ) : (
+                                <>
+                                    {crawlerStatus.status === "success" ? "✅" : crawlerStatus.status === "error" ? "❌" : "⚪"}
+                                    {crawlerStatus.status.toUpperCase()}
+                                    {crawlerStatus.status === "success" && lastRunDuration && (
+                                        <span className="ml-1 text-emerald-300">(Finished in {lastRunDuration})</span>
+                                    )}
+                                </>
+                            )}
                         </div>
+                        <span className="opacity-50 border-l border-white/10 pl-2">
+                            {crawlerStatus.last_run_time ? new Date(crawlerStatus.last_run_time).toLocaleTimeString() : "No Run Recorded"}
+                        </span>
+                    </div>
+                )}
 
-                        {/* Subs Breakdown */}
-                        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6 col-span-3">
-                            <h3 className="text-[var(--color-text-muted)] text-sm font-semibold mb-4 uppercase tracking-wider">Subscription Breakdown</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <div className="bg-white/5 rounded-lg p-4">
-                                    <p className="text-sm text-[var(--color-text-muted)]">Free Tier</p>
-                                    <p className="text-2xl font-bold text-white">{metrics.subscription_tiers.free}</p>
-                                </div>
-                                <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-4">
-                                    <p className="text-sm text-yellow-500">Premium Tier</p>
-                                    <p className="text-2xl font-bold text-yellow-400">{metrics.subscription_tiers.premium}</p>
-                                </div>
-                                <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4">
-                                    <p className="text-sm text-purple-400">VIP Tier</p>
-                                    <p className="text-2xl font-bold text-purple-300">{metrics.subscription_tiers.vip}</p>
-                                </div>
-                            </div>
+                {/* Crawler Progress Bar */}
+                {crawlerStatus && (crawlerStatus.is_running || crawlerStatus.progress_pct > 0) && (
+                    <div className="bg-[#0d0d1a] border border-white/5 rounded-sm p-3">
+                        <div className="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Crawler Progress: {crawlerStatus.progress_pct}%</span>
+                            <span className="font-mono">{crawlerStatus.message}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 h-1.5 rounded-sm overflow-hidden">
+                            <motion.div
+                                className="bg-cyan-500 h-full shadow-[0_0_8px_#06b6d4]"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${crawlerStatus.progress_pct}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
                         </div>
                     </div>
                 )}
 
-                {/* SYSTEM OPERATIONS - With Crawler Status */}
-                <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        🛠️ SYSTEM OPERATIONS
-                        {crawlerStatus && (
-                            <div className={`ml-4 text-sm px-3 py-1 rounded-full border flex items-center gap-2 transition-all ${crawlerStatus.is_running
-                                ? "bg-yellow-900/30 border-yellow-500 text-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.3)]"
-                                : crawlerStatus.status === "success"
-                                    ? "bg-green-900/30 border-green-500 text-green-500"
-                                    : crawlerStatus.status === "error"
-                                        ? "bg-red-900/30 border-red-500 text-red-500"
-                                        : "bg-gray-800 border-gray-600 text-gray-400"
-                                }`}>
-                                {crawlerStatus.is_running ? (
-                                    <>
-                                        <span className="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
-                                        Running... {crawlerStatus.elapsed_seconds ? `(${Math.floor(crawlerStatus.elapsed_seconds / 60)}m ${crawlerStatus.elapsed_seconds % 60}s)` : ''}
-                                    </>
-                                ) : (
-                                    <>
-                                        {crawlerStatus.status === "success" ? "✅" : crawlerStatus.status === "error" ? "❌" : "⚪"}
-                                        {crawlerStatus.status.toUpperCase()}
-                                        {crawlerStatus.status === 'success' && lastRunDuration && (
-                                            <span className="ml-2 text-xs text-green-300 font-mono">
-                                                (Finished in {lastRunDuration})
-                                            </span>
-                                        )}
-                                    </>
-                                )}
-                                <span className="text-xs opacity-70 border-l border-white/20 pl-2 ml-1">
-                                    {crawlerStatus.last_run_time ? new Date(crawlerStatus.last_run_time).toLocaleTimeString() : "No Run Recorded"}
-                                </span>
-                            </div>
-                        )}
-                    </h2>
-
-                    {/* Crawler Progress Bar */}
-                    {crawlerStatus && (crawlerStatus.is_running || crawlerStatus.progress_pct > 0) && (
-                        <div className="mb-6 bg-black/30 p-4 rounded-lg border border-white/5">
-                            <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                <span>Crawler Progress: {crawlerStatus.progress_pct}%</span>
-                                <span>{crawlerStatus.message}</span>
-                            </div>
-                            <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div
-                                    className="bg-[#00f2ea] h-full transition-all duration-500 ease-out shadow-[0_0_10px_#00f2ea]"
-                                    style={{ width: `${crawlerStatus.progress_pct}%` }}
-                                ></div>
-                            </div>
+                {/* Sync Progress Bar */}
+                {syncProgress !== null && (
+                    <div className="bg-amber-900/10 border border-amber-700/30 rounded-sm p-3">
+                        <div className="flex justify-between text-xs text-amber-300 mb-1">
+                            <span>Syncing Dividends & Backing up...</span>
+                            <span>{syncProgress}%</span>
                         </div>
-                    )}
-
-                    {/* Sync Progress Bar */}
-                    {syncProgress !== null && (
-                        <div className="mb-6 bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
-                            <div className="flex justify-between text-xs text-purple-300 mb-1">
-                                <span>Syncing Dividends & Backing up...</span>
-                                <span>{syncProgress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div
-                                    className="bg-purple-500 h-full transition-all duration-300 ease-out shadow-[0_0_10px_#a855f7]"
-                                    style={{ width: `${syncProgress}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Section 1: Routine Operations */}
-                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-blue-500/20">
-                        <h4 className="text-sm font-semibold text-blue-400 mb-3 flex items-center gap-2">
-                            📅 Routine Operations (Daily/Weekly)
-                        </h4>
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                onClick={handleSupplementalRefresh}
-                                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-lg shadow-blue-900/20"
-                                title="Updates prices for active targets & top universe (Incremental, Local only)"
-                            >
-                                ✨ Smart Supplemental Refresh
-                            </button>
-
-                            <button
-                                onClick={handleSyncAllDividends}
-                                disabled={syncProgress !== null}
-                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${syncProgress !== null
-                                    ? 'bg-purple-900/30 border-purple-800 cursor-not-allowed opacity-70'
-                                    : 'bg-purple-900/50 hover:bg-purple-800 border-purple-600'
-                                    }`}
-                                title="Syncs dividend history for the GLOBAL UNIVERSE (1,771 stocks) and pushes to GitHub"
-                            >
-                                {syncProgress !== null ? '⏳ Syncing Dividends...' : '💰 Sync All Dividends'}
-                            </button>
-
-                            <button
-                                onClick={handleDbBackup}
-                                className="bg-gray-700 hover:bg-gray-650 text-white px-4 py-2 rounded-lg transition flex items-center gap-1 border border-gray-600"
-                            >
-                                💾 GitHub Backup (DB)
-                            </button>
+                        <div className="w-full bg-gray-800 h-1.5 rounded-sm overflow-hidden">
+                            <motion.div
+                                className="bg-amber-500 h-full shadow-[0_0_8px_#f59e0b]"
+                                animate={{ width: `${syncProgress}%` }}
+                                transition={{ duration: 0.3 }}
+                            />
                         </div>
                     </div>
+                )}
 
-                    {/* Section 2: Maintenance & Reconstruction */}
-                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-red-500/10">
-                        <h4 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
-                            🛠️ Maintenance & Repair
-                        </h4>
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                onClick={async () => {
-                                    if (!confirm("⚠️ START FULL ANALYSIS?\nThis is a standard Smart Analysis run (~2-3 min).")) return;
-                                    await handleCrawl(false);
-                                }}
-                                className="bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                                title="Full Crawler run (Main Loop)"
-                            >
-                                🕷️ Crawler Analysis (Full)
-                            </button>
-
-                            <button
-                                onClick={async () => {
-                                    if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~5-6 min).")) return;
-                                    await handleCrawl(true);
-                                }}
-                                className="bg-red-900/50 hover:bg-red-800 text-white border border-red-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                                title="Clears cache and rebuilds current year"
-                            >
-                                🔥 Force Rebuild (Cold)
-                            </button>
-
-                            <button
-                                onClick={handleRebuildPrewarm}
-                                disabled={monitorPrewarm}
-                                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 text-white border ${monitorPrewarm
-                                    ? 'bg-indigo-900/30 border-indigo-800 cursor-not-allowed opacity-70'
-                                    : 'bg-indigo-900/50 hover:bg-indigo-800 border-indigo-600'
-                                    }`}
-                            >
-                                {monitorPrewarm ? '⏳ Pushing to GitHub...' : '📦 Rebuild Pre-warm Data'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Section 3: Low-Level System & Universe */}
-                    <div className="mb-6 bg-gray-800/40 p-4 rounded-xl border border-gray-500/10">
-                        <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-                            ⚙️ System Tools & Deep Universe
-                        </h4>
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                onClick={handleInitializeCache}
-                                className="bg-green-900/50 hover:bg-green-800 text-white border border-green-600 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                                title="Force reload of prices from JSON into RAM"
-                            >
-                                🔋 Reload Price Cache (Force)
-                            </button>
-
-                            <button
-                                onClick={handleCopyMetrics}
-                                className="bg-gray-700 hover:bg-gray-600 text-white border border-gray-500 px-4 py-2 rounded-lg transition flex items-center gap-2"
-                            >
-                                🔗 Copy Metrics URL
-                            </button>
-
-                            {/* Backfill with Safe Mode & Push Toggle */}
-                            <div className="flex flex-col gap-2 bg-black/40 px-3 py-2 rounded-lg border border-white/5">
-                                <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={safeMode}
-                                            onChange={(e) => setSafeMode(e.target.checked)}
-                                            className="w-3 h-3 accent-cyan-500 rounded"
-                                        />
-                                        <span className={safeMode ? 'text-cyan-400' : 'text-orange-400 font-bold'}>
-                                            {safeMode ? '🛡️ Safe Mode' : '⚠️ Overwrite'}
-                                        </span>
-                                    </label>
-                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={pushToGithub}
-                                            onChange={(e) => setPushToGithub(e.target.checked)}
-                                            className="w-3 h-3 accent-indigo-500 rounded"
-                                        />
-                                        <span className={pushToGithub ? 'text-indigo-400 font-bold' : 'text-gray-500'}>
-                                            {pushToGithub ? '📤 Push to GitHub (Remote)' : '🏠 Zeabur Local Only'}
-                                        </span>
-                                    </label>
-                                    <label className="flex items-center gap-2 text-[10px] cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={deepUniverse}
-                                            onChange={(e) => setDeepUniverse(e.target.checked)}
-                                            className="w-3 h-3 accent-purple-500 rounded"
-                                        />
-                                        <span className={deepUniverse ? 'text-purple-400 font-bold' : 'text-gray-500'}>
-                                            {deepUniverse ? '🌌 Deep Universe (Incl. Warrants)' : '🔭 Smart Universe (Stocks/ETFs)'}
-                                        </span>
-                                    </label>
+                {/* ── Section: Metrics ── */}
+                <CollapsibleSection id="metrics" title="User Metrics" icon="📊" defaultOpen={true} accentColor="cyan">
+                    {metrics && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="bg-white/[0.03] border border-white/5 rounded-sm p-4">
+                                    <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Total Registered</p>
+                                    <p className="text-3xl font-bold text-[var(--color-active)] mt-1 font-mono">{metrics.total_users}</p>
                                 </div>
-                                <button
-                                    onClick={handleBackfill}
-                                    className="text-[10px] bg-cyan-900 hover:bg-cyan-800 px-3 py-1 rounded border border-cyan-700 w-full"
-                                >
-                                    🚀 Universe Backfill (2000+)
-                                </button>
+                                <div className="bg-cyan-900/10 border border-cyan-700/20 rounded-sm p-4">
+                                    <p className="text-xs text-cyan-400 uppercase tracking-wider">Active Users (Web)</p>
+                                    <p className="text-3xl font-bold text-cyan-300 mt-1 font-mono">{metrics.active_users_web}</p>
+                                    <p className="text-[10px] text-cyan-500/60 mt-1">Last 30 days</p>
+                                </div>
+                                <div className="bg-emerald-900/10 border border-emerald-700/20 rounded-sm p-4">
+                                    <p className="text-xs text-emerald-400 uppercase tracking-wider">Active Users (Mobile)</p>
+                                    <p className="text-3xl font-bold text-emerald-300 mt-1 font-mono">{metrics.active_users_mobile}</p>
+                                    <p className="text-[10px] text-emerald-500/60 mt-1">Last 30 days</p>
+                                </div>
+                            </div>
+
+                            {/* Subscription Breakdown */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="bg-white/[0.03] border border-white/5 rounded-sm p-4">
+                                    <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Free Tier</p>
+                                    <p className="text-2xl font-bold text-white font-mono">{metrics.subscription_tiers.free}</p>
+                                </div>
+                                <div className="bg-amber-900/10 border border-amber-700/20 rounded-sm p-4">
+                                    <p className="text-xs text-amber-400 uppercase tracking-wider">Premium Tier</p>
+                                    <p className="text-2xl font-bold text-amber-300 font-mono">{metrics.subscription_tiers.premium}</p>
+                                </div>
+                                <div className="bg-emerald-900/10 border border-emerald-700/20 rounded-sm p-4">
+                                    <p className="text-xs text-emerald-400 uppercase tracking-wider">VIP Tier</p>
+                                    <p className="text-2xl font-bold text-emerald-300 font-mono">{metrics.subscription_tiers.vip}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    )}
+                </CollapsibleSection>
 
-                {/* FEEDBACK SECTION */}
-                <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold">USER FEEDBACK & BUG REPORTS</h2>
-                        <button onClick={fetchFeedback} className="text-xs bg-blue-600 px-2 py-1 rounded hover:bg-blue-500 transition">🔄 Refresh</button>
+                {/* ── Section: Routine Operations ── */}
+                <CollapsibleSection id="routine" title="Routine Operations" icon="📅" defaultOpen={false} accentColor="cyan">
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={handleSupplementalRefresh}
+                            disabled={loadingBtn === "supp-refresh"}
+                            className={`${btnBase} bg-cyan-900/40 hover:bg-cyan-800/60 text-cyan-200 border-cyan-700/50`}
+                        >
+                            {loadingBtn === "supp-refresh" ? <Spinner /> : "✨"} Smart Supplemental Refresh
+                        </button>
+
+                        <button
+                            onClick={handleSyncAllDividends}
+                            disabled={syncProgress !== null || loadingBtn === "sync-div"}
+                            className={`${btnBase} bg-amber-900/40 hover:bg-amber-800/60 text-amber-200 border-amber-700/50`}
+                        >
+                            {syncProgress !== null ? <Spinner /> : "💰"} {syncProgress !== null ? "Syncing Dividends..." : "Sync All Dividends"}
+                        </button>
+
+                        <button
+                            onClick={handleDbBackup}
+                            disabled={loadingBtn === "db-backup"}
+                            className={`${btnBase} bg-gray-800/60 hover:bg-gray-700/80 text-gray-200 border-gray-600/50`}
+                        >
+                            {loadingBtn === "db-backup" ? <Spinner /> : "💾"} GitHub Backup (DB)
+                        </button>
+                    </div>
+                </CollapsibleSection>
+
+                {/* ── Section: Maintenance ── */}
+                <CollapsibleSection id="maintenance" title="Maintenance & Repair" icon="🛠️" defaultOpen={false} accentColor="red">
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={async () => {
+                                if (!confirm("⚠️ START FULL ANALYSIS?\nThis is a standard Smart Analysis run (~2-3 min).")) return;
+                                await handleCrawl(false);
+                            }}
+                            disabled={loadingBtn === "crawl-full"}
+                            className={`${btnBase} bg-gray-800/60 hover:bg-gray-700/80 text-gray-200 border-gray-600/50`}
+                        >
+                            {loadingBtn === "crawl-full" ? <Spinner /> : "🕷️"} Crawler Analysis (Full)
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                if (!confirm("⚠️ FORCE REBUILD ALL DATA?\nThis will clear current year cache and re-fetch everything (~5-6 min).")) return;
+                                await handleCrawl(true);
+                            }}
+                            disabled={loadingBtn === "crawl-force"}
+                            className={`${btnBase} bg-red-900/40 hover:bg-red-800/60 text-red-200 border-red-700/50`}
+                        >
+                            {loadingBtn === "crawl-force" ? <Spinner /> : "🔥"} Force Rebuild (Cold)
+                        </button>
+
+                        <button
+                            onClick={handleRebuildPrewarm}
+                            disabled={monitorPrewarm || loadingBtn === "rebuild"}
+                            className={`${btnBase} bg-amber-900/40 hover:bg-amber-800/60 text-amber-200 border-amber-700/50`}
+                        >
+                            {monitorPrewarm ? <Spinner /> : "📦"} {monitorPrewarm ? "Pushing to GitHub..." : "Rebuild Pre-warm Data"}
+                        </button>
+                    </div>
+                </CollapsibleSection>
+
+                {/* ── Section: System Tools ── */}
+                <CollapsibleSection id="system" title="System Tools & Deep Universe" icon="⚙️" defaultOpen={false} accentColor="gray">
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={handleInitializeCache}
+                            disabled={loadingBtn === "init-cache"}
+                            className={`${btnBase} bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-200 border-emerald-700/50`}
+                        >
+                            {loadingBtn === "init-cache" ? <Spinner /> : "🔋"} Reload Price Cache (Force)
+                        </button>
+
+                        <button
+                            onClick={handleCopyMetrics}
+                            className={`${btnBase} bg-gray-800/60 hover:bg-gray-700/80 text-gray-200 border-gray-600/50`}
+                        >
+                            🔗 Copy Metrics URL
+                        </button>
+
+                        {/* Backfill Controls */}
+                        <div className="w-full flex flex-col gap-2 bg-black/30 px-4 py-3 rounded-sm border border-white/5 mt-2">
+                            <div className="flex items-center gap-6 flex-wrap">
+                                <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={safeMode}
+                                        onChange={(e) => setSafeMode(e.target.checked)}
+                                        className="w-3 h-3 accent-cyan-500 rounded-sm"
+                                    />
+                                    <span className={safeMode ? "text-cyan-400" : "text-orange-400 font-bold"}>
+                                        {safeMode ? "🛡️ Safe Mode" : "⚠️ Overwrite"}
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={pushToGithub}
+                                        onChange={(e) => setPushToGithub(e.target.checked)}
+                                        className="w-3 h-3 accent-amber-500 rounded-sm"
+                                    />
+                                    <span className={pushToGithub ? "text-amber-400 font-bold" : "text-gray-500"}>
+                                        {pushToGithub ? "📤 Push to GitHub (Remote)" : "🏠 Zeabur Local Only"}
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={deepUniverse}
+                                        onChange={(e) => setDeepUniverse(e.target.checked)}
+                                        className="w-3 h-3 accent-emerald-500 rounded-sm"
+                                    />
+                                    <span className={deepUniverse ? "text-emerald-400 font-bold" : "text-gray-500"}>
+                                        {deepUniverse ? "🌌 Deep Universe (Incl. Warrants)" : "🔭 Smart Universe (Stocks/ETFs)"}
+                                    </span>
+                                </label>
+                            </div>
+                            <button
+                                onClick={handleBackfill}
+                                disabled={loadingBtn === "backfill"}
+                                className={`${btnBase} bg-cyan-900/40 hover:bg-cyan-800/60 text-cyan-200 border-cyan-700/50 w-full justify-center text-xs`}
+                            >
+                                {loadingBtn === "backfill" ? <Spinner /> : "🚀"} Universe Backfill (2000+)
+                            </button>
+                        </div>
+                    </div>
+                </CollapsibleSection>
+
+                {/* ── Section: Feedback ── */}
+                <CollapsibleSection id="feedback" title="User Feedback & Bug Reports" icon="📬" defaultOpen={true} accentColor="amber">
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                        <div className="bg-red-900/15 border border-red-700/30 p-3 rounded-sm text-center">
+                            <span className="text-xl font-bold text-red-400 font-mono">{feedbackStats.new}</span>
+                            <p className="text-[10px] text-red-300 uppercase tracking-widest">New</p>
+                        </div>
+                        <div className="bg-amber-900/15 border border-amber-700/30 p-3 rounded-sm text-center">
+                            <span className="text-xl font-bold text-amber-400 font-mono">{feedbackStats.reviewing}</span>
+                            <p className="text-[10px] text-amber-300 uppercase tracking-widest">Reviewing</p>
+                        </div>
+                        <div className="bg-cyan-900/15 border border-cyan-700/30 p-3 rounded-sm text-center">
+                            <span className="text-xl font-bold text-cyan-400 font-mono">{feedbackStats.confirmed}</span>
+                            <p className="text-[10px] text-cyan-300 uppercase tracking-widest">Confirmed</p>
+                        </div>
+                        <div className="bg-emerald-900/15 border border-emerald-700/30 p-3 rounded-sm text-center">
+                            <span className="text-xl font-bold text-emerald-400 font-mono">{feedbackStats.fixed}</span>
+                            <p className="text-[10px] text-emerald-300 uppercase tracking-widest">Fixed</p>
+                        </div>
+                        <div className="bg-gray-800/40 border border-gray-700/30 p-3 rounded-sm text-center">
+                            <span className="text-xl font-bold text-gray-400 font-mono">{feedbackStats.wontfix}</span>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest">Won&apos;t Fix</p>
+                        </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
-                        <div className="bg-red-900/20 border border-red-700/50 p-3 rounded text-center">
-                            <span className="text-xl font-bold text-red-400">{feedbackStats.new}</span>
-                            <p className="text-[10px] text-red-300 uppercase">New</p>
-                        </div>
-                        <div className="bg-yellow-900/20 border border-yellow-700/50 p-3 rounded text-center">
-                            <span className="text-xl font-bold text-yellow-400">{feedbackStats.reviewing}</span>
-                            <p className="text-[10px] text-yellow-300 uppercase">Reviewing</p>
-                        </div>
-                        <div className="bg-blue-900/20 border border-blue-700/50 p-3 rounded text-center">
-                            <span className="text-xl font-bold text-blue-400">{feedbackStats.confirmed}</span>
-                            <p className="text-[10px] text-blue-300 uppercase">Confirmed</p>
-                        </div>
-                        <div className="bg-green-900/20 border border-green-700/50 p-3 rounded text-center">
-                            <span className="text-xl font-bold text-green-400">{feedbackStats.fixed}</span>
-                            <p className="text-[10px] text-green-300 uppercase">Fixed</p>
-                        </div>
-                        <div className="bg-gray-800/50 border border-gray-700/50 p-3 rounded text-center">
-                            <span className="text-xl font-bold text-gray-400">{feedbackStats.wontfix}</span>
-                            <p className="text-[10px] text-gray-400 uppercase">Won&apos;t Fix</p>
-                        </div>
+                    <div className="flex justify-end mb-2">
+                        <button onClick={fetchFeedback} className="text-xs bg-cyan-600 px-3 py-1 rounded-sm hover:bg-cyan-500 transition text-white">
+                            🔄 Refresh
+                        </button>
                     </div>
 
-                    <div className="bg-[var(--color-background)] rounded-lg overflow-hidden max-h-[600px] overflow-y-auto">
+                    {/* Feedback List */}
+                    <div className="bg-black/20 rounded-sm overflow-hidden max-h-[500px] overflow-y-auto border border-white/5">
                         {loadingFeedback ? (
-                            <div className="p-4 text-center animate-pulse">Loading feedback...</div>
-                        ) : feedbackList.length === 0 ? (
-                            <div className="p-4 text-center text-[var(--color-text-muted)]">
-                                No feedback reports yet
+                            <div className="p-6 text-center flex items-center justify-center gap-2 text-[var(--color-text-muted)]">
+                                <Spinner />
+                                <span className="text-xs">Loading feedback...</span>
                             </div>
+                        ) : feedbackList.length === 0 ? (
+                            <div className="p-6 text-center text-[var(--color-text-muted)] text-sm">No feedback reports yet</div>
                         ) : (
                             feedbackList.map((fb) => (
-                                <div key={fb.id} className="p-4 border-b border-white/5 hover:bg-white/5 transition">
+                                <div key={fb.id} className="p-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                                     <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <span className={`text-xs px-2 py-1 rounded mr-2 ${getTypeColor(fb.feedback_type)}`}>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-sm ${getTypeColor(fb.feedback_type)}`}>
                                                 {getTypeIcon(fb.feedback_type)} {fb.feedback_type}
                                             </span>
-                                            <span className="text-xs text-[var(--color-text-muted)]">{fb.feature_category}</span>
+                                            <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{fb.feature_category}</span>
                                         </div>
-                                        <span className="text-xs text-[var(--color-text-muted)]">
-                                            {fb.created_at?.substring(0, 10)}
-                                        </span>
+                                        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{fb.created_at?.substring(0, 10)}</span>
                                     </div>
-                                    <p className="text-sm text-gray-300 mb-2">{fb.message}</p>
-                                    <div className="flex items-center gap-2 text-xs flex-wrap">
-                                        <span className="text-[var(--color-text-muted)]">
-                                            From: {fb.user_email || "Anonymous"}
+                                    <p className="text-sm text-gray-300 mb-2 leading-relaxed">{fb.message}</p>
+                                    <div className="flex items-center gap-3 text-xs flex-wrap">
+                                        <span className="text-[var(--color-text-muted)] font-mono text-[10px]">
+                                            {fb.user_email || "Anonymous"}
                                         </span>
                                         <button
-                                            onClick={() => copyFeedback(fb)}
-                                            className="text-[var(--color-cta)] hover:text-white transition flex items-center gap-1"
-                                            title="Copy to clipboard for AI review"
+                                            onClick={() => copyFeedbackToJira(fb)}
+                                            className="text-cyan-400 hover:text-white transition text-[10px] flex items-center gap-1"
                                         >
-                                            📋 Copy
+                                            📋 Copy as JIRA
                                         </button>
                                         <select
                                             value={fb.status}
                                             onChange={(e) => updateFeedbackStatus(fb.id, e.target.value)}
-                                            className="ml-auto bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-[var(--color-cta)]"
+                                            className="ml-auto bg-gray-900 border border-gray-700 rounded-sm px-2 py-1 text-[10px] text-white outline-none focus:border-cyan-500 transition"
                                         >
                                             <option value="new">🔴 New</option>
                                             <option value="reviewing">🟡 Reviewing</option>
@@ -761,22 +824,22 @@ export default function AdminPage() {
                                     </div>
 
                                     {/* Agent Notes */}
-                                    {(fb.agent_notes || fb.showNotes) ? (
-                                        <div className="mt-2 text-right">
+                                    {fb.agent_notes || fb.showNotes ? (
+                                        <div className="mt-2">
                                             <textarea
                                                 defaultValue={fb.agent_notes}
                                                 rows={2}
-                                                className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-300 outline-none focus:border-[var(--color-cta)]"
-                                                placeholder="AI agent notes..."
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-sm px-2 py-1 text-xs text-gray-300 outline-none focus:border-cyan-500 transition resize-none"
+                                                placeholder="Agent notes..."
                                                 onBlur={(e) => updateFeedbackNotes(fb.id, e.target.value)}
                                             />
                                         </div>
                                     ) : (
                                         <button
-                                            onClick={() => setFeedbackList(prev => prev.map(item => item.id === fb.id ? { ...item, showNotes: true } : item))}
-                                            className="mt-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-cta)] transition"
+                                            onClick={() => setFeedbackList(prev => prev.map(item => (item.id === fb.id ? { ...item, showNotes: true } : item)))}
+                                            className="mt-1 text-[10px] text-[var(--color-text-muted)] hover:text-cyan-400 transition"
                                         >
-                                            + Add AI notes
+                                            + Add agent notes
                                         </button>
                                     )}
                                 </div>
@@ -784,10 +847,10 @@ export default function AdminPage() {
                         )}
                     </div>
 
-                    <div className="text-xs text-[var(--color-text-muted)] text-center mt-6">
+                    <div className="text-[10px] text-[var(--color-text-muted)] text-center mt-4 font-mono tracking-widest uppercase">
                         Admin access only • {new Date().getFullYear()} Martian Investment
                     </div>
-                </div>
+                </CollapsibleSection>
             </div>
         </div>
     );

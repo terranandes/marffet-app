@@ -83,6 +83,16 @@ FEATURE_CATEGORIES = {
         "name": "Settings",
         "description": "App configuration and preferences",
         "features": ["API Key", "Language", "Premium Toggle"]
+    },
+    "cash_ladder": {
+        "name": "Cash Ladder",
+        "description": "Cash flow ladder and allocation analysis",
+        "features": ["Ladder Chart", "Allocation Breakdown"]
+    },
+    "compound_interest": {
+        "name": "Compound Interest",
+        "description": "Compound interest simulator and comparison tool",
+        "features": ["Simulation", "BAO/BAH/BAL Comparison", "ECharts Visualization"]
     }
 }
 

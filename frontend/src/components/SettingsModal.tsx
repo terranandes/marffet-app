@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 
 interface User {
     id: string | null;
@@ -87,13 +89,13 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
             });
 
             if (res.ok) {
-                setMsg({ type: "success", text: "Profile updated successfully" });
+                toast.success("Profile updated successfully");
                 onUpdateUser(); // Refresh parent user state
             } else {
-                setMsg({ type: "error", text: "Failed to update profile" });
+                toast.error("Failed to update profile");
             }
         } catch (e) {
-            setMsg({ type: "error", text: "Network error" });
+            toast.error("Network error");
         }
         setLoading(false);
     };
@@ -109,12 +111,12 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
             });
             if (res.ok) {
                 const data = await res.json();
-                setMsg({ type: "success", text: `Rank Synced! ROI: ${data.roi}%` });
+                toast.success(`Rank Synced! ROI: ${data.roi}%`);
             } else {
-                setMsg({ type: "error", text: "Sync failed" });
+                toast.error("Sync failed");
             }
         } catch (e) {
-            setMsg({ type: "error", text: "Network error" });
+            toast.error("Network error");
         }
         setSyncLoading(false);
     };
@@ -124,17 +126,17 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         localStorage.setItem("martian_region", region);
         localStorage.setItem("martian_default_page", defaultPage);
         localStorage.setItem("martian_premium", String(isPremium));
-        setMsg({ type: "success", text: "Preferences saved (reload to apply)" });
+        toast.success("Preferences saved (reload to apply)");
     };
 
     const handleSaveKey = () => {
         localStorage.setItem("martian_api_key", apiKey);
-        setMsg({ type: "success", text: "API Key saved securely" });
+        toast.success("API Key saved securely");
     };
 
     const handleSendFeedback = async () => {
         if (!feedbackMessage.trim()) {
-            setMsg({ type: "error", text: "Please enter a message" });
+            toast.error("Please enter a message");
             return;
         }
         setLoading(true);
@@ -151,13 +153,13 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                 credentials: "include"
             });
             if (res.ok) {
-                setMsg({ type: "success", text: "Feedback sent! We appreciate it." });
+                toast.success("Feedback sent! We appreciate it.");
                 setFeedbackMessage("");
             } else {
-                setMsg({ type: "error", text: "Failed to send feedback" });
+                toast.error("Failed to send feedback");
             }
         } catch (e) {
-            setMsg({ type: "error", text: "Network error" });
+            toast.error("Network error");
         }
         setLoading(false);
     };
@@ -214,307 +216,303 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-b from-[#0e1117] to-[#13161c]">
+                    <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-b from-[#0e1117] to-[#13161c] relative">
 
-                        {/* Messages */}
-                        {msg && (
-                            <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 animate-fade-in ${msg.type === 'success'
-                                ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                                : 'bg-red-500/10 border-red-500/30 text-red-400'
-                                }`}>
-                                {msg.type === 'success' ? '✅' : '❌'} {msg.text}
-                            </div>
-                        )}
+                        {/* Messages are now shown via react-hot-toast */}
 
                         {/* PROFILE TAB */}
-                        {activeTab === 'profile' && (
-                            <div className="space-y-8 animate-fade-in">
-                                <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">User Profile</h3>
+                        <AnimatePresence mode="wait">
+                            {activeTab === 'profile' && (
+                                <motion.div key="profile" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">User Profile</h3>
 
-                                <div className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
-                                    <div className="relative">
-                                        <img
-                                            src={user.picture}
-                                            className="w-20 h-20 rounded-full border-2 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                                        />
-                                        {user.is_admin && <div className="absolute -bottom-2 -right-2 text-xl">👑</div>}
-                                    </div>
-                                    <div>
-                                        <div className="text-2xl font-bold text-white">{user.name}</div>
-                                        <div className="text-sm text-zinc-500 font-mono">{user.email}</div>
-                                        {user.is_admin && (
-                                            <span className="mt-2 inline-block px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                                                Game Master
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Display Nickname</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={nickname}
-                                                onChange={(e) => setNickname(e.target.value)}
-                                                className="flex-1 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
-                                                placeholder="Enter your nickname"
+                                    <div className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
+                                        <div className="relative">
+                                            <img
+                                                src={user.picture}
+                                                className="w-20 h-20 rounded-full border-2 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
                                             />
-                                            <button
-                                                onClick={handleSaveProfile}
-                                                disabled={loading}
-                                                className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
-                                            >
-                                                {loading ? "..." : "Save"}
-                                            </button>
+                                            {user.is_admin && <div className="absolute -bottom-2 -right-2 text-xl">👑</div>}
                                         </div>
-                                        <p className="text-xs text-zinc-600">Visible on public leaderboards.</p>
-                                    </div>
-
-                                    {/* Leaderboard Rank Section */}
-                                    <div className="pt-6 border-t border-white/10">
-                                        <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 Leaderboard Rank</label>
-                                        <div className="flex justify-between items-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-                                            <p className="text-xs text-gray-400">Update your wealth stats on the global leaderboard.</p>
-                                            <button
-                                                onClick={handleSyncStats}
-                                                disabled={syncLoading}
-                                                className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-4 py-2 rounded-lg text-sm font-bold border border-yellow-500/50 transition hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] disabled:opacity-50"
-                                            >
-                                                {syncLoading ? "Syncing..." : "Sync Now"}
-                                            </button>
+                                        <div>
+                                            <div className="text-2xl font-bold text-white">{user.name}</div>
+                                            <div className="text-sm text-zinc-500 font-mono">{user.email}</div>
+                                            {user.is_admin && (
+                                                <span className="mt-2 inline-block px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                    Game Master
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* PREFERENCES TAB */}
-                        {activeTab === 'preferences' && (
-                            <div className="space-y-8 animate-fade-in">
-                                <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">App Preferences</h3>
-
-                                {/* Start Page Selector */}
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Start Page</label>
-                                    <select
-                                        className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                                        value={defaultPage}
-                                        onChange={(e) => setDefaultPage(e.target.value)}
-                                    >
-                                        <option value="/">🏠 Dashboard</option>
-                                        <option value="/portfolio">📊 Portfolio</option>
-                                        <option value="/mars">🚀 Mars Strategy</option>
-                                        <option value="/viz">📉 Visualizations</option>
-                                        <option value="/cb">💹 Convertible Bond</option>
-                                    </select>
-                                    <p className="text-xs text-zinc-600">Loads automatically on visit.</p>
-                                </div>
-
-                                {/* Region Selector (Fixed) */}
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Region Format</label>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        <div className="p-3 bg-cyan-900/20 border border-cyan-500/50 rounded-xl flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-2xl">🇹🇼</span>
-                                                <div className="font-bold text-white">Taiwan (TWD)</div>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Display Nickname</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={nickname}
+                                                    onChange={(e) => setNickname(e.target.value)}
+                                                    className="flex-1 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
+                                                    placeholder="Enter your nickname"
+                                                />
+                                                <button
+                                                    onClick={handleSaveProfile}
+                                                    disabled={loading}
+                                                    className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
+                                                >
+                                                    {loading ? "..." : "Save"}
+                                                </button>
                                             </div>
-                                            <div className="text-cyan-400 text-xs font-bold px-2 py-1 bg-cyan-900/50 rounded border border-cyan-500/30">Active</div>
+                                            <p className="text-xs text-zinc-600">Visible on public leaderboards.</p>
                                         </div>
-                                        <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-2xl">🇨🇳</span>
-                                                <div className="font-bold text-gray-500">China</div>
-                                            </div>
-                                        </div>
-                                        <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-2xl">🇺🇸</span>
-                                                <div className="font-bold text-gray-500">USA</div>
+
+                                        {/* Leaderboard Rank Section */}
+                                        <div className="pt-6 border-t border-white/10">
+                                            <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 Leaderboard Rank</label>
+                                            <div className="flex justify-between items-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+                                                <p className="text-xs text-gray-400">Update your wealth stats on the global leaderboard.</p>
+                                                <button
+                                                    onClick={handleSyncStats}
+                                                    disabled={syncLoading}
+                                                    className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-4 py-2 rounded-lg text-sm font-bold border border-yellow-500/50 transition hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] disabled:opacity-50"
+                                                >
+                                                    {syncLoading ? "Syncing..." : "Sync Now"}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-zinc-600 mt-1">Global regions coming in Q4 2026.</p>
-                                </div>
+                                </motion.div>
+                            )}
 
-                                {/* GM Controls */}
-                                {user?.is_admin && (
+                            {/* PREFERENCES TAB */}
+                            {activeTab === 'preferences' && (
+                                <motion.div key="preferences" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">App Preferences</h3>
+
+                                    {/* Start Page Selector */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-purple-400 uppercase tracking-wider">GM Controls</label>
-                                        <div className="flex items-center gap-3 p-3 bg-purple-900/10 border border-purple-500/30 rounded-xl">
-                                            <div className="flex-1">
-                                                <div className="font-bold text-white">Premium Status</div>
-                                                <div className="text-xs text-zinc-400">Unlock advanced features for testing</div>
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Start Page</label>
+                                        <select
+                                            className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                                            value={defaultPage}
+                                            onChange={(e) => setDefaultPage(e.target.value)}
+                                        >
+                                            <option value="/">🏠 Dashboard</option>
+                                            <option value="/portfolio">📊 Portfolio</option>
+                                            <option value="/mars">🚀 Mars Strategy</option>
+                                            <option value="/viz">📉 Visualizations</option>
+                                            <option value="/cb">💹 Convertible Bond</option>
+                                        </select>
+                                        <p className="text-xs text-zinc-600">Loads automatically on visit.</p>
+                                    </div>
+
+                                    {/* Region Selector (Fixed) */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Region Format</label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <div className="p-3 bg-cyan-900/20 border border-cyan-500/50 rounded-xl flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">🇹🇼</span>
+                                                    <div className="font-bold text-white">Taiwan (TWD)</div>
+                                                </div>
+                                                <div className="text-cyan-400 text-xs font-bold px-2 py-1 bg-cyan-900/50 rounded border border-cyan-500/30">Active</div>
                                             </div>
-                                            <button
-                                                onClick={() => setIsPremium(!isPremium)}
-                                                className={`w-12 h-6 rounded-full transition-all duration-300 relative ${isPremium
-                                                    ? 'bg-gradient-to-r from-amber-400 to-yellow-500 shadow-[0_0_12px_rgba(255,215,0,0.4)]'
-                                                    : 'bg-zinc-700'
-                                                    }`}
-                                            >
-                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md ${isPremium ? 'left-7' : 'left-1'
-                                                    }`} />
-                                            </button>
+                                            <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">🇨🇳</span>
+                                                    <div className="font-bold text-gray-500">China</div>
+                                                </div>
+                                            </div>
+                                            <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">🇺🇸</span>
+                                                    <div className="font-bold text-gray-500">USA</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={handleSavePreferences}
-                                    className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
-                                >
-                                    Save Preferences
-                                </button>
-                            </div>
-                        )}
-
-                        {/* API KEY TAB */}
-                        {activeTab === 'api' && (
-                            <div className="space-y-8 animate-fade-in">
-                                <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">AI Integration</h3>
-
-                                <div className="p-4 bg-teal-500/10 border border-teal-500/20 rounded-xl text-sm text-teal-200 mb-6">
-                                    💡 <strong>Gemini Copilot</strong> requires a valid API Key.
-                                    <br /><span className="text-teal-400/70 text-xs">The default key is provided by the system, but you can override it here for higher rate limits.</span>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Gemini API Key</label>
-                                    <input
-                                        type="password"
-                                        value={apiKey}
-                                        onChange={(e) => setApiKey(e.target.value)}
-                                        className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none font-mono"
-                                        placeholder="AIzaSy..."
-                                    />
-                                </div>
-
-                                <button
-                                    onClick={handleSaveKey}
-                                    className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
-                                >
-                                    Save Key
-                                </button>
-                            </div>
-                        )}
-
-                        {/* HELP TAB */}
-                        {activeTab === 'help' && (
-                            <div className="space-y-6 animate-fade-in">
-                                <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Help Center</h3>
-
-                                <div className="mb-6">
-                                    <a href="/doc" target="_blank" rel="noopener noreferrer"
-                                        className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
-                                        <div className="text-2xl">📚</div>
-                                        <div>
-                                            <div className="font-bold text-white group-hover:text-cyan-400 transition">Documentation</div>
-                                            <div className="text-xs text-zinc-500">Visit our GitHub Wiki for detailed guides</div>
-                                        </div>
-                                    </a>
-                                </div>
-
-                                <Accordion title={<span className="text-cyan-400 flex items-center gap-2">📖 Feature Guide</span>} defaultOpen={false}>
-                                    <div><strong className="text-cyan-300">Mars Strategy:</strong> Search & filter stocks using Top 50 strategy</div>
-                                    <div><strong className="text-cyan-300">Bar Chart Race:</strong> Animated wealth growth visualization</div>
-                                    <div><strong className="text-cyan-300">Portfolio:</strong> Track real investments with groups & transactions</div>
-                                    <div><strong className="text-cyan-300">Trend:</strong> Monthly cost trends and live prices</div>
-                                    <div><strong className="text-cyan-300">My Race:</strong> Watch your portfolio stocks compete</div>
-                                    <div><strong className="text-cyan-300">AI Copilot:</strong> Get investment advice from Mars AI</div>
-                                    <div><strong className="text-cyan-300">Leaderboard:</strong> Community rankings & public profiles</div>
-                                </Accordion>
-
-                                <Accordion title={<span className="text-yellow-400 flex items-center gap-2">⭐ Premium Features</span>}>
-                                    <div>• <strong>AI Personality:</strong> Ruthless Wealth Manager mode</div>
-                                    <div>• <strong>Portfolio Groups:</strong> Up to 30 (vs 11 free)</div>
-                                    <div>• <strong>Targets/Group:</strong> Up to 200 (vs 50 free)</div>
-                                    <div>• <strong>Transactions:</strong> Up to 1000 (vs 100 free)</div>
-                                    <div>• <strong>CB Notifications:</strong> Email alerts</div>
-                                    <div>• <strong>Data Export:</strong> Filtered Excel</div>
-                                </Accordion>
-
-                                <div className="text-xs text-gray-500 italic text-center">
-                                    💳 How to Subscribe: Coming Soon
-                                </div>
-                            </div>
-                        )}
-
-                        {/* SUPPORT TAB */}
-                        {activeTab === 'support' && (
-                            <div className="space-y-6 animate-fade-in">
-                                <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Support & Feedback</h3>
-
-                                <div className="mb-6">
-                                    <a href="mailto:support@martian.com" className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
-                                        <div className="text-2xl">🆘</div>
-                                        <div>
-                                            <div className="font-bold text-white group-hover:text-cyan-400 transition">Email Support</div>
-                                            <div className="text-xs text-zinc-500">Get help directly from our team</div>
-                                        </div>
-                                    </a>
-                                </div>
-
-                                <div className="border-t border-white/10 pt-6">
-                                    <h3 className="text-md font-bold text-white mb-4">Send Feedback</h3>
-                                    <p className="text-sm text-zinc-400 mb-4">Help us improve the Martian System! Report bugs or suggest features.</p>
-
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Type</label>
-                                            <select
-                                                value={feedbackType}
-                                                onChange={(e) => setFeedbackType(e.target.value)}
-                                                className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                                            >
-                                                <option value="suggestion">💡 Suggestion</option>
-                                                <option value="bug">🐛 Bug Report</option>
-                                                <option value="question">❓ Question</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Category</label>
-                                            <select
-                                                value={feedbackCategory}
-                                                onChange={(e) => setFeedbackCategory(e.target.value)}
-                                                className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                                            >
-                                                <option value="settings">Settings / General</option>
-                                                <option value="subscription">Subscription</option>
-                                                <option value="mars_strategy">Mars Strategy</option>
-                                                <option value="bar_chart_race">Bar Chart Race</option>
-                                                <option value="portfolio">Portfolio</option>
-                                                <option value="trend">Trend Dashboard</option>
-                                                <option value="my_race">My Portfolio Race</option>
-                                                <option value="ai_copilot">AI Copilot</option>
-                                                <option value="leaderboard">Leaderboard</option>
-                                                <option value="other">Other</option>
-                                            </select>
-                                        </div>
+                                        <p className="text-xs text-zinc-600 mt-1">Global regions coming in Q4 2026.</p>
                                     </div>
 
-                                    <div className="space-y-2 mb-4">
-                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Message</label>
-                                        <textarea
-                                            value={feedbackMessage}
-                                            onChange={(e) => setFeedbackMessage(e.target.value)}
-                                            className="w-full h-32 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none resize-none"
-                                            placeholder="Describe your feedback here..."
+                                    {/* GM Controls */}
+                                    {user?.is_admin && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-amber-400 uppercase tracking-wider">GM Controls</label>
+                                            <div className="flex items-center gap-3 p-3 bg-amber-900/10 border border-amber-500/30 rounded-xl">
+                                                <div className="flex-1">
+                                                    <div className="font-bold text-white">Premium Status</div>
+                                                    <div className="text-xs text-zinc-400">Unlock advanced features for testing</div>
+                                                </div>
+                                                <button
+                                                    onClick={() => setIsPremium(!isPremium)}
+                                                    className={`w-12 h-6 rounded-full transition-all duration-300 relative ${isPremium
+                                                        ? 'bg-gradient-to-r from-amber-400 to-yellow-500 shadow-[0_0_12px_rgba(255,215,0,0.4)]'
+                                                        : 'bg-zinc-700'
+                                                        }`}
+                                                >
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md ${isPremium ? 'left-7' : 'left-1'
+                                                        }`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleSavePreferences}
+                                        className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
+                                    >
+                                        Save Preferences
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* API KEY TAB */}
+                            {activeTab === 'api' && (
+                                <motion.div key="api" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">AI Integration</h3>
+
+                                    <div className="p-4 bg-teal-500/10 border border-teal-500/20 rounded-xl text-sm text-teal-200 mb-6">
+                                        💡 <strong>Gemini Copilot</strong> requires a valid API Key.
+                                        <br /><span className="text-teal-400/70 text-xs">The default key is provided by the system, but you can override it here for higher rate limits.</span>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Gemini API Key</label>
+                                        <input
+                                            type="password"
+                                            value={apiKey}
+                                            onChange={(e) => setApiKey(e.target.value)}
+                                            className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none font-mono"
+                                            placeholder="AIzaSy..."
                                         />
                                     </div>
 
                                     <button
-                                        onClick={handleSendFeedback}
-                                        disabled={loading}
-                                        className="w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
+                                        onClick={handleSaveKey}
+                                        className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
                                     >
-                                        {loading ? "Sending..." : "Submit Feedback"}
+                                        Save Key
                                     </button>
-                                </div>
-                            </div>
-                        )}
+                                </motion.div>
+                            )}
+
+                            {/* HELP TAB */}
+                            {activeTab === 'help' && (
+                                <motion.div key="help" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-6">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Help Center</h3>
+
+                                    <div className="mb-6">
+                                        <a href="/doc" target="_blank" rel="noopener noreferrer"
+                                            className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
+                                            <div className="text-2xl">📚</div>
+                                            <div>
+                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">Documentation</div>
+                                                <div className="text-xs text-zinc-500">Visit our GitHub Wiki for detailed guides</div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <Accordion title={<span className="text-cyan-400 flex items-center gap-2">📖 Feature Guide</span>} defaultOpen={false}>
+                                        <div><strong className="text-cyan-300">Mars Strategy:</strong> Search & filter stocks using Top 50 strategy</div>
+                                        <div><strong className="text-cyan-300">Bar Chart Race:</strong> Animated wealth growth visualization</div>
+                                        <div><strong className="text-cyan-300">Portfolio:</strong> Track real investments with groups & transactions</div>
+                                        <div><strong className="text-cyan-300">Trend:</strong> Monthly cost trends and live prices</div>
+                                        <div><strong className="text-cyan-300">My Race:</strong> Watch your portfolio stocks compete</div>
+                                        <div><strong className="text-cyan-300">AI Copilot:</strong> Get investment advice from Mars AI</div>
+                                        <div><strong className="text-cyan-300">Leaderboard:</strong> Community rankings & public profiles</div>
+                                    </Accordion>
+
+                                    <Accordion title={<span className="text-yellow-400 flex items-center gap-2">⭐ Premium Features</span>}>
+                                        <div>• <strong>AI Personality:</strong> Ruthless Wealth Manager mode</div>
+                                        <div>• <strong>Portfolio Groups:</strong> Up to 30 (vs 11 free)</div>
+                                        <div>• <strong>Targets/Group:</strong> Up to 200 (vs 50 free)</div>
+                                        <div>• <strong>Transactions:</strong> Up to 1000 (vs 100 free)</div>
+                                        <div>• <strong>CB Notifications:</strong> Email alerts</div>
+                                        <div>• <strong>Data Export:</strong> Filtered Excel</div>
+                                    </Accordion>
+
+                                    <div className="text-xs text-gray-500 italic text-center">
+                                        💳 How to Subscribe: Coming Soon
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* SUPPORT TAB */}
+                            {activeTab === 'support' && (
+                                <motion.div key="support" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-6">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Support & Feedback</h3>
+
+                                    <div className="mb-6">
+                                        <a href="mailto:support@martian.com" className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
+                                            <div className="text-2xl">🆘</div>
+                                            <div>
+                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">Email Support</div>
+                                                <div className="text-xs text-zinc-500">Get help directly from our team</div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <div className="border-t border-white/10 pt-6">
+                                        <h3 className="text-md font-bold text-white mb-4">Send Feedback</h3>
+                                        <p className="text-sm text-zinc-400 mb-4">Help us improve the Martian System! Report bugs or suggest features.</p>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Type</label>
+                                                <select
+                                                    value={feedbackType}
+                                                    onChange={(e) => setFeedbackType(e.target.value)}
+                                                    className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                                                >
+                                                    <option value="suggestion">💡 Suggestion</option>
+                                                    <option value="bug">🐛 Bug Report</option>
+                                                    <option value="question">❓ Question</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Category</label>
+                                                <select
+                                                    value={feedbackCategory}
+                                                    onChange={(e) => setFeedbackCategory(e.target.value)}
+                                                    className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                                                >
+                                                    <option value="settings">Settings / General</option>
+                                                    <option value="subscription">Subscription</option>
+                                                    <option value="mars_strategy">Mars Strategy</option>
+                                                    <option value="bar_chart_race">Bar Chart Race</option>
+                                                    <option value="portfolio">Portfolio</option>
+                                                    <option value="trend">Trend Dashboard</option>
+                                                    <option value="my_race">My Portfolio Race</option>
+                                                    <option value="ai_copilot">AI Copilot</option>
+                                                    <option value="leaderboard">Leaderboard</option>
+                                                    <option value="cash_ladder">Cash Ladder</option>
+                                                    <option value="compound_interest">Compound Interest</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 mb-4">
+                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Message</label>
+                                            <textarea
+                                                value={feedbackMessage}
+                                                onChange={(e) => setFeedbackMessage(e.target.value)}
+                                                className="w-full h-32 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none resize-none"
+                                                placeholder="Describe your feedback here..."
+                                            />
+                                        </div>
+
+                                        <button
+                                            onClick={handleSendFeedback}
+                                            disabled={loading}
+                                            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
+                                        >
+                                            {loading ? "Sending..." : "Submit Feedback"}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                     </div>
                 </div>

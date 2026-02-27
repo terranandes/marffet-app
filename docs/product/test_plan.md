@@ -119,14 +119,15 @@ uv run tests/unit/test_mobile_portfolio.py
 | Branch Cleanup | Only `master` exists locally and remotely | ✅ PASSED |
 | Stash Cleanup | `git stash list` returns empty | ✅ PASSED |
 
-### v3.2 (2026-02-22) - Zeabur Stabilization & DuckDB Rehydration
+### v3.4 (2026-02-27) - BCR and Portfolio Bug Fixes
 | Test | Expected | Status |
 |------|----------|--------|
-| DuckDB Rehydration | _is_db_empty logic triggers on boot | ✅ PASSED |
-| Mars Chunked Stream | Peak RAM < 100MB | ✅ PASSED |
-| NumPy Sanitizer | Deep recursion avoids 500 errors | ✅ PASSED |
-| TSMC CAGR (2010) | 19.4% (Nominal Baseline) | ✅ Verified (19.41%) |
-| Match Rate | >84% Correlation vs MoneyCome | ✅ 84.71% |
+| BUG-117-PL | BCR duplicate year 2006 removed | ✅ PASSED Remote |
+| BUG-118-PL | Portfolio Dividend Sync shows values, not NaN | ✅ PASSED (Via Code/Local) |
+| BUG-119-UI | Portfolio Date Picker has dark color-scheme | ✅ PASSED Local |
+
+### v3.2 (2026-02-22) - Zeabur Stabilization & DuckDB Rehydration
+| Test | Expected | Status |
 
 ### v3.0 (2026-02-07) - Phase 3 Verification
 | Test | Expected | Status |

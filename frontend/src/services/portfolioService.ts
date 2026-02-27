@@ -260,11 +260,12 @@ class ApiPortfolioService implements IPortfolioService {
 
     async getDividends(targetId: string): Promise<Dividend[]> {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/dividends`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/dividends?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
             if (res.ok) return await res.json();
         } catch { }
         return [];
     }
+
 
     async getDividendStats(): Promise<{ total_cash: number; dividend_count: number }> {
         try {

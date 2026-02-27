@@ -6,7 +6,7 @@ from app.feedback_db import (
     submit_feedback, get_all_feedback, update_feedback, 
     get_feedback_stats, get_feature_categories
 )
-from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, Query, BackgroundTasks, Response
 from contextlib import asynccontextmanager
 from typing import Optional
 from pydantic import BaseModel
@@ -1264,9 +1264,10 @@ def api_sync_dividends(user: dict = Depends(get_current_user)):
 
 
 @app.get("/api/portfolio/targets/{target_id}/dividends")
-def api_target_dividends(target_id: str):
+def api_target_dividends(target_id: str, response: Response):
     """Get dividend history for a target"""
     try:
+        response.headers["Cache-Control"] = "no-store, max-age=0"
         raw_divs = portfolio_service.get_dividend_history(target_id)
         formatted = []
         for d in raw_divs:

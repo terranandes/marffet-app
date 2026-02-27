@@ -396,13 +396,13 @@ async def chat_with_mars(req: ChatRequest):
             except Exception as e:
                 print(f"List models failed: {e}")
                 # If listing fails, try a hardcoded fallback list
-                available_models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro']
+                available_models = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro']
 
             print(f"Available models for key: {available_models}")
             
             # Build Candidate List based on priorities (Pro > Flash)
             candidates = []
-            priorities = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash']
+            priorities = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite']
             
             # 1. Add Priority Matches
             for p in priorities:

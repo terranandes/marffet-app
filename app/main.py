@@ -364,7 +364,7 @@ async def chat_with_mars(req: ChatRequest):
 
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
-                model='gemini-3-flash-preview',  # Latest Gemini 3 Flash
+                model='gemini-2.5-flash',  # Stable model (2.0-flash deprecated for new keys)
                 contents=[
                     {"role": "user", "parts": [{"text": system_prompt}]},
                     {"role": "model", "parts": [{"text": "Understood. I am ready to serve per my tier instructions."}]},
@@ -396,13 +396,13 @@ async def chat_with_mars(req: ChatRequest):
             except Exception as e:
                 print(f"List models failed: {e}")
                 # If listing fails, try a hardcoded fallback list
-                available_models = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash']
+                available_models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro']
 
             print(f"Available models for key: {available_models}")
             
             # Build Candidate List based on priorities (Pro > Flash)
             candidates = []
-            priorities = ['gemini-1.5-pro', 'gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro']
+            priorities = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash']
             
             # 1. Add Priority Matches
             for p in priorities:

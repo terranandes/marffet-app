@@ -107,12 +107,29 @@ async def api_sync_dividends(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=401)
     return portfolio_service.sync_all_dividends(user['id'])
 
+from fastapi import Response # Added in thought block to inject into the file
+
 @router.get("/targets/{target_id}/dividends")
-async def api_target_dividends(target_id: str, user: dict = Depends(get_current_user)):
+async def api_target_dividends(target_id: str, response: Response, user: dict = Depends(get_current_user)):
     """Get dividend history for a specific target."""
     if not user:
         raise HTTPException(status_code=401)
-    return portfolio_service.get_dividend_history(target_id)
+    
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    raw_divs = portfolio_service.get_dividend_history(target_id)
+    
+    formatted = []
+    for d in raw_divs:
+        formatted.append({
+            "date": d.get("ex_date"),
+            "payment_date": None,
+            "cash_dividend": d.get("amount_per_share", 0),
+            "stock_dividend": 0,
+            "held_shares": d.get("shares_held", 0),
+            "amount": d.get("total_cash", 0)
+        })
+    return formatted
+
 
 
 @router.get("/ladder")

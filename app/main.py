@@ -1251,49 +1251,6 @@ def api_portfolio_race(user: dict = Depends(get_current_user)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-# Dividend Tracking Endpoints
-@app.post("/api/portfolio/sync-dividends")
-def api_sync_dividends(user: dict = Depends(get_current_user)):
-    """Sync dividends for all user's targets"""
-    try:
-        user_id = user['id'] if user else "default"
-        result = portfolio_service.sync_all_dividends(user_id)
-        return result
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-
-@app.get("/api/portfolio/targets/{target_id}/dividends")
-def api_target_dividends(target_id: str, response: Response):
-    """Get dividend history for a target"""
-    try:
-        response.headers["Cache-Control"] = "no-store, max-age=0"
-        raw_divs = portfolio_service.get_dividend_history(target_id)
-        formatted = []
-        for d in raw_divs:
-            formatted.append({
-                "date": d.get("ex_date"),
-                "payment_date": None,
-                "cash_dividend": d.get("amount_per_share", 0),
-                "stock_dividend": 0,
-                "held_shares": d.get("shares_held", 0),
-                "amount": d.get("total_cash", 0)
-            })
-        return formatted
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-
-@app.get("/api/portfolio/cash")
-def api_dividend_cash(user: dict = Depends(get_current_user)):
-    """Get total dividend cash"""
-    try:
-        user_id = user['id'] if user else "default"
-        return get_total_dividends(user_id)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-
 
 # Notifications
 

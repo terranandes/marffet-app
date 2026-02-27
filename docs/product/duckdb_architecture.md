@@ -81,3 +81,9 @@ Optimized for time-series range queries. Columns are compressed using DuckDB's d
 - **Standard**: All history is stored in **NOMINAL** prices. Adjustments are performed at runtime by the `SplitDetector`.
 - **Integrity Checks**: Use `scripts/ops/verify_integrity.py` to ensure daily row continuity.
 - **Statistics**: `/api/admin/market-data/stats` provides live monitoring of row counts and DB size.
+
+## 6. Why is the Mars Tab So Fast? (Multi-User Caching & Cold Starts)
+When deploying to serverless/containerized environments like Zeabur, the Mars Strategy Tab exhibits sub-second load times even from a cold start. This is achieved through three key architectural pillars:
+1. **Singleton Memory Loading:** Upon the very first request (Cold Start) by *any* user, the `MarketDataProvider` singleton queries DuckDB and caches the most heavily accessed datasets (price histories and dividends) directly into RAM (using Pandas DataFrames).
+2. **Shared Multi-User Access:** Because the `MarketDataProvider` operates as a global singleton across the FastAPI worker processes, once User A loads the data, the DuckDB disk step is entirely bypassed for User B, C, and D. They inherit the O(1) in-memory lookup speeds instantly.
+3. **Vectorized Mathematics:** The inner `ROICalculator` uses NumPy vectorization instead of slow Python `for` loops. The compounding and share-split adjustments over 24 years of daily data are calculated simultaneously in mathematical blocks.

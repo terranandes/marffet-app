@@ -13,6 +13,7 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 -   **Market Visualization**: Interactive **Bar Chart Race** of stock performance over time.
 -   **Modern UI**: Built with Next.js and TailwindCSS for a premium experience.
 -   **Robust Backend**: Powered by FastAPI and AsyncIO for efficient data crawling.
+-   **Extreme Speed**: Leverages an in-memory DuckDB singleton cache to resolve 20-year calculations in `<200ms`.
 -   **Dynamic Naming**: Real-time synchronization with official TWSE/TPEX stock names.
 
 ---

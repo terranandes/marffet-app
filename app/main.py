@@ -720,12 +720,12 @@ async def get_race_data(start_year: int = 2006, principal: float = 1_000_000, co
 
 
 @app.get("/api/export/excel")
-async def api_export_excel(mode: str = "filtered", start_year: int = 2006, principal: float = 1000000, contribution: float = 60000, premium: bool = False):
+async def api_export_excel(mode: str = "unfiltered", start_year: int = 2006, principal: float = 1000000, contribution: float = 60000):
     """
     Export Mars Strategy results as Excel.
     Reuses SIM_CACHE from /api/results for instant response.
-    mode: 'filtered' or 'unfiltered'
-    premium: if True, export ALL targets (not limited to top 50)
+    mode: 'filtered' (all targets sorted by wealth) or 'unfiltered' (all targets raw order)
+    All targets are always exported (no top-50 limit).
     """
     try:
         from io import BytesIO
@@ -802,17 +802,10 @@ async def api_export_excel(mode: str = "filtered", start_year: int = 2006, princ
             export_rows.append(new_row)
         
         # 3. Apply mode filter
-        if premium:
-            # Premium: export ALL targets
-            if mode == "filtered":
-                # Sorted by Final Wealth descending, but no top-50 limit
-                export_rows.sort(key=lambda x: x.get('Final Wealth', 0), reverse=True)
-            # mode == "unfiltered": no sorting, export raw order
-        else:
-            # Free: always top 50 filtered
+        if mode == "filtered":
+            # Sort by Final Wealth descending (all targets)
             export_rows.sort(key=lambda x: x.get('Final Wealth', 0), reverse=True)
-            export_rows = export_rows[:50]
-            mode = "filtered"  # Force filename to filtered
+        # mode == "unfiltered": keep raw order, export all
         
         df_export = pd.DataFrame(export_rows)
         

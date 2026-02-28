@@ -336,3 +336,10 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] SSR hydration fix — `localStorage` deferred to `useEffect`
 - [x] **Document-Flow** — `mars_strategy_bcr.md` v3.1, `software_stack.md` v3.1, `feature_admin.md` updated
 - [x] **Agents Sync Meeting (16:45)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1645.md` & `docs/code_review/code_review_2026_02_28_sync_1645.md`)
+- [x] **PREMIUM_EMAILS Server-Side Privileged Access**
+    - [x] Backend: `PREMIUM_EMAILS` env var in `auth.py` (mirrors `GM_EMAILS` pattern)
+    - [x] Backend: `/me` endpoint returns `is_premium` flag (admin auto-premium)
+    - [x] Frontend: Sidebar auto-syncs `localStorage("martian_premium")` on login
+    - [x] Frontend: SettingsModal shows "⭐ Premium Active" badge (non-admin)
+- [x] **Fix: Missing `/auth/logout` endpoint** — added `GET /auth/logout` to `auth.py`
+- [x] **Agents Sync Meeting (19:15)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1915.md` & `docs/code_review/code_review_2026_02_28_sync_1915.md`)

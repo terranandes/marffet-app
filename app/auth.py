@@ -336,3 +336,10 @@ async def guest_login(request: Request):
     return {"status": "ok", "message": "Guest mode activated"}
 
 
+@router.get("/logout")
+async def logout(request: Request):
+    """Clear the user session and redirect to the frontend."""
+    user_email = request.session.get('user', {}).get('email', 'unknown')
+    request.session.clear()
+    print(f"[AUTH] Logged out: {user_email}")
+    return RedirectResponse(url=FRONTEND_URL)

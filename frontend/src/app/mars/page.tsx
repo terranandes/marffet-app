@@ -167,10 +167,11 @@ export default function MarsPage() {
         fetchStocks();
     };
 
-    const handleExport = () => {
+    const handleExport = (mode: "filtered" | "unfiltered" = "filtered") => {
         const API_URL = "";
+        const isPremium = typeof window !== "undefined" && localStorage.getItem("martian_premium") === "true";
         window.open(
-            `${API_URL}/api/export/excel?mode=filtered&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+            `${API_URL}/api/export/excel?mode=${mode}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}&premium=${isPremium}`,
             "_blank"
         );
     };
@@ -258,12 +259,29 @@ export default function MarsPage() {
                             {isCalculating ? "Calculating..." : "Apply (Recalculate)"}
                         </button>
 
-                        <button
-                            onClick={handleExport}
-                            className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-2 rounded transition cursor-pointer"
-                        >
-                            📥 Export Excel
-                        </button>
+                        {typeof window !== "undefined" && localStorage.getItem("martian_premium") === "true" ? (
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => handleExport("filtered")}
+                                    className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
+                                >
+                                    📥 Export Filtered (All)
+                                </button>
+                                <button
+                                    onClick={() => handleExport("unfiltered")}
+                                    className="w-full bg-amber-500/10 border border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
+                                >
+                                    📦 Export Unfiltered (All)
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => handleExport("filtered")}
+                                className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-2 rounded transition cursor-pointer"
+                            >
+                                📥 Export Excel (Top 50)
+                            </button>
+                        )}
                     </div>
                 </div>
 

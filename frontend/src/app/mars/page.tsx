@@ -186,8 +186,11 @@ export default function MarsPage() {
     // Chart Visualization Mode
     const [vizMode, setVizMode] = useState<"wealth" | "dividend">("wealth");
 
-    // Premium check for conditional UI
-    const isPremium = typeof window !== "undefined" && localStorage.getItem("martian_premium") === "true";
+    // Premium check — deferred to client-only to avoid SSR hydration mismatch
+    const [isPremium, setIsPremium] = useState(false);
+    useEffect(() => {
+        setIsPremium(localStorage.getItem("martian_premium") === "true");
+    }, []);
 
     return (
         <div className="flex flex-col lg:flex-row gap-6">

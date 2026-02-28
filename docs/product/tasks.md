@@ -349,3 +349,8 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-01 v1** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v1.md` & `docs/code_review/code_review_2026_03_01_sync_v1.md`)
     - Phase E Complete. BUG-119-UI closed.
     - Initiated `/brainstorm` for Phase F: Portfolio Beautification.
+- [x] **Phase F: Portfolio Beautification (Webull Style)**
+    - [x] StatsSummary redesigned with ECharts Donut Chart and premium value cards.
+    - [x] TargetList condensed into a 7-column stacked display with progress w-bars.
+    - [x] Consolidate Desktop Action Buttons into a `...` hover menu.
+    - [x] TargetCardList (Mobile UX) updated with cyberpunk aesthetic and framer-motion stagger.

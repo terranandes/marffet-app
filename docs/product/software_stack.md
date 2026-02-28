@@ -1,6 +1,6 @@
 # Martian Investment System - Software Stack
-**Version**: 3.1
-**Date**: 2026-02-28
+**Version**: 3.2
+**Date**: 2026-03-01
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer (New)
@@ -10,10 +10,12 @@
 |----------|------------|-------|
 | Framework | Next.js 16 (React 18) | App Router, Server Actions |
 | Runtime | **Bun** | Ultra-fast JS Runtime & Bundler |
-| Styling | TailwindCSS | Cyberpunk theme (Cyan/Gold/Zinc-950) |
-| Fonts | Inter (Google) | Clean, modern |
-| Visualization | ECharts for React | Bar Chart Race, Trend Lines, Donut |
+| Styling | TailwindCSS | Cyberpunk theme (Cyan/Amber/Zinc-950) |
+| Fonts | Open Sans / Poppins / JetBrains Mono | Body / Headings / Data |
+| Visualization | ECharts for React | Bar Chart Race, Mars Strategy charts |
+| Charts | Recharts | Trend Area Charts, Tooltips |
 | Animations | **Framer Motion** | Collapsible sections, tab transitions |
+| Loading States | `Skeleton.tsx` (shared) | Table, Chart, Leaderboard, CardGrid variants |
 | Notifications | **react-hot-toast** | System-wide toast notifications |
 | State | React useState/useContext | Lightweight |
 | Auth | Guest Mode + Google OAuth | `/auth/guest` endpoint |
@@ -50,15 +52,19 @@
 
 ## 5. UI Alignment Status ✅
 
-| Feature | Legacy UI | New Frontend | Status |
-|---------|-----------|--------------|--------|
-| Mars Strategy | ✅ | ✅ | Aligned |
-| Bar Chart Race | ✅ | ✅ | Aligned |
-| CB Strategy | ✅ | ✅ | Aligned |
-| Portfolio | ✅ | ✅ | Aligned |
-| Admin Dashboard | ✅ | ✅ | Aligned |
-| Guest Mode | ✅ | ✅ | **NEW** (2026-01-18) |
-| System Operations | ✅ | ✅ | Aligned |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Mars Strategy | ✅ | Top 50 survivors, modal detail |
+| Bar Chart Race | ✅ | Animated race + CAGR (Premium) |
+| Compound Interest | ✅ | Single + Comparison mode |
+| CB Strategy | ✅ | Premium/conversion arbitrage |
+| Portfolio | ✅ | Groups, targets, transactions |
+| Trend | ✅ | Area chart + dividend overlay |
+| My Race | ✅ | Personal holdings bar race |
+| Cash Ladder | ✅ | Leaderboard, public profiles |
+| Admin Dashboard | ✅ | GM-only operations |
+| Guest Mode | ✅ | No login required |
+| AI Copilot | ✅ | Free (Educator) + Premium (Manager) |
 
 ## 6. Key Files
 
@@ -66,7 +72,7 @@
 |------|---------|
 | `app/main.py` | Backend API + simulation engine |
 | `app/auth.py` | OAuth + Guest mode endpoints |
-| `app/static/main.js` | Legacy UI Vue app |
-| `app/static/index.html` | Legacy UI template |
-| `frontend/src/app/` | Next.js pages |
+| `frontend/src/app/` | Next.js pages (13 routes) |
 | `frontend/src/components/Sidebar.tsx` | Navigation + auth UI |
+| `frontend/src/components/Skeleton.tsx` | Shared loading skeleton variants |
+| `frontend/src/components/RaceChart.tsx` | Bar chart race visualization |

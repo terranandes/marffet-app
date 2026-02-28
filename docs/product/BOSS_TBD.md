@@ -2,10 +2,8 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [] Agents rebuilding correct MarketPrize and dividend on DuckDB
-- [ ] Check every main tabs and sub-tabs can reuse the data lake(DuckDB), expecting a instant response or short time response.
-- [ ] checking tab Mars
-- [ ] check tab BCR
+- [ ] Review Admin Dashboard
+- [ ] Review notification Scheme
 - [ ] check tab Compound Interest
 - [ ] check tab Cash Ladder
 

@@ -15,6 +15,7 @@ Please prepare/update/adjust tiny-up SPEC files formally as following files:
 - ./docs/product/admin_operations.md
 - ./docs/product/duckdb_architecture.md
 - other ./docs/product/ files not owned by other agents
+- ./docs/deployment/*, stuffs related to deployment know-how/tasks
 
 ## [PM] owns
 Please prepare/update/adjust tiny-up product datasheet and README for the end-users who use the APP (not ME/Terran/BOSS/Agents) as following files

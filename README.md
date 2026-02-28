@@ -8,13 +8,16 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 
 ## ✨ Features
 
--   **Mars Strategy**: Automatic filtering of low-volatility, high-CAGR stocks (Gaussian Filter).
--   **CB Arbitrage**: Real-time evaluation of Convertible Bond conversion premium signals.
--   **Market Visualization**: Interactive **Bar Chart Race** of stock performance over time.
--   **Modern UI**: Built with Next.js and TailwindCSS for a premium experience.
--   **Robust Backend**: Powered by FastAPI and AsyncIO for efficient data crawling.
--   **Extreme Speed**: Leverages an in-memory DuckDB singleton cache to resolve 20-year calculations in `<200ms`.
--   **Dynamic Naming**: Real-time synchronization with official TWSE/TPEX stock names.
+-   **Mars Strategy**: Backtest 20+ years of Taiwan stock history — find the Top 50 survivors with Gaussian filtering.
+-   **Bar Chart Race**: Watch stocks compete in an animated time-series visualization.
+-   **Compound Interest**: Simulate long-term compounding for single stocks or compare up to 3 assets.
+-   **Portfolio Tracker**: Manage holdings, transactions, and target prices with live P/L.
+-   **Trend & My Race**: Personal investment curve + your holdings racing against each other.
+-   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Martians.
+-   **CB Arbitrage**: Convertible Bond premium monitoring and yield hunting.
+-   **AI Copilot**: Investment assistant powered by Gemini (Free: Educator / Premium: Wealth Manager).
+-   **Extreme Speed**: DuckDB + vectorized numpy resolves 20-year calculations in `<200ms`.
+-   **Modern UI**: Next.js 16, TailwindCSS, skeleton loading, cyberpunk design.
 
 ---
 
@@ -83,6 +86,7 @@ A: We recommend using a service that supports Docker or Python/Node apps, such a
 
 ## 🛠 Tech Stack
 
--   **Frontend**: Next.js 16 (React 18), TailwindCSS, ECharts, Framer Motion.
--   **Backend**: FastAPI, Uvicorn, Python 3.12.
--   **Data**: AsyncIO Crawler (TWSE), Pandas (Analysis).
+-   **Frontend**: Next.js 16 (React 18), TailwindCSS, ECharts, Recharts, Framer Motion.
+-   **Backend**: FastAPI, Uvicorn, Python 3.12, uv (package manager).
+-   **Data**: DuckDB (Market DataLake), SQLite (User Data), AsyncIO Crawler (TWSE/TPEx).
+-   **DevOps**: Docker, Zeabur (auto-deploy), Playwright (E2E).

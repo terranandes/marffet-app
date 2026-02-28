@@ -57,7 +57,7 @@ export default function PortfolioPage() {
 
             {selectedGroupId && (
                 <div className="glass-card p-5 rounded-xl">
-                    <StatsSummary stats={groupStats} />
+                    <StatsSummary stats={groupStats} targets={targets} />
 
                     <TargetList
                         targets={targets}

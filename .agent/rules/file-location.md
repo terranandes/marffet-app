@@ -62,6 +62,9 @@ Keep clean room.
 ### Brainstorming
 - `./docs/brainstorming/*`
 
+### Deployment
+- `./docs/deployment/*`
+
 ---
 
 ## 6. Production Scripts & Cron Jobs

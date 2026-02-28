@@ -40,6 +40,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-21 | Mars Memory | Zeabur Stability | `/mars/analyze` doesn't 502 with >5M rows |
 | TC-22 | JSON Serialization | FastAPI Compliance | No 500 errors from nested NumPy types |
 | TC-23 | Data Accuracy | Nominal Consistency | TSMC CAGR 2010-2025 ~19.4% |
+| TC-24 | Premium Access | Access Tier Logic | PREMIUM_EMAILS grants premium status, GM_EMAILS grants admin+premium |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.

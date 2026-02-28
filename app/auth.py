@@ -18,6 +18,14 @@ GM_EMAILS = set(
     if email.strip()
 )
 
+# Premium Privileged Users (Comma-separated emails from .env)
+# These users get premium features without admin powers
+PREMIUM_EMAILS = set(
+    email.strip().lower()
+    for email in os.getenv('PREMIUM_EMAILS', '').split(',')
+    if email.strip()
+)
+
 
 router = APIRouter()
 oauth = OAuth(Config(environ=os.environ))
@@ -299,6 +307,9 @@ async def get_me(request: Request):
     # Check if user is admin
     is_admin = user.get('email', '').strip().lower() in GM_EMAILS
     
+    # Check if user has premium privilege (admin or explicit email)
+    is_premium = is_admin or user.get('email', '').strip().lower() in PREMIUM_EMAILS
+    
     # GEMINI CHECK
     gemini_key = os.getenv('GEMINI_API_KEY')
     has_gemini_key = bool(gemini_key and len(gemini_key) > 5) # Basic validation
@@ -308,7 +319,7 @@ async def get_me(request: Request):
     # Handle None profile
     if not db_profile:
         db_profile = {}
-    return {**user, **db_profile, "is_admin": is_admin, "has_gemini_key": has_gemini_key}
+    return {**user, **db_profile, "is_admin": is_admin, "is_premium": is_premium, "has_gemini_key": has_gemini_key}
 
 
 @router.post("/guest")

@@ -84,6 +84,11 @@ export default function Sidebar() {
                 if (userData && userData.id) {
                     setUser(userData);
 
+                    // Auto-sync premium status from server (privileged accounts)
+                    if (userData.is_premium) {
+                        localStorage.setItem("martian_premium", "true");
+                    }
+
                     // Fetch notifications if logged in
                     const notifRes = await fetch(`${API_URL}/api/notifications`, {
                         credentials: "include"

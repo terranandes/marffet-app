@@ -11,6 +11,7 @@ interface User {
     nickname?: string;
     picture?: string;
     is_admin?: boolean;
+    is_premium?: boolean;
 }
 
 interface SettingsModalProps {
@@ -334,7 +335,23 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                         <p className="text-xs text-zinc-600 mt-1">Global regions coming in Q4 2026.</p>
                                     </div>
 
-                                    {/* GM Controls */}
+                                    {/* Premium Badge (Server-granted, non-admin) */}
+                                    {user?.is_premium && !user?.is_admin && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-yellow-400 uppercase tracking-wider">Account Status</label>
+                                            <div className="flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                                                <div className="flex-1">
+                                                    <div className="font-bold text-white flex items-center gap-2">⭐ Premium Active</div>
+                                                    <div className="text-xs text-zinc-400">Privileged account — all premium features unlocked</div>
+                                                </div>
+                                                <div className="px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                                                    Active
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* GM Controls (Admin-only toggle for testing) */}
                                     {user?.is_admin && (
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-amber-400 uppercase tracking-wider">GM Controls</label>

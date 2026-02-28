@@ -52,10 +52,10 @@ Use conditional styling to add subtle neon glows to positive/negative values. Ad
 ## 6. Visual Concept Mockups (Generated)
 
 ### Option 1: Lite Polish (Glows & Layout tweak)
-![Option 1 - Lite Polish](/home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_one_1772311286497.png)
+![Option 1 - Lite Polish](file:///home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_one_1772311286497.png)
 
 ### Option 2: Action Bar Overhaul (Pill stats & Dropdown menus)
-![Option 2 - Action Bar](/home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_two_action_bar_1772311303247.png)
+![Option 2 - Action Bar](file:///home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_two_action_bar_1772311303247.png)
 
 ### Option 3: "Full Webull" (Donut Chart & Embedded Asset Weight Bars) - Recommended!
-![Option 3 - Full Webull](/home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_three_webull_1772311316494.png)
+![Option 3 - Full Webull](file:///home/terwu01/.gemini/antigravity/brain/ea53f215-ebce-4e94-9e96-8ab09e535a2e/portfolio_option_three_webull_1772311316494.png)

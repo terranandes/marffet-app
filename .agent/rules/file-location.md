@@ -35,7 +35,7 @@ Keep clean room.
 - `./docs/product/crawler_architecture.md`
 - `./docs/product/data_pipeline.md`
 - `./docs/product/auth_db_architecture.md`
-- `./docs/product/*` related to specification
+- `./docs/product/*` related to specification not owned by other agents
 
 ---
 

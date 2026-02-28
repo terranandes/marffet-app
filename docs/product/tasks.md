@@ -343,3 +343,6 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Frontend: SettingsModal shows "⭐ Premium Active" badge (non-admin)
 - [x] **Fix: Missing `/auth/logout` endpoint** — added `GET /auth/logout` to `auth.py`
 - [x] **Agents Sync Meeting (19:15)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1915.md` & `docs/code_review/code_review_2026_02_28_sync_1915.md`)
+- [x] **Agents Sync Meeting (19:30)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1930.md` & `docs/code_review/code_review_2026_02_28_sync_1930.md`)
+    - Updated `auth_db_architecture.md` with PREMIUM_EMAILS access tier documentation
+    - JIRA: BUG-111-CV reclassified CLOSED. 5/8 closed, 3 open (BUG-110, BUG-114, BUG-119)

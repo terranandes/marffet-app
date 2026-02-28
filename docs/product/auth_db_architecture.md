@@ -60,3 +60,32 @@ except:
 - **Sync**: When new code (with new columns) is pushed, Zeabur rebuilds -> App Starts -> `init_db` runs -> Missing columns are added to `/data/portfolio.db` automatically.
 
 **Conclusion:** The system is robust, self-healing, and performant.
+
+## 4. Access Tier Matrix (Premium & Admin)
+
+The backend enforces a three-tier access model using environment variables:
+
+| Env Var | Role | Powers |
+|:---|:---|:---|
+| `GM_EMAILS` | Admin (Game Master) | Full admin panel + premium features |
+| `PREMIUM_EMAILS` | Premium User | Premium features only (no admin panel) |
+| *(neither)* | Free User | Standard features |
+
+### Implementation (`auth.py`)
+```python
+GM_EMAILS = set(email.strip().lower() for email in os.getenv('GM_EMAILS', '').split(',') if email.strip())
+PREMIUM_EMAILS = set(email.strip().lower() for email in os.getenv('PREMIUM_EMAILS', '').split(',') if email.strip())
+
+# /me endpoint logic:
+is_admin = email in GM_EMAILS
+is_premium = is_admin or email in PREMIUM_EMAILS
+```
+
+### Frontend Sync
+- On login, `Sidebar.tsx` reads `/me` response → sets `localStorage("martian_premium")` if `is_premium` is true.
+- `SettingsModal.tsx` shows "⭐ Premium Active" badge for non-admin premium users.
+- Premium status is server-authoritative — `localStorage` is a convenience cache, not the source of truth.
+
+### Deployment
+- Both `GM_EMAILS` and `PREMIUM_EMAILS` must be configured in Zeabur backend env vars (`.env` is gitignored).
+- Format: Comma-separated, case-insensitive. E.g., `PREMIUM_EMAILS=user1@gmail.com,user2@gmail.com`

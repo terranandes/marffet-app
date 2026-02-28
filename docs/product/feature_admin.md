@@ -1,6 +1,6 @@
 # Admin Tab — Feature Specification
 
-**Date**: 2026-02-17
+**Date**: 2026-02-28
 **Owner**: [SPEC] Agent
 **Status**: Production (GM Only)
 
@@ -9,6 +9,13 @@
 ## 1. Overview
 
 The **Admin** tab (`/admin`) is the Game Master (GM) control panel. It provides system metrics, data pipeline controls, crawler management, feedback triage, and database backup/restore operations. **Access is restricted** to GM emails defined in the `GM_EMAILS` environment variable.
+
+### UI Architecture (Phase 23)
+- **5 collapsible sections** with `framer-motion` height transitions
+- Open/close state persisted in `localStorage`
+- All notifications via `react-hot-toast` (no native `alert()`)
+- Loading spinners on all async buttons
+- **Purple Ban enforced**: amber/emerald color scheme
 
 ---
 
@@ -75,7 +82,14 @@ The **Admin** tab (`/admin`) is the Game Master (GM) control panel. It provides 
 ## 4. Frontend
 
 **Route**: `/admin`
-**File**: `frontend/src/app/admin/page.tsx` (795 lines)
+**File**: `frontend/src/app/admin/page.tsx`
+
+### UI Features
+- Collapsible glass-card sections (Metrics, Routine, Maintenance, System Tools, Feedback)
+- Global crawler status bar with real-time polling
+- "Copy as JIRA" button for feedback items
+- Inline agent notes per feedback item
+- Responsive mobile stacking
 
 ### Key Functions
 

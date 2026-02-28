@@ -330,3 +330,9 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Code review approved commit `4676493`. Purple remnants flagged for Phase E.
     - JIRA triage: 5/8 closed. 3 remain open (BUG-119, BUG-111, BUG-114).
     - Updated `docs/product/admin_operations.md` to reflect new dashboard layout.
+- [x] **Mars Strategy Export Fix**
+    - [x] All users export all targets (no top-50 limit)
+    - [x] Free users: 📦 Unfiltered only. Premium: 📥 Filtered + 📦 Unfiltered
+    - [x] SSR hydration fix — `localStorage` deferred to `useEffect`
+- [x] **Document-Flow** — `mars_strategy_bcr.md` v3.1, `software_stack.md` v3.1, `feature_admin.md` updated
+- [x] **Agents Sync Meeting (16:45)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1645.md` & `docs/code_review/code_review_2026_02_28_sync_1645.md`)

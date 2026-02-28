@@ -1,6 +1,6 @@
 # Martian Investment System - Software Stack
-**Version**: 3.0
-**Date**: 2026-02-07
+**Version**: 3.1
+**Date**: 2026-02-28
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer (New)
@@ -13,6 +13,8 @@
 | Styling | TailwindCSS | Cyberpunk theme (Cyan/Gold/Zinc-950) |
 | Fonts | Inter (Google) | Clean, modern |
 | Visualization | ECharts for React | Bar Chart Race, Trend Lines, Donut |
+| Animations | **Framer Motion** | Collapsible sections, tab transitions |
+| Notifications | **react-hot-toast** | System-wide toast notifications |
 | State | React useState/useContext | Lightweight |
 | Auth | Guest Mode + Google OAuth | `/auth/guest` endpoint |
 
@@ -32,15 +34,11 @@
 | External API | TWSE (MI_INDEX), TPEx | Stock Name Resolution & Verification |
 | Pre-warm | APScheduler | Annual auto-rebuild + push |
 
-## 3. Legacy UI Layer
-**"The Original Interface"**
+## 3. Legacy UI Layer (RETIRED)
+**"Fully migrated to Next.js. Legacy code removed."**
 
-| Category | Technology | Notes |
-|----------|------------|-------|
-| Framework | Vue.js 3 (CDN) | Embedded in backend static |
-| Visualization | D3.js, Plotly.js | Bar Chart Race, Detail Charts |
-| Styling | TailwindCSS (CDN) | Same cyberpunk theme |
-| System Ops | Admin Dashboard | Crawler, Backup, Pre-warm buttons |
+> Legacy Vue.js 3 UI has been fully replaced by the Next.js frontend.
+> All legacy static files have been cleaned up.
 
 ## 4. DevOps & Automation
 

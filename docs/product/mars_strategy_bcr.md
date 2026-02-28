@@ -1,8 +1,8 @@
 # Feature Specification: Mars Strategy & Bar Chart Race (BCR)
 
 **Owner**: [PL] / [SPEC]
-**Version**: 3.0 (DuckDB Optimized)
-**Last Updated**: 2026-02-17
+**Version**: 3.1 (Export Rework)
+**Last Updated**: 2026-02-28
 
 ## 1. Feature Overview
 
@@ -13,6 +13,7 @@ The **Mars Strategy** is the primary analysis engine for the Martian Investment 
 *   **Input**: Start Year (2000+), Initial Capital, Annual Contribution.
 *   **Output**: Ranked table of stocks with Final Wealth, CAGR %, and Volatility %.
 *   **Detail View**: Interactive modal showing a 20+ year wealth accumulation chart and comparison between `Buy At Open (BAO)`, `Buy At High (BAH)`, and `Buy At Low (BAL)` strategies.
+*   **Export**: Excel download of simulation results. See §1.1.2 below.
 
 #### 1.1.1 Filter Logic (Quality Control)
 To ensure high-quality recommendations, the system applies the following filters:
@@ -21,6 +22,18 @@ To ensure high-quality recommendations, the system applies the following filters
 3.  **Volatility**: Volatility must be < 3x TSMC (2330).
 4.  **Stability**: CAGR Standard Deviation must be <= 20.
 5.  **ETF Exclusion**: Excludes Leveraged ETFs (ending with 'L').
+
+#### 1.1.2 Export Specification
+The export downloads all simulated targets as an Excel file (`.xlsx`). **No top-50 limit applies.**
+
+| User Tier | Available Modes | Filename |
+| :--- | :--- | :--- |
+| **Free** | 📦 Unfiltered (raw order, all targets) | `stock_list_s{start}e{end}_unfiltered.xlsx` |
+| **Premium** | 📥 Filtered (sorted by Final Wealth) + 📦 Unfiltered | `stock_list_s{start}e{end}_{filtered|unfiltered}.xlsx` |
+
+- **Filtered**: All targets sorted by Final Wealth descending.
+- **Unfiltered**: All targets in raw calculation order.
+- The premium flag is read from `localStorage` (`martian_premium`) on the client side.
 
 ### 1.2 BCR (Bar Chart Race) Tab
 The **Bar Chart Race** provides a dynamic, animated visualization of the wealth trajectories for the top candidates identified in the Mars Strategy.
@@ -81,7 +94,7 @@ graph LR
 | `calculate_complex_simulation()` | `roi_calculator.py` | The "Physics" engine. Replays 20+ years of prices, applying investments and corporate actions. |
 | `SplitDetector.detect_splits()` | `split_detector.py` | Identifies historical splits/dividends from price anomalies and corporate action tables. |
 | `get_race_data()` | `main.py` | Flattens cached simulation data into time-series frames for ECharts animation. |
-| `api_export_excel()` | `main.py` | Converts cached results into a multi-sheet Excel report with parameters and raw data. |
+| `api_export_excel()` | `main.py` | Converts cached results into a multi-sheet Excel report. Mode: `filtered` (sorted) or `unfiltered` (raw). No top-50 limit. |
 
 ---
 

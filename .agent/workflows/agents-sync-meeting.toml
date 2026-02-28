@@ -19,6 +19,7 @@ are starting a brief discussion on or follow the rules/workflows below:
 - do workflow `code-review`
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
 - adjust plans in `./docs/plan` as necessary
+- do workflow `document-flow`
 - integrate necessary current artifact `Implementation Plan`/`Task`/`Walkthrough` into `docs/product/tasks.md`
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.

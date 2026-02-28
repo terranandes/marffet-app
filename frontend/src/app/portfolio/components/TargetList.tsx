@@ -1,6 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
 import { Target } from "../../../services/portfolioService";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TargetListProps {
     targets: Target[];

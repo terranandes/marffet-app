@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Target } from "../../../services/portfolioService";
 import { motion, AnimatePresence } from "framer-motion";

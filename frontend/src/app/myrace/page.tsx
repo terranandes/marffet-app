@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { ChartSkeleton } from "@/components/Skeleton";
 
 interface RaceDataPoint {
     month: string;
@@ -131,7 +132,7 @@ export default function MyRacePage() {
             "from-red-400 to-pink-500",
             "from-yellow-400 to-orange-500",
             "from-green-400 to-emerald-500",
-            "from-purple-400 to-violet-500",
+            "from-teal-400 to-cyan-500",
             "from-orange-400 to-amber-500",
             "from-pink-400 to-rose-500",
             "from-blue-400 to-indigo-500",
@@ -217,9 +218,7 @@ export default function MyRacePage() {
             {/* Race Chart */}
             <div className="glass-card rounded-xl p-6 min-h-[400px]">
                 {loading ? (
-                    <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                        Loading race data...
-                    </div>
+                    <ChartSkeleton height="h-[400px]" />
                 ) : raceData.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="text-6xl mb-4">🏎️</p>

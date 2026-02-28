@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ChartSkeleton, TableSkeleton } from "@/components/Skeleton";
 
 interface TrendDataPoint {
     month: string;
@@ -141,7 +142,7 @@ export default function TrendPage() {
                                 alert('Sync failed');
                             }
                         }}
-                        className="bg-purple-500/20 border border-purple-500 text-purple-400 px-4 py-2 rounded hover:bg-purple-500 hover:text-white transition font-bold text-sm cursor-pointer"
+                        className="bg-amber-500/20 border border-amber-500 text-amber-400 px-4 py-2 rounded hover:bg-amber-500 hover:text-black transition font-bold text-sm cursor-pointer"
                     >
                         🔄 Sync Dividends
                     </button>
@@ -155,8 +156,9 @@ export default function TrendPage() {
             </div>
 
             {loading ? (
-                <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                    Loading portfolio trend...
+                <div className="space-y-6">
+                    <ChartSkeleton height="h-[350px]" />
+                    <TableSkeleton rows={5} cols={5} />
                 </div>
             ) : trendData.length === 0 ? (
                 <div className="glass-card p-8 text-center">
@@ -192,8 +194,8 @@ export default function TrendPage() {
                                     <span className="text-green-400">💵 Realized P/L</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
-                                    <input type="checkbox" checked={showDividend} onChange={() => setShowDividend(!showDividend)} className="accent-purple-400" />
-                                    <span className="text-purple-400">🎁 Dividends</span>
+                                    <input type="checkbox" checked={showDividend} onChange={() => setShowDividend(!showDividend)} className="accent-amber-400" />
+                                    <span className="text-amber-400">🎁 Dividends</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showUnrealized} onChange={() => setShowUnrealized(!showUnrealized)} className="accent-yellow-400" />
@@ -218,8 +220,8 @@ export default function TrendPage() {
                                             <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorDividend" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#c084fc" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#c084fc" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorUnrealized" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#facc15" stopOpacity={0.3} />
@@ -295,7 +297,7 @@ export default function TrendPage() {
                                             type="monotone"
                                             dataKey="dividend"
                                             name="dividend"
-                                            stroke="#c084fc"
+                                            stroke="#f59e0b"
                                             strokeWidth={2}
                                             fillOpacity={1}
                                             fill="url(#colorDividend)"

@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
 import DataTimestamp from "@/components/DataTimestamp";
+import { TableSkeleton } from "@/components/Skeleton";
 
 // Dynamic import for ECharts to avoid SSR issues
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
@@ -300,7 +301,7 @@ export default function MarsPage() {
             <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-rose-500 bg-clip-text text-transparent">
                             Mars Strategy
                         </h1>
                         {isCalculating && (
@@ -322,8 +323,8 @@ export default function MarsPage() {
                 </p>
 
                 {loading ? (
-                    <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                        Loading Market Data...
+                    <div className="glass-card rounded-xl overflow-hidden">
+                        <TableSkeleton rows={10} cols={6} />
                     </div>
                 ) : (
                     <div className="glass-card rounded-xl overflow-hidden">

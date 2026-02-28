@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChartSkeleton } from "@/components/Skeleton";
 
 interface RaceFrame {
     year: number;
@@ -203,9 +204,9 @@ export default function RacePage() {
             "bg-gradient-to-r from-cyan-500 to-sky-500",
             "bg-gradient-to-r from-sky-500 to-blue-500",
             "bg-gradient-to-r from-blue-500 to-indigo-500",
-            "bg-gradient-to-r from-indigo-500 to-violet-500",
-            "bg-gradient-to-r from-violet-500 to-purple-500",
-            "bg-gradient-to-r from-purple-500 to-fuchsia-500",
+            "bg-gradient-to-r from-teal-500 to-cyan-500",
+            "bg-gradient-to-r from-cyan-500 to-sky-600",
+            "bg-gradient-to-r from-amber-500 to-orange-500",
             "bg-gradient-to-r from-fuchsia-500 to-pink-500",
             "bg-gradient-to-r from-pink-500 to-rose-500",
             "bg-gradient-to-r from-rose-500 to-red-500",
@@ -220,7 +221,7 @@ export default function RacePage() {
             "bg-gradient-to-r from-emerald-400 to-teal-400",
             "bg-gradient-to-r from-cyan-400 to-sky-400",
             "bg-gradient-to-r from-blue-400 to-indigo-400",
-            "bg-gradient-to-r from-violet-400 to-purple-400",
+            "bg-gradient-to-r from-teal-400 to-cyan-400",
             "bg-gradient-to-r from-fuchsia-400 to-pink-400",
         ];
 
@@ -324,9 +325,7 @@ export default function RacePage() {
             {/* Chart */}
             <div className="glass-card rounded-xl p-6" ref={chartRef}>
                 {loading ? (
-                    <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                        Loading race data...
-                    </div>
+                    <ChartSkeleton height="h-[450px]" />
                 ) : currentFrameData.length === 0 ? (
                     <div className="text-center py-20 text-[var(--color-text-muted)]">
                         No data available for this period.

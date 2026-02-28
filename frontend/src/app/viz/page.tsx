@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import RaceChart from '@/components/RaceChart';
+import { ChartSkeleton } from '@/components/Skeleton';
 
 export default function VisualizationPage() {
     const [user, setUser] = useState<any>(null);
@@ -54,7 +55,7 @@ export default function VisualizationPage() {
         <main className="min-h-screen bg-[#050505] text-white p-8">
             <header className="mb-12 cursor-default flex justify-between items-end">
                 <div>
-                    <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 mb-2">
+                    <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-500 to-pink-500 mb-2">
                         MARS VISUALIZATION
                     </h1>
                     <p className="text-zinc-500 text-lg font-mono uppercase tracking-widest">
@@ -73,9 +74,7 @@ export default function VisualizationPage() {
 
             <section className="w-full max-w-7xl mx-auto">
                 {loading ? (
-                    <div className="flex items-center justify-center h-96">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
-                    </div>
+                    <ChartSkeleton height="h-96" />
                 ) : (
                     <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-800 rounded-3xl p-6 shadow-2xl">
                         {data.length > 0 ? (

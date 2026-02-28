@@ -50,7 +50,7 @@ export default function DocPage() {
                             </ul>
                         </div>
                         <div className="p-6 bg-zinc-900/50 border border-white/10 rounded-xl">
-                            <h3 className="text-xl font-bold text-purple-400 mb-2">3. Portfolio & Leaderboard</h3>
+                            <h3 className="text-xl font-bold text-amber-400 mb-2">3. Portfolio & Leaderboard</h3>
                             <ul className="space-y-2 text-sm text-gray-400">
                                 <li>Track your real holdings.</li>
                                 <li>Compare ROI with others on the Global Leaderboard.</li>

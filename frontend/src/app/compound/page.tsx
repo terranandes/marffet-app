@@ -217,7 +217,7 @@ export default function CompoundPage() {
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">Mode</label>
                             <div className="flex bg-black/50 rounded p-1 border border-[var(--color-border)]">
                                 <button onClick={() => setSettings({ ...settings, mode: "single" })} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${settings.mode === "single" ? "bg-[var(--color-cta)] text-black" : "text-zinc-400 hover:text-white"}`}>Single</button>
-                                <button onClick={() => setSettings({ ...settings, mode: "comparison" })} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${settings.mode === "comparison" ? "bg-purple-500 text-white" : "text-zinc-400 hover:text-white"}`}>Comparison</button>
+                                <button onClick={() => setSettings({ ...settings, mode: "comparison" })} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${settings.mode === "comparison" ? "bg-amber-500 text-black" : "text-zinc-400 hover:text-white"}`}>Comparison</button>
                             </div>
                         </div>
 
@@ -232,7 +232,7 @@ export default function CompoundPage() {
                                 {[["stock1", "Stock 1"], ["stock2", "Stock 2"], ["stock3", "Stock 3 (Opt)"]].map(([key, label]) => (
                                     <div key={key}>
                                         <label className="block text-xs text-[var(--color-text-muted)] mb-1">{label}</label>
-                                        <input type="text" value={settings[key as keyof CompoundSettings] as string} onChange={(e) => setSettings({ ...settings, [key]: e.target.value })} className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono focus:border-purple-500 outline-none transition" />
+                                        <input type="text" value={settings[key as keyof CompoundSettings] as string} onChange={(e) => setSettings({ ...settings, [key]: e.target.value })} className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono focus:border-cyan-500 outline-none transition" />
                                     </div>
                                 ))}
                             </div>
@@ -248,7 +248,7 @@ export default function CompoundPage() {
                             <div><label className="block text-xs text-[var(--color-text-muted)] mb-1">Annual Contribution ($)</label><input type="number" step={10000} value={settings.contribution} onChange={(e) => setSettings({ ...settings, contribution: Number(e.target.value) })} className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono" /></div>
                         </div>
 
-                        <button onClick={fetchSimulation} disabled={loading} className={`w-full font-bold py-2.5 rounded mt-4 cursor-pointer transition ${settings.mode === "single" ? "bg-[var(--color-cta)] text-black hover:brightness-110" : "bg-purple-500 text-white hover:brightness-110"} disabled:opacity-50`}>
+                        <button onClick={fetchSimulation} disabled={loading} className={`w-full font-bold py-2.5 rounded mt-4 cursor-pointer transition ${settings.mode === "single" ? "bg-[var(--color-cta)] text-black hover:brightness-110" : "bg-amber-500 text-black hover:brightness-110"} disabled:opacity-50`}>
                             {loading ? "Calculating..." : settings.mode === "single" ? "Calculate" : "Compare"}
                         </button>
                     </div>
@@ -262,7 +262,7 @@ export default function CompoundPage() {
                         {settings.mode === "single" ? (
                             <><span className="text-2xl">📈</span><span className="text-[var(--color-cta)]">Compound Interest</span></>
                         ) : (
-                            <><span className="text-2xl">⚖️</span><span className="text-purple-400">Asset Comparison</span></>
+                            <><span className="text-2xl">⚖️</span><span className="text-amber-400">Asset Comparison</span></>
                         )}
                     </h1>
                 </header>
@@ -363,7 +363,7 @@ export default function CompoundPage() {
                             </div>
 
                             <p className="text-center text-[var(--color-text-muted)] text-sm">
-                                👆 Click <span className={settings.mode === "single" ? "text-[var(--color-cta)] font-bold" : "text-purple-400 font-bold"}>{settings.mode === "single" ? "Calculate" : "Compare"}</span> to generate your wealth projection
+                                👆 Click <span className={settings.mode === "single" ? "text-[var(--color-cta)] font-bold" : "text-amber-400 font-bold"}>{settings.mode === "single" ? "Calculate" : "Compare"}</span> to generate your wealth projection
                             </p>
 
                             {/* Formula Hints - MoneyCome Rules */}

@@ -83,7 +83,7 @@ const RaceChart: React.FC<RaceChartProps> = ({ data, isPremium }) => {
     // Cyberpunk Colors
     const colors = [
         '#00f3ff', // Cyan
-        '#bc13fe', // Purple
+        '#06b6d4', // Cyan
         '#f0f',    // Magenta
         '#ff9500', // Orange
         '#0f0',    // Green
@@ -194,7 +194,7 @@ const RaceChart: React.FC<RaceChartProps> = ({ data, isPremium }) => {
             {/* Header / Controls */}
             <div className="flex items-center justify-between p-4 bg-zinc-900/50 backdrop-blur-md rounded-xl border border-zinc-800">
                 <div className="flex items-center gap-4">
-                    <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                    <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500">
                         {currentData.year}
                     </h2>
                     <span className="text-zinc-400 text-sm font-mono">{metric === 'roi' ? 'TOTAL WEALTH' : 'CAGR (Premium)'}</span>
@@ -216,8 +216,8 @@ const RaceChart: React.FC<RaceChartProps> = ({ data, isPremium }) => {
                                 else alert('🔒 Premium Feature: Upgrade to view CAGR analysis.');
                             }}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${metric === 'cagr'
-                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                                    : 'text-zinc-400 hover:text-white'
+                                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+                                : 'text-zinc-400 hover:text-white'
                                 }`}
                         >
                             {!isPremium && <span className="text-[10px]">🔒</span>}

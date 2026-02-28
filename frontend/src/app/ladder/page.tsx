@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import ShareButton from "@/components/ShareButton";
+import { LeaderboardSkeleton } from "@/components/Skeleton";
 
 interface LeaderboardEntry {
     id: string;
@@ -78,7 +79,7 @@ export default function LadderPage() {
         if (rank === 1) return "from-yellow-400 to-amber-600";
         if (rank === 2) return "from-gray-300 to-gray-500";
         if (rank === 3) return "from-amber-600 to-orange-700";
-        if (rank <= 10) return "from-purple-500 to-violet-700";
+        if (rank <= 10) return "from-amber-500 to-orange-700";
         return "from-zinc-600 to-zinc-700";
     };
 
@@ -97,9 +98,7 @@ export default function LadderPage() {
             {/* Leaderboard */}
             <div className="glass-card rounded-xl overflow-hidden">
                 {loading ? (
-                    <div className="text-center py-20 animate-pulse text-[var(--color-text-muted)]">
-                        Loading rankings...
-                    </div>
+                    <LeaderboardSkeleton rows={8} />
                 ) : leaderboard.length === 0 ? (
                     <div className="text-center py-20 text-[var(--color-text-muted)]">
                         <p className="text-6xl mb-4">🏆</p>

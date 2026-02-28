@@ -156,7 +156,7 @@ export function TargetList({
                                             </button>
                                             <button
                                                 onClick={() => onShowHistory(target.id)}
-                                                className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs hover:bg-purple-500 hover:text-white transition cursor-pointer"
+                                                className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded text-xs hover:bg-amber-500 hover:text-black transition cursor-pointer"
                                             >
                                                 📜
                                             </button>

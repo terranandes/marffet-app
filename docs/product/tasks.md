@@ -309,3 +309,24 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] Excluded Emerging Market (興櫃) crossovers via mathematically comparing `ref_yrs` vs DB years.
 - [x] Final Match Rate stored at 67.45%.
 - [x] Evening Agents Sync Meeting (21:15H) for review and push.
+
+## 21. Phase 23: UI/UX Polish Plan - [IN PROGRESS]
+- [x] **Phase A: GM Dashboard Overhaul** (`/admin`)
+    - [x] 5 Collapsible sections with framer-motion (localStorage persistence)
+    - [x] react-hot-toast replacing all native alert() calls
+    - [x] Loading spinners on async buttons
+    - [x] Feedback triage UX (JIRA copy, agent notes, status dropdown)
+    - [x] Purple ban enforcement (purple → amber/emerald)
+    - [x] Sharp geometry (rounded-sm) per frontend specialist rules
+- [x] **Phase B: Settings Modal Refinement**
+    - [x] AnimatePresence tab transitions (slide + fade)
+    - [x] Toast notifications replacing inline msg state
+    - [x] Added cash_ladder, compound_interest feedback categories (frontend + backend)
+    - [x] Purple ban enforcement (Game Master badge, GM Controls)
+- [ ] **Phase C: AI Bot Polish** — Blocked on GCP API (BUG-111-CV)
+- [ ] **Phase D: Notification Trigger System** — Backend engine needed
+- [ ] **Phase E: Cross-Tab Polish** — Skeletons, purple sweep (10 remaining files)
+- [x] **Agents Sync Meeting (15:00)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1500.md` & `docs/code_review/code_review_2026_02_28_sync_1500.md`)
+    - Code review approved commit `4676493`. Purple remnants flagged for Phase E.
+    - JIRA triage: 5/8 closed. 3 remain open (BUG-119, BUG-111, BUG-114).
+    - Updated `docs/product/admin_operations.md` to reflect new dashboard layout.

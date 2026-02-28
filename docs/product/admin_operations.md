@@ -1,22 +1,39 @@
 # Martian Admin Operations Guide 🛰️🕹️
 
 **Owner**: [PL] / [PM]
-**Last Updated**: 2026-02-17
+**Last Updated**: 2026-02-28
 
 This document serves as the definitive reference for GM (Game Master) operations, including manual dashboard tools and automated background processes.
 
 ---
 
-## 1. Manual Dashboard Operations (System Operations)
+## 1. GM Dashboard Layout (`/admin`)
 
-Located at `/admin` on the Martian Frontend.
+The dashboard is organized into **5 collapsible sections** with persistent open/close state (saved to `localStorage`). Default open: **Metrics** and **Feedback**. All operation buttons show inline loading spinners and results via `react-hot-toast` notifications (bottom-right).
 
-### Section A: Routine Operations (Daily/Weekly)
+### Global Status Bar
+A persistent crawler status indicator is always visible at the top of the dashboard (outside sections). It shows:
+- **Running** state with elapsed time and animated pulse
+- **Success/Error** state with last run duration
+- **Progress bar** for active crawl operations
+- **Dividend sync progress** bar when syncing
+
+---
+
+## 2. Manual Dashboard Operations
+
+### Section: 📊 User Metrics (default: open)
+
+Displays user registration counts, active users (Web/Mobile, last 30 days), and subscription tier breakdown (Free/Premium/VIP).
+
+---
+
+### Section: 📅 Routine Operations (default: closed)
 
 | Action | Control Label | Technical Endpoint | Scope | Data Persistence |
 | :--- | :--- | :--- | :--- | :--- |
 | **Price Update** | ✨ **Smart Supplemental Refresh** | `POST /api/admin/market-data/supplemental` | Held Stocks + Top 100 ETFs | **Local Only** (until nightly cron) |
-| **Dividend Sync** | 💰 **Sync All Dividends** | `POST /api/admin/market-data/sync-dividends` | **Global Universe** (1,771 stocks) | ✅ **Auto-Push to GitHub** |
+| **Dividend Sync** | 💰 **Sync All Dividends** | `POST /api/sync/all-users-dividends` | All users' held stocks | Shows progress bar during sync |
 | **DB Backup** | 💾 **GitHub Backup (DB)** | `POST /api/admin/backup` | `portfolio.db` | ✅ **Auto-Push to GitHub** |
 
 > [!TIP]
@@ -24,7 +41,7 @@ Located at `/admin` on the Martian Frontend.
 
 ---
 
-### Section B: Maintenance & Repair
+### Section: 🛠️ Maintenance & Repair (default: closed)
 
 | Action | Control Label | Purpose | Key Script / Method |
 | :--- | :--- | :--- | :--- |
@@ -34,16 +51,39 @@ Located at `/admin` on the Martian Frontend.
 
 ---
 
-### Section C: System Tools & Deep Universe
+### Section: ⚙️ System Tools & Deep Universe (default: closed)
 
 | Action | Control Label | Technical Context |
 | :--- | :--- | :--- |
 | **RAM Reload** | 🔋 **Reload Price Cache (Force)** | Instructs the `MarketCache` singleton to re-query DuckDB and refresh in-memory tables. |
-| **Backfill** | 🚀 **Universe Backfill (2000+)** | Downloads history from 2000 to Present for the entire universe. Note: Toggle **Push to GitHub** to make changes permanent on Zeabur via Parquets. |
+| **Copy URL** | 🔗 **Copy Metrics URL** | Copies the admin metrics API endpoint to clipboard. |
+| **Backfill** | 🚀 **Universe Backfill (2000+)** | Downloads history from 2000 to Present for the entire universe. |
+
+**Backfill Toggles:**
+| Toggle | Description |
+| :--- | :--- |
+| 🛡️ **Safe Mode** | ON = Incremental (won't overwrite). OFF = ⚠️ Full overwrite. |
+| 📤 **Push to GitHub** | ON = Push Parquets to GitHub on completion. OFF = Zeabur local only. |
+| 🌌 **Deep Universe** | ON = Include warrants. OFF = Stocks/ETFs only. Auto-enabled on localhost. |
 
 ---
 
-## 2. Automated Background Crons (Schedules)
+### Section: 📬 User Feedback & Bug Reports (default: open)
+
+| Feature | Description |
+| :--- | :--- |
+| **Stats Row** | Counters for New / Reviewing / Confirmed / Fixed / Won't Fix |
+| **Feedback List** | Scrollable list with type badges (🐛 Bug, ✨ Feature, 📝 Content) |
+| **Status Dropdown** | Inline status update per feedback item (triggers toast + API PATCH) |
+| **Agent Notes** | Expandable textarea for internal agent notes per feedback item |
+| **Copy as JIRA** | 📋 Copies feedback as formatted markdown for JIRA/ticket systems |
+
+**Supported Feedback Categories (Frontend + Backend):**
+`mars_strategy`, `bar_chart_race`, `portfolio`, `trend`, `my_race`, `ai_copilot`, `leaderboard`, `settings`, `subscription`, `cash_ladder`, `compound_interest`, `other`
+
+---
+
+## 3. Automated Background Crons (Schedules)
 
 These jobs run on the Zeabur server/local host via `crontab`.
 
@@ -56,7 +96,7 @@ These jobs run on the Zeabur server/local host via `crontab`.
 
 ---
 
-## 3. Data Integrity & Persistence Loop
+## 4. Data Integrity & Persistence Loop
 
 The system operates on a **"Crawl → DuckDB → Serve"** cycle:
 1.  **Crawl**: Price data is fetched from Yahoo Finance (`yfinance`) for all stocks.
@@ -73,8 +113,9 @@ Then trigger a manual **Backup** to save to GitHub.
 
 ---
 
-## 4. Operational Status Reference
+## 5. Operational Status Reference
 
-- **Crawler Status**: Monitor via `Crawler Status` bar on `/admin`.
+- **Crawler Status**: Monitor via the persistent **Global Status Bar** at the top of `/admin`.
+- **Toast Notifications**: All operations confirm success/failure via `react-hot-toast` (bottom-right).
 - **System Logs**: View terminal output or Zeabur application logs for `CrawlerService` tags.
 - **Persistence Log**: Check GitHub Commit history for automated commits tagged `[PL] / [BM]`.

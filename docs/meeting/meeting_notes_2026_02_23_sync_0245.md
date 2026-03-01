@@ -30,18 +30,18 @@ All test scripts and screenshot evidence are located in `.worktrees/full-test/te
 
 ### [UI] Frontend
 - **Remote Parity Confirmed:** Mars Strategy table rendered 962 listed stocks / 50 top candidates with correct CAGR% and Simulated Final values. Bar Chart Race loaded with full wealth animation bars from 2006-2026.
-- **Local Worktree Issue:** The `.worktrees/full-test` frontend lacks a `.env.local` file, causing the Next.js dev server to fail API routing. Documented as BUG-110-CV. This does NOT affect Zeabur production.
-- **BUG-114-CV** (Mobile Portfolio Card Click Timeout) remains deferred.
+- **Local Worktree Issue:** The `.worktrees/full-test` frontend lacks a `.env.local` file, causing the Next.js dev server to fail API routing. Documented as BUG-000-CV. This does NOT affect Zeabur production.
+- **BUG-010-CV** (Mobile Portfolio Card Click Timeout) remains deferred.
 
 ### [CV] Quality Assurance
 Two new Jira tickets filed this session:
 
 | Bug | Priority | Component | Status | Description |
 |-----|----------|-----------|--------|-------------|
-| **BUG-110-CV** | Low | Local Worktree Config | OPEN | `.worktrees/full-test/frontend/.env.local` missing → local UI spin lock |
-| **BUG-111-CV** | **High** | Zeabur AI Copilot | OPEN | `GEMINI_API_KEY` tied to GCP project `1009725210430` with disabled GenAI API |
+| **BUG-000-CV** | Low | Local Worktree Config | OPEN | `.worktrees/full-test/frontend/.env.local` missing → local UI spin lock |
+| **BUG-001-CV** | **High** | Zeabur AI Copilot | OPEN | `GEMINI_API_KEY` tied to GCP project `1009725210430` with disabled GenAI API |
 
-**Note on BUG-111-CV:** This is a **configuration-only** fix. Boss needs to either:
+**Note on BUG-001-CV:** This is a **configuration-only** fix. Boss needs to either:
 1. Enable the Generative Language API in GCP Console for project `1009725210430`, OR
 2. Update the Zeabur `GEMINI_API_KEY` environment variable to a valid key.
 
@@ -64,7 +64,7 @@ Two new Jira tickets filed this session:
 ## 4. Uncommitted Files (master)
 ```
  M tests/evidence/*.png (4 modified screenshots)
-?? docs/jira/ (BUG-110-CV, BUG-111-CV — NEW)
+?? docs/jira/ (BUG-000-CV, BUG-001-CV — NEW)
 ?? docs/plan/2026_02_23_remote_verification_plan.md (NEW)
 ?? docs/plan/2026_02_23_remote_verification_review.md (NEW)
 ```
@@ -76,18 +76,18 @@ Two new Jira tickets filed this session:
 | Mars Strategy (DuckDB) | ✅ | ✅ | 962 listed, 50 top candidates |
 | Bar Chart Race | ✅ | ✅ | Full wealth animation rendered |
 | ROICalculator Detail | ✅ | ✅ | BAO/BAH/BAL keys in 0.28s |
-| AI Copilot (Gemini) | ✅ | ❌ | GCP API disabled (BUG-111) |
+| AI Copilot (Gemini) | ✅ | ❌ | GCP API disabled (BUG-001) |
 | Guest Auth Flow | ✅ | ✅ | Session cookie works cross-domain |
 | Export Excel | ✅ | Not tested yet | Deferred to manual Boss check |
-| Mobile Portfolio | ⚠️ | Deferred | BUG-114-CV remains open |
+| Mobile Portfolio | ⚠️ | Deferred | BUG-010-CV remains open |
 | Interactive Backfill | ❌ | N/A | Phase 8 future feature |
 
 ## 6. Next Steps
-1. **[BOSS ACTION] Fix BUG-111-CV** — Enable Generative Language API in GCP Console
+1. **[BOSS ACTION] Fix BUG-001-CV** — Enable Generative Language API in GCP Console
 2. **TSMC CAGR Visual Verification** — Boss to visually confirm ~19% on Zeabur Mars Strategy page
 3. **Clean up stale worktrees/branches** — `martian_test`, `ralph-loop-q05if`
-4. **BUG-110-CV** — Auto-generate `.env.local` in `/full-test` workflow setup script
-5. **BUG-114-CV** — Mobile Portfolio Card (UI Polish Phase)
+4. **BUG-000-CV** — Auto-generate `.env.local` in `/full-test` workflow setup script
+5. **BUG-010-CV** — Mobile Portfolio Card (UI Polish Phase)
 6. **Interactive Backfill Dashboard** — Premium UI Phase 8 next feature
 
-[PL] → Boss: "Boss, the Zeabur production system passed 3 out of 4 verification tasks cleanly. The only failure is BUG-111 — a GCP API enablement issue on your Google Cloud Console. Once you flip that switch, the AI Copilot will be fully operational for guest users. Ready for your sign-off."
+[PL] → Boss: "Boss, the Zeabur production system passed 3 out of 4 verification tasks cleanly. The only failure is BUG-001 — a GCP API enablement issue on your Google Cloud Console. Once you flip that switch, the AI Copilot will be fully operational for guest users. Ready for your sign-off."

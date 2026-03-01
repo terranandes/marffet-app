@@ -113,7 +113,7 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 - **Color Palette Enforcement**: Removed all 21 purple/violet CSS references across 10 files. Replaced with warm palette (amber, cyan, teal, emerald, rose).
 - **Skeleton Loading States**: Added shared `Skeleton.tsx` component (5 variants). Applied animated skeleton placeholders to 6 pages (mars, race, trend, ladder, myrace, viz).
 - **Premium Emails**: Server-side `PREMIUM_EMAILS` environment variable for granting premium access by email.
-- **BUG-119-UI**: Transaction date picker dark mode confirmed fixed (`colorScheme: dark`).
+- **BUG-004-UI**: Transaction date picker dark mode confirmed fixed (`colorScheme: dark`).
 
 ### v3.0 (2026-02-07) - Phase 3 Verification Complete
 - **Split Detector Implementation**: Auto-detects >40% overnight drops, verified 0050 CAGR >12%.

@@ -23,7 +23,7 @@
   - **Rationale**: YFinance data from 2000-2003 automatically, retroactively adjusts historical dividends upon modern stock splits. This completely bankrupts the mathematical integrity of the MoneyCome simulation engine (triggering the double-slicing fallacy). 2004 is the hard cutoff because it aligns with the absolute limit of pristine TWSE MI_INDEX digital archives.
 
 ## 4. UI/UX Review
-- **BUG-114-CV**: Mobile Portfolio Card Click Timeout pending investigation. [UI] will hold off on frontend tasks until the backend correlation recovers.
+- **BUG-010-CV**: Mobile Portfolio Card Click Timeout pending investigation. [UI] will hold off on frontend tasks until the backend correlation recovers.
 
 ## 5. Next Actions
 - [PL] Monitor the DuckDB bulk insertion until 2025 is reached.

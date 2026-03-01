@@ -23,7 +23,7 @@ Three critical architectural changes were deployed this session:
 - `app/services/backup.py`: Added `data/backup/*.parquet` to Git push pipeline.
 
 ### [UI] Frontend
-Standing by. No frontend changes in this session. BUG-114-CV remains deferred.
+Standing by. No frontend changes in this session. BUG-010-CV remains deferred.
 
 ### [CV] Quality Assurance
 **Code Review Findings (see companion code review note):**
@@ -35,7 +35,7 @@ Standing by. No frontend changes in this session. BUG-114-CV remains deferred.
 ## 2. Outstanding Bugs & Triages
 | Bug | Status | Owner | Notes |
 |-----|--------|-------|-------|
-| BUG-114-CV | Deferred | [UI] | Mobile Portfolio Card Click Timeout (E2E test issue) |
+| BUG-010-CV | Deferred | [UI] | Mobile Portfolio Card Click Timeout (E2E test issue) |
 | BUG-115-PL | Resolved | [CODE] | YFinance Adjusted Dividend Mismatch — fixed by Phase 18 Nominal Rebuild |
 | **NEW: Zeabur OOM** | **RESOLVED** | [CODE] | 502 Bad Gateway caused by Pandas 600MB heap allocation |
 | **NEW: Zeabur 500** | **RESOLVED** | [CODE] | `numpy.int32` serialization crash in `jsonable_encoder` |
@@ -73,7 +73,7 @@ Standing by. No frontend changes in this session. BUG-114-CV remains deferred.
 1. **Remote TSMC CAGR Verification** — Confirm ~19% on Zeabur frontend
 2. **Clean up stale branches/worktrees** — 10+ branches can be purged
 3. **Delete debug debris** (`error.html`, `log.txt`, `boot_test*.log`)
-4. **BUG-114-CV** — Mobile Portfolio Card (UI Phase)
+4. **BUG-010-CV** — Mobile Portfolio Card (UI Phase)
 5. **Interactive Backfill Dashboard** — Premium UI Phase 8 feature
 
 [PL] → Boss: "Boss, the deployment is LIVE! The Mars Strategy computation pipeline is running on Zeabur without OOM crashes, serving 1,066 stock analysis results in ~25 seconds. All three critical blockers (OOM, JSON serialization, empty volume) have been surgically eliminated. Ready for your remote verification."

@@ -31,9 +31,9 @@ No direct React or styling changes, but the ECharts wealth path array now inhere
 **Bug Triage (No Changes to base bugs):**
 | Bug | Priority | Status | Owner | Change |
 |-----|----------|--------|-------|--------|
-| **BUG-110-CV** | Low | OPEN | [CODE]/[PL] | Missing branch environment file (Local) |
-| **BUG-111-CV** | **High** | OPEN | **BOSS** | GCP Copilot API disabled |
-| **BUG-114-CV** | Deferred | OPEN | [UI] | Mobile Card click timeout |
+| **BUG-000-CV** | Low | OPEN | [CODE]/[PL] | Missing branch environment file (Local) |
+| **BUG-001-CV** | **High** | OPEN | **BOSS** | GCP Copilot API disabled |
+| **BUG-010-CV** | Deferred | OPEN | [UI] | Mobile Card click timeout |
 
 ## 2. Deployment Completeness & Discrepancy
 - **Local:** Fixed and unified.
@@ -51,4 +51,4 @@ No direct React or styling changes, but the ECharts wealth path array now inhere
 ## 5. Next Steps
 1. **[PL]** Integrate this meeting note and update `tasks.md`.
 2. **[PL]** Proceed with `commit-but-push` and transition into `@[/full-test]` workflow per Boss's cascading requests.
-3. **[BOSS ACTION]** GCP API Enablement (BUG-111).
+3. **[BOSS ACTION]** GCP API Enablement (BUG-001).

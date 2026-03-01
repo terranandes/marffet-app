@@ -16,7 +16,7 @@ Since the 03:00H meeting, the team has been in **steady-state post-verification 
 | Check tab Compound Interest | ✅ Automated E2E Passed | `task5_compound_remote.png` |
 | Check tab Cash Ladder | ✅ Automated E2E Passed | `task5_ladder_remote.png` |
 | Export Excel | ⚠️ Timeout on cold-start | No 500 error — Zeabur memory limit |
-| AICopilot Enhancement | ❌ Blocked on BUG-111-CV | Boss action required |
+| AICopilot Enhancement | ❌ Blocked on BUG-001-CV | Boss action required |
 
 ### [SPEC] Architecture Observations
 - Boss edited `GEMINI.md` and `AGENTS.md` to clarify agent role assignments: Gemini CLI agents are now explicitly tagged as `[GCV]`, and OpenCode CLI agents as `[OSPEC]`. These are configuration-only changes, no code impact.
@@ -27,7 +27,7 @@ Since the 03:00H meeting, the team has been in **steady-state post-verification 
   - `verify_task5_visuals.py` — Compound Interest + Cash Ladder + Export Excel
 
 ### [PL] Orchestration
-**Sprint Status:** Phase 8 remains **blocked on Boss action** for BUG-111-CV (GCP API enablement). All automated verification tasks are now complete. The only remaining item is Boss's visual sign-off on TSMC CAGR ~19% on the Zeabur Mars Strategy page.
+**Sprint Status:** Phase 8 remains **blocked on Boss action** for BUG-001-CV (GCP API enablement). All automated verification tasks are now complete. The only remaining item is Boss's visual sign-off on TSMC CAGR ~19% on the Zeabur Mars Strategy page.
 
 **Git Status:**
 - HEAD: `3d3aad0` (3 commits ahead of `origin/master`)
@@ -45,7 +45,7 @@ Since the 03:00H meeting, the team has been in **steady-state post-verification 
 ### [UI] Frontend
 - No UI changes. The frontend remains in steady-state.
 - All 8 sidebar tabs have been verified to render without crashes via automated E2E scripts.
-- BUG-114-CV (Mobile Portfolio Card Click Timeout) remains deferred.
+- BUG-010-CV (Mobile Portfolio Card Click Timeout) remains deferred.
 
 ### [CV] Quality Assurance
 
@@ -53,9 +53,9 @@ Since the 03:00H meeting, the team has been in **steady-state post-verification 
 
 | Bug | Priority | Status | Owner | Change Since Last Meeting |
 |-----|----------|--------|-------|---------------------------|
-| **BUG-110-CV** | Low | OPEN | [CODE]/[PL] | No change |
-| **BUG-111-CV** | **High** | OPEN | **BOSS** | No change — awaiting GCP API enablement |
-| **BUG-114-CV** | Deferred | OPEN | [UI] | No change |
+| **BUG-000-CV** | Low | OPEN | [CODE]/[PL] | No change |
+| **BUG-001-CV** | **High** | OPEN | **BOSS** | No change — awaiting GCP API enablement |
+| **BUG-010-CV** | Deferred | OPEN | [UI] | No change |
 
 **No new bugs filed.** Code review below covers the changes since the 03:00H meeting.
 
@@ -91,9 +91,9 @@ Both are Boss-owned configuration files for AI agent routing. Will be committed 
 
 ### Lead Agent Assessment
 The project is in a **documentation and testing completeness** phase. All production code is frozen and verified. The E2E test suite now provides full coverage of all 8 sidebar tabs. The remaining work is exclusively:
-1. Boss enables GCP API (BUG-111)
+1. Boss enables GCP API (BUG-001)
 2. Boss visually confirms TSMC CAGR ~19%
-3. Future: Mobile Premium Overhaul (BUG-114)
+3. Future: Mobile Premium Overhaul (BUG-010)
 
 ### Skeptic Challenge
 - *"The Export Excel timeout on Zeabur — is this a latent production bug?"*
@@ -105,12 +105,12 @@ The project is in a **documentation and testing completeness** phase. All produc
 
 ## 6. Next Steps
 
-1. **[BOSS ACTION]** Enable GCP Generative Language API (BUG-111-CV)
+1. **[BOSS ACTION]** Enable GCP Generative Language API (BUG-001-CV)
 2. **[BOSS ACTION]** Visually confirm TSMC CAGR ~19% on Zeabur Mars Strategy page
 3. **[BOSS DECISION]** Authorize `git push origin master` for the 3 ahead commits
 4. **[PL]** Continue monitoring Zeabur deployment stability
-5. **[UI]** Mobile Portfolio Card fix (BUG-114-CV) — next sprint
+5. **[UI]** Mobile Portfolio Card fix (BUG-010-CV) — next sprint
 
 ---
 
-[PL] → Boss: "Boss, all automated E2E verification is now 100% complete across all 8 tabs. The new `verify_task5_visuals.py` script confirmed Compound Interest and Cash Ladder render correctly on Zeabur. The only remaining blockers are your GCP API switch (BUG-111) and TSMC CAGR visual confirmation. We're ready for your go-ahead to push to origin."
+[PL] → Boss: "Boss, all automated E2E verification is now 100% complete across all 8 tabs. The new `verify_task5_visuals.py` script confirmed Compound Interest and Cash Ladder render correctly on Zeabur. The only remaining blockers are your GCP API switch (BUG-001) and TSMC CAGR visual confirmation. We're ready for your go-ahead to push to origin."

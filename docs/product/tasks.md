@@ -101,7 +101,7 @@
 - [x] **Remote Verification Plan Execution** (Ref: `docs/plan/2026_02_23_remote_verification_plan.md`)
     - [x] Task 1: Environment & Auth Parity — ✅ Health endpoints + Guest login both pass
     - [x] Task 2: Data Component Rendering (DuckDB) — ✅ Mars Strategy (962 stocks) + BCR render on Zeabur
-    - [x] Task 3: AI Copilot Inference — ❌ GCP API disabled (BUG-111-CV) — Config-only fix needed
+    - [x] Task 3: AI Copilot Inference — ❌ GCP API disabled (BUG-001-CV) — Config-only fix needed
     - [x] Task 4: Portfolio ROICalculator — ✅ 2330 parsed in 0.28s, invalid tickers handled gracefully
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_0245.md` & `docs/code_review/code_review_2026_02_23_sync_0245.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_23_sync_0300.md` & `docs/code_review/code_review_2026_02_23_sync_0300.md`)
@@ -109,8 +109,8 @@
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_24_sync_0204.md` & `docs/code_review/code_review_2026_02_24_sync_0204.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_24_sync_0206.md` & `docs/code_review/code_review_2026_02_24_sync_0206.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_25_sync_0310.md` & `docs/code_review/code_review_2026_02_25_sync_0310.md`)
-- [ ] **BUG-111-CV: Zeabur AI Copilot GCP API Disabled** — Boss needs to enable Generative Language API <!-- id: bug-111-cv -->
-- [ ] **BUG-110-CV: Local Worktree Frontend .env.local Missing** — Auto-generate in /full-test workflow <!-- id: bug-110-cv -->
+- [ ] **BUG-001-CV: Zeabur AI Copilot GCP API Disabled** — Boss needs to enable Generative Language API <!-- id: bug-111-cv -->
+- [ ] **BUG-000-CV: Local Worktree Frontend .env.local Missing** — Auto-generate in /full-test workflow <!-- id: bug-110-cv -->
 - [ ] **Interactive Backfill Dashboard**
 - [ ] **Mobile Premium Overhaul**
 
@@ -124,19 +124,19 @@
 - [x] **Sidebar Reordering** (Compound Interest moved)
 - [x] **Fix 6415 Detail API Crash** (Resolved Backend 500 error due to Numpy JSON serialization)
 - [x] **Project Structure Cleanup** (Moved scripts to `tests/`, consolidated logs in `tests/log/`)
-- [x] **Fix BUG-111: Next.js API Proxy 500 Error** (Resolved: Port mismatch fixed .env -> 8000) <!-- id: bug-111 -->
+- [x] **Fix BUG-001: Next.js API Proxy 500 Error** (Resolved: Port mismatch fixed .env -> 8000) <!-- id: bug-111 -->
 - [x] **Fix Mars Tab Discrepancy** (Aligned detail `/api/results/detail` output with `/api/results` tabular output by unifying `ROICalculator` mathematically)
-- [x] **Fix BUG-120-PL: Trend Portfolio Value Mismatch** (Stitched Live Prices to the trailing month in DuckDB timeline to perfectly match Portfolio $97M)
-- [x] **Fix BUG-121-PL: My Race Target Merge Name Bug** (Fixed strict `stock_id` matching in Python grouping to prevent target name hallucination/collision)
-- [x] **Fix BUG-122-PL: Cash Ladder UI Bugs** (Sync Stats 500 fixed, Profile Allocation names fixed, Share icon duplication removed)
+- [x] **Fix BUG-005-PL: Trend Portfolio Value Mismatch** (Stitched Live Prices to the trailing month in DuckDB timeline to perfectly match Portfolio $97M)
+- [x] **Fix BUG-006-PL: My Race Target Merge Name Bug** (Fixed strict `stock_id` matching in Python grouping to prevent target name hallucination/collision)
+- [x] **Fix BUG-007-PL: Cash Ladder UI Bugs** (Sync Stats 500 fixed, Profile Allocation names fixed, Share icon duplication removed)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_1903.md` & `docs/code_review/code_review_2026_02_27_sync_1903.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_2237.md` & `docs/code_review/code_review_2026_02_27_sync_2237.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_27_sync_2253.md` & `docs/code_review/code_review_2026_02_27_sync_2253.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_0254.md` & `docs/code_review/code_review_2026_02_28_sync_0254.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_0311.md` & `docs/code_review/code_review_2026_02_28_sync_0311.md`)
 - [x] Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_0316.md` & `docs/code_review/code_review_2026_02_28_sync_0316.md`)
-- [x] **Fix BUG-111-CV: AI Copilot Context & API** (Configured Tier 1 Gemini Key, updated backend model logic to 2.5-flash, and frontend context injection promises)
-- [ ] **BUG-114-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
+- [x] **Fix BUG-001-CV: AI Copilot Context & API** (Configured Tier 1 Gemini Key, updated backend model logic to 2.5-flash, and frontend context injection promises)
+- [ ] **BUG-010-CV: Mobile Portfolio Card Click Timeout** (E2E test: TSMC card not visible in mobile viewport) <!-- id: bug-114 -->
 
 ## 15. Phase 15: DuckDB Optimization & Dividend Migration - [COMPLETED]
 - [x] **Dividend Migration (Single Source of Truth)**
@@ -229,7 +229,7 @@
 - [x] **Add Admin Backup Trigger** (`POST /api/admin/backup/trigger`)
 - [x] **Pipeline Flow**: Crawl → Split Supplement → Parquet Backup → Git Push
 - [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_sync_final.md` & `docs/code_review/code_review_2026_02_20_sync_final.md`)
-    - Triaged Data bugs (BUG-115, BUG-116) and UI bugs (BUG-114).
+    - Triaged Data bugs (BUG-115, BUG-116) and UI bugs (BUG-010).
     - Uncommitted recovery scripts and Zeabur Volume Mount blocker documented.
 - [x] **Evening Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_02_20_evening_sync.md` & `docs/code_review/code_review_2026_02_20_evening_sync.md`)
     - BUG-116 TPEx YFinance rollback implemented in `crawler_tpex.py`.
@@ -252,7 +252,7 @@
     - [x] Remove `SAVE_INTERVAL` (handled by DuckDB) at L755 in `market_data_service.py`
 - [x] **Gate debug prints** (Commented out high-volume prints)
 - [x] **Fix bare `except` clauses** (L909, L919) in `market_data_service.py`
-- [ ] **BUG-114-CV**: Mobile Portfolio Card Click Timeout (E2E Test Issue) <!-- id: bug-114 -->
+- [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E Test Issue) <!-- id: bug-114 -->
 - [ ] **🔥 BUG-115-PL**: YFinance Adjusted Dividend Mismatch - SEVERITY HIGH (Data Corruption globally) <!-- id: bug-115 -->
 
 # Phase 18: Pure Nominal Database Rebuild (Correlation Recovery)
@@ -323,12 +323,12 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Toast notifications replacing inline msg state
     - [x] Added cash_ladder, compound_interest feedback categories (frontend + backend)
     - [x] Purple ban enforcement (Game Master badge, GM Controls)
-- [ ] **Phase C: AI Bot Polish** — Blocked on GCP API (BUG-111-CV)
+- [ ] **Phase C: AI Bot Polish** — Blocked on GCP API (BUG-001-CV)
 - [ ] **Phase D: Notification Trigger System** — Backend engine needed
 - [x] **Phase E: Cross-Tab Polish** — Skeletons, purple sweep (10 remaining files)
 - [x] **Agents Sync Meeting (15:00)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1500.md` & `docs/code_review/code_review_2026_02_28_sync_1500.md`)
     - Code review approved commit `4676493`. Purple remnants flagged for Phase E.
-    - JIRA triage: 5/8 closed. 3 remain open (BUG-119, BUG-111, BUG-114).
+    - JIRA triage: 5/8 closed. 3 remain open (BUG-004, BUG-001, BUG-010).
     - Updated `docs/product/admin_operations.md` to reflect new dashboard layout.
 - [x] **Mars Strategy Export Fix**
     - [x] All users export all targets (no top-50 limit)
@@ -345,15 +345,15 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting (19:15)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1915.md` & `docs/code_review/code_review_2026_02_28_sync_1915.md`)
 - [x] **Agents Sync Meeting (19:30)** (Ref: `docs/meeting/meeting_notes_2026_02_28_sync_1930.md` & `docs/code_review/code_review_2026_02_28_sync_1930.md`)
     - Updated `auth_db_architecture.md` with PREMIUM_EMAILS access tier documentation
-    - JIRA: BUG-111-CV reclassified CLOSED. 5/8 closed, 3 open (BUG-110, BUG-114, BUG-119)
+    - JIRA: BUG-001-CV reclassified CLOSED. 5/8 closed, 3 open (BUG-000, BUG-010, BUG-004)
 - [x] **Agents Sync Meeting - 2026-03-01 v1** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v1.md` & `docs/code_review/code_review_2026_03_01_sync_v1.md`)
-    - Phase E Complete. BUG-119-UI closed.
+    - Phase E Complete. BUG-004-UI closed.
     - Initiated `/brainstorm` for Phase F: Portfolio Beautification.
 - [x] **Phase F: Portfolio Beautification (Webull Style)**
     - [x] StatsSummary redesigned with ECharts Donut Chart and premium value cards.
     - [x] TargetList condensed into a 7-column stacked display with progress w-bars.
     - [x] Consolidate Desktop Action Buttons into a `...` hover menu.
     - [x] TargetCardList (Mobile UX) updated with cyberpunk aesthetic and framer-motion stagger.
-- [x] **BUG-123-CV**: Fix `AnimatePresence` missing import causing full Next.js Client Component Hydration crash across browser suite. (`docs/jira/BUG-123-CV_portfolio_targetlist_animatepresence_missing_import.md`)
+- [x] **BUG-008-CV**: Fix `AnimatePresence` missing import causing full Next.js Client Component Hydration crash across browser suite. (`docs/jira/BUG-008-CV_portfolio_targetlist_animatepresence_missing_import.md`)
 - [x] **Agents Sync Meeting - 2026-03-01 v2** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v2.md` & `docs/code_review/code_review_2026_03_01_sync_v2.md`)
-    - Diagnosed and fixed BUG-120-UI via `full-test-local` isolated git worktree environment. Ready for Playwright testing.
+    - Diagnosed and fixed BUG-005-UI via `full-test-local` isolated git worktree environment. Ready for Playwright testing.

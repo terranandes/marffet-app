@@ -1,4 +1,4 @@
-# BUG-123 — Portfolio TargetList: Missing AnimatePresence Import Causes Full Browser Freeze
+# BUG-008 — Portfolio TargetList: Missing AnimatePresence Import Causes Full Browser Freeze
 
 **Type:** BUG  
 **Serial ID:** 123  

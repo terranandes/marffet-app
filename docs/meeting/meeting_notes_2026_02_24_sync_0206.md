@@ -16,7 +16,7 @@ This is a rapid follow-up micro-sync. The system has been in **post-verification
 | Check tab Compound Interest | ✅ Automated E2E | `task5_compound_remote.png` |
 | Check tab Cash Ladder | ✅ Automated E2E | `task5_ladder_remote.png` |
 | Export Excel | ⚠️ Zeabur cold-start timeout | Test env limitation only |
-| AICopilot Enhancement | ❌ Blocked on BUG-111-CV | Boss action required |
+| AICopilot Enhancement | ❌ Blocked on BUG-001-CV | Boss action required |
 | TSMC CAGR ~19% sign-off | ⏳ Pending | Boss visual review |
 
 ### [SPEC] Architecture
@@ -26,7 +26,7 @@ No changes. Architecture frozen. DuckDB schema stable at 5M+ rows, 1,600+ stocks
 **Git Status:** `master` at `1fe81fc`, **1 commit ahead** of `origin/master`. The ahead commit is the 02:04H meeting notes (docs-only, zero code risk).
 
 **Sprint Blockers (unchanged):**
-1. **BUG-111-CV** — Boss must enable GCP Generative Language API
+1. **BUG-001-CV** — Boss must enable GCP Generative Language API
 2. **TSMC CAGR ~19%** — Boss visual sign-off pending
 
 **Stash Status:**
@@ -39,7 +39,7 @@ No changes. Architecture frozen. DuckDB schema stable at 5M+ rows, 1,600+ stocks
 No code changes. All production code stable since `36e4ef1`. Working tree **clean** — zero unstaged files.
 
 ### [UI] Frontend
-No UI changes. All 8 sidebar tabs E2E verified. BUG-114-CV (Mobile Portfolio Card) deferred to next sprint.
+No UI changes. All 8 sidebar tabs E2E verified. BUG-010-CV (Mobile Portfolio Card) deferred to next sprint.
 
 ### [CV] Quality Assurance
 
@@ -47,9 +47,9 @@ No UI changes. All 8 sidebar tabs E2E verified. BUG-114-CV (Mobile Portfolio Car
 
 | Bug | Priority | Status | Owner | Change |
 |-----|----------|--------|-------|--------|
-| **BUG-110-CV** | Low | OPEN | [CODE]/[PL] | No change |
-| **BUG-111-CV** | **High** | OPEN | **BOSS** | No change |
-| **BUG-114-CV** | Deferred | OPEN | [UI] | No change |
+| **BUG-000-CV** | Low | OPEN | [CODE]/[PL] | No change |
+| **BUG-001-CV** | **High** | OPEN | **BOSS** | No change |
+| **BUG-010-CV** | Deferred | OPEN | [UI] | No change |
 
 **No new bugs.** No code changes to review.
 
@@ -57,7 +57,7 @@ No UI changes. All 8 sidebar tabs E2E verified. BUG-114-CV (Mobile Portfolio Car
 
 | Environment | Health | Data | Auth | Copilot | Portfolio |
 |-------------|--------|------|------|---------|-----------| 
-| **Zeabur** | ✅ 200 (0.26s) | ✅ 962 stocks | ✅ Guest | ❌ BUG-111 | ✅ 0.28s |
+| **Zeabur** | ✅ 200 (0.26s) | ✅ 962 stocks | ✅ Guest | ❌ BUG-001 | ✅ 0.28s |
 | **Local** | ✅ 200 | ✅ Full DuckDB | ✅ Guest | N/A | ✅ 0.24s |
 
 **HEAD vs Remote:** 1 commit ahead (docs-only). Safe to push.
@@ -100,10 +100,10 @@ The project has been in **production-ready steady state** for 12+ hours. All 8 t
 
 ## 6. Next Steps
 
-1. **[BOSS ACTION]** Enable GCP Generative Language API (BUG-111-CV)
+1. **[BOSS ACTION]** Enable GCP Generative Language API (BUG-001-CV)
 2. **[BOSS ACTION]** Confirm TSMC CAGR ~19% on Zeabur Mars Strategy page
 3. **[PL]** Push 1-ahead commit to `origin/master` (this meeting's notes)
-4. **[UI]** Mobile Portfolio Card fix (BUG-114-CV) — next sprint
+4. **[UI]** Mobile Portfolio Card fix (BUG-010-CV) — next sprint
 5. **[PL]** Interactive Backfill Dashboard — Phase 8 future feature
 6. **[PL]** Evaluate stale remote branch cleanup (low priority)
 

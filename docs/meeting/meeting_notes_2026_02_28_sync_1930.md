@@ -26,17 +26,17 @@
 
 | Ticket | Status | Owner | Update |
 |:---|:---|:---|:---|
-| BUG-110-CV | OPEN | `[CV]` | Local worktree `.env.local` — deferred (no worktrees active) |
-| BUG-111-CV | **CLOSED** | `[CODE]` | Fixed last session (Gemini 2.5-flash key configured) |
-| BUG-114-CV | OPEN | `[CV]` | Mobile card expand timeout — E2E deferred, low priority |
-| BUG-117-PL | CLOSED | `[CODE]` | BCR duplicate year data — fixed |
-| BUG-118-PL | CLOSED | `[CODE]` | Portfolio dividend sync NaN — fixed |
-| BUG-119-UI | OPEN | `[UI]` | Date picker calendar style — Phase E (CSS dark mode fix) |
-| BUG-120-PL | CLOSED | `[CODE]` | Trend portfolio value mismatch — fixed |
-| BUG-121-PL | CLOSED | `[CODE]` | Race target merge name bug — fixed |
-| BUG-122-PL | CLOSED | `[CODE]` | Cash ladder UI bugs — fixed |
+| BUG-000-CV | OPEN | `[CV]` | Local worktree `.env.local` — deferred (no worktrees active) |
+| BUG-001-CV | **CLOSED** | `[CODE]` | Fixed last session (Gemini 2.5-flash key configured) |
+| BUG-010-CV | OPEN | `[CV]` | Mobile card expand timeout — E2E deferred, low priority |
+| BUG-002-PL | CLOSED | `[CODE]` | BCR duplicate year data — fixed |
+| BUG-003-PL | CLOSED | `[CODE]` | Portfolio dividend sync NaN — fixed |
+| BUG-004-UI | OPEN | `[UI]` | Date picker calendar style — Phase E (CSS dark mode fix) |
+| BUG-005-PL | CLOSED | `[CODE]` | Trend portfolio value mismatch — fixed |
+| BUG-006-PL | CLOSED | `[CODE]` | Race target merge name bug — fixed |
+| BUG-007-PL | CLOSED | `[CODE]` | Cash ladder UI bugs — fixed |
 
-**Summary: 5/8 CLOSED, 3 OPEN (BUG-110, BUG-114, BUG-119). BUG-111-CV reclassified CLOSED.**
+**Summary: 5/8 CLOSED, 3 OPEN (BUG-000, BUG-010, BUG-004). BUG-001-CV reclassified CLOSED.**
 
 ## 3. Code Review ([CV])
 - Uncommitted diff reviewed — see `code_review_2026_02_28_sync_1930.md`.
@@ -49,7 +49,7 @@
 |:---|:---|
 | **A: GM Dashboard Overhaul** | ✅ Complete |
 | **B: Settings Modal Refinement** | ✅ Complete |
-| **C: AI Bot Polish** | ✅ Complete (BUG-111-CV fixed) |
+| **C: AI Bot Polish** | ✅ Complete (BUG-001-CV fixed) |
 | **D: Notification Trigger System** | ⬜ Not started — backend engine needed |
 | **E: Cross-Tab Polish** | ⬜ Not started — skeletons + purple sweep |
 
@@ -73,7 +73,7 @@
 - `[PM]` docs stable — no feature changes since last document-flow (16:45).
 
 ## 7. Plan Review
-- `docs/plan/2026_02_27_ui_ux_polish_plan.md` — Phase A/B complete, Phase C complete (BUG-111-CV fixed), Phase D/E remain.
+- `docs/plan/2026_02_27_ui_ux_polish_plan.md` — Phase A/B complete, Phase C complete (BUG-001-CV fixed), Phase D/E remain.
 - No plan adjustments needed. Roadmap on track.
 
 ## 8. Artifact Integration

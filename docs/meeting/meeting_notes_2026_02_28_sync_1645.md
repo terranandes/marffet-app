@@ -12,9 +12,9 @@
 ## 2. Bug Triage (no change)
 | Ticket | Status |
 |:---|:---|
-| BUG-119-UI (Date Picker Style) | OPEN — Phase E |
-| BUG-111-CV (Remote Copilot Auth) | OPEN — GCP blocked |
-| BUG-114-CV (Mobile Card Timeout) | OPEN — E2E deferred |
+| BUG-004-UI (Date Picker Style) | OPEN — Phase E |
+| BUG-001-CV (Remote Copilot Auth) | OPEN — GCP blocked |
+| BUG-010-CV (Mobile Card Timeout) | OPEN — E2E deferred |
 
 5/8 JIRA tickets remain CLOSED from previous triage.
 

@@ -22,9 +22,9 @@
 
 | Ticket | Status | Update |
 |:---|:---|:---|
-| BUG-119-UI (Date Picker Style) | OPEN | Phase E |
-| BUG-111-CV (Remote Copilot Auth) | OPEN | GCP blocked |
-| BUG-114-CV (Mobile Card Timeout) | OPEN | E2E deferred |
+| BUG-004-UI (Date Picker Style) | OPEN | Phase E |
+| BUG-001-CV (Remote Copilot Auth) | OPEN | GCP blocked |
+| BUG-010-CV (Mobile Card Timeout) | OPEN | E2E deferred |
 | **NEW** — Logout 404 | **FIXED** | Missing `/auth/logout` endpoint discovered by Boss during testing |
 
 5/8 original JIRA tickets remain CLOSED. 3 OPEN (unchanged).

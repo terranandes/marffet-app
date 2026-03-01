@@ -1,4 +1,4 @@
-# BUG-122-PL: Cash Ladder UI Bugs (Sync Stats, Share Icons, Allocation Modal)
+# BUG-007-PL: Cash Ladder UI Bugs (Sync Stats, Share Icons, Allocation Modal)
 **Reporter:** [PL]
 **Component:** Frontend & Backend (Cash Ladder)
 **Severity:** Medium

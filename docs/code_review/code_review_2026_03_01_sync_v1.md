@@ -13,5 +13,5 @@
 
 ## Summary
 - The codebase is clean. Build passed with 0 errors. Grep searches verified eradication of all restricted CSS classes.
-- Playwright E2E suite executed offline and generated new bug reports (`BUG-999-CV`). This is a test harness timeout issue, not a production application bug.
+- Playwright E2E suite executed offline and generated new bug reports (`BUG-009-CV`). This is a test harness timeout issue, not a production application bug.
 - Recommend proceeding with Phase F / Portfolio Polish implementation.

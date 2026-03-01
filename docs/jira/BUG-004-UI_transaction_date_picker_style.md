@@ -1,4 +1,4 @@
-# BUG-119-UI: Transaction Date Input Calendar Style Missing
+# BUG-004-UI: Transaction Date Input Calendar Style Missing
 
 **Reporter:** [PL]
 **Component:** Frontend (Portfolio Transaction Modal)

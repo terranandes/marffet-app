@@ -2,10 +2,10 @@
 
 ## 1. Project Live Progress
 - Evaluated `docs/product/tasks.md` and `task.md`.
-- **Completed**: AI Copilot Google API configuration (BUG-111-CV).
+- **Completed**: AI Copilot Google API configuration (BUG-001-CV).
 
 ## 2. Bug Triage
-- **BUG-111-CV**: **CLOSED**.
+- **BUG-001-CV**: **CLOSED**.
   - Google Gemini API key requirement issues solved via AI Studio Tier 1 Key + Quota mapping. 
   - Deprecated `gemini-2.0-flash` model swapped for `gemini-2.5-flash` in `app/main.py`.
 - **Performance Defect (Current Issue)**:

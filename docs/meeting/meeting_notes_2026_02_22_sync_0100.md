@@ -19,4 +19,4 @@
 
 ## 4. Next Phase Planning
 - **Phase 8:** Enable DuckDB Volume Mount on Zeabur `/data` directory and implement `.parquet` git backups.
-- **UX/UI:** Investigate BUG-114-CV (Mobile Portfolio Card click timeout).
+- **UX/UI:** Investigate BUG-010-CV (Mobile Portfolio Card click timeout).

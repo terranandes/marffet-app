@@ -11,7 +11,7 @@
 ## 2. Bug Triages & Jira
 - **🔴 BUG-116-CODE**: TPEx Native API Silent Date Fallback processing. Causes 0% CAGR for older bounds.
 - **🔴 BUG-115-PL**: YFinance Adjusted Dividend Mismatch. A severity HIGH data corruption issue currently being purged from DuckDB.
-- **🟡 BUG-114-CV**: Mobile Portfolio Card Click Timeout. E2E tests indicate the card is not visible in the mobile viewport. Requires [UI] attention.
+- **🟡 BUG-010-CV**: Mobile Portfolio Card Click Timeout. E2E tests indicate the card is not visible in the mobile viewport. Requires [UI] attention.
 
 ## 3. Features & Deployment Status
 - **Implemented**: Universal Data Lake (DuckDB), In-Memory Caching (`MarketCache`), Pre-IPO cash pooling logic in calculator.
@@ -24,7 +24,7 @@
 - Background Python jobs are actively running DuckDB connections for data recovery.
 
 ## 5. UI/UX & Mobile Web Layout Review
-- The alignment of the Next.js migration is complete, but BUG-114 indicates that the mobile card expansion logic or CSS needs adjustment to fit within viewport bounds gracefully. [UI] will audit the mobile structure.
+- The alignment of the Next.js migration is complete, but BUG-010 indicates that the mobile card expansion logic or CSS needs adjustment to fit within viewport bounds gracefully. [UI] will audit the mobile structure.
 
 ## 6. Multi-Agent Brainstorming & Adjustments
 - **[PM]**: The singular priority remains cracking the >85% correlation match rate. Features are frozen until data correctness is absolute.

@@ -11,7 +11,7 @@
 ## 2. Bug Triages & Jira
 - **✅ BUG-116-CODE**: TPEx Native API Silent Date Fallback processing. Fix applied in `crawler_tpex.py`.
 - **🔴 BUG-115-PL**: YFinance Adjusted Dividend Mismatch. Still flagged as severity HIGH data corruption; multiple recovery scripts are populating `market.duckdb` live in the background.
-- **🟡 BUG-114-CV**: Mobile Portfolio Card Click Timeout pending investigation by [UI].
+- **🟡 BUG-010-CV**: Mobile Portfolio Card Click Timeout pending investigation by [UI].
 
 ## 3. Features & Deployment Status
 - **Zeabur Volume Mount**: Still a primary blocker for the remote deployment. Any DuckDB fixes applied locally will not persist remotely without the Parquet workflow running smoothly.

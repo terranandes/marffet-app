@@ -20,7 +20,7 @@
 
 ### [PM] — User Impact
 - **Execution Order Approved:** Settings (quick win) → Dashboard (GM visibility) → Notifications → AI Bot → Cross-Tab.
-- **Concern:** Phase C is blocked on BUG-111-CV. Boss must enable GCP API or we skip it entirely.
+- **Concern:** Phase C is blocked on BUG-001-CV. Boss must enable GCP API or we skip it entirely.
 - **Suggestion:** Phase A should be highest priority since Boss uses the admin dashboard daily.
 - **Verdict:** ✅ Approved with priority adjustment: A before B.
 

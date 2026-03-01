@@ -12,12 +12,12 @@
 ## 2. Discrepancy & Bug Triages `[CV]` & `[CODE]`
 Two specific backend calculation flaws were identified and corrected:
 
-- **BUG-120-PL (Trend Portfolio Value Mismatch):** 
+- **BUG-005-PL (Trend Portfolio Value Mismatch):** 
   - *Symptom:* Dashboard market value showed ~$97M, but the Trend chart ended at ~$93M.
   - *Cause:* The generic Portfolio Dashboard retrieves real-time intraday `livePrice` updates, whereas the Trend timeline relies strictly on monthly DuckDB End-Of-Day snapshots. If the month hasn't ended, the DuckDB cache trailed Live action significantly.
   - *Fix:* We forcefully substitute the timeline's final trailing coordinate's price lookup with a direct `market_data_service.fetch_live_prices()` fetch when `month_key` equals the current calendar month.
 
-- **BUG-121-PL (My Race Target Merge Name Bug):**
+- **BUG-006-PL (My Race Target Merge Name Bug):**
   - *Symptom:* All bars on the Race timeline inherited the same name (e.g., `晶心科...`). Computationally they were grouped by ID correctly, but visually they collided.
   - *Cause:* A lazy iteration dictionary looping across `target_map` grabbed the very first `name` attribute it encountered without verifying `t['stock_id'] == sid`.
   - *Fix:* Python scope dictionary lookup was tightened to strictly enforce `if t.get('stock_id') == sid` during aggregation.
@@ -27,6 +27,6 @@ Two specific backend calculation flaws were identified and corrected:
 - **No Discrepancy between Local and Zeabur** remains for this feature scope. The Next.js frontend is functionally aligned with the backend's new logic streams.
 
 ## 4. Next Actions `[PM]`
-- JIRA Tickets BUG-120-PL and BUG-121-PL are **CLOSED**.
-- Future focus will shift back to validating mobile capabilities (BUG-114-CV) or handling Boss's new requests.
+- JIRA Tickets BUG-005-PL and BUG-006-PL are **CLOSED**.
+- Future focus will shift back to validating mobile capabilities (BUG-010-CV) or handling Boss's new requests.
 - Concluding meeting and executing `commit-but-push`.

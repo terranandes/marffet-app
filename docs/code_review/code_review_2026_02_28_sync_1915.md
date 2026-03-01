@@ -26,4 +26,4 @@
 
 ## Notes
 - No regressions introduced. Desktop e2e 4/4 passed on Zeabur.
-- Mobile card expand timeout (BUG-114-CV) is pre-existing and deferred.
+- Mobile card expand timeout (BUG-010-CV) is pre-existing and deferred.

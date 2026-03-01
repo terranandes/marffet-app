@@ -13,7 +13,7 @@ End-of-day audit covering all commits pushed today (`98dc67e` → `9b43454`). Fi
 
 | Commit | Description | Verdict |
 |--------|-------------|---------|
-| `98dc67e` | Close BUG-120/121 JIRA tickets | ✅ Docs only |
+| `98dc67e` | Close BUG-005/121 JIRA tickets | ✅ Docs only |
 | `bf83ea7` | Meeting notes for 1903 sync | ✅ Docs only |
 | `8c7b36a` | Fix Ladder: SyncStats 500, Share icons, Profile targets | ✅ **Core Fix** |
 | `9654d42` | Document-flow: DuckDB caching performance docs | ✅ Docs only |

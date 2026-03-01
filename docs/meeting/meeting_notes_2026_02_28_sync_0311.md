@@ -2,7 +2,7 @@
 
 ## 1. Project Live Progress
 - Evaluated `docs/product/tasks.md` and `task.md`.
-- **Completed**: AI Copilot Google API configuration (BUG-111-CV) and frontend context injection.
+- **Completed**: AI Copilot Google API configuration (BUG-001-CV) and frontend context injection.
 
 ## 2. Bug Triage
 - **Context Injection Fix**: 
@@ -23,6 +23,6 @@
 - Closing this session as requested by Boss. The next session will seamlessly transition into the UI/UX polish execution and Zeabur performance tuning.
 
 ## 5. Next Actions (for next session)
-- Fix BUG-114-CV: Mobile Portfolio Card Click Timeout.
+- Fix BUG-010-CV: Mobile Portfolio Card Click Timeout.
 - Address Zeabur cold-start lag.
 - Execute UI/UX Polish Plan (Phase A - Dashboard).

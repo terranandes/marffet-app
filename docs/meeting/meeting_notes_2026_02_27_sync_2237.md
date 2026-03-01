@@ -13,7 +13,7 @@
 ## 2. Discrepancy & Bug Triages `[CV]` & `[UI]`
 Three specific Cash Ladder bugs were triaged and resolved:
 
-- **BUG-122-PL (Cash Ladder UI Bugs):**
+- **BUG-007-PL (Cash Ladder UI Bugs):**
   - *Sync My Stats 500 Error:* `POST /api/portfolio/sync-stats` was crashing silently because the python logic returned `None` instead of JSON. The backend was corrected to return `{"roi": 165.0}` on a successful Upsert, fixing the frontend.
   - *Share Rankings Duplicate Icon:* Removed the hardcoded emoji `📤` from `ladder/page.tsx` since `ShareButton.tsx` automatically injected it.
   - *Profile Modal Missing Targets:* The React UI expected an array of `holdings` containing `stock_id` and `stock_name`. The Python backend erroneously returned `top_holdings` containing `symbol` and `name`. Mapping alignment was natively fixed in `get_public_portfolio`.
@@ -28,6 +28,6 @@ Three specific Cash Ladder bugs were triaged and resolved:
 - **No Discrepancy** exists between local code arrays and the Zeabur container representation.
 
 ## 5. Next Actions `[PM]`
-- JIRA Ticket BUG-122-PL is **CLOSED**.
+- JIRA Ticket BUG-007-PL is **CLOSED**.
 - Documentation architecture is mathematically correct.
 - Awaiting Boss commands. Meeting concluded with `commit-but-push`.

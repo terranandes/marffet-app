@@ -10,7 +10,7 @@
 
 | # | Objection | Severity | Resolution |
 |:---|:---|:---|:---|
-| 1 | **BUG-119-UI (Date Picker dark mode) is not in the plan** | Medium | **ACCEPTED** — Add as new Task |
+| 1 | **BUG-004-UI (Date Picker dark mode) is not in the plan** | Medium | **ACCEPTED** — Add as new Task |
 | 2 | Color collision risk (too much cyan) | Low | Dismissed — palette is diverse (amber, cyan, emerald, rose) |
 | 3 | Skeleton import increases bundle size | Low | Dismissed — CSS-only, ~1KB gzipped |
 | 4 | `"use client"` on stateless Skeleton | Info | Dismissed — parents are all client components |
@@ -38,6 +38,6 @@
 
 | Decision | Alternatives | Resolution |
 |:---|:---|:---|
-| Add BUG-119-UI to plan | Defer to separate task | Include in Phase E (it's CSS work) |
+| Add BUG-004-UI to plan | Defer to separate task | Include in Phase E (it's CSS work) |
 | CSS custom properties | Add `--color-accent` tokens now | Deferred to future polish pass |
 | Skeleton `"use client"` | Convert to RSC | Keep client — imported by client pages |

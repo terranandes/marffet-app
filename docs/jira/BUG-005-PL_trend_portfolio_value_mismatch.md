@@ -1,4 +1,4 @@
-# BUG-120-PL: Trend Chart Market Value Mismatch with Portfolio
+# BUG-005-PL: Trend Chart Market Value Mismatch with Portfolio
 **Reporter:** [PL]
 **Component:** Backend (Portfolio Service - Trend)
 **Severity:** Medium

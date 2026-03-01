@@ -266,7 +266,7 @@ git commit -m "feat: add shared Skeleton component library (Phase E)"
 
 ---
 
-## Task 6.5: BUG-119-UI — Date Picker Dark Mode Fix
+## Task 6.5: BUG-004-UI — Date Picker Dark Mode Fix
 
 > Per multi-agent review: Skeptic flagged this as missing from Phase E scope.
 
@@ -289,7 +289,7 @@ input[type="date"] {
 ```
 
 **Step 2: Verify the calendar picker icon is visible on dark background**
-**Step 3: Commit** `git commit -m "fix: BUG-119-UI date picker dark mode color-scheme"`
+**Step 3: Commit** `git commit -m "fix: BUG-004-UI date picker dark mode color-scheme"`
 
 ---
 

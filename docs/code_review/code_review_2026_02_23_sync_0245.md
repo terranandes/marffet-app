@@ -13,12 +13,12 @@
 ### `tests/e2e/verify_task2_parity.py`
 - ✅ 2-second sleep buffer between tab transitions respects Zeabur memory guardian rules
 - ✅ Remote Zeabur screenshots show fully populated Mars Strategy (962 listed / 50 candidates) and BCR (16+ bar entries)
-- ⚠️ Local screenshots show spinning UI due to missing `.env.local` — not a code bug, documented as BUG-110-CV
+- ⚠️ Local screenshots show spinning UI due to missing `.env.local` — not a code bug, documented as BUG-000-CV
 
 ### `tests/integration/verify_task3_copilot.py`
 - ✅ Correctly tests the server-side API key fallback by sending empty `apiKey`
 - ✅ Timeout set to 20s (appropriate for cold-start + Gemini inference)
-- ❌ Test fails with 403 Permission Denied — confirmed as infrastructure config issue (BUG-111-CV), not code
+- ❌ Test fails with 403 Permission Denied — confirmed as infrastructure config issue (BUG-001-CV), not code
 
 ### `tests/integration/verify_task4_portfolio.py`
 - ✅ Tests both valid ticker (`2330`) and invalid ticker (`INVALID_TICKER`)
@@ -42,5 +42,5 @@
 
 ## 4. Verdict
 - **Production Code:** APPROVED — No code changes needed. All existing logic performs correctly on Zeabur.
-- **Infrastructure:** Two config bugs filed (BUG-110-CV, BUG-111-CV). Neither requires code modification.
-- **Recommendation:** Boss should enable GCP Generative Language API (BUG-111) before marketing the AI Copilot feature.
+- **Infrastructure:** Two config bugs filed (BUG-000-CV, BUG-001-CV). Neither requires code modification.
+- **Recommendation:** Boss should enable GCP Generative Language API (BUG-001) before marketing the AI Copilot feature.

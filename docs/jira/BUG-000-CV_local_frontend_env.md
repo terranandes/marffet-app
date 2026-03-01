@@ -1,4 +1,4 @@
-# BUG-110-CV_local_frontend_env
+# BUG-000-CV_local_frontend_env
 
 **Reporter:** [CV] Code Verification Manager
 **Component:** Frontend Configuration (Local Isolated Worktree)

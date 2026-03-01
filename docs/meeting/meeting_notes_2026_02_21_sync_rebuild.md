@@ -14,7 +14,7 @@
 ## 2. Bug Triages & Jira
 - **✅ BUG-116-CODE**: TPEx Native API Silent Date Fallback. Fixed by using YFinance bounds.
 - **🔴 BUG-115-PL**: YFinance Adjusted Dividend Mismatch. Confirmed as the root cause of the correlation failure. We must abandon YFinance for primary dividend/price building and rely strictly on Nominal MI_INDEX data and isolated TWSE dividend records.
-- **🟡 BUG-114-CV**: Mobile Portfolio Card Click Timeout pending investigation by [UI].
+- **🟡 BUG-010-CV**: Mobile Portfolio Card Click Timeout pending investigation by [UI].
 
 ## 3. Features & Deployment Status
 - **Phase 18 Pipeline**: Ready to execute. We will wipe the 500MB+ `market.duckdb` and generate a pristine nominal database.

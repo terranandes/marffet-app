@@ -5,8 +5,8 @@
 - Verified Git branch status: clean and up to date with origin/master.
 
 ## 2. Bug Triage
-- **BUG-114-CV (OPEN)**: Mobile Portfolio Card Click Timeout. Needs E2E test verification and fix.
-- **BUG-119-UI (OPEN)**: Transaction Date Input Calendar Style Missing. Needs CSS dark mode check or custom picker.
+- **BUG-010-CV (OPEN)**: Mobile Portfolio Card Click Timeout. Needs E2E test verification and fix.
+- **BUG-004-UI (OPEN)**: Transaction Date Input Calendar Style Missing. Needs CSS dark mode check or custom picker.
 
 ## 3. Performance Improvement
 - Zeabur cold-start lag due to heavy DuckDB IO remains the top performance blocker. Deferred to next optimization phase.
@@ -19,4 +19,4 @@
 
 ## 6. Action Items
 - Proceed with UI/UX Polish Plan implementation.
-- Address open bugs (BUG-114, BUG-119).
+- Address open bugs (BUG-010, BUG-004).

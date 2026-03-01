@@ -43,7 +43,7 @@
 - Action: Visual check of timeline animations.
 
 **Step 4: Cash Ladder & Portfolio Views**
-- Goal: Verify mobile responsiveness and deferred BUG-114-CV context constraints.
+- Goal: Verify mobile responsiveness and deferred BUG-010-CV context constraints.
 - Action: Compare desktop wide view vs mobile viewport behavior on Zeabur.
 
 ### Task 3: Feature-to-Feature Verification

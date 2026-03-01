@@ -8,5 +8,5 @@
 - Outstanding issues are primarily UI/UX related (Date picker style) and E2E verification (Mobile card click timeout).
 
 ## 3. Action Items
-- Prepare to review CSS changes for BUG-119-UI in the upcoming session.
-- Prepare to review Mobile UI viewport fixes for BUG-114-CV.
+- Prepare to review CSS changes for BUG-004-UI in the upcoming session.
+- Prepare to review Mobile UI viewport fixes for BUG-010-CV.

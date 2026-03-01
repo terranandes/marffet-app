@@ -20,4 +20,4 @@
 ## 4. Next Phase Planning
 - **Phase 8:** Proceed with Zeabur persistent Volume Mounts and Parquet git backups so the >67% functional build is live.
 - **Edge Cases:** Patch the exact, known reverse split ratios for major outliers like `6472` manually into `split_detector.py` to hunt down the final 17% gap.
-- **UX/UI:** Re-focus on BUG-114 (Mobile Portfolio Card click timeout).
+- **UX/UI:** Re-focus on BUG-010 (Mobile Portfolio Card click timeout).

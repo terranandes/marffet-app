@@ -9,7 +9,7 @@
 - Git Worktree/Branch/Stash: Confirmed `master` branch is clean. No lingering local stashes. The remote origin is exactly synced.
 
 ## 2. Discrepancy: Local vs Deployment (The Root Cause Revealed) `[CV]`
-- In our prior sync, we implemented a JSON mapping fix for **BUG-118-PL (Portfolio Dividend Sync NaN)** in `main.py`. However, remote validation via Playwright and Boss's manual testing proved the table was *still* failing to render values on Zeabur.
+- In our prior sync, we implemented a JSON mapping fix for **BUG-003-PL (Portfolio Dividend Sync NaN)** in `main.py`. However, remote validation via Playwright and Boss's manual testing proved the table was *still* failing to render values on Zeabur.
 - *Investigation Discovery 1 (Router Shadowing):* `[SPEC]` & `[CV]` found that FastAPI's `app.include_router` was capturing the `/api/portfolio/targets/{id}/dividends` route from the `/routers/portfolio.py` file, directly shadowing our mapped fix in `main.py`!
 - *Investigation Discovery 2 (Edge Caching):* Even after fixing the Python endpoint, Next.js and Zeabur proxies maintained aggressive cache layers on the GET request, serving the stale `.duckdb` shape to the frontend dynamically.
 
@@ -25,5 +25,5 @@
 
 ## 5. Next Actions `[PL]`
 - Maintain system stability. 
-- Update Jira issues indicating complete resolution of BUG-118-PL since frontend explicitly overrides Edge cache logic now.
+- Update Jira issues indicating complete resolution of BUG-003-PL since frontend explicitly overrides Edge cache logic now.
 - `[PL]` awaits next directives from Boss.

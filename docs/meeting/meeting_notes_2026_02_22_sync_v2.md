@@ -8,7 +8,7 @@
 
 ## 2. Outstanding Bugs & Triages
 - **Jira / Triages:** No new critical data bugs.
-- **BUG-114-CV:** Mobile Portfolio Card Click Timeout remains deferred to the next UI polishing phase.
+- **BUG-010-CV:** Mobile Portfolio Card Click Timeout remains deferred to the next UI polishing phase.
 
 ## 3. Deployment Completeness & Discrepancies
 - **Local:** 100% complete and passing Correlation logic (84.71% Grand Correlation match rate).

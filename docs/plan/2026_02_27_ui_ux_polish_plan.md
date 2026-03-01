@@ -97,7 +97,7 @@ Boss confirmed **no urgent bugs**. This plan focuses on polishing four specific 
 ## Phase C: AI Bot (Copilot) Polish
 
 > **File:** `frontend/src/components/AICopilot.tsx` (189 lines)
-> **Blocker:** BUG-111-CV (GCP API must be enabled by Boss)
+> **Blocker:** BUG-001-CV (GCP API must be enabled by Boss)
 
 ### Current Issues
 - Plain text responses (no markdown rendering)
@@ -182,7 +182,7 @@ Boss confirmed **no urgent bugs**. This plan focuses on polishing four specific 
 ### E4. Mobile Layout Audit
 - Review all tabs on 375px viewport
 - Fix overflow issues, touch target sizes
-- BUG-114-CV: Resolve mobile portfolio card click timeout
+- BUG-010-CV: Resolve mobile portfolio card click timeout
 
 ---
 
@@ -192,7 +192,7 @@ Boss confirmed **no urgent bugs**. This plan focuses on polishing four specific 
 |:------|:----------------|:-------------|
 | A (GM Dashboard) | 3-4 hours | None |
 | B (Settings Modal) | 2-3 hours | `feedback_db.py` category fix |
-| C (AI Bot) | 2-3 hours | **BUG-111-CV** (GCP API enable) |
+| C (AI Bot) | 2-3 hours | **BUG-001-CV** (GCP API enable) |
 | D (Notifications) | 4-5 hours | Backend engine work |
 | E (Cross-Tab) | 3-4 hours | None |
 

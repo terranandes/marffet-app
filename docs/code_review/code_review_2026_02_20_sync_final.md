@@ -21,7 +21,7 @@
 - **Action**: Re-align `calculator.py` to stop time-tracking on the exact delist date, returning early with the salvaged divisor.
 
 ## 3. UI/UX Stability
-### 3.1 Mobile Viewport (BUG-114)
+### 3.1 Mobile Viewport (BUG-010)
 - **Assessment**: E2E logs demonstrate that the Portfolio Card component renders outside the interaction boundary on ~375px screens (iOS metrics), causing timeout failures in Playwright.
 - **Action**: Review `className` strings in the Next.js component. Lacks `w-full` or `max-w-[100vw]` constraints.
 

@@ -1,4 +1,4 @@
-# BUG-118-PL: Portfolio Dividend Sync Returns Empty/NaN
+# BUG-003-PL: Portfolio Dividend Sync Returns Empty/NaN
 
 **Reporter:** [PL]
 **Component:** Frontend (Portfolio) & Backend (Dividend Sync / Calculation)

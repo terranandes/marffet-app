@@ -9,7 +9,7 @@
 - A dedicated methodology document (`docs/product/grand_correlation_methodology.md`) was created to formalize the rules and exclusions (e.g., 5-day glitch immunity, unique par values, emerging market exclusion).
 
 ## 2. Outstanding Bugs & Triages
-- **BUG-114-CV (Mobile Portfolio Card Click Timeout):** E2E test issue regarding mobile viewport visibility. Deferred to UI Phase.
+- **BUG-010-CV (Mobile Portfolio Card Click Timeout):** E2E test issue regarding mobile viewport visibility. Deferred to UI Phase.
 - **Data Glitches:** Successfully neutralized via the 5-day backward scan. Split multipliers mathematically derive reference prices directly from the newly ingested `change` column.
 
 ## 3. Deployment Completeness & Next Phase

@@ -13,14 +13,14 @@
 ## 2. Bug Triage
 | Ticket | Status | Notes |
 |:---|:---|:---|
-| BUG-117-PL (BCR Duplicate Year) | CLOSED | Fixed in previous phase |
-| BUG-118-PL (Dividend Sync NaN) | CLOSED | Fixed in previous phase |
-| BUG-119-UI (Date Picker Style) | OPEN | Deferred to Phase E |
-| BUG-120-PL (Trend Value Mismatch) | CLOSED | Live price stitch implemented |
-| BUG-121-PL (My Race Name Collision) | CLOSED | Grouping logic fixed |
-| BUG-122-PL (Cash Ladder UI) | CLOSED | Sync stats, share icon, allocation modal all fixed |
-| BUG-111-CV (Remote Copilot Auth) | OPEN | Blocked on GCP API enablement |
-| BUG-114-CV (Mobile Card Timeout) | OPEN | E2E test issue, deferred |
+| BUG-002-PL (BCR Duplicate Year) | CLOSED | Fixed in previous phase |
+| BUG-003-PL (Dividend Sync NaN) | CLOSED | Fixed in previous phase |
+| BUG-004-UI (Date Picker Style) | OPEN | Deferred to Phase E |
+| BUG-005-PL (Trend Value Mismatch) | CLOSED | Live price stitch implemented |
+| BUG-006-PL (My Race Name Collision) | CLOSED | Grouping logic fixed |
+| BUG-007-PL (Cash Ladder UI) | CLOSED | Sync stats, share icon, allocation modal all fixed |
+| BUG-001-CV (Remote Copilot Auth) | OPEN | Blocked on GCP API enablement |
+| BUG-010-CV (Mobile Card Timeout) | OPEN | E2E test issue, deferred |
 
 **Summary:** 5 of 8 JIRA tickets CLOSED. 3 remain OPEN (deferred/blocked).
 
@@ -43,7 +43,7 @@
 - [x] Doc: Updated `admin_operations.md` to reflect new layout
 
 ## 6. Features Deferred
-- Phase C: AI Bot Polish (blocked on GCP API — BUG-111-CV)
+- Phase C: AI Bot Polish (blocked on GCP API — BUG-001-CV)
 - Phase D: Notification Trigger System (backend engine needed)
 - Phase E: Cross-Tab Polish (skeletons, purple remnants in 10 files)
 
@@ -56,4 +56,4 @@
 1. Push 2 commits + `admin_operations.md` update to origin/master.
 2. Phase E: Sweep remaining purple usage across 10 components.
 3. Unblock Phase C by enabling GCP API (Boss action).
-4. Address BUG-119 (date picker style) in Phase E.
+4. Address BUG-004 (date picker style) in Phase E.

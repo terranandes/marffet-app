@@ -123,12 +123,12 @@ uv run tests/unit/test_mobile_portfolio.py
 ### v3.4 (2026-02-27) - BCR and Portfolio Bug Fixes
 | Test | Expected | Status |
 |------|----------|--------|
-| BUG-117-PL | BCR duplicate year 2006 removed | ✅ PASSED Remote |
-| BUG-118-PL | Portfolio Dividend Sync shows values, not NaN | ✅ PASSED (Via Code/Local) |
-| BUG-119-UI | Portfolio Date Picker has dark color-scheme | ✅ PASSED Local |
-| BUG-120-PL | Trend Value matches Live Dashboard | ✅ PASSED Remote |
-| BUG-121-PL | Race Target Names merged and unique | ✅ PASSED Remote |
-| BUG-122-PL | Cash Ladder Sync works, Share icon unique, Profile shows targets | ✅ PASSED Remote |
+| BUG-002-PL | BCR duplicate year 2006 removed | ✅ PASSED Remote |
+| BUG-003-PL | Portfolio Dividend Sync shows values, not NaN | ✅ PASSED (Via Code/Local) |
+| BUG-004-UI | Portfolio Date Picker has dark color-scheme | ✅ PASSED Local |
+| BUG-005-PL | Trend Value matches Live Dashboard | ✅ PASSED Remote |
+| BUG-006-PL | Race Target Names merged and unique | ✅ PASSED Remote |
+| BUG-007-PL | Cash Ladder Sync works, Share icon unique, Profile shows targets | ✅ PASSED Remote |
 
 ### v3.2 (2026-02-22) - Zeabur Stabilization & DuckDB Rehydration
 | Test | Expected | Status |

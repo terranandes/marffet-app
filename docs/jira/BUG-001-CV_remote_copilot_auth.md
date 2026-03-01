@@ -1,4 +1,4 @@
-# BUG-111-CV_remote_copilot_auth
+# BUG-001-CV_remote_copilot_auth
 
 **Reporter:** [CV] Code Verification Manager
 **Component:** AI Copilot Backend (Zeabur Production)

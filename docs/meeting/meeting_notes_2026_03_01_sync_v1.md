@@ -10,12 +10,12 @@
 ## 2. Bug Triage
 | Ticket | Status | Owner | Update |
 |:---|:---|:---|:---|
-| BUG-110-CV | OPEN | `[CV]` | Local worktree `.env.local` — deferred |
-| BUG-114-CV | OPEN | `[CV]` | Mobile card expand timeout — E2E deferred, low priority |
-| BUG-119-UI | **CLOSED** | `[UI]` | **Fixed** during Phase E (`colorScheme: dark` applied to Date Picker) |
-| BUG-999-CV | OPEN | `[CV]` | Playwright `networkidle` timeout on Next.js dev server. Needs E2E script refactoring. |
+| BUG-000-CV | OPEN | `[CV]` | Local worktree `.env.local` — deferred |
+| BUG-010-CV | OPEN | `[CV]` | Mobile card expand timeout — E2E deferred, low priority |
+| BUG-004-UI | **CLOSED** | `[UI]` | **Fixed** during Phase E (`colorScheme: dark` applied to Date Picker) |
+| BUG-009-CV | OPEN | `[CV]` | Playwright `networkidle` timeout on Next.js dev server. Needs E2E script refactoring. |
 
-**Summary: BUG-119-UI resolved! 3 OPEN (Test-Harness / Environment Related). 0 Production bugs.**
+**Summary: BUG-004-UI resolved! 3 OPEN (Test-Harness / Environment Related). 0 Production bugs.**
 
 ## 3. Code Review ([CV])
 - **Verdict: ✅ APPROVED**

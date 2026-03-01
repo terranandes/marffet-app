@@ -1,4 +1,4 @@
-# BUG-117-PL: Bar Chart Race (BCR) Duplicate Year Data Rendering Issue
+# BUG-002-PL: Bar Chart Race (BCR) Duplicate Year Data Rendering Issue
 
 **Reporter:** [PL]
 **Component:** Frontend (BCR) & Backend (ROICalculator)

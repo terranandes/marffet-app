@@ -31,10 +31,10 @@ All 8 sidebar tabs render correctly. Layouts are clean and responsive. Noted: "1
 **MCP Playwright Local Results (Worktree):**
 | Tab | Layout | Data Loading | Result |
 |-----|--------|-------------|--------|
-| Portfolio | ✅ Clean | ❌ BUG-110-CV | Layout OK |
-| Mars Strategy | ✅ Clean | ❌ BUG-110-CV | Layout OK |
-| Compound Interest | ✅ Clean | ❌ BUG-110-CV | Layout OK |
-| Cash Ladder | ✅ Clean | ❌ BUG-110-CV | Layout OK |
+| Portfolio | ✅ Clean | ❌ BUG-000-CV | Layout OK |
+| Mars Strategy | ✅ Clean | ❌ BUG-000-CV | Layout OK |
+| Compound Interest | ✅ Clean | ❌ BUG-000-CV | Layout OK |
+| Cash Ladder | ✅ Clean | ❌ BUG-000-CV | Layout OK |
 
 **Remote API Verification:**
 | Endpoint | Status | Result |
@@ -44,14 +44,14 @@ All 8 sidebar tabs render correctly. Layouts are clean and responsive. Noted: "1
 | `/api/results/detail` (TSMC BAO) | 200 OK | 90,629,825.0 |
 | Match | ✅ PERFECT | diff = 0.0 |
 
-**No new bugs filed.** All failures are BUG-110-CV (known, local .env.local proxy).
+**No new bugs filed.** All failures are BUG-000-CV (known, local .env.local proxy).
 
 **Bug Triage (unchanged):**
 | Bug | Priority | Status | Owner |
 |-----|----------|--------|-------|
-| BUG-110-CV | Low | OPEN | [CODE] |
-| BUG-111-CV | **High** | OPEN | **BOSS** |
-| BUG-114-CV | Deferred | OPEN | [UI] |
+| BUG-000-CV | Low | OPEN | [CODE] |
+| BUG-001-CV | **High** | OPEN | **BOSS** |
+| BUG-010-CV | Deferred | OPEN | [UI] |
 
 ## 2. Code Review
 No new code changes. All fixes from previous session confirmed deployed and verified.
@@ -62,9 +62,9 @@ No new code changes. All fixes from previous session confirmed deployed and veri
 - **Worktrees:** Cleaned up ✅
 
 ## 4. Next Steps
-1. **[BOSS]** Enable GCP API (BUG-111-CV)
+1. **[BOSS]** Enable GCP API (BUG-001-CV)
 2. **[BOSS]** Visual sign-off on TSMC Mars tab
-3. **[UI]** Mobile card click fix (BUG-114-CV) — next sprint
+3. **[UI]** Mobile card click fix (BUG-010-CV) — next sprint
 
 ---
-[PL] → Boss: "Full-test-local workflow complete. The Mars fix is verified both locally in an isolated worktree and remotely on Zeabur. All tab layouts render correctly. TSMC values match perfectly (diff=0.0). No new bugs found. The only data-loading failures in the worktree are from BUG-110-CV (frontend proxy mismatch) — a configuration issue, not a code bug. Repo is pristine."
+[PL] → Boss: "Full-test-local workflow complete. The Mars fix is verified both locally in an isolated worktree and remotely on Zeabur. All tab layouts render correctly. TSMC values match perfectly (diff=0.0). No new bugs found. The only data-loading failures in the worktree are from BUG-000-CV (frontend proxy mismatch) — a configuration issue, not a code bug. Repo is pristine."

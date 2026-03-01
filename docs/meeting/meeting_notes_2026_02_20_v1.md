@@ -20,7 +20,7 @@
   - [CODE] MUST revert reliance on YFinance dividends for non-KY stocks. We need to purge the poisoned YFinance dividends from the DuckDB and run `reimport_twse_dividends.py` to restore nominal dividends from official sources.
 
 ## 3. Bug Triages (Jira)
-- **BUG-114-CV**: Mobile Portfolio Card Click Timeout in E2E.
+- **BUG-010-CV**: Mobile Portfolio Card Click Timeout in E2E.
   - *Triage*: Medium severity. Defer to Phase 8 UI improvements. Needs `scroll_into_view_if_needed()`.
 - **BUG-115-PL**: YFinance Adjusted Dividend Mismatch.
   - *Triage*: **MAXIMUM SEVERITY**. Upgraded from KY/DR-only to a global database corruption issue affecting 1000+ stocks.

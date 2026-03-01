@@ -9,7 +9,7 @@ No production code changes. Only `test_plan.md` was updated with v3.3 regression
 - Tested 4 tabs via MCP Playwright headless browser on isolated worktree (port 3001)
 - All tab layouts render correctly (Portfolio, Mars, Compound, Ladder)
 - Backend APIs (port 8001) return 200 OK with correct data
-- BUG-110-CV blocks frontend data loading in worktree (known, configuration issue)
+- BUG-000-CV blocks frontend data loading in worktree (known, configuration issue)
 
 ## 3. Remote API Verification
 - TSMC Summary = 90,629,825.0

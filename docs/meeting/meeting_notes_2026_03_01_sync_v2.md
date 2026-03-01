@@ -15,14 +15,14 @@
 - Added ECharts donut visualization, high-density tracking tables, and Framer Motion micro-animations.
 
 ## 2. Bug Triage & Resolution
-- **NEW: BUG-120-UI (Critical)**: Local Next.js dev server crashed entirely on `/portfolio` causing consecutive Playwright test timeouts. 
+- **NEW: BUG-005-UI (Critical)**: Local Next.js dev server crashed entirely on `/portfolio` causing consecutive Playwright test timeouts. 
   - **Investigation**: [CODE] & [CV] utilized `git worktree` and isolated `bun run build` to uncover a strict type/compilation error (`Cannot find name 'AnimatePresence'`).
   - **Resolution**: [UI] fixed the missing `AnimatePresence` import and added `"use client"` directives across all newly modified components (`TargetList.tsx`, `TargetCardList.tsx`, `StatsSummary.tsx`). 
   - **Status**: **RESOLVED** mid-meeting.
 - **EXISTING BUGS**:
-  - **BUG-110-CV**: Local worktree `.env.local` synchronization (Deferred).
-  - **BUG-114-CV**: Mobile card expand timeout (Low priority, deferred).
-  - **BUG-999-CV**: Playwright `networkidle` timeout on local dev (Will evaluate refactoring test scripts to use `domcontentloaded` instead).
+  - **BUG-000-CV**: Local worktree `.env.local` synchronization (Deferred).
+  - **BUG-010-CV**: Mobile card expand timeout (Low priority, deferred).
+  - **BUG-009-CV**: Playwright `networkidle` timeout on local dev (Will evaluate refactoring test scripts to use `domcontentloaded` instead).
 
 ## 3. Discrepancy & Environmental Isolation
 - **Discrepancy**: The local `.next` dev server obscures hard crashes with full-screen overlays, which block Playwright rendering without emitting standard console errors. 

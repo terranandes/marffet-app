@@ -1,4 +1,4 @@
-# BUG-121-PL: My Race Target Name Collision and Merge Failure
+# BUG-006-PL: My Race Target Name Collision and Merge Failure
 **Reporter:** [PL]
 **Component:** Backend (Portfolio Service - Race)
 **Severity:** High

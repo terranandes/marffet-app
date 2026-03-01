@@ -122,8 +122,8 @@ export default function CompoundPage() {
             xAxisData = res.BAO?.history?.map(h => h.year) || [];
             series.push(
                 { name: "Buy At Yearly Opening", type: "line", data: res.BAO?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2 }, itemStyle: { color: "#00ffc3" } },
-                { name: "Buy At Yearly Highest", type: "line", data: res.BAH?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2, type: "dashed" }, itemStyle: { color: "#ff6b6b" } },
-                { name: "Buy At Yearly Lowest", type: "line", data: res.BAL?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2, type: "dashed" }, itemStyle: { color: "#4ecdc4" } }
+                { name: "Buy At Yearly Highest", type: "line", data: res.BAH?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2.5, type: [10, 5] }, itemStyle: { color: "#ff6b6b" } },
+                { name: "Buy At Yearly Lowest", type: "line", data: res.BAL?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2.5, type: [10, 5] }, itemStyle: { color: "#4ecdc4" } }
             );
         } else {
             results.forEach((res, idx) => {
@@ -166,8 +166,8 @@ export default function CompoundPage() {
             xAxisData = res.BAO?.history?.map(h => h.year) || [];
             series.push(
                 { name: "Buy At Yearly Opening", type: "line", data: res.BAO?.history?.map(h => h.dividend) || [], smooth: true, areaStyle: { opacity: 0.3 }, itemStyle: { color: "#00ffc3" } },
-                { name: "Buy At Yearly Highest", type: "line", data: res.BAH?.history?.map(h => h.dividend) || [], smooth: true, lineStyle: { type: "dashed" }, itemStyle: { color: "#ff6b6b" } },
-                { name: "Buy At Yearly Lowest", type: "line", data: res.BAL?.history?.map(h => h.dividend) || [], smooth: true, lineStyle: { type: "dashed" }, itemStyle: { color: "#4ecdc4" } }
+                { name: "Buy At Yearly Highest", type: "line", data: res.BAH?.history?.map(h => h.dividend) || [], smooth: true, lineStyle: { width: 2.5, type: [10, 5] }, itemStyle: { color: "#ff6b6b" } },
+                { name: "Buy At Yearly Lowest", type: "line", data: res.BAL?.history?.map(h => h.dividend) || [], smooth: true, lineStyle: { width: 2.5, type: [10, 5] }, itemStyle: { color: "#4ecdc4" } }
             );
         } else {
             results.forEach((res, idx) => {

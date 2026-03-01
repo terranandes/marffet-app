@@ -368,3 +368,4 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - `[PM]`: Updated `README.md` (Root + Product) with Portfolio Webull UI details. Generated `README-zh-TW.md` and `README-zh-CN.md`.
     - `[PL][CODE][UI]`: Verified `software_stack.md` (ECharts, Framer Motion already present).
     - `[CV]`: Updated `test_plan.md` to formally document the `full-test-local` isolated worktree pipeline.
+- [x] **BUG-011-CV Resolved**: Fixed Portfolio Transaction Edit button failing to open. Data payload was missing `target_id` due to omission in the `transaction_repo.py` SELECT statement.

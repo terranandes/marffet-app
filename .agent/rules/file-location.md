@@ -19,7 +19,10 @@ Keep clean room.
 | File Path | Target Audience | Purpose |
 | :--- | :--- | :--- |
 | `./README.md` | **Developers / Repo Watchers** | Technical entry point. Explains how to build, contribute, and install. (GitHub landing page). |
-| `./docs/product/README.md` | **End-Users** | User Manual. Explains how to *use* the App. No technical jargon. |
+| `./docs/product/README.md` | **End-Users** | User Manual in English. Explains how to *use* the App. No technical jargon. |
+| `./docs/product/README-zh-TW.md` | **End-Users** | User Manual in Tranditional Chinese. Explains how to *use* the App. No technical jargon. |
+| `./docs/product/README-zh-CN.md` | **End-Users** | User Manual in Tranditional Chinese. Explains how to *use* the App. No technical jargon. |
+| `./docs/product/README-zh-CN.md` | **End-Users** | User Manual in Simplified Chinese. Explains how to *use* the App. No technical jargon. |
 | `./docs/product/datasheet.md` | **Stakeholders / Business** | Product specs, market fit, and feature summary. |
 | `./docs/product/social_media_promo.md` | **Customers / Promotion** | Social media promo |
 

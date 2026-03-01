@@ -20,7 +20,9 @@ Please prepare/update/adjust tiny-up SPEC files formally as following files:
 ## [PM] owns
 Please prepare/update/adjust tiny-up product datasheet and README for the end-users who use the APP (not ME/Terran/BOSS/Agents) as following files
 - ./docs/product/datasheet.md
-- ./docs/product/README.md, audiences are end-users who use the APP (not ME/Terran/BOSS/Agents)
+- ./docs/product/README.md, User Manual in English. Explains how to *use* the App. No technical jargon.
+- ./docs/product/README-zh-TW.md, User Manual in Traditional Chinese. Explains how to *use* the App. No technical jargon.
+- ./docs/product/README-zh-CN.md, User Manual in Simplified Chinese. Explains how to *use* the App. No technical jargon.
 - ./README.md, audiences are users who watch project or repository, located at GitHub
 . ./docs/product/social_media_promo.md, promotion to audience on social media
 

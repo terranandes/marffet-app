@@ -165,7 +165,7 @@ uv run tests/unit/test_mobile_portfolio.py
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| BUG-011 (Transaction Edit) | Medium | Fixed in master, verification deferred |
+| BUG-011-CV (Transaction Edit) | Medium | ✅ Fixed in master, Verified |
 | Zeabur frontend 404 | High | Resolved (Port Fix) |
 | Favicon 404 on legacy | Low | Cosmetic |
 

@@ -23,7 +23,7 @@ def list_transactions(conn: sqlite3.Connection, target_id: str) -> List[Dict[str
     """List transactions for a target."""
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, type, shares, price, date FROM transactions WHERE target_id = ? ORDER BY date DESC",
+        "SELECT id, target_id, type, shares, price, date FROM transactions WHERE target_id = ? ORDER BY date DESC",
         (target_id,)
     )
     return [dict(row) for row in cursor.fetchall()]

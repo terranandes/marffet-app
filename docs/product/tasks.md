@@ -354,6 +354,6 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] TargetList condensed into a 7-column stacked display with progress w-bars.
     - [x] Consolidate Desktop Action Buttons into a `...` hover menu.
     - [x] TargetCardList (Mobile UX) updated with cyberpunk aesthetic and framer-motion stagger.
-- [x] **BUG-120-UI**: Fix `AnimatePresence` missing import causing full Next.js Client Component Hydration crash across browser suite.
+- [x] **BUG-123-CV**: Fix `AnimatePresence` missing import causing full Next.js Client Component Hydration crash across browser suite. (`docs/jira/BUG-123-CV_portfolio_targetlist_animatepresence_missing_import.md`)
 - [x] **Agents Sync Meeting - 2026-03-01 v2** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v2.md` & `docs/code_review/code_review_2026_03_01_sync_v2.md`)
     - Diagnosed and fixed BUG-120-UI via `full-test-local` isolated git worktree environment. Ready for Playwright testing.

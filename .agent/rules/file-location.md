@@ -125,12 +125,23 @@ If any new files are needed to created, always create them at `./tests_gemini` a
 ---
 
 ## 8. Issue Tracking (Jira Simulation)
-**Shared Owners:** `[CV]` & `[GCV]`
+**Shared Owners:** `[CV]` & `[GCV]` & `[PL]`
 
 > **Directive:** When filing a ticket, the filename must explicitly identify the reporter.
 
 - **Path:** `./docs/jira/*`
 - **Naming Convention:** `{ISSUE_TYPE}-{SERIAL_ID}-{REPORTER_AGENT_ID}_{BUG_BRIEF_DESCRIPTION}.md`
     - Example: `BUG-110-GCV_mobile_google_login.md`
-    - {SERIAL_ID} must be Decimally-incremental
+    - {SERIAL_ID} must be Decimally-incremental from decimal 000 (3 decimal digits)
 - **Content Requirement:** The file content must strictly state *which agent* discovered the bug.
+
+## 9. Worktree creation (Bug hunting Git-Worktree)
+**Shared Owners:** `[CV]` & `[GCV]` & `[PL]`
+
+> **Directive:** When creating a worktree, the name of worktree must explicitly identify the agents' name. <br>
+                 Don't use the worktrees other agents own.
+
+- **Path:** `.worktree/*`
+- **Naming Convention for worktree:** `{AGENT_ID}_{BRIEF_DESCRIPTION}`
+    - Example: `GCV_full-test-local`
+- **Content Requirement:** The path content must strictly state *which agent* owned the worktree.

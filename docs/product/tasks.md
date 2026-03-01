@@ -358,3 +358,8 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-01 v2** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v2.md` & `docs/code_review/code_review_2026_03_01_sync_v2.md`)
     - Diagnosed and fixed BUG-005-UI via `full-test-local` isolated git worktree environment. Ready for Playwright testing.
 - [x] **Agents Sync Meeting - 2026-03-01 v3** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v3.md` & `docs/code_review/code_review_2026_03_01_sync_v3.md`)\n    - Mass Jira renumbering performed (BUG-000 to BUG-010). Isolated worktree torn down. Final test passed.
+- [x] **Investigation: Admin Dashboard & Notification Scheme**
+    - Documented active Operations (Metrics, Refresh, Crawl, Prewarm, Backfill, Feedback).
+    - Documented Notification scheme triggers (SMA, Cap Rebalance, CB Arbitrage).
+    - Verified that current triggers apply globally without Free vs Paid user segregation (unlike the orphaned `RuthlessManager`).
+    - Crafted Review Report: `docs/product/admin_notification_review.md` responding directly to `BOSS_TBD.md` questions.

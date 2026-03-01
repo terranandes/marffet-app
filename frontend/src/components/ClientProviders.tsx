@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AICopilot from "./AICopilot";
 import ToasterProvider from "./ToasterProvider";
+import { LanguageProvider } from "../lib/i18n/LanguageContext";
 
 const API_BASE = "";
 
@@ -48,10 +49,10 @@ export default function ClientProviders({ children }: { children: React.ReactNod
     }, []);
 
     return (
-        <>
+        <LanguageProvider>
             {children}
             <AICopilot user={user} portfolioContext={context} />
             <ToasterProvider />
-        </>
+        </LanguageProvider>
     );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 interface User {
     id: string | null;
@@ -48,7 +49,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     // Form States
     const [nickname, setNickname] = useState(user?.nickname || "");
     const [apiKey, setApiKey] = useState("");
-    const [language, setLanguage] = useState("en");
+    const { language, setLanguage, t } = useLanguage();
     const [region, setRegion] = useState("TW"); // Fixed to TW
     const [defaultPage, setDefaultPage] = useState("/"); // Default to Dashboard
     const [isPremium, setIsPremium] = useState(false);
@@ -69,7 +70,6 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
         if (isOpen) {
             setNickname(user?.nickname || "");
             setApiKey(localStorage.getItem("martian_api_key") || "");
-            setLanguage(localStorage.getItem("martian_lang") || "en");
             setRegion(localStorage.getItem("martian_region") || "TW");
             setDefaultPage(localStorage.getItem("martian_default_page") || "/");
             setIsPremium(localStorage.getItem("martian_premium") === "true");
@@ -123,11 +123,10 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
     };
 
     const handleSavePreferences = () => {
-        localStorage.setItem("martian_lang", language);
         localStorage.setItem("martian_region", region);
         localStorage.setItem("martian_default_page", defaultPage);
         localStorage.setItem("martian_premium", String(isPremium));
-        toast.success("Preferences saved (reload to apply)");
+        toast.success(t('Settings.SavePreferences') + " (reload to apply)");
     };
 
     const handleSaveKey = () => {
@@ -312,6 +311,39 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                             <option value="/cb">💹 Convertible Bond</option>
                                         </select>
                                         <p className="text-xs text-zinc-600">Loads automatically on visit.</p>
+                                    </div>
+
+                                    {/* Language Selector */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.Language')}</label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {[
+                                                { code: 'en', flag: '🇺🇸', label: 'English' },
+                                                { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
+                                                { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' }
+                                            ].map(langOption => (
+                                                <button
+                                                    key={langOption.code}
+                                                    onClick={() => setLanguage(langOption.code as any)}
+                                                    className={`p-3 rounded-xl flex items-center justify-between text-left transition-all border ${language === langOption.code
+                                                            ? 'bg-cyan-900/20 border-cyan-500/50'
+                                                            : 'bg-zinc-800/20 border-zinc-800 hover:border-cyan-500/30'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-2xl">{langOption.flag}</span>
+                                                        <div className={`font-bold ${language === langOption.code ? 'text-white' : 'text-gray-400'}`}>
+                                                            {langOption.label}
+                                                        </div>
+                                                    </div>
+                                                    {language === langOption.code && (
+                                                        <div className="text-cyan-400 text-xs font-bold px-2 py-1 bg-cyan-900/50 rounded border border-cyan-500/30">
+                                                            Active
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {/* Region Selector (Fixed) */}

@@ -47,12 +47,13 @@ Simulate long-term compounding with single stocks or compare multiple assets sid
 - **Comparison Mode**: Put up to 3 stocks head-to-head
 
 ### 4. Portfolio Tracker 📋
-Manage your real investment portfolio with full transaction history.
+Manage your real investment portfolio with a sleek, "Webull-style" interface featuring full transaction history.
 
+- **Visual Allocation**: ECharts donut charts and premium stats cards for quick insights
 - **Groups**: Organize holdings into Dividend, Growth, Speculative, or custom categories
 - **Transactions**: Log buys and sells with dates, shares, and prices
 - **Real-Time Sync**: Pull current market data to calculate live P/L
-- **Target Prices**: Set buy/sell alerts for each holding
+- **Responsive UX**: 7-column stacked desktop view and cyberpunk framed mobile cards with smooth stagger animations
 
 ### 5. Portfolio Trend 📈
 Your personal investment curve aligned with your transaction history.

@@ -92,7 +92,22 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
     - Feeding adjusted prices (TRI) to the engine will lead to incorrect CAGR results.
 - **Adjustment**: Adjusts share count cumulatively.
 
-## 4. Deployment Strategy
+## 4. Notification Engine
+
+The `NotificationEngine` evaluates user portfolios and generates alerts based on automated strategies. Alerts are fetched via `GET /api/notifications`.
+
+### 4.1 Active Triggers (Global)
+These triggers currently apply globally to all users:
+- **SMA Pair Rebalancing (Gravity Alert)**: Identifies Overvalued (> +20% vs SMA 250) and Undervalued (< -20% vs SMA 250) assets. Suggests a 30% exchange pair trade.
+- **Market Cap Rebalancing (Size Authority)**: Flags positions representing > 1.2x or < 0.8x the portfolio average market cap. Suggests a 30% exchange from High to Low cap.
+- **Convertible Bond (CB) Arbitrage**:
+  - *Arbitrage*: CB Premium < -1% (Suggests Buy CB, Sell Stock).
+  - *Strong Sell*: CB Premium >= 30% (Suggests Sell CB, Buy Stock).
+
+### 4.2 Legacy Triggers (`RuthlessManager`)
+- An orphaned engine (`RuthlessManager` in `engines.py`) exists with legacy Premium-only restrictions but is currently inactive and not scheduled.
+
+## 5. Deployment Strategy
 
 ### 4.1 Services
 | Service | Build | Env Vars |

@@ -363,3 +363,8 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Documented Notification scheme triggers (SMA, Cap Rebalance, CB Arbitrage).
     - Verified that current triggers apply globally without Free vs Paid user segregation (unlike the orphaned `RuthlessManager`).
     - Crafted Review Report: `docs/product/admin_notification_review.md` responding directly to `BOSS_TBD.md` questions.
+- [x] **Document Flow Execution** (`@[/document-flow]`)
+    - `[SPEC]`: Updated `specification.md` with Notification Engine architecture. Verified `admin_operations.md`.
+    - `[PM]`: Updated `README.md` (Root + Product) with Portfolio Webull UI details. Generated `README-zh-TW.md` and `README-zh-CN.md`.
+    - `[PL][CODE][UI]`: Verified `software_stack.md` (ECharts, Framer Motion already present).
+    - `[CV]`: Updated `test_plan.md` to formally document the `full-test-local` isolated worktree pipeline.

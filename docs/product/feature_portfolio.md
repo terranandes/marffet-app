@@ -36,13 +36,14 @@ User ──1:N──▶ Group ──1:N──▶ Target ──1:N──▶ Trans
 **Route**: `/portfolio`
 **File**: `frontend/src/app/portfolio/page.tsx` (11 sub-files)
 
-### UI Sections
+### UI Sections (Webull Style)
 
 1. **Group Sidebar** — Create, rename, delete groups
-2. **Target List** — Add stocks by code, view holdings per group
+2. **Target List** — Add stocks by code; 7-column stacked desktop layout with hover `...` action menus.
 3. **Transaction Log** — Buy/sell entries with date, price, shares
-4. **Summary Cards** — Total cost, market value, ROI%, dividend income
+4. **Summary Cards** — Premium stats cards (Total Cost, Market Value, ROI%, Dividend Income) paired with an **ECharts Donut Chart** for asset allocation visualization.
 5. **Live Prices** — Real-time price, change, change% for each target
+6. **Mobile UX** — "Cyberpunk" styled target cards with `framer-motion` stagger animations for optimal small-screen viewing.
 
 ### Asset Types
 

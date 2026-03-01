@@ -68,10 +68,17 @@ uv run tests/integration/verify_daily.py
 ```
 *   **Scope**: Verifies "O(1) Stock List" fetching, Convertible Bond (CB) identification, and **Daily Data (Phase 4)** integrity.
 
-#### C. Mobile Specifics
+#### D. Mobile Specifics
 ```bash
 uv run tests/unit/test_mobile_portfolio.py
 ```
+
+#### E. Full Local Pipeline (Isolated Worktree)
+```bash
+# via workflow shortcut
+@[/full-test-local]
+```
+*   **Scope**: Full end-to-end framework verification (Build + Start + Playwright MCP) executed in an isolated git worktree (`.worktrees/martian-test-local`) on alternate ports (3001/8001) to prevent impacting the developer's main environment. Highly effective for catching Next.js hydration and build-time compilation errors.
 
 
 ## 2. Manual Verification Checklist

@@ -11,7 +11,7 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 -   **Mars Strategy**: Backtest 20+ years of Taiwan stock history — find the Top 50 survivors with Gaussian filtering.
 -   **Bar Chart Race**: Watch stocks compete in an animated time-series visualization.
 -   **Compound Interest**: Simulate long-term compounding for single stocks or compare up to 3 assets.
--   **Portfolio Tracker**: Manage holdings, transactions, and target prices with live P/L.
+-   **Portfolio Tracker**: Manage holdings and transactions with a sleek Webull-style UI, ECharts allocation donuts, and live P/L.
 -   **Trend & My Race**: Personal investment curve + your holdings racing against each other.
 -   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Martians.
 -   **CB Arbitrage**: Convertible Bond premium monitoring and yield hunting.

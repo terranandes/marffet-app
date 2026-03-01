@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { PortfolioFactory, IPortfolioService, Group, Target, Dividend } from "../../../services/portfolioService";
 
 interface PortfolioDataState {
@@ -27,12 +27,28 @@ export function usePortfolioData() {
     const [service, setService] = useState<IPortfolioService | null>(null);
 
     // Stats
-    const [groupStats, setGroupStats] = useState({
-        marketValue: 0,
-        realized: 0,
-        unrealized: 0,
-        unrealizedPct: 0,
-    });
+    // Stats: Computed dynamically based on targets instead of stored in state 
+    // to ensure they reflect live updates when single targets are refreshed.
+    const groupStats = useMemo(() => {
+        let marketValue = 0;
+        let realized = 0;
+        let unrealized = 0;
+        let totalCost = 0;
+
+        targets.forEach((t) => {
+            marketValue += t.summary?.market_value || 0;
+            realized += t.summary?.realized_pnl || 0;
+            unrealized += t.summary?.unrealized_pnl || 0;
+            totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
+        });
+
+        return {
+            marketValue,
+            realized,
+            unrealized,
+            unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
+        };
+    }, [targets]);
 
     const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
     const [syncing, setSyncing] = useState(false);
@@ -87,24 +103,6 @@ export function usePortfolioData() {
         setTargets(data);
         setLoading(false);
 
-        let marketValue = 0;
-        let realized = 0;
-        let unrealized = 0;
-        let totalCost = 0;
-
-        data.forEach((t) => {
-            marketValue += t.summary?.market_value || 0;
-            realized += t.summary?.realized_pnl || 0;
-            unrealized += t.summary?.unrealized_pnl || 0;
-            totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
-        });
-
-        setGroupStats({
-            marketValue,
-            realized,
-            unrealized,
-            unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
-        });
     }, [service, selectedGroupId]);
 
     const fetchDividends = useCallback(async () => {

@@ -87,7 +87,7 @@ class ApiPortfolioService implements IPortfolioService {
 
     async getGroups(): Promise<Group[]> {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/groups`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/portfolio/groups?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
             if (res.ok) return await res.json();
         } catch { }
         return [];
@@ -119,11 +119,12 @@ class ApiPortfolioService implements IPortfolioService {
     // Explicitly fetch summary for one target (updates main view without full reload)
     async getTargetSummary(targetId: string, currentPrice?: number): Promise<Target['summary']> {
         try {
+            const cb = `_cb=${Date.now()}`;
             const url = currentPrice
-                ? `${API_BASE}/api/portfolio/targets/${targetId}/summary?current_price=${currentPrice}`
-                : `${API_BASE}/api/portfolio/targets/${targetId}/summary`;
+                ? `${API_BASE}/api/portfolio/targets/${targetId}/summary?current_price=${currentPrice}&${cb}`
+                : `${API_BASE}/api/portfolio/targets/${targetId}/summary?${cb}`;
 
-            const res = await fetch(url, { credentials: "include" });
+            const res = await fetch(url, { credentials: "include", cache: "no-store" });
             if (res.ok) return await res.json();
         } catch { }
         return undefined;
@@ -131,7 +132,7 @@ class ApiPortfolioService implements IPortfolioService {
 
     async getTargets(groupId: string): Promise<Target[]> {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/groups/${groupId}/targets`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/portfolio/groups/${groupId}/targets?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
             if (!res.ok) return [];
 
             const targets: Target[] = await res.json();
@@ -179,12 +180,13 @@ class ApiPortfolioService implements IPortfolioService {
             await Promise.all(targets.map(async (t) => {
                 t.livePrice = livePrices[t.stock_id] || null;
                 const price = t.livePrice?.price;
+                const cb = `_cb=${Date.now()}`;
                 const url = price
-                    ? `${API_BASE}/api/portfolio/targets/${t.id}/summary?current_price=${price}`
-                    : `${API_BASE}/api/portfolio/targets/${t.id}/summary`;
+                    ? `${API_BASE}/api/portfolio/targets/${t.id}/summary?current_price=${price}&${cb}`
+                    : `${API_BASE}/api/portfolio/targets/${t.id}/summary?${cb}`;
 
                 try {
-                    const sRes = await fetch(url, { credentials: "include" });
+                    const sRes = await fetch(url, { credentials: "include", cache: "no-store" });
                     if (sRes.ok) t.summary = await sRes.json();
                 } catch { }
             }));
@@ -224,7 +226,7 @@ class ApiPortfolioService implements IPortfolioService {
 
     async getTransactions(targetId: string): Promise<Transaction[]> {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/portfolio/targets/${targetId}/transactions?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
             if (res.ok) return await res.json();
         } catch { }
         return [];
@@ -269,7 +271,7 @@ class ApiPortfolioService implements IPortfolioService {
 
     async getDividendStats(): Promise<{ total_cash: number; dividend_count: number }> {
         try {
-            const res = await fetch(`${API_BASE}/api/portfolio/dividends/total`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/portfolio/dividends/total?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
             if (res.ok) return await res.json();
         } catch { }
         return { total_cash: 0, dividend_count: 0 };

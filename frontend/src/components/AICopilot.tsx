@@ -159,13 +159,12 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                                     <div
-                                        className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === "user"
+                                        className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed prose prose-sm prose-invert ${msg.role === "user"
                                             ? "bg-cyan-600 text-white font-medium rounded-tr-none shadow-lg shadow-cyan-900/20"
                                             : "bg-zinc-800 text-zinc-200 border border-white/5 rounded-tl-none"
                                             }`}
                                     >
                                         <ReactMarkdown
-                                            className="prose prose-sm prose-invert"
                                             components={{
                                                 p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
                                                 ul: ({ node, ...props }) => <ul className="list-disc ml-4 mb-2" {...props} />,

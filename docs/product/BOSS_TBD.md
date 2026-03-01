@@ -7,14 +7,22 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 - [ ] Review notification Scheme, what are the current triggers for free and paid users?
 - [ ] check tab Compound Interest
 - [ ] check tab Cash Ladder
+- [ ] implement the number of registered/premium/VIP accounts over time like Github star history
 
 ---
 
 ## === Barrier === (DONT-TOUCH AREA)
+- [ ] Multi-language.
+- [ ] Should we rename the English name Martian to Marffet?
+- [ ] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
+- [ ] Adjust the license to MIT?
+- [ ] Add 'buy-me-coffee' button to the web app. The button shall link to https://www.buymeacoffee.com/terwu01
+- [ ] Add 'buy-me-coffee' button to the GitHub ./README.md
+- [ ] How to add google advertisement to the web app?
 
-- [] Clean or optimized DuckDB
-- [ ] Multi-language (Deferred).
+
 - [ ] AICopilot enhancement
+
 - [ ] Test Google Cloud Run
 - [ ] DB/Warm Static files/locally cached files optimization
 - [ ] Email support

@@ -29,9 +29,11 @@
     "Sidebar": {
         "MarsStrategy": "火星策略",
         "BarChartRace": "動態長條圖",
+        "CompoundInterest": "複利試算",
         "Portfolio": "投資組合",
         "TrendDashboard": "趨勢儀表板",
         "MyPortfolioRace": "我的組合競賽",
+        "CashLadder": "現金階梯",
         "ConvertibleBond": "可轉換公司債",
         "Visualizations": "資料視覺化",
         "AdminDashboard": "管理員儀表板",

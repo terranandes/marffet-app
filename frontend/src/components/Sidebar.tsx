@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import SettingsModal from "./SettingsModal";
 import DataTimestamp from "./DataTimestamp";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 interface User {
     id: string | null;
@@ -55,6 +56,7 @@ const SidebarItem = ({
 };
 
 export default function Sidebar() {
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -247,7 +249,7 @@ export default function Sidebar() {
                         {/* Mars Strategy */}
                         <SidebarItem
                             href="/mars"
-                            label="Mars Strategy"
+                            label={t('Sidebar.MarsStrategy')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
@@ -258,7 +260,7 @@ export default function Sidebar() {
                         {/* Bar Chart Race */}
                         <SidebarItem
                             href="/race"
-                            label="Bar Chart Race"
+                            label={t('Sidebar.BarChartRace')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 3v18h18" />
@@ -270,7 +272,7 @@ export default function Sidebar() {
                         {/* Compound Interest */}
                         <SidebarItem
                             href="/compound"
-                            label="Compound Interest"
+                            label={t('Sidebar.CompoundInterest')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M12 2v20" />
@@ -282,7 +284,7 @@ export default function Sidebar() {
                         {/* CB Strategy */}
                         <SidebarItem
                             href="/cb"
-                            label="CB Strategy"
+                            label={t('Sidebar.ConvertibleBond')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M12 2v20" />
@@ -293,7 +295,7 @@ export default function Sidebar() {
                         {/* Portfolio */}
                         <SidebarItem
                             href="/portfolio"
-                            label="Portfolio"
+                            label={t('Sidebar.Portfolio')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -304,7 +306,7 @@ export default function Sidebar() {
                         {/* Trend */}
                         <SidebarItem
                             href="/trend"
-                            label="Trend"
+                            label={t('Sidebar.TrendDashboard')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 3v18h18" />
@@ -315,7 +317,7 @@ export default function Sidebar() {
                         {/* My Race */}
                         <SidebarItem
                             href="/myrace"
-                            label="My Race"
+                            label={t('Sidebar.MyPortfolioRace')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="12" cy="12" r="10" />
@@ -326,7 +328,7 @@ export default function Sidebar() {
                         {/* Cash Ladder */}
                         <SidebarItem
                             href="/ladder"
-                            label="Cash Ladder"
+                            label={t('Sidebar.CashLadder')}
                             icon={
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M6 3v18" />
@@ -345,7 +347,7 @@ export default function Sidebar() {
                         {user?.is_admin && (
                             <SidebarItem
                                 href="/admin"
-                                label="GM Dashboard"
+                                label={t('Sidebar.AdminDashboard')}
                                 icon={
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -408,7 +410,7 @@ export default function Sidebar() {
                             }}
                             className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
                         >
-                            Sign Out
+                            {t('Sidebar.SignOut')}
                         </button>
                     </div>
                 ) : (
@@ -420,7 +422,7 @@ export default function Sidebar() {
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                             </svg>
-                            Sign in with Google
+                            {t('Sidebar.SignInGoogle')}
                         </a>
                         <button
                             onClick={async () => {
@@ -460,7 +462,7 @@ export default function Sidebar() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            Continue as Guest
+                            {t('Sidebar.ExploreGuest')}
                         </button>
                         <p className="text-xs text-zinc-500 text-center">Data stored locally only</p>
                         <div className="flex justify-center">

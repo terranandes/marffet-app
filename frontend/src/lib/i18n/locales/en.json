@@ -29,9 +29,11 @@
     "Sidebar": {
         "MarsStrategy": "Mars Strategy",
         "BarChartRace": "Bar Chart Race",
+        "CompoundInterest": "Compound Interest",
         "Portfolio": "Portfolio",
         "TrendDashboard": "Trend Dashboard",
         "MyPortfolioRace": "My Portfolio Race",
+        "CashLadder": "Cash Ladder",
         "ConvertibleBond": "Convertible Bond",
         "Visualizations": "Visualizations",
         "AdminDashboard": "Admin Dashboard",

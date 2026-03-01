@@ -357,3 +357,4 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **BUG-008-CV**: Fix `AnimatePresence` missing import causing full Next.js Client Component Hydration crash across browser suite. (`docs/jira/BUG-008-CV_portfolio_targetlist_animatepresence_missing_import.md`)
 - [x] **Agents Sync Meeting - 2026-03-01 v2** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v2.md` & `docs/code_review/code_review_2026_03_01_sync_v2.md`)
     - Diagnosed and fixed BUG-005-UI via `full-test-local` isolated git worktree environment. Ready for Playwright testing.
+- [x] **Agents Sync Meeting - 2026-03-01 v3** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v3.md` & `docs/code_review/code_review_2026_03_01_sync_v3.md`)\n    - Mass Jira renumbering performed (BUG-000 to BUG-010). Isolated worktree torn down. Final test passed.

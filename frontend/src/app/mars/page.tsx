@@ -534,11 +534,7 @@ export default function MarsPage() {
                                                 }
                                             },
                                             legend: {
-                                                data: [
-                                                    { name: 'BAO (Open)', icon: 'roundRect' },
-                                                    { name: 'BAH (High)', icon: 'path://M0,5 L4,5 M8,5 L12,5 M16,5 L20,5' },
-                                                    { name: 'BAL (Low)', icon: 'path://M0,5 L4,5 M8,5 L12,5 M16,5 L20,5' }
-                                                ],
+                                                data: ['BAO (Open)', 'BAH (High)', 'BAL (Low)'],
                                                 top: 0,
                                                 textStyle: { color: '#ccc' }
                                             },
@@ -574,7 +570,7 @@ export default function MarsPage() {
                                                     type: 'line',
                                                     smooth: true,
                                                     showSymbol: false,
-                                                    lineStyle: { color: '#4ade80', width: 2.5, type: [10, 5] },
+                                                    lineStyle: { color: '#4ade80', width: 2, type: 'dashed' },
                                                     itemStyle: { color: '#4ade80' },
                                                     z: 2
                                                 },
@@ -585,7 +581,7 @@ export default function MarsPage() {
                                                     type: 'line',
                                                     smooth: true,
                                                     showSymbol: false,
-                                                    lineStyle: { color: '#f87171', width: 2.5, type: [10, 5] },
+                                                    lineStyle: { color: '#f87171', width: 2, type: 'dashed' },
                                                     itemStyle: { color: '#f87171' },
                                                     z: 1
                                                 }

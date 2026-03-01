@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeleton";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TrendDataPoint {
     month: string;
@@ -30,6 +31,7 @@ interface LivePrices {
 }
 
 export default function TrendPage() {
+    const { t } = useLanguage();
     const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
     const [assetGroups, setAssetGroups] = useState<AssetGroups>({ stock: [], etf: [], cb: [] });
     const [livePrices, setLivePrices] = useState<LivePrices>({});
@@ -113,9 +115,9 @@ export default function TrendPage() {
     };
 
     const assetTypes = [
-        { key: "stock" as const, label: "📈 Stocks", color: "var(--color-cta)" },
-        { key: "etf" as const, label: "📊 ETFs", color: "var(--color-primary)" },
-        { key: "cb" as const, label: "💵 CB (Convertible Bonds)", color: "var(--color-success)" },
+        { key: "stock" as const, label: t('Trend.Stocks'), color: "var(--color-cta)" },
+        { key: "etf" as const, label: t('Trend.ETFs'), color: "var(--color-primary)" },
+        { key: "cb" as const, label: t('Trend.CB'), color: "var(--color-success)" },
     ];
 
     return (
@@ -124,10 +126,10 @@ export default function TrendPage() {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent">
-                        📈 Portfolio Trend
+                        {t('Trend.Title')}
                     </h1>
                     <p className="text-[var(--color-text-muted)]">
-                        Net investment curve aligned with your transaction history
+                        {t('Trend.Subtitle')}
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -136,21 +138,21 @@ export default function TrendPage() {
                             try {
                                 const res = await fetch('/api/sync/my-dividends', { method: 'POST', credentials: 'include' });
                                 const data = await res.json();
-                                alert(data.message || 'Sync complete!');
+                                alert(data.message || t('Trend.SyncComplete'));
                                 fetchTrendData(); // Refresh after sync
                             } catch (e) {
-                                alert('Sync failed');
+                                alert(t('Trend.SyncFailed'));
                             }
                         }}
                         className="bg-amber-500/20 border border-amber-500 text-amber-400 px-4 py-2 rounded hover:bg-amber-500 hover:text-black transition font-bold text-sm cursor-pointer"
                     >
-                        🔄 Sync Dividends
+                        {t('Trend.SyncDividends')}
                     </button>
                     <button
                         onClick={fetchTrendData}
                         className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
                     >
-                        🔄 Refresh
+                        {t('Trend.Refresh')}
                     </button>
                 </div>
             </div>
@@ -163,12 +165,12 @@ export default function TrendPage() {
             ) : trendData.length === 0 ? (
                 <div className="glass-card p-8 text-center">
                     <p className="text-6xl mb-4">📊</p>
-                    <h2 className="text-2xl font-bold mb-2">No Transaction History</h2>
+                    <h2 className="text-2xl font-bold mb-2">{t('Trend.NoTransactionHistory')}</h2>
                     <p className="text-[var(--color-text-muted)]">
-                        Add transactions to begin tracking your investment curve.
+                        {t('Trend.AddTransactions')}
                     </p>
                     <a href="/portfolio" className="inline-block mt-4 bg-[var(--color-cta)] text-black px-4 py-2 rounded font-bold">
-                        Go to Portfolio →
+                        {t('Trend.GoToPortfolio')}
                     </a>
                 </div>
             ) : (
@@ -177,29 +179,29 @@ export default function TrendPage() {
                     <div className="glass-card rounded-xl p-6">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                             <h3 className="text-lg font-bold text-white">
-                                📊 Portfolio Metrics Over Time
+                                {t('Trend.PortfolioMetrics')}
                             </h3>
                             {/* Toggle Controls */}
                             <div className="flex flex-wrap gap-3 text-xs">
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showCost} onChange={() => setShowCost(!showCost)} className="accent-orange-400" />
-                                    <span className="text-orange-400">💰 Cost Basis</span>
+                                    <span className="text-orange-400">{t('Trend.CostBasis')}</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showValue} onChange={() => setShowValue(!showValue)} className="accent-cyan-400" />
-                                    <span className="text-cyan-400">📈 Market Value</span>
+                                    <span className="text-cyan-400">{t('Trend.MarketValue')}</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showRealized} onChange={() => setShowRealized(!showRealized)} className="accent-green-400" />
-                                    <span className="text-green-400">💵 Realized P/L</span>
+                                    <span className="text-green-400">{t('Trend.RealizedPL')}</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showDividend} onChange={() => setShowDividend(!showDividend)} className="accent-amber-400" />
-                                    <span className="text-amber-400">🎁 Dividends</span>
+                                    <span className="text-amber-400">{t('Trend.Dividends')}</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={showUnrealized} onChange={() => setShowUnrealized(!showUnrealized)} className="accent-yellow-400" />
-                                    <span className="text-yellow-400">📊 Unrealized P/L</span>
+                                    <span className="text-yellow-400">{t('Trend.UnrealizedPL')}</span>
                                 </label>
                             </div>
                         </div>
@@ -246,11 +248,11 @@ export default function TrendPage() {
                                         contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
                                         formatter={(value: any, name?: string) => {
                                             const labels: Record<string, string> = {
-                                                cost: '💰 Cost Basis',
-                                                value: '📈 Market Value',
-                                                realized: '💵 Realized P/L',
-                                                dividend: '🎁 Dividends',
-                                                unrealized: '📊 Unrealized P/L'
+                                                cost: t('Trend.CostBasis'),
+                                                value: t('Trend.MarketValue'),
+                                                realized: t('Trend.RealizedPL'),
+                                                dividend: t('Trend.Dividends'),
+                                                unrealized: t('Trend.UnrealizedPL')
                                             };
                                             return [`$${formatCurrency(Number(value))}`, labels[name || ''] || name || 'Unknown'];
                                         }}
@@ -324,7 +326,7 @@ export default function TrendPage() {
                     {/* Asset Groups (Filtered) */}
                     <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4">
-                            🗂️ Active Holdings
+                            {t('Trend.ActiveHoldings')}
                         </h3>
 
                         <div className="space-y-3">
@@ -350,7 +352,7 @@ export default function TrendPage() {
                                             <div className="flex items-center gap-3">
                                                 <span className="text-lg">{type.label}</span>
                                                 <span className="text-xs text-[var(--color-text-muted)]">
-                                                    ({activeTargets.length} holdings)
+                                                    {t('Trend.HoldingsCount').replace('{count}', activeTargets.length.toString())}
                                                 </span>
                                             </div>
                                             <div className="text-right">
@@ -368,11 +370,11 @@ export default function TrendPage() {
                                                 <table className="w-full text-sm">
                                                     <thead className="text-xs text-[var(--color-text-muted)]">
                                                         <tr>
-                                                            <th className="text-left p-1">Stock</th>
-                                                            <th className="text-right p-1">Shares</th>
-                                                            <th className="text-right p-1">Avg Cost</th>
-                                                            <th className="text-right p-1">Price</th>
-                                                            <th className="text-right p-1">Value</th>
+                                                            <th className="text-left p-1">{t('Trend.Stock')}</th>
+                                                            <th className="text-right p-1">{t('Trend.Shares')}</th>
+                                                            <th className="text-right p-1">{t('Trend.AvgCost')}</th>
+                                                            <th className="text-right p-1">{t('Trend.Price')}</th>
+                                                            <th className="text-right p-1">{t('Trend.Value')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -404,9 +406,9 @@ export default function TrendPage() {
                             {/* Fallback if all groups are empty */}
                             {assetTypes.every(t => (assetGroups[t.key] || []).filter(at => (at.total_shares || 0) > 0).length === 0) && (
                                 <div className="text-[var(--color-text-muted)] text-center py-4">
-                                    No active holdings found.
+                                    {t('Trend.NoActiveHoldings')}
                                     <br />
-                                    <span className="text-xs">Targets with 0 shares (watchlist) are hidden.</span>
+                                    <span className="text-xs">{t('Trend.TargetsHidden')}</span>
                                 </div>
                             )}
                         </div>
@@ -416,12 +418,12 @@ export default function TrendPage() {
 
             {/* My Race CTA */}
             <div className="w-full p-4 rounded-xl border border-[var(--color-border)] bg-black/40 flex justify-center items-center gap-2 text-sm mt-8">
-                <span className="text-[var(--color-text-muted)]">See your investments compete! →</span>
+                <span className="text-[var(--color-text-muted)]">{t('Trend.SeeInvestmentsCompete')}</span>
                 <a
                     href="/myrace"
                     className="font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent hover:opacity-80 transition"
                 >
-                    🏎️ Open My Race Tab
+                    {t('Trend.OpenMyRaceTab')}
                 </a>
             </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChartSkeleton } from "@/components/Skeleton";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface RaceFrame {
     year: number;
@@ -20,6 +21,7 @@ interface SimSettings {
 }
 
 export default function RacePage() {
+    const { t } = useLanguage();
     const [frames, setFrames] = useState<RaceFrame[]>([]);
     const [currentYear, setCurrentYear] = useState<number>(2015);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -34,7 +36,7 @@ export default function RacePage() {
     });
 
     const API_BASE = "";
-    const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
+    const isPremium = user?.is_admin || user?.is_premium;
 
     // Load settings from Mars page (localStorage)
     useEffect(() => {
@@ -240,10 +242,10 @@ export default function RacePage() {
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
-                        🏎️ Bar Chart Race
+                        {t('Race.Title')}
                     </h1>
                     <p className="text-[var(--color-text-muted)]">
-                        Watch stocks compete from {sim.startYear} to {maxYear}
+                        {t('Race.Subtitle', { startYear: sim.startYear, maxYear })}
                     </p>
                 </div>
 
@@ -254,20 +256,20 @@ export default function RacePage() {
                         disabled={isPlaying || loading}
                         className="bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)] px-4 py-2 rounded hover:bg-[var(--color-success)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
                     >
-                        ▶ Play
+                        {t('Race.Play')}
                     </button>
                     <button
                         onClick={pauseRace}
                         disabled={!isPlaying}
                         className="bg-[var(--color-warning)]/20 border border-[var(--color-warning)] text-[var(--color-warning)] px-4 py-2 rounded hover:bg-[var(--color-warning)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
                     >
-                        ⏸ Pause
+                        {t('Race.Pause')}
                     </button>
                     <button
                         onClick={resetRace}
                         className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded hover:bg-white/20 transition font-bold text-sm cursor-pointer"
                     >
-                        ↺ Reset
+                        {t('Race.Reset')}
                     </button>
                 </div>
             </div>
@@ -281,14 +283,14 @@ export default function RacePage() {
                         : "text-[var(--color-text-muted)] hover:text-white"
                         }`}
                 >
-                    💰 Wealth
+                    {t('Race.Wealth')}
                 </button>
                 <button
                     onClick={() => {
                         if (isPremium) {
                             setMetric("cagr"); resetRace();
                         } else {
-                            alert('🔒 Premium Feature: Upgrade to unlock CAGR analysis.');
+                            alert(t('Race.PremiumAlert'));
                         }
                     }}
                     className={`px-4 py-2 text-sm font-bold rounded transition cursor-pointer flex items-center gap-1 ${metric === "cagr"
@@ -297,7 +299,7 @@ export default function RacePage() {
                         }`}
                 >
                     {!isPremium && <span className="text-xs">🔒</span>}
-                    📈 CAGR
+                    {t('Race.CAGR')}
                 </button>
             </div>
 
@@ -328,7 +330,7 @@ export default function RacePage() {
                     <ChartSkeleton height="h-[450px]" />
                 ) : currentFrameData.length === 0 ? (
                     <div className="text-center py-20 text-[var(--color-text-muted)]">
-                        No data available for this period.
+                        {t('Race.NoData')}
                     </div>
                 ) : (
                     <div className="relative min-h-[450px]">

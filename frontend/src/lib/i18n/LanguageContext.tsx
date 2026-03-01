@@ -30,6 +30,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const savedLang = localStorage.getItem("martian_lang") as Language;
         if (savedLang && ["en", "zh-TW", "zh-CN"].includes(savedLang)) {
             setLanguageState(savedLang);
+            document.documentElement.lang = savedLang;
+        } else {
+            document.documentElement.lang = "en";
         }
         setMounted(true);
     }, []);
@@ -37,6 +40,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
         localStorage.setItem("martian_lang", lang);
+        document.documentElement.lang = lang;
     };
 
     const t = (key: string, params?: Record<string, string | number>) => {

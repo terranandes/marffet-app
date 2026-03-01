@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
 import DataTimestamp from "@/components/DataTimestamp";
 import { TableSkeleton } from "@/components/Skeleton";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 // Dynamic import for ECharts to avoid SSR issues
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
@@ -30,6 +31,7 @@ type SortKey = "finalValue" | "cagr_pct" | "volatility_pct" | "name";
 type SortDir = "asc" | "desc";
 
 export default function MarsPage() {
+    const { t } = useLanguage();
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCalculating, setIsCalculating] = useState(false);
@@ -204,7 +206,7 @@ export default function MarsPage() {
                     onClick={() => setShowSettings(!showSettings)}
                 >
                     <span className="font-bold text-[var(--color-primary)] uppercase text-xs tracking-wider">
-                        ⚙️ Simulation Settings
+                        ⚙️ {t('Mars.SimulationSettings')}
                     </span>
                     <span className={`transform transition-transform ${showSettings ? 'rotate-180' : ''}`}>
                         ▼
@@ -213,13 +215,13 @@ export default function MarsPage() {
 
                 <div className={`${showSettings ? 'block' : 'hidden'} md:block glass-card p-5 rounded-xl`}>
                     <h3 className="hidden md:block text-[var(--color-primary)] font-bold mb-4 uppercase text-xs tracking-wider border-b border-[var(--color-border)] pb-2">
-                        Simulation Settings
+                        {t('Mars.SimulationSettings')}
                     </h3>
 
                     <div className="space-y-4">
                         <div>
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">
-                                Start Year (2000-{currentYear})
+                                {t('Mars.StartYear', { currentYear })}
                             </label>
                             <input
                                 type="number"
@@ -233,7 +235,7 @@ export default function MarsPage() {
 
                         <div>
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">
-                                Initial Capital ($)
+                                {t('Mars.InitialCapital')}
                             </label>
                             <input
                                 type="number"
@@ -246,7 +248,7 @@ export default function MarsPage() {
 
                         <div>
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">
-                                Annual Contribution ($)
+                                {t('Mars.AnnualContribution')}
                             </label>
                             <input
                                 type="number"
@@ -262,7 +264,7 @@ export default function MarsPage() {
                             disabled={isCalculating}
                             className="w-full bg-[var(--color-cta)]/10 border border-[var(--color-cta)] text-[var(--color-cta)] hover:bg-[var(--color-cta)] hover:text-black font-bold py-2 rounded transition cursor-pointer disabled:opacity-50"
                         >
-                            {isCalculating ? "Calculating..." : "Apply (Recalculate)"}
+                            {isCalculating ? t('Mars.Calculating') : t('Mars.ApplyRecalculate')}
                         </button>
 
                         <div className="flex flex-col gap-2">
@@ -271,27 +273,27 @@ export default function MarsPage() {
                                     onClick={() => handleExport("filtered")}
                                     className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
                                 >
-                                    📥 Export Filtered (All)
+                                    {t('Mars.ExportFiltered')}
                                 </button>
                             )}
                             <button
                                 onClick={() => handleExport("unfiltered")}
                                 className="w-full bg-amber-500/10 border border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
                             >
-                                📦 Export Unfiltered (All)
+                                {t('Mars.ExportUnfiltered')}
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <div className="glass-card p-5 rounded-xl">
-                    <h3 className="text-[var(--color-text-muted)] text-xs mb-2">Universe Stats</h3>
+                    <h3 className="text-[var(--color-text-muted)] text-xs mb-2">{t('Mars.UniverseStats')}</h3>
                     <div className="flex justify-between items-center mb-1">
-                        <span>Total Listed</span>
+                        <span>{t('Mars.TotalListed')}</span>
                         <span className="font-mono">{stocks.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span>Top Candidates</span>
+                        <span>{t('Mars.TopCandidates')}</span>
                         <span className="font-mono text-[var(--color-primary)]">{sortedStocks.length}</span>
                     </div>
                 </div>
@@ -302,7 +304,7 @@ export default function MarsPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-rose-500 bg-clip-text text-transparent">
-                            Mars Strategy
+                            {t('Mars.Title')}
                         </h1>
                         {isCalculating && (
                             <div className="flex items-center gap-2 text-[var(--color-cta)] animate-pulse">
@@ -310,7 +312,7 @@ export default function MarsPage() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span className="text-xs">Calculating...</span>
+                                <span className="text-xs">{t('Mars.Calculating')}</span>
                             </div>
                         )}
                     </div>
@@ -319,7 +321,7 @@ export default function MarsPage() {
                     </div>
                 </div>
                 <p className="text-[var(--color-text-muted)] mt-1">
-                    Top 50 Survivors ({sim.startYear} - {currentYear})
+                    {t('Mars.TopSurvivors', { startYear: sim.startYear, currentYear: currentYear })}
                 </p>
 
                 {loading ? (
@@ -332,25 +334,25 @@ export default function MarsPage() {
                             <table className="w-full text-left text-sm min-w-[700px]">
                                 <thead className="bg-black/30 uppercase text-xs text-[var(--color-text-muted)] tracking-wider">
                                     <tr>
-                                        <th className="px-4 py-3">Rank</th>
-                                        <th className="px-4 py-3">ID</th>
+                                        <th className="px-4 py-3">{t('Mars.TableRank')}</th>
+                                        <th className="px-4 py-3">{t('Mars.TableID')}</th>
                                         <th className="px-4 py-3">
                                             <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-white transition cursor-pointer">
-                                                Name <span className={getSortIcon("name")}>▼</span>
+                                                {t('Mars.TableName')} <span className={getSortIcon("name")}>▼</span>
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-right">
                                             <button onClick={() => handleSort("finalValue")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
-                                                Simulated Final <span className={getSortIcon("finalValue")}>▼</span>
+                                                {t('Mars.TableSimFinal')} <span className={getSortIcon("finalValue")}>▼</span>
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-right">
                                             <button onClick={() => handleSort("cagr_pct")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
-                                                CAGR % <span className={getSortIcon("cagr_pct")}>▼</span>
+                                                {t('Mars.TableCAGR')} <span className={getSortIcon("cagr_pct")}>▼</span>
                                             </button>
                                         </th>
                                         <th className="px-4 py-3 text-right">
-                                            <span className="text-gray-400">Volatility %</span>
+                                            <span className="text-gray-400">{t('Mars.TableVol')}</span>
                                         </th>
                                     </tr>
                                 </thead>
@@ -384,7 +386,7 @@ export default function MarsPage() {
                             </table>
                         </div>
                         <div className="p-4 text-center text-xs text-[var(--color-text-muted)] border-t border-[var(--color-border)]">
-                            Showing top {sortedStocks.length} of {stocks.length} filtered results
+                            {t('Mars.ShowingCount', { count: sortedStocks.length, total: stocks.length })}
                         </div>
                     </div>
                 )}
@@ -404,7 +406,7 @@ export default function MarsPage() {
 
                         <div className="p-6 md:p-8">
                             <h2 className="text-2xl font-bold mb-10 flex items-center gap-3">
-                                <span>Result:</span>
+                                <span>{t('Mars.ResultTitle')}</span>
                                 <span className="text-[var(--color-cta)]">{selectedStock.name}</span>
                                 <span className="text-[var(--color-cta)] opacity-75">({selectedStock.id})</span>
                             </h2>
@@ -412,19 +414,19 @@ export default function MarsPage() {
                             {/* Stats Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                                 <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
-                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Amount Inv.</div>
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.AmountInv')}</div>
                                     <div className="text-xl font-bold text-white">
                                         ${sim.principal.toLocaleString()} + ${sim.contribution.toLocaleString()}/yr
                                     </div>
                                 </div>
                                 <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
-                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Total Years</div>
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.TotalYears')}</div>
                                     <div className="text-xl font-bold text-white">
-                                        {selectedStock.valid_years} Years
+                                        {t('Mars.YearsCount', { count: selectedStock.valid_years })}
                                     </div>
                                 </div>
                                 <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
-                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Yearly ROI (CAGR)</div>
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.YearlyROI')}</div>
                                     <div className="text-xl font-bold text-[var(--color-success)]">
                                         {selectedStock.cagr_pct.toFixed(2)}%
                                     </div>
@@ -434,38 +436,38 @@ export default function MarsPage() {
                             {/* Strategy Table */}
                             <div className="mb-8 rounded-lg overflow-hidden border border-[var(--color-border)]">
                                 <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-sm py-3 px-4">
-                                    <div>Strategy</div>
-                                    <div className="text-center">Buy At Yearly Opening</div>
-                                    <div className="text-center">Buy At Yearly Highest</div>
-                                    <div className="text-center">Buy At Yearly Lowest</div>
+                                    <div>{t('Mars.Strategy')}</div>
+                                    <div className="text-center">{t('Mars.BuyOpen')}</div>
+                                    <div className="text-center">{t('Mars.BuyHigh')}</div>
+                                    <div className="text-center">{t('Mars.BuyLow')}</div>
                                 </div>
                                 <div className="divide-y divide-[var(--color-border)]">
                                     {/* Final Value Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">Final Value</div>
+                                        <div className="font-bold text-white">{t('Mars.FinalValue')}</div>
 
                                         {/* BAO */}
                                         <div className="text-center font-bold text-[var(--color-cta)] text-xl">
-                                            {detailLoading ? "Loading..." :
+                                            {detailLoading ? t('Mars.LoadingData') :
                                                 detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"}
                                         </div>
 
                                         {/* BAH */}
                                         <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
-                                            {detailLoading ? "Loading..." :
+                                            {detailLoading ? t('Mars.LoadingData') :
                                                 detailResult?.BAH?.finalValue ? formatCurrency(detailResult.BAH.finalValue) : "-"}
                                         </div>
 
                                         {/* BAL */}
                                         <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
-                                            {detailLoading ? "Loading..." :
+                                            {detailLoading ? t('Mars.LoadingData') :
                                                 detailResult?.BAL?.finalValue ? formatCurrency(detailResult.BAL.finalValue) : "-"}
                                         </div>
                                     </div>
 
                                     {/* Total ROI Row */}
                                     <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">Total ROI</div>
+                                        <div className="font-bold text-white">{t('Mars.TotalROILabel')}</div>
 
                                         {/* BAO ROI */}
                                         <div className="text-center font-bold text-[var(--color-success)] text-lg">
@@ -492,20 +494,20 @@ export default function MarsPage() {
                             <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-white">
-                                        {vizMode === 'wealth' ? 'Wealth Path (Comparison)' : 'Dividend History (Comparison)'}
+                                        {vizMode === 'wealth' ? t('Mars.WealthPath') : t('Mars.DividendHistory')}
                                     </h3>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setVizMode('wealth')}
                                             className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'wealth' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
                                         >
-                                            Wealth
+                                            {t('Mars.Wealth')}
                                         </button>
                                         <button
                                             onClick={() => setVizMode('dividend')}
                                             className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'dividend' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
                                         >
-                                            Dividend
+                                            {t('Mars.Dividend')}
                                         </button>
                                     </div>
                                 </div>
@@ -595,7 +597,7 @@ export default function MarsPage() {
                                     />
                                 ) : (
                                     <div className="h-[400px] flex items-center justify-center text-[var(--color-text-muted)]">
-                                        {detailLoading ? "Loading chart data..." : "Select a stock to view comparison"}
+                                        {detailLoading ? t('Mars.LoadingChart') : t('Mars.SelectRow')}
                                     </div>
                                 )}
                             </div>

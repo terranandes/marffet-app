@@ -59,7 +59,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
         }
     }, [messages, loading]);
 
-    const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
+    const isPremium = user?.is_admin || user?.is_premium;
     const isLoggedIn = !!user && user.id !== "guest";
     const hasServerKey = user?.has_gemini_key;
     const effectiveHasKey = apiKey || hasServerKey;

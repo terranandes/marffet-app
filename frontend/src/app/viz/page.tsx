@@ -49,7 +49,7 @@ export default function VisualizationPage() {
     }, []);
 
     // Helper to check premium
-    const isPremium = user?.is_admin || (user?.subscription_tier && user.subscription_tier > 0);
+    const isPremium = user?.is_admin || user?.is_premium;
 
     return (
         <main className="min-h-screen bg-[#050505] text-white p-8">

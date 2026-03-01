@@ -388,3 +388,32 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Documented Phase F.1 UI/UX Polish (Modals, Toasters, Tabs) and 1 commit ahead of origin.
     - Resolved `BOSS_TBD.md` VSCode spell-check warning ("DONT" -> "DO-NOT-TOUCH").
     - Confirmed isolated test worktree `PL_full-test-local` is currently active and awaiting Playwright E2E testing prior to production push.
+
+## 22. Multi-Language Support (i18n) - [IN PROGRESS]
+- [x] **Phase 1: i18n Infrastructure**
+    - [x] `LanguageContext.tsx` (React Context Provider, `useTranslation()` / `useLanguage()` hooks)
+    - [x] `en.json`, `zh-TW.json`, `zh-CN.json` locale files
+    - [x] `ClientProviders.tsx` integration for global context
+- [x] **Phase 2: Language Selector Wiring**
+    - [x] Settings modal language dropdown
+    - [x] Sidebar translated
+    - [x] Dynamic `<html lang>` attribute + `localStorage` persistence
+- [/] **Phase 3: Page-by-Page String Extraction** (~60% complete)
+    - [x] `mars/page.tsx` — Mars Strategy Simulator
+    - [x] `compound/page.tsx` — Compound Interest Calculator
+    - [x] `race/page.tsx` — Bar Chart Race
+    - [x] `trend/page.tsx` — Portfolio Trend
+    - [ ] `portfolio/` — Portfolio Management
+    - [ ] `cb/page.tsx` — Convertible Bonds
+    - [ ] `ladder/page.tsx` — Cash Ladder
+    - [ ] `myrace/page.tsx` — My Race
+    - [ ] `viz/page.tsx` — Visualization
+    - [ ] `page.tsx` — Landing Page
+    - [ ] `SettingsModal.tsx`, `AICopilot.tsx`, `StockDetailModal.tsx`
+- [x] **Phase 4: Layout Integration**
+    - [x] Root layout `ClientProviders` wrapping fix
+    - [x] Dynamic `document.documentElement.lang` sync
+- [x] **HOTFIX: Premium Access (`is_premium`)** — Fixed `subscription_tier` → `is_premium` in `race/page.tsx`, `viz/page.tsx`, `AICopilot.tsx`
+- [x] **Agents Sync Meeting - 2026-03-02 v2** (Ref: `docs/meeting/meeting_notes_2026_03_02_sync_v2.md` & `docs/code_review/code_review_2026_03_02_sync_v2.md`)
+    - i18n Phase 3 progress report (5/11 pages translated). Premium access hotfix documented.
+

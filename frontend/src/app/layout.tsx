@@ -52,12 +52,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-bg)] text-[var(--color-text)] min-h-screen`}
         suppressHydrationWarning
       >
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
-            <ClientProviders>{children}</ClientProviders>
-          </main>
-        </div>
+        <ClientProviders>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+              {children}
+            </main>
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

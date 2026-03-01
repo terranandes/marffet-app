@@ -369,3 +369,10 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - `[PL][CODE][UI]`: Verified `software_stack.md` (ECharts, Framer Motion already present).
     - `[CV]`: Updated `test_plan.md` to formally document the `full-test-local` isolated worktree pipeline.
 - [x] **BUG-011-CV Resolved**: Fixed Portfolio Transaction Edit button failing to open. Data payload was missing `target_id` due to omission in the `transaction_repo.py` SELECT statement.
+- [x] **Portfolio Data Refresh Fix**: Refactored `groupStats` to `useMemo` (derived from targets). Added `cache: "no-store"` and `_cb` cache-busters to all portfolio API fetch calls in `portfolioService.ts`. Fixed stale data after add/edit/delete operations.
+- [x] **AICopilot Build Fix**: Moved `className` off `<ReactMarkdown>` (invalid in v9+) to parent wrapper `div`. TypeScript compilation passes.
+- [x] **Agents Sync Meeting - 2026-03-01 v4** (Ref: `docs/meeting/meeting_notes_2026_03_01_sync_v4.md` & `docs/code_review/code_review_2026_03_01_sync_v4.md`)
+    - Code Review: PASS. 11 files, 66+/42-. All changes focused and correctly scoped.
+    - Jira: 7/12 CLOSED, 2 OPEN (BUG-004, BUG-010), 3 ambiguous (BUG-000, BUG-001, BUG-009).
+    - Cleaned stale branches: `full-test-local`, `local-test`.
+    - BOSS_TBD: 6+ new items (Marffet rename, GitHub publish, buy-me-coffee, AICopilot, Cloud Run, DB optimization, Email).

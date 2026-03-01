@@ -176,10 +176,10 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-2xl bg-[#0e1117] border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(0,242,234,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-2xl bg-black/60 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-[#0e1117] to-[#1a1f2e]">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         <span className="text-2xl">⚙️</span> Settings
                     </h2>
@@ -204,20 +204,26 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             <button
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id); setMsg(null); }}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all relative overflow-hidden ${activeTab === tab.id
-                                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
+                                className={`flex items-center gap-3 px-4 py-3 text-sm font-bold transition-colors relative ${activeTab === tab.id
+                                    ? "text-cyan-400"
+                                    : "text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl"
                                     }`}
                             >
                                 <span className="relative z-10">{tab.icon}</span>
                                 <span className="relative z-10">{tab.label}</span>
-                                {activeTab === tab.id && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent" />}
+                                {activeTab === tab.id && (
+                                    <motion.div
+                                        layoutId="activeSettingsTab"
+                                        className="absolute inset-0 bg-cyan-500/10 border border-cyan-500/50 rounded-xl shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
                             </button>
                         ))}
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 p-8 overflow-y-auto bg-gradient-to-b from-[#0e1117] to-[#13161c] relative">
+                    <div className="flex-1 p-8 overflow-y-auto bg-transparent relative">
 
                         {/* Messages are now shown via react-hot-toast */}
 

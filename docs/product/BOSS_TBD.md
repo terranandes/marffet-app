@@ -2,7 +2,7 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [ ] Review Phase F: Portfolio Beautification
+
 - [ ] Review Admin Dashboard, what are the current operations?
 - [ ] Review notification Scheme, what are the current triggers for free and paid users?
 - [ ] check tab Compound Interest

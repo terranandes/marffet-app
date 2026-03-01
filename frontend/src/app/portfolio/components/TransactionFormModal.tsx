@@ -26,14 +26,14 @@ export function TransactionFormModal({
 
     return (
         <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60]"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]"
             onClick={onClose}
         >
             <div
-                className="bg-[#1a1a2e] p-6 rounded-xl border border-white/20 w-full max-w-md"
+                className="bg-black/60 backdrop-blur-2xl p-6 rounded-2xl border border-white/10 w-full max-w-md shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                     <span className="text-[var(--color-cta)]">{isEditing ? "✏️" : "+"}</span>
                     {isEditing ? "Edit Transaction" : "New Transaction"}
                 </h3>
@@ -83,7 +83,7 @@ export function TransactionFormModal({
                                 value={txData.date}
                                 onChange={(e) => onChange({ ...txData, date: e.target.value })}
                                 style={{ colorScheme: "dark" }}
-                                className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 focus:border-[var(--color-cta)] outline-none text-sm h-[46px]"
+                                className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-white focus:border-[var(--color-cta)] outline-none text-sm h-[40px] [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                             />
                         </div>
                     </div>

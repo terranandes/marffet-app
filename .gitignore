@@ -234,3 +234,4 @@ data/raw_dividends/*.json
 # Reference data (generated, not source)
 data/ref/*.json
 data/ref/debug/
+.worktree/

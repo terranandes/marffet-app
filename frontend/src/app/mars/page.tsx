@@ -534,7 +534,11 @@ export default function MarsPage() {
                                                 }
                                             },
                                             legend: {
-                                                data: ['BAO (Open)', 'BAH (High)', 'BAL (Low)'],
+                                                data: [
+                                                    { name: 'BAO (Open)', icon: 'path://M0,3 L26,3 L26,7 L0,7 Z' },
+                                                    { name: 'BAH (High)', icon: 'path://M0,3 L6,3 L6,7 L0,7 Z M10,3 L16,3 L16,7 L10,7 Z M20,3 L26,3 L26,7 L20,7 Z' },
+                                                    { name: 'BAL (Low)', icon: 'path://M0,3 L6,3 L6,7 L0,7 Z M10,3 L16,3 L16,7 L10,7 Z M20,3 L26,3 L26,7 L20,7 Z' }
+                                                ],
                                                 top: 0,
                                                 textStyle: { color: '#ccc' }
                                             },

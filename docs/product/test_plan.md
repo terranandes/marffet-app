@@ -108,6 +108,15 @@ uv run tests/unit/test_mobile_portfolio.py
 
 ## 3. Regression Tests
 
+### v3.5 (2026-03-01) - UI/UX Polish Verification (Modals, Notifications, Tabs)
+| Test | Expected | Status |
+|------|----------|--------|
+| BUG-004-UI | Transaction Date Picker calendar icon visible in dark mode | ⏳ Pending |
+| UI/UX Modals | Settings and Transaction modals have glassmorphism background | ⏳ Pending |
+| UI/UX Tabs | Settings modal tabs feature smooth sliding animation | ⏳ Pending |
+| UI/UX Toaster | Notifications have cyberpunk themes and accent borders | ⏳ Pending |
+| BUG-010-CV | Portfolio Card Click Timeout | ⏳ Pending |
+
 ### v3.1 (2026-02-11) - Phase 2 Refactoring Verification
 | Test | Expected | Status |
 |------|----------|--------|

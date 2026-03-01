@@ -11,7 +11,7 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 ---
 
-## === Barrier === (DONT-TOUCH AREA)
+## === Barrier === (DO-NOT-TOUCH AREA)
 - [ ] Multi-language.
 - [ ] Should we rename the English name Martian to Marffet?
 - [ ] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
@@ -29,7 +29,7 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 ---
 
-## BOSS TBD (DONT-TOUCH AREA)
+## BOSS TBD (DO-NOT-TOUCH AREA)
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
 - adopt Ralph extension
     - Ralph Loop (currently testing)
@@ -54,7 +54,7 @@ https://skills.sh/?q=memory
 
 ---
 
-## AI 工具 rules 目錄對照表 (DONT-TOUCH AREA)
+## AI 工具 rules 目錄對照表 (DO-NOT-TOUCH AREA)
 
 | 平台 / 工具             | 專案目錄 (Project Scope) | 使用者全域目錄 (Global Scope)    |
 | :---                   | :---                     | :---                           |

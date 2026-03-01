@@ -3,6 +3,7 @@
 **Reporter:** [CV] Code Verification Manager
 **Component:** Frontend Configuration (Local Isolated Worktree)
 **Priority:** Low (Affects local E2E testing only; Zeabur Production is stable)
+**Status:** ✅ CLOSED (2026-03-01) — Worktree torn down. No longer reproducible. If re-created, `full-test-local` workflow now auto-generates `.env.local`.
 
 ## Description
 When executing the full E2E parity test suite (`verify_task2_parity.py`), the local Next.js frontend (`localhost:3000`) spun indefinitely on "Calculating..." and "Loading race data..." for the Mars Strategy and Bar Chart components. 

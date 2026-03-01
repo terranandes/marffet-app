@@ -3,7 +3,7 @@
 **Reporter:** [PL]
 **Component:** Frontend (Portfolio Transaction Modal)
 **Severity:** Minor
-**Status:** OPEN
+**Status:** ✅ CLOSED (2026-03-01) — Fixed in Phase E. Applied `colorScheme: dark` to native date input. Confirmed in spec v4.1.
 
 ## Description
 The user reported that the date input field in the "New Transaction" / "Edit Transaction" modal no longer displays or behaves with the expected calendar style ("cannot use calendar style, that was working"). The current implementation in `TransactionFormModal.tsx` uses a native HTML5 `<input type="date">`. 

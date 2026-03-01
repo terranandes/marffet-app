@@ -3,6 +3,7 @@
 **Reporter:** [CV] Code Verification Manager
 **Component:** AI Copilot Backend (Zeabur Production)
 **Priority:** High (Core feature unavailable for non-premium users)
+**Status:** ✅ CLOSED (2026-03-01) — Fixed: Configured Tier 1 Gemini Key, updated backend model logic to gemini-2.5-flash.
 
 ## Description
 When executing `verify_task3_copilot.py` to test the `/api/chat` inference endpoint on `martian-api.zeabur.app` without providing a client API key, the server correctly falls back to its environment variable `GEMINI_API_KEY`. However, the Google Cloud Project backing that API key has the Generative Language API disabled.

@@ -2,7 +2,6 @@
 description: commit current change but push
 ---
 
-1. [PL] Commit neccessary files, but push, including deployment requirements.
-2. [CV] Run the full headlessly automated Playwright Suite on local. Take screenshots of evidences with Playwright. File the new bug found at ./jira .
-3. [PL] Report the tinied-up states and status.
-4. [PL] Show me how to run the APP, I will check it when I'm avaiable.
+1. [PL] Commit necessary files, but push, including deployment requirements.
+2. [PL] Report the tiny-up states and status.
+3. [PL] Show me how to run the APP, I will check it when I'm available.

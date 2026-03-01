@@ -4,8 +4,10 @@
 import React, { useEffect, useState } from 'react';
 import RaceChart from '@/components/RaceChart';
 import { ChartSkeleton } from '@/components/Skeleton';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function VisualizationPage() {
+    const { t } = useLanguage();
     const [user, setUser] = useState<any>(null);
     const [data, setData] = useState<any[]>([]); // Restore missing state
     const [loading, setLoading] = useState(true); // Restore missing state
@@ -56,18 +58,18 @@ export default function VisualizationPage() {
             <header className="mb-12 cursor-default flex justify-between items-end">
                 <div>
                     <h1 className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-500 to-pink-500 mb-2">
-                        MARS VISUALIZATION
+                        {t('Viz.Title')}
                     </h1>
                     <p className="text-zinc-500 text-lg font-mono uppercase tracking-widest">
-                        Time-Series ROI Analysis /// Project Martian
+                        {t('Viz.Subtitle')}
                     </p>
                 </div>
                 {/* Debug Info */}
                 <div className="text-right text-xs text-zinc-600 font-mono">
-                    <div>User: {user ? (user.name || user.email || 'Top G') : 'Guest/Loading...'}</div>
+                    <div>{t('Viz.User')} {user ? (user.name || user.email || 'Top G') : t('Viz.GuestLoading')}</div>
                     <div className={isPremium ? 'text-green-500' : 'text-red-500'}>
-                        Premium: {isPremium ? 'YES' : 'NO'}
-                        {user?.is_admin ? ' (Admin)' : ''}
+                        {t('Viz.PremiumLabel')} {isPremium ? t('Viz.Premium') : t('Viz.NoPremium')}
+                        {user?.is_admin ? ` ${t('Viz.Admin')}` : ''}
                     </div>
                 </div>
             </header>
@@ -81,8 +83,8 @@ export default function VisualizationPage() {
                             <RaceChart data={data} isPremium={!!isPremium} />
                         ) : (
                             <div className="text-center py-20 text-zinc-500">
-                                No Race Data Available. <br />
-                                <span className="text-xs text-zinc-700">Ensure Backend is running and 'stock_list' exists.</span>
+                                {t('Viz.NoData')} <br />
+                                <span className="text-xs text-zinc-700">{t('Viz.BackendCheck')}</span>
                             </div>
                         )}
                     </div>

@@ -417,3 +417,37 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-02 v2** (Ref: `docs/meeting/meeting_notes_2026_03_02_sync_v2.md` & `docs/code_review/code_review_2026_03_02_sync_v2.md`)
     - i18n Phase 3 progress report (5/11 pages translated). Premium access hotfix documented.
 
+## 23. Phase 24: VIP/PREMIUM Membership Injection & Sponsorship - [COMPLETED]
+- [x] **Backend: Membership Injection API**
+    - [x] `user_memberships` table in `portfolio.db` (email, tier, valid_until, injected_by)
+    - [x] `POST /api/admin/memberships` — inject membership (GM-only)
+    - [x] `GET /api/admin/memberships` — list active memberships
+    - [x] `DELETE /api/admin/memberships/{email}` — revoke membership
+- [x] **Backend: Tier Precedence Logic**
+    - [x] `GM > VIP > PREMIUM` strict ordering in `/auth/me`
+    - [x] Merges static `.env` settings (`GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS`) with dynamic DB injections
+    - [x] `is_premium = true` only for PREMIUM and GM tiers
+- [x] **Frontend: Admin Dashboard**
+    - [x] Membership Injection form (email, tier, duration)
+    - [x] Active memberships table with Revoke functionality
+- [x] **Frontend: Sponsorship Links**
+    - [x] Sidebar "Sponsor Us" button (opens Settings → Sponsor tab)
+    - [x] SettingsModal "☕ Sponsor Us" tab with Ko-fi and Buy Me a Coffee links
+    - [x] i18n translations for sponsor keys (en, zh-TW, zh-CN)
+- [x] **Document Flow** — Updated 11 product docs (specification, admin_operations, backup_restore, datasheet, READMEs ×4, social_media_promo, software_stack, test_plan)
+- [x] **Agents Sync Meeting - 2026-03-02 v3** (Ref: `docs/meeting/meeting_notes_2026_03_02_sync_v3.md` & `docs/code_review/code_review_2026_03_02_sync_v3.md`)
+    - Proposed VIP vs PREMIUM tier matrix (BOSS approval pending)
+    - Recommended separate public GitHub repo for product showcase (BOSS approval pending)
+    - Cleaned up 2 worktrees and 2 stale branches
+
+## 24. Phase 25: VIP vs PREMIUM Feature Gating + GitHub Public Repo - [PLANNING]
+- [ ] **VIP vs PREMIUM Tier Gating** (Pending BOSS approval on tier matrix)
+    - [ ] Backend: Return `is_vip` or use `tier` string for frontend gating
+    - [ ] Backend: Tier-aware capacity limits in portfolio CRUD
+    - [ ] Frontend: Refactor `is_premium` checks to tier-aware gating (3 files)
+- [ ] **GitHub Public Repo** (Pending BOSS approval on repo name)
+    - [ ] Create `terranandes/martian-app` (or `marffet`) public repo
+    - [ ] Populate with product READMEs (EN + zh-TW + zh-CN), screenshots
+    - [ ] Add `.github/FUNDING.yml` for native GitHub Sponsor button
+    - [ ] Add `LICENSE` (MIT or chosen)
+

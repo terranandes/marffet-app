@@ -337,18 +337,18 @@ async def get_me(request: Request):
         except Exception as e:
             print(f"[AUTH] Error parsing membership valid_until: {e}")
 
-    # Calculate effective tier based on highest precedence: GM > PREMIUM > VIP > FREE
+    # Calculate effective tier based on highest precedence: GM > VIP > PREMIUM > FREE
     # Default is FREE
-    tier_levels = {'FREE': 0, 'VIP': 1, 'PREMIUM': 2, 'GM': 3}
+    tier_levels = {'FREE': 0, 'PREMIUM': 1, 'VIP': 2, 'GM': 3}
     
     # Static config tier
     static_tier = 'FREE'
     if is_admin:
         static_tier = 'GM'
-    elif user.get('email', '').strip().lower() in PREMIUM_EMAILS:
-        static_tier = 'PREMIUM'
     elif is_env_vip:
         static_tier = 'VIP'
+    elif user.get('email', '').strip().lower() in PREMIUM_EMAILS:
+        static_tier = 'PREMIUM'
         
     # Injected config tier
     db_tier = injected_tier if is_injected_premium and injected_tier else 'FREE'
@@ -356,12 +356,9 @@ async def get_me(request: Request):
     # The effective tier is the highest of the two
     tier = static_tier if tier_levels.get(static_tier, 0) >= tier_levels.get(db_tier, 0) else db_tier
     
-    # 'GM' is treated as 'PREMIUM' in most frontend/backend feature checks, but keep 'GM' string for clarity if wanted,
-    # or normalize it down to 'PREMIUM' since the UI/DB tier enum doesn't explicitly use 'GM' for injected tiers.
-    # The existing code mapped admins to 'VIP', but the new requirement is GM > PREMIUM > VIP.
-    # We will let tier be 'GM', 'PREMIUM', 'VIP', 'FREE'.
-
-    is_premium = is_env_premium or is_injected_premium or (tier in ['PREMIUM', 'GM'])
+    # GM and VIP are treated as premium-capable tiers (all premium features unlocked)
+    # PREMIUM tier gets a subset of premium features (defined by frontend gating)
+    is_premium = is_env_premium or is_injected_premium or (tier in ['VIP', 'PREMIUM', 'GM'])
 
     
     # GEMINI CHECK

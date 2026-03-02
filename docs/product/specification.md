@@ -37,8 +37,8 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 - **CORS**: Backend allows specific Frontend origin
 
 ### 1.3 Access Control & Memberships
-- **Tiers**: `FREE`, `VIP`, `PREMIUM`, `GM` (Game Master)
-- **Precedence Logic**: `GM` > `PREMIUM` > `VIP`. The highest available tier is always granted.
+- **Tiers**: `FREE`, `PREMIUM`, `VIP`, `GM` (Game Master)
+- **Precedence Logic**: `GM` > `VIP` > `PREMIUM`. The highest available tier is always granted.
 - **Assignment Mechanisms**:
   1. **Static (Environment Variables)**: `GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS` configure immutable access.
   2. **Dynamic (Database Injection)**: Manual injection via Admin Dashboard into the `user_memberships` table (`portfolio.db`). Supports varying durations (monthly, annually, lifetime) and automatic expiration handling.
@@ -134,7 +134,7 @@ These triggers currently apply globally to all users:
 
 ### v4.2 (2026-03-02) - Admin Membership & Sponsorship
 - **Membership Injection**: Added manual VIP/PREMIUM injection via Admin Dashboard (`user_memberships` in `portfolio.db`).
-- **Tier Precedence**: Implemented strict `GM > PREMIUM > VIP` logic merging static `.env` settings with dynamic database records.
+- **Tier Precedence**: Implemented strict `GM > VIP > PREMIUM` logic merging static `.env` settings with dynamic database records.
 - **Sponsorship Links**: Added Buy Me a Coffee and Ko-fi links in the UI `SettingsModal` and `Sidebar` to facilitate user upgrades.
 
 ### v4.1 (2026-03-01) - Phase E: Purple Sweep + Skeleton Loading

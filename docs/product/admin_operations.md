@@ -40,7 +40,7 @@ Manually manage user access via Google emails. Grants are stored persistently in
 | **Add** | Injects or updates membership. | Appears in active table below |
 | **Revoke** | Immediately deletes the injected membership. | User reverts to highest remaining tier |
 
-*Note: Environment variables (`GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS`) always take static precedence. If injected status expires, user reverts to static `.env` settings or Free tier.*
+*Note: Environment variables (`GM_EMAILS`, `VIP_EMAILS`, `PREMIUM_EMAILS`) always take static precedence (`GM > VIP > PREMIUM`). If injected status expires, user reverts to static `.env` settings or Free tier. Guest users (no login) cannot receive injections.*
 
 ---
 

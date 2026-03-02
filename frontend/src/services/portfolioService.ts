@@ -289,7 +289,7 @@ class ApiPortfolioService implements IPortfolioService {
 }
 
 // 2. Guest Implementation (LocalStorage)
-const STORAGE_KEY = "martian_guest_data";
+const STORAGE_KEY = "marffet_guest_data";
 
 interface GuestData {
     groups: Group[];

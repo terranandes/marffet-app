@@ -10,7 +10,7 @@ export default function DocPage() {
                 <div className="flex items-center justify-between mb-12 border-b border-white/10 pb-6">
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                            Martian
+                            Marffet
                         </span>{" "}
                         Investment System
                     </h1>
@@ -26,7 +26,7 @@ export default function DocPage() {
                 <div className="prose prose-invert max-w-none prose-headings:text-cyan-400 prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-strong:text-white">
                     <div className="mb-8 p-6 bg-white/5 border border-cyan-500/20 rounded-2xl">
                         <p className="text-xl text-white font-medium leading-relaxed m-0">
-                            <strong>Project Martian</strong> is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.
+                            <strong>Project Marffet</strong> (Martian + Buffet) is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.
                         </p>
                     </div>
 
@@ -86,7 +86,7 @@ export default function DocPage() {
                 {/* Footer */}
                 <div className="mt-20 pt-8 border-t border-white/10 text-center">
                     <p className="text-zinc-500 italic text-sm">
-                        *Built with ❤️ by the Martian AI Team.*
+                        *Built with ❤️ by the Marffet AI Team.*
                     </p>
                 </div>
             </div>

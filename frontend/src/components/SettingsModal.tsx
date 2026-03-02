@@ -70,10 +70,10 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
     useEffect(() => {
         if (isOpen) {
             setNickname(user?.nickname || "");
-            setApiKey(localStorage.getItem("martian_api_key") || "");
-            setRegion(localStorage.getItem("martian_region") || "TW");
-            setDefaultPage(localStorage.getItem("martian_default_page") || "/");
-            setIsPremium(localStorage.getItem("martian_premium") === "true");
+            setApiKey(localStorage.getItem("marffet_api_key") || "");
+            setRegion(localStorage.getItem("marffet_region") || "TW");
+            setDefaultPage(localStorage.getItem("marffet_default_page") || "/");
+            setIsPremium(localStorage.getItem("marffet_premium") === "true");
             setActiveTab(initialTab);
             setMsg(null);
         }
@@ -125,14 +125,14 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
     };
 
     const handleSavePreferences = () => {
-        localStorage.setItem("martian_region", region);
-        localStorage.setItem("martian_default_page", defaultPage);
-        localStorage.setItem("martian_premium", String(isPremium));
+        localStorage.setItem("marffet_region", region);
+        localStorage.setItem("marffet_default_page", defaultPage);
+        localStorage.setItem("marffet_premium", String(isPremium));
         toast.success(t('Settings.SavePreferences') + " (reload to apply)");
     };
 
     const handleSaveKey = () => {
-        localStorage.setItem("martian_api_key", apiKey);
+        localStorage.setItem("marffet_api_key", apiKey);
         toast.success("API Key saved securely");
     };
 
@@ -501,7 +501,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                     <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.SupportTitle') || "Support & Feedback"}</h3>
 
                                     <div className="mb-6">
-                                        <a href="mailto:support@martian.com" className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
+                                        <a href="mailto:support@marffet.com" className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
                                             <div className="text-2xl">🆘</div>
                                             <div>
                                                 <div className="font-bold text-white group-hover:text-cyan-400 transition">{t('Settings.EmailSupport') || "Email Support"}</div>
@@ -512,7 +512,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
 
                                     <div className="border-t border-white/10 pt-6">
                                         <h3 className="text-md font-bold text-white mb-4">{t('Settings.SendFeedback') || "Send Feedback"}</h3>
-                                        <p className="text-sm text-zinc-400 mb-4">{t('Settings.FeedbackDesc') || "Help us improve the Martian System! Report bugs or suggest features."}</p>
+                                        <p className="text-sm text-zinc-400 mb-4">{t('Settings.FeedbackDesc') || "Help us improve the Marffet System! Report bugs or suggest features."}</p>
 
                                         <div className="grid grid-cols-2 gap-4 mb-4">
                                             <div className="space-y-2">
@@ -631,8 +631,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                             <button onClick={() => setShowDocModal(false)} className="text-zinc-400 hover:text-white transition">✕</button>
                         </div>
                         <div className="flex-1 p-8 overflow-y-auto prose prose-invert max-w-none">
-                            <h1>👽 Martian Investment System</h1>
-                            <p><strong>Project Martian</strong> is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.</p>
+                            <h1>👽 Marffet Investment System</h1>
+                            <p><strong>Project Marffet</strong> (Martian + Buffet) is a high-performance investment simulation and tracking tool designed to prove the "Top 50 Past Performers" strategy.</p>
 
                             <h2>🌟 Key Features</h2>
 
@@ -675,7 +675,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                             </ol>
 
                             <hr className="my-8 border-white/10" />
-                            <p className="text-sm text-zinc-500 italic">*Built with ❤️ by the Martian AI Team.*</p>
+                            <p className="text-sm text-zinc-500 italic">*Built with ❤️ by the Marffet AI Team.*</p>
                         </div>
                     </div>
                 </div>

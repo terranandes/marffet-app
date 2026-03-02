@@ -10,7 +10,7 @@ interface ShareButtonProps {
 }
 
 export default function ShareButton({
-    title = "Martian Investment System",
+    title = "Marffet Investment System",
     text = "Check out my investment stats!",
     url,
     label = "Share"

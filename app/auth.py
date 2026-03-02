@@ -112,7 +112,7 @@ async def login(request: Request):
         print(f"[AUTH] Detected Frontend Origin ({referer_base}). Using: {redirect_uri}")
     else:
         # Fallback to standard request.url_for (uses Host header)
-        # This handles localhost:8000 direct access or Legacy UI (martian-api)
+        # This handles localhost:8000 direct access or Legacy UI (marffet-api)
         redirect_uri = str(request.url_for('auth_callback'))
         
         # LOCAL FIX: Normalize 127.0.0.1 to localhost for cookie consistency
@@ -247,8 +247,8 @@ async def auth_callback(request: Request):
     print(f"[AUTH DEBUG] Session content: {dict(request.session)}")
     
     # Force Redirect URI to match Frontend URL (Critical for Zeabur+Next.js Rewrite)
-    # The request.url_for might return the internal Backend URL (martian-api)
-    # But Google expects the public Frontend URL (martian-app)
+    # The request.url_for might return the internal Backend URL (marffet-api)
+    # But Google expects the public Frontend URL (marffet-app)
     base_url = str(FRONTEND_URL).rstrip('/')
     if base_url.startswith('http'):
         redirect_uri = f"{base_url}/auth/callback"

@@ -33,7 +33,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
         const storedKey = localStorage.getItem("gemini_api_key");
         if (storedKey) setApiKey(storedKey);
 
-        const storedHistory = localStorage.getItem(`martian_chat_${user?.id || "guest"}`);
+        const storedHistory = localStorage.getItem(`marffet_chat_${user?.id || "guest"}`);
         if (storedHistory) {
             try {
                 const parsed = JSON.parse(storedHistory);
@@ -49,7 +49,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
     // Save chat history on change
     useEffect(() => {
         if (messages.length > 1) {
-            localStorage.setItem(`martian_chat_${user?.id || "guest"}`, JSON.stringify(messages));
+            localStorage.setItem(`marffet_chat_${user?.id || "guest"}`, JSON.stringify(messages));
         }
     }, [messages, user?.id]);
 
@@ -112,7 +112,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
     const clearChat = () => {
         const initialMsg: Message = { role: "model", text: "Hello! I am Mars AI 🤖. How can I help you?", timestamp: Date.now() };
         setMessages([initialMsg]);
-        localStorage.removeItem(`martian_chat_${user?.id || "guest"}`);
+        localStorage.removeItem(`marffet_chat_${user?.id || "guest"}`);
     };
 
     return (

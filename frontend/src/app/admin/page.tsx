@@ -915,7 +915,7 @@ export default function AdminPage() {
                     </div>
 
                     <div className="text-[10px] text-[var(--color-text-muted)] text-center mt-4 font-mono tracking-widest uppercase">
-                        Admin access only • {new Date().getFullYear()} Martian Investment
+                        Admin access only • {new Date().getFullYear()} Marffet Investment
                     </div>
                 </CollapsibleSection>
 
@@ -1014,8 +1014,8 @@ export default function AdminPage() {
                                                         <td className="px-4 py-3 text-gray-200">{m.email}</td>
                                                         <td className="px-4 py-3">
                                                             <span className={`px-2 py-0.5 rounded-sm text-xs font-medium border ${m.tier === 'VIP'
-                                                                    ? 'bg-purple-900/30 text-purple-300 border-purple-700/50'
-                                                                    : 'bg-emerald-900/30 text-emerald-300 border-emerald-700/50'
+                                                                ? 'bg-purple-900/30 text-purple-300 border-purple-700/50'
+                                                                : 'bg-emerald-900/30 text-emerald-300 border-emerald-700/50'
                                                                 }`}>
                                                                 {m.tier}
                                                             </span>

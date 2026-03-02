@@ -1,10 +1,10 @@
 export const STORAGE_KEYS = {
-    API_KEY: "martian_api_key",
-    CHAT_HISTORY: "martian_chat_history",
-    LANG: "martian_lang",
-    REGION: "martian_region",
-    PREMIUM: "martian_premium",
-    DEFAULT_TAB: "martian_default_tab",
+    API_KEY: "marffet_api_key",
+    CHAT_HISTORY: "marffet_chat_history",
+    LANG: "marffet_lang",
+    REGION: "marffet_region",
+    PREMIUM: "marffet_premium",
+    DEFAULT_TAB: "marffet_default_tab",
     MARS_SETTINGS: "mars_sim_settings"
 };
 

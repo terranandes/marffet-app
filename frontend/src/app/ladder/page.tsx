@@ -193,7 +193,7 @@ export default function LadderPage() {
             {/* Share Button (Fixed Bottom-Right for Mobile or Header) */}
             <div className="fixed bottom-6 right-6 z-40 md:static md:text-center md:mt-4">
                 <ShareButton
-                    text={`Check out the Martian Investment Leaderboard! 🏆`}
+                    text={`Check out the Marffet Investment Leaderboard! 🏆`}
                     label={t('Ladder.ShareRankings')}
                 />
             </div>
@@ -214,7 +214,7 @@ export default function LadderPage() {
                                 <div className="flex gap-2">
                                     <ShareButton
                                         title={`${profileData.nickname}'s Portfolio`}
-                                        text={`Check out ${profileData.nickname}'s performance on Martian! ROI: ${profileData.roi || 0}%`}
+                                        text={`Check out ${profileData.nickname}'s performance on Marffet! ROI: ${profileData.roi || 0}%`}
                                         label={t('Ladder.Share')}
                                     />
                                     <button

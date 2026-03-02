@@ -2,26 +2,26 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [ ] Multi-language.
-- [ ] Add 'buy-me-coffee' button to our web app. 
+- [x] Multi-language.
+- [x] Add 'buy-me-coffee' button to our web app. 
     - 1st button shall link to [https://www.buymeacoffee.com/terranandes](https://www.buymeacoffee.com/terranandes)
     - 2nd button shall link to [https://ko-fi.com/terranandes](https://ko-fi.com/terranandes)
 
-- [ ] Review Admin Dashboard, what are the current operations?
-- [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
-- [ ] Review notification Scheme, what are the current triggers for free and paid users?
-- [ ] check tab Compound Interest
-- [ ] check tab Cash Ladder
+- [ ] Define GM, VIP, PREMIUM, FREE, Guest
 
-
----
-
-## === Barrier === (DO-NOT-TOUCH AREA)
-
-- [ ] Should we rename the English name Martian to Marffet?
 - [ ] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
 - [ ] Adjust the license to MIT?
 - [ ] Add 'buymeacoffee'/`ko-fi` button to the GitHub ./README.md
+- [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
+
+- [ ] Should we rename the English name Martian to Marffet?
+---
+
+## === Barrier === (DO-NOT-TOUCH AREA)
+- [ ] Review Admin Dashboard, what are the current operations?
+- [ ] Review notification Scheme, what are the current triggers for free and paid users?
+- [ ] check tab Compound Interest
+- [ ] check tab Cash Ladder
 
 - [ ] How to add google advertisement to the web app?
 

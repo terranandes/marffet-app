@@ -27,7 +27,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        const savedLang = localStorage.getItem("martian_lang") as Language;
+        const savedLang = localStorage.getItem("marffet_lang") as Language;
         if (savedLang && ["en", "zh-TW", "zh-CN"].includes(savedLang)) {
             setLanguageState(savedLang);
             document.documentElement.lang = savedLang;
@@ -39,7 +39,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem("martian_lang", lang);
+        localStorage.setItem("marffet_lang", lang);
         document.documentElement.lang = lang;
     };
 

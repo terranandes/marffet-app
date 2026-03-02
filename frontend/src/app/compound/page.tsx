@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 // Dynamic import for ECharts to avoid SSR issues
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
@@ -62,6 +63,11 @@ export default function CompoundPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showSettings, setShowSettings] = useState(false);
+    const [isPremium, setIsPremium] = useState(false);
+
+    useEffect(() => {
+        setIsPremium(localStorage.getItem(STORAGE_KEYS.PREMIUM) === "true");
+    }, []);
 
     const fetchSimulation = async () => {
         setLoading(true);
@@ -219,7 +225,12 @@ export default function CompoundPage() {
                             <label className="block text-xs text-[var(--color-text-muted)] mb-1">{t('Compound.Mode')}</label>
                             <div className="flex bg-black/50 rounded p-1 border border-[var(--color-border)]">
                                 <button onClick={() => setSettings({ ...settings, mode: "single" })} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${settings.mode === "single" ? "bg-[var(--color-cta)] text-black" : "text-zinc-400 hover:text-white"}`}>{t('Compound.Single')}</button>
-                                <button onClick={() => setSettings({ ...settings, mode: "comparison" })} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${settings.mode === "comparison" ? "bg-amber-500 text-black" : "text-zinc-400 hover:text-white"}`}>{t('Compound.Comparison')}</button>
+                                <button
+                                    onClick={() => isPremium ? setSettings({ ...settings, mode: "comparison" }) : null}
+                                    disabled={!isPremium}
+                                    className={`flex-1 py-1.5 text-xs font-bold rounded transition ${!isPremium ? "text-zinc-600 cursor-not-allowed" : settings.mode === "comparison" ? "bg-amber-500 text-black" : "text-zinc-400 hover:text-white"}`}
+                                    title={!isPremium ? "Premium feature" : ""}
+                                >{isPremium ? t('Compound.Comparison') : `🔒 ${t('Compound.Comparison')}`}</button>
                             </div>
                         </div>
 

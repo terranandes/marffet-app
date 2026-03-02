@@ -120,7 +120,7 @@ async def lifespan(app: FastAPI):
 
 _STARTUP_RAN = False  # Flag to track lifespan startup execution
 
-app = FastAPI(title="Martian Investment System", lifespan=lifespan)
+app = FastAPI(title="Marffet Investment System", lifespan=lifespan)
 
 # Health Check (no auth, no deps — if this responds, the app is alive)
 @app.get("/healthz")
@@ -150,10 +150,10 @@ if os.getenv("dev_mode"):
     IS_PRODUCTION = False
 
 # Derive Domain for Cookie
-# CRITICAL: Since we are behind a Next.js Rewrite, the Host header is likely rewritten to 'martian-api'
-# But the Browser is on 'martian-app'.
-# We MUST explicitly set the domain to the Frontend's hostname (e.g. 'martian-app.zeabur.app')
-# Otherwise, 'Domain=None' defaults to 'martian-api', and the browser ignores it.
+# CRITICAL: Since we are behind a Next.js Rewrite, the Host header is likely rewritten to 'marffet-api'
+# But the Browser is on 'marffet-app'.
+# We MUST explicitly set the domain to the Frontend's hostname (e.g. 'marffet-app.zeabur.app')
+# Otherwise, 'Domain=None' defaults to 'marffet-api', and the browser ignores it.
 
 
 # Shared Simulation Cache
@@ -208,9 +208,9 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",  # Backend itself for OAuth callback
     "http://127.0.0.1:8000",
-    "https://martian-app.zeabur.app",  # Hardcoded fallback for Zeabur
-    "https://martian-api.zeabur.app",
-    FRONTEND_URL.rstrip('/'), # e.g. https://martian-app.zeabur.app
+    "https://marffet-app.zeabur.app",  # Hardcoded fallback for Zeabur
+    "https://marffet-api.zeabur.app",
+    FRONTEND_URL.rstrip('/'), # e.g. https://marffet-app.zeabur.app
     "https://accounts.google.com" # Sometimes needed for certain redirect flows (though usually not for CORS)
 ]
 
@@ -239,7 +239,7 @@ async def health_check():
     """Health check endpoint for monitoring."""
     return {
         "status": "healthy",
-        "service": "martian-backend",
+        "service": "marffet-backend",
         "version": "1.0.2"  # Build marker
     }
 
@@ -1401,7 +1401,7 @@ async def api_update_feedback(feedback_id: int, data: FeedbackUpdate, user: dict
 
 @app.get("/")
 async def root():
-    return JSONResponse({"status": "ok", "service": "Martian API", "docs": "/docs"})
+    return JSONResponse({"status": "ok", "service": "Marffet API", "docs": "/docs"})
 
 # Startup event removed - Logic moved to lifespan context manager at top of file
 

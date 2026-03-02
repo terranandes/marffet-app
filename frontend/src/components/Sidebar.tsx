@@ -89,7 +89,7 @@ export default function Sidebar() {
 
                     // Auto-sync premium status from server (privileged accounts)
                     if (userData.is_premium) {
-                        localStorage.setItem("martian_premium", "true");
+                        localStorage.setItem("marffet_premium", "true");
                     }
 
                     // Fetch notifications if logged in
@@ -187,7 +187,7 @@ export default function Sidebar() {
                                 M
                             </div>
                             <span className="bg-gradient-to-r from-white to-[var(--color-cta)] bg-clip-text text-transparent font-bold text-lg tracking-tight">
-                                MARTIAN
+                                MARFFET
                             </span>
                         </div>
 
@@ -508,7 +508,7 @@ export default function Sidebar() {
                 <div className="p-4 border-t border-zinc-800/50">
                     <DataTimestamp />
                     <div className="text-[10px] text-zinc-600 text-center mt-2">
-                        v0.2.1 • Martian System
+                        v0.2.1 • Marffet System
                     </div>
                 </div>
             </aside >

@@ -192,7 +192,7 @@ export default function MarsPage() {
     // Premium check — deferred to client-only to avoid SSR hydration mismatch
     const [isPremium, setIsPremium] = useState(false);
     useEffect(() => {
-        setIsPremium(localStorage.getItem("martian_premium") === "true");
+        setIsPremium(localStorage.getItem("marffet_premium") === "true");
     }, []);
 
     return (

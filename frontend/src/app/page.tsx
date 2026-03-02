@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     // Redirect to default page preference if set
-    const defaultPage = localStorage.getItem("martian_default_page");
+    const defaultPage = localStorage.getItem("marffet_default_page");
     if (defaultPage && defaultPage !== "/" && defaultPage !== "") {
       router.replace(defaultPage);
     }

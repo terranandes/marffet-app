@@ -398,18 +398,18 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Settings modal language dropdown
     - [x] Sidebar translated
     - [x] Dynamic `<html lang>` attribute + `localStorage` persistence
-- [/] **Phase 3: Page-by-Page String Extraction** (~60% complete)
+- [x] **Phase 3: Page-by-Page String Extraction** (100% complete)
     - [x] `mars/page.tsx` — Mars Strategy Simulator
     - [x] `compound/page.tsx` — Compound Interest Calculator
     - [x] `race/page.tsx` — Bar Chart Race
     - [x] `trend/page.tsx` — Portfolio Trend
-    - [ ] `portfolio/` — Portfolio Management
-    - [ ] `cb/page.tsx` — Convertible Bonds
-    - [ ] `ladder/page.tsx` — Cash Ladder
-    - [ ] `myrace/page.tsx` — My Race
-    - [ ] `viz/page.tsx` — Visualization
-    - [ ] `page.tsx` — Landing Page
-    - [ ] `SettingsModal.tsx`, `AICopilot.tsx`, `StockDetailModal.tsx`
+    - [x] `portfolio/` — Portfolio Management
+    - [x] `cb/page.tsx` — Convertible Bonds
+    - [x] `ladder/page.tsx` — Cash Ladder
+    - [x] `myrace/page.tsx` — My Race
+    - [x] `viz/page.tsx` — Visualization
+    - [x] `page.tsx` — Landing Page
+    - [x] `SettingsModal.tsx`, `AICopilot.tsx`, `StockDetailModal.tsx`
 - [x] **Phase 4: Layout Integration**
     - [x] Root layout `ClientProviders` wrapping fix
     - [x] Dynamic `document.documentElement.lang` sync

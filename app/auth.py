@@ -26,6 +26,13 @@ PREMIUM_EMAILS = set(
     if email.strip()
 )
 
+# VIP Users (Comma-separated emails from .env)
+VIP_EMAILS = set(
+    email.strip().lower()
+    for email in os.getenv('VIP_EMAILS', '').split(',')
+    if email.strip()
+)
+
 
 router = APIRouter()
 oauth = OAuth(Config(environ=os.environ))
@@ -302,13 +309,60 @@ async def get_me(request: Request):
     from app.repositories import user_repo
     with get_db() as conn:
         db_profile = user_repo.get_user_public_profile(conn, user['id'])
+        
+        # Check for injected VIP/Premium membership
+        cursor = conn.cursor()
+        cursor.execute("SELECT tier, valid_until FROM user_memberships WHERE email = ?", (user['email'],))
+        membership_record = cursor.fetchone()
 
         
     # Check if user is admin
     is_admin = user.get('email', '').strip().lower() in GM_EMAILS
     
     # Check if user has premium privilege (admin or explicit email)
-    is_premium = is_admin or user.get('email', '').strip().lower() in PREMIUM_EMAILS
+    is_env_premium = is_admin or user.get('email', '').strip().lower() in PREMIUM_EMAILS or user.get('email', '').strip().lower() in VIP_EMAILS
+    is_env_vip = user.get('email', '').strip().lower() in VIP_EMAILS
+    
+    # Evaluate injected membership
+    is_injected_premium = False
+    injected_tier = None
+    if membership_record:
+        # Check if valid_until is in the future
+        try:
+            from datetime import datetime
+            valid_until = datetime.fromisoformat(membership_record['valid_until'])
+            if valid_until > datetime.now():
+                is_injected_premium = True
+                injected_tier = membership_record['tier']
+        except Exception as e:
+            print(f"[AUTH] Error parsing membership valid_until: {e}")
+
+    # Calculate effective tier based on highest precedence: GM > PREMIUM > VIP > FREE
+    # Default is FREE
+    tier_levels = {'FREE': 0, 'VIP': 1, 'PREMIUM': 2, 'GM': 3}
+    
+    # Static config tier
+    static_tier = 'FREE'
+    if is_admin:
+        static_tier = 'GM'
+    elif user.get('email', '').strip().lower() in PREMIUM_EMAILS:
+        static_tier = 'PREMIUM'
+    elif is_env_vip:
+        static_tier = 'VIP'
+        
+    # Injected config tier
+    db_tier = injected_tier if is_injected_premium and injected_tier else 'FREE'
+
+    # The effective tier is the highest of the two
+    tier = static_tier if tier_levels.get(static_tier, 0) >= tier_levels.get(db_tier, 0) else db_tier
+    
+    # 'GM' is treated as 'PREMIUM' in most frontend/backend feature checks, but keep 'GM' string for clarity if wanted,
+    # or normalize it down to 'PREMIUM' since the UI/DB tier enum doesn't explicitly use 'GM' for injected tiers.
+    # The existing code mapped admins to 'VIP', but the new requirement is GM > PREMIUM > VIP.
+    # We will let tier be 'GM', 'PREMIUM', 'VIP', 'FREE'.
+
+    is_premium = is_env_premium or is_injected_premium or (tier in ['PREMIUM', 'GM'])
+
     
     # GEMINI CHECK
     gemini_key = os.getenv('GEMINI_API_KEY')
@@ -319,7 +373,7 @@ async def get_me(request: Request):
     # Handle None profile
     if not db_profile:
         db_profile = {}
-    return {**user, **db_profile, "is_admin": is_admin, "is_premium": is_premium, "has_gemini_key": has_gemini_key}
+    return {**user, **db_profile, "is_admin": is_admin, "is_premium": is_premium, "tier": tier, "has_gemini_key": has_gemini_key}
 
 
 @router.post("/guest")

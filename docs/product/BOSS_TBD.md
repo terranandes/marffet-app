@@ -2,24 +2,28 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
+- [ ] Multi-language.
+- [ ] Add 'buy-me-coffee' button to our web app. 
+    - 1st button shall link to [https://www.buymeacoffee.com/terranandes](https://www.buymeacoffee.com/terranandes)
+    - 2nd button shall link to [https://ko-fi.com/terranandes](https://ko-fi.com/terranandes)
 
 - [ ] Review Admin Dashboard, what are the current operations?
+- [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
 - [ ] Review notification Scheme, what are the current triggers for free and paid users?
 - [ ] check tab Compound Interest
 - [ ] check tab Cash Ladder
-- [ ] implement the number of registered/premium/VIP accounts over time like Github star history
+
 
 ---
 
 ## === Barrier === (DO-NOT-TOUCH AREA)
-- [ ] Multi-language.
+
 - [ ] Should we rename the English name Martian to Marffet?
 - [ ] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
 - [ ] Adjust the license to MIT?
-- [ ] Add 'buy-me-coffee' button to the web app. The button shall link to https://www.buymeacoffee.com/terwu01
-- [ ] Add 'buy-me-coffee' button to the GitHub ./README.md
-- [ ] How to add google advertisement to the web app?
+- [ ] Add 'buymeacoffee'/`ko-fi` button to the GitHub ./README.md
 
+- [ ] How to add google advertisement to the web app?
 
 - [ ] AICopilot enhancement
 

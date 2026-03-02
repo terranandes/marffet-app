@@ -218,6 +218,18 @@ def init_db():
             cursor.execute("ALTER TABLE users ADD COLUMN is_initialized BOOLEAN DEFAULT 0")
         except Exception:
             pass
+
+        # VIP/Premium Memberships (Injected via Admin)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_memberships (
+                email TEXT PRIMARY KEY,
+                tier TEXT NOT NULL, -- 'PREMIUM' or 'VIP'
+                valid_until TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                injected_by TEXT
+            )
+        """)
         
         # --- Performance Indices ---
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_group_targets_group_id ON group_targets(group_id)")

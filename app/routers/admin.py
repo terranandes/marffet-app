@@ -168,39 +168,83 @@ async def download_portfolio(user: dict = Depends(get_admin_user)):
     raise HTTPException(status_code=404, detail="portfolio.db not found")
 
 
-# ==================== Upload Endpoint (DuckDB) ====================
+# ==================== Membership Injection Endpoints ====================
 
-@router.post("/upload/duckdb")
-async def upload_duckdb(file: UploadFile = File(...), user: dict = Depends(get_admin_user)):
+from pydantic import BaseModel
+
+class MembershipInjectRequest(BaseModel):
+    email: str
+    tier: str  # 'PREMIUM' or 'VIP'
+    duration_months: int
+
+@router.post("/memberships")
+async def inject_membership(req: MembershipInjectRequest, user: dict = Depends(get_admin_user)):
     """
-    Upload a DuckDB file to the server's persistent storage.
-    Used for first Zeabur deployment (uploading from local).
-    File will be written to the resolved DB_PATH.
+    Manually inject a VIP or Premium membership for a Google Account email.
+    Creates or extends the membership by the given duration.
     """
-    from app.services.market_db import DB_PATH
-    import shutil
-
-    if not file.filename or not file.filename.endswith('.duckdb'):
-        raise HTTPException(status_code=400, detail="File must be a .duckdb file")
-
-    # Write to temp file first, then atomic move
-    tmp_path = str(DB_PATH) + ".uploading"
-    try:
-        with open(tmp_path, "wb") as buffer:
-            while chunk := await file.read(1024 * 1024):  # 1MB chunks
-                buffer.write(chunk)
+    from app.database import get_db
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    
+    email = req.email.strip().lower()
+    tier = req.tier.strip().upper()
+    if tier not in ("PREMIUM", "VIP"):
+        raise HTTPException(status_code=400, detail="Invalid tier. Must be PREMIUM or VIP.")
+    
+    with get_db() as conn:
+        cursor = conn.cursor()
+        # Check existing
+        cursor.execute("SELECT valid_until FROM user_memberships WHERE email = ?", (email,))
+        existing = cursor.fetchone()
         
-        # Atomic replace
-        shutil.move(tmp_path, str(DB_PATH))
+        now = datetime.now()
+        if existing and datetime.fromisoformat(existing["valid_until"]) > now:
+            # Extend from current expiration
+            current_expiry = datetime.fromisoformat(existing["valid_until"])
+            new_expiry = current_expiry + relativedelta(months=req.duration_months)
+        else:
+            # New or expired, start from now
+            new_expiry = now + relativedelta(months=req.duration_months)
+            
+        cursor.execute("""
+            INSERT INTO user_memberships (email, tier, valid_until, injected_by, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(email) DO UPDATE SET 
+                tier=excluded.tier, 
+                valid_until=excluded.valid_until, 
+                injected_by=excluded.injected_by,
+                updated_at=CURRENT_TIMESTAMP
+        """, (email, tier, new_expiry.isoformat(), user.get("email")))
         
-        size_mb = DB_PATH.stat().st_size / (1024 * 1024)
-        return {
-            "status": "ok",
-            "message": f"DuckDB uploaded successfully ({size_mb:.1f} MB)",
-            "path": str(DB_PATH)
-        }
-    except Exception as e:
-        # Cleanup temp file
-        if Path(tmp_path).exists():
-            Path(tmp_path).unlink()
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    return {
+        "status": "ok", 
+        "message": f"Membership {tier} injected for {email}",
+        "valid_until": new_expiry.isoformat()
+    }
+
+@router.get("/memberships")
+async def list_memberships(user: dict = Depends(get_admin_user)):
+    """
+    List all active manual memberships.
+    """
+    from app.database import get_db
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user_memberships ORDER BY valid_until DESC")
+        records = [dict(row) for row in cursor.fetchall()]
+    return records
+
+@router.delete("/memberships/{email}")
+async def revoke_membership(email: str, user: dict = Depends(get_admin_user)):
+    """
+    Revoke a manual membership for a given email.
+    """
+    from app.database import get_db
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM user_memberships WHERE email = ?", (email.strip().lower(),))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Membership not found.")
+    return {"status": "ok", "message": f"Membership revoked for {email}"}
+

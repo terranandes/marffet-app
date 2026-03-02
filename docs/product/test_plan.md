@@ -1,6 +1,6 @@
 # Martian Investment System - Test Plan
-**Version**: 3.0
-**Date**: 2026-02-07
+**Version**: 4.2
+**Date**: 2026-03-02
 **Owner**: [CV] Agent
 
 ## 1. Automated Testing Strategy
@@ -100,6 +100,16 @@ uv run tests/unit/test_mobile_portfolio.py
 - [x] Rebuild All works
 - [x] Backup to GitHub works (Manual Trigger)
 - [x] Rebuild & Push Pre-warm works
+- [x] Membership Injection Form visible and adds user target properly
+- [x] Listed active injected memberships display correct Tier and Expiration
+- [x] Revoke injected membership works
+
+### User Settings & Access Control
+- [x] GM > PREMIUM > VIP precedence strictly enforced in `/api/auth/me`
+- [x] Expired manual injected memberships gracefully revert to previous static tier
+- [x] "Sponsor Us" tab is present in Settings Modal
+- [x] Ko-fi and Buy Me a Coffee links route correctly
+- [x] Sidebar Sponsor Us button directs specifically to Sponsor tab in Settings Modal
 
 ### AI Copilot (New)
 - [x] FAB visible on Portfolio/Race pages

@@ -84,6 +84,16 @@ A: We recommend using a service that supports Docker or Python/Node apps, such a
 
 ---
 
+## ☕ Sponsorship & Memberships
+
+Love the Martian Investment System? Support the project and unlock **Premium** or **VIP** features!
+- ☕ **[Ko-fi](https://ko-fi.com/terranandes)**
+- 💛 **[Buy Me a Coffee](https://buymeacoffee.com/terranandes)**
+
+*Sponsoring grants you VIP/Premium access which is manually injected by the Game Master.*
+
+---
+
 ## 🛠 Tech Stack
 
 -   **Frontend**: Next.js 16 (React 18), TailwindCSS, ECharts, Recharts, Framer Motion.

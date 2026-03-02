@@ -1,6 +1,6 @@
 # Martian Investment System - Software Stack
-**Version**: 3.2
-**Date**: 2026-03-01
+**Version**: 4.2
+**Date**: 2026-03-02
 **Owner**: [PL][CODE][UI]
 
 ## 1. Frontend Layer (New)
@@ -62,9 +62,10 @@
 | Trend | ✅ | Area chart + dividend overlay |
 | My Race | ✅ | Personal holdings bar race |
 | Cash Ladder | ✅ | Leaderboard, public profiles |
-| Admin Dashboard | ✅ | GM-only operations |
+| Admin Dashboard | ✅ | GM-only operations, Membership Injection |
 | Guest Mode | ✅ | No login required |
 | AI Copilot | ✅ | Free (Educator) + Premium (Manager) |
+| Sponsorship | ✅ | Settings Modal integration |
 
 ## 6. Key Files
 
@@ -73,6 +74,7 @@
 | `app/main.py` | Backend API + simulation engine |
 | `app/auth.py` | OAuth + Guest mode endpoints |
 | `frontend/src/app/` | Next.js pages (13 routes) |
-| `frontend/src/components/Sidebar.tsx` | Navigation + auth UI |
+| `frontend/src/components/Sidebar.tsx` | Navigation + auth UI + Sponsor trigger |
+| `frontend/src/components/SettingsModal.tsx` | User preferences, API key, Sponsor Tab |
 | `frontend/src/components/Skeleton.tsx` | Shared loading skeleton variants |
 | `frontend/src/components/RaceChart.tsx` | Bar chart race visualization |

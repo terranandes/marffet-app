@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Target } from "../../../services/portfolioService";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TargetCardListProps {
     targets: Target[];
@@ -19,6 +20,7 @@ export function TargetCardList({
     onDelete,
     onShowDividends
 }: TargetCardListProps) {
+    const { t } = useLanguage();
     const [expandedTargets, setExpandedTargets] = useState<Set<string>>(new Set());
 
     const toggleCard = (id: string) => {
@@ -55,8 +57,8 @@ export function TargetCardList({
             {targets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-[var(--color-text-muted)] py-12 bg-black/20 rounded-xl border border-white/5 border-dashed mt-4">
                     <span className="text-3xl mb-3">📈</span>
-                    <span className="font-medium text-sm">No assets in this group yet.</span>
-                    <span className="text-xs opacity-70 mt-1 max-w-[200px] text-center">Add a ticker using the input above to start tracking.</span>
+                    <span className="font-medium text-sm">{t('Portfolio.NoAssetsYet')}</span>
+                    <span className="text-xs opacity-70 mt-1 max-w-[200px] text-center">{t('Portfolio.AddTickerToTrack')}</span>
                 </div>
             ) : (
                 <motion.div
@@ -156,12 +158,12 @@ export function TargetCardList({
                                                 {/* Detail Grid */}
                                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                                     <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
-                                                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Position</div>
-                                                        <div className="font-mono text-white font-medium">{target.summary?.total_shares || 0} <span className="text-[10px] opacity-60">shares</span></div>
-                                                        <div className="font-mono text-[11px] text-[var(--color-text-muted)] mt-1">Avg: ${target.summary?.avg_cost?.toFixed(2) || '0.00'}</div>
+                                                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Portfolio.Position')}</div>
+                                                        <div className="font-mono text-white font-medium">{target.summary?.total_shares || 0} <span className="text-[10px] opacity-60">{t('Portfolio.Shares')}</span></div>
+                                                        <div className="font-mono text-[11px] text-[var(--color-text-muted)] mt-1">{t('Portfolio.Avg')}: ${target.summary?.avg_cost?.toFixed(2) || '0.00'}</div>
                                                     </div>
                                                     <div className="bg-white/5 rounded-lg p-2.5 border border-white/5 text-right">
-                                                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Realized Flow</div>
+                                                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Portfolio.RealizedFlow')}</div>
                                                         <div className={`font-mono font-bold ${(target.summary?.realized_pnl || 0) >= 0 ? "text-red-400" : "text-green-400"}`}>
                                                             {(target.summary?.realized_pnl || 0) >= 0 ? "+" : ""}
                                                             {formatCurrency(target.summary?.realized_pnl || 0)} <span className="text-[10px] opacity-60 font-sans">P/L</span>
@@ -170,7 +172,7 @@ export function TargetCardList({
                                                             className="font-mono text-amber-500 font-bold hover:text-amber-400 transition cursor-pointer mt-1 drop-shadow-[0_0_2px_rgba(245,158,11,0.2)]"
                                                             onClick={(e) => { e.stopPropagation(); onShowDividends(target.id, target.stock_id, target.stock_name || target.id); }}
                                                         >
-                                                            {formatCurrency(target.summary?.total_dividend_cash || 0)} <span className="text-[10px] opacity-60 font-sans">Div 📄</span>
+                                                            {formatCurrency(target.summary?.total_dividend_cash || 0)} <span className="text-[10px] opacity-60 font-sans">{t('Portfolio.Div')} 📄</span>
                                                         </div>
                                                     </div>
                                                 </div>

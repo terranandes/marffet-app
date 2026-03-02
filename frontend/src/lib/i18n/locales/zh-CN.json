@@ -6,6 +6,7 @@
         "ApiTab": "AI 密钥",
         "HelpTab": "帮助",
         "SupportTab": "技术支持",
+        "SponsorTab": "赞助我们",
         "UserProfile": "用户资料",
         "GameMaster": "GM 控制台",
         "DisplayNickname": "显示昵称",
@@ -65,6 +66,10 @@
         "SupportTitle": "技术支持与反馈",
         "EmailSupport": "电子邮件支持",
         "EmailSupportDesc": "直接从我们的团队获得协助",
+        "SponsorTitle": "赞助我们",
+        "SponsorDesc": "在以下网站赞助我们，您将获得本应用程序的 VIP 与 Premium 会员资格。我们将为您手动注入会员资格。",
+        "BuyMeACoffee": "Buy Me a Coffee",
+        "KoFi": "Ko-fi",
         "SendFeedback": "发送反馈",
         "FeedbackDesc": "协助我们改善 Martian 系统！报告 Bug 或提出功能建议。",
         "Type": "类型",
@@ -96,7 +101,9 @@
         "SignInDesc": "追踪、分析并与 Martian 前 50 大策略竞赛。",
         "SignInGoogle": "使用 Google 登录",
         "ExploreGuest": "以访客身份探索",
+        "SponsorUs": "赞助我们",
         "Notifications": "通知",
+        "SignOut": "登出",
         "ClearAll": "清除全部"
     },
     "Mars": {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface CBData {
     code: string;
@@ -14,6 +15,7 @@ interface CBData {
 }
 
 export default function CBPage() {
+    const { t } = useLanguage();
     const [portfolioCBs, setPortfolioCBs] = useState<CBData[]>([]);
     const [loadingPortfolio, setLoadingPortfolio] = useState(true);
 
@@ -52,7 +54,7 @@ export default function CBPage() {
             if (res.ok) {
                 setCbResult(await res.json());
             } else {
-                alert("CB not found or error analyzing");
+                alert(t('CB.NotFound'));
             }
         } catch (err) {
             console.error("Analyze error:", err);
@@ -79,28 +81,28 @@ export default function CBPage() {
             {/* Header */}
             <div className="text-center">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
-                    💵 CB Strategy
+                    {t('CB.Title')}
                 </h1>
                 <p className="text-[var(--color-text-muted)]">
-                    Convertible Bond Arbitrage & Analysis
+                    {t('CB.Subtitle')}
                 </p>
             </div>
 
             {/* My Portfolio CBs */}
             <div className="glass-card rounded-xl p-6 border border-[var(--color-border)]">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <span className="text-[var(--color-cta)]">💼</span> My CB Portfolio
+                    <span className="text-[var(--color-cta)]">💼</span> {t('CB.MyPortfolio')}
                 </h2>
 
                 {loadingPortfolio ? (
                     <div className="text-center py-10 animate-pulse text-[var(--color-text-muted)]">
-                        Loading portfolio CBs...
+                        {t('CB.Loading')}
                     </div>
                 ) : portfolioCBs.length === 0 ? (
                     <div className="text-center py-10 text-[var(--color-text-muted)]">
-                        No CBs in your portfolio. Add them in the Portfolio tab.
+                        {t('CB.NoCBs')}
                         <div className="mt-4">
-                            <a href="/portfolio" className="text-[var(--color-cta)] hover:underline">Go to Portfolio →</a>
+                            <a href="/portfolio" className="text-[var(--color-cta)] hover:underline">{t('CB.GoToPortfolio')}</a>
                         </div>
                     </div>
                 ) : (
@@ -116,9 +118,9 @@ export default function CBPage() {
                                             {cb.code} {cb.name}
                                         </div>
                                         <div className="text-xs text-[var(--color-text-muted)] mt-1">
-                                            Stock: <span className="text-white">{cb.stock_price}</span> |
+                                            {t('CB.Stock')}: <span className="text-white">{cb.stock_price}</span> |
                                             CB: <span className="text-white">{cb.cb_price}</span> |
-                                            Conv: <span className="text-white">{cb.conv_price}</span>
+                                            {t('CB.Conv')}: <span className="text-white">{cb.conv_price}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -126,7 +128,7 @@ export default function CBPage() {
                                             {cb.premium}%
                                         </div>
                                         <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
-                                            Premium
+                                            {t('CB.Premium')}
                                         </div>
                                     </div>
                                 </div>
@@ -147,7 +149,7 @@ export default function CBPage() {
             {/* CB Analyzer */}
             <div className="glass-card rounded-xl p-8 border border-[var(--color-cta)]/30 shadow-[0_0_20px_rgba(0,242,234,0.1)]">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <span className="text-[var(--color-cta)]">💰</span> CB Analyzer
+                    <span className="text-[var(--color-cta)]">💰</span> {t('CB.Analyzer')}
                 </h2>
 
                 <div className="flex gap-4 mb-8">
@@ -156,7 +158,7 @@ export default function CBPage() {
                         onChange={(e) => setCbInput(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && analyzeCB()}
                         type="text"
-                        placeholder="Enter CB Code (e.g. 66691)"
+                        placeholder={t('CB.Placeholder')}
                         className="flex-1 bg-black/50 border border-[var(--color-border)] rounded-lg px-4 py-3 focus:border-[var(--color-cta)] outline-none text-white transition"
                     />
                     <button
@@ -164,7 +166,7 @@ export default function CBPage() {
                         disabled={loadingAnalyze}
                         className="bg-[var(--color-cta)] text-black font-bold px-6 py-3 rounded-lg hover:bg-cyan-400 disabled:opacity-50 transition cursor-pointer"
                     >
-                        {loadingAnalyze ? "Scanning..." : "Analyze"}
+                        {loadingAnalyze ? t('CB.Scanning') : t('CB.Analyze')}
                     </button>
                 </div>
 
@@ -180,14 +182,14 @@ export default function CBPage() {
                         </div>
 
                         <div className="grid grid-cols-3 gap-2 mb-6 text-sm text-[var(--color-text-muted)] bg-black/30 p-4 rounded-lg">
-                            <div>Stock: <span className="text-white font-mono">{cbResult.stock_price}</span></div>
+                            <div>{t('CB.Stock')}: <span className="text-white font-mono">{cbResult.stock_price}</span></div>
                             <div>CB: <span className="text-white font-mono">{cbResult.cb_price}</span></div>
-                            <div>Conv: <span className="text-white font-mono">{cbResult.conv_price}</span></div>
+                            <div>{t('CB.Conv')}: <span className="text-white font-mono">{cbResult.conv_price}</span></div>
                         </div>
 
                         <div className={`p-4 rounded-lg border-l-4 ${getBorderColor(cbResult.action)}`}>
                             <div className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
-                                Premium Rate
+                                {t('CB.PremiumRate')}
                             </div>
                             <div className={`text-4xl font-bold mb-2 ${getActionColor(cbResult.action)}`}>
                                 {cbResult.premium}%

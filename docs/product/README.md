@@ -108,6 +108,16 @@ An intelligent investment assistant powered by Google Gemini.
 
 ---
 
+## ☕ Sponsorship & Memberships
+
+Love the Martian Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
+
+1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
+2. Choose your preferred platform: [Ko-fi](https://ko-fi.com/terranandes) or [Buy Me a Coffee](https://buymeacoffee.com/terranandes).
+3. Once sponsored, our Game Master (GM) will manually inject your Premium or VIP membership into your account.
+
+---
+
 ## 🛠 Need Help?
 
 - **Found a Bug?** Use the ⚙️ Settings panel in the app to report it
@@ -116,4 +126,4 @@ An intelligent investment assistant powered by Google Gemini.
 
 ---
 
-*Built with ❤️ by the Martian AI Team • v0.2.1*
+*Built with ❤️ by the Martian AI Team • v4.2*

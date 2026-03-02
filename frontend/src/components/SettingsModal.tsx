@@ -20,6 +20,7 @@ interface SettingsModalProps {
     onClose: () => void;
     user: User | null;
     onUpdateUser: () => void; // Trigger parent re-fetch
+    initialTab?: string;
 }
 
 // Simple Accordion Component
@@ -43,8 +44,8 @@ const Accordion = ({ title, children, defaultOpen = false }: { title: React.Reac
     );
 };
 
-export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: SettingsModalProps) {
-    const [activeTab, setActiveTab] = useState("profile"); // profile, preferences, api, help
+export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, initialTab = "profile" }: SettingsModalProps) {
+    const [activeTab, setActiveTab] = useState(initialTab); // profile, preferences, api, sponsor, help
 
     // Form States
     const [nickname, setNickname] = useState(user?.nickname || "");
@@ -73,9 +74,10 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
             setRegion(localStorage.getItem("martian_region") || "TW");
             setDefaultPage(localStorage.getItem("martian_default_page") || "/");
             setIsPremium(localStorage.getItem("martian_premium") === "true");
+            setActiveTab(initialTab);
             setMsg(null);
         }
-    }, [isOpen, user]);
+    }, [isOpen, user, initialTab]);
 
     const handleSaveProfile = async () => {
         setLoading(true);
@@ -180,7 +182,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                 {/* Header */}
                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <span className="text-2xl">⚙️</span> Settings
+                        <span className="text-2xl">⚙️</span> {t('Settings.Title') || "Settings"}
                     </h2>
                     <button onClick={onClose} className="text-zinc-400 hover:text-white transition hover:rotate-90 duration-300">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,11 +196,12 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                     {/* Sidebar Tabs */}
                     <div className="w-full md:w-52 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible shrink-0">
                         {[
-                            { id: 'profile', label: 'Profile', icon: '👤' },
-                            { id: 'preferences', label: 'Preferences', icon: '🌍' },
-                            { id: 'api', label: 'Ai Keys', icon: '🔑' },
-                            { id: 'help', label: 'Help', icon: '📚' },
-                            { id: 'support', label: 'Support', icon: '💬' },
+                            { id: 'profile', label: t('Settings.ProfileTab') || 'Profile', icon: '👤' },
+                            { id: 'preferences', label: t('Settings.PreferencesTab') || 'Preferences', icon: '🌍' },
+                            { id: 'api', label: t('Settings.ApiTab') || 'Ai Keys', icon: '🔑' },
+                            { id: 'sponsor', label: t('Settings.SponsorTab') || 'Sponsor Us', icon: '☕' },
+                            { id: 'help', label: t('Settings.HelpTab') || 'Help', icon: '📚' },
+                            { id: 'support', label: t('Settings.SupportTab') || 'Support', icon: '💬' },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -230,7 +233,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                         <AnimatePresence mode="wait">
                             {activeTab === 'profile' && (
                                 <motion.div key="profile" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
-                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">User Profile</h3>
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.UserProfile') || "User Profile"}</h3>
 
                                     <div className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
                                         <div className="relative">
@@ -245,7 +248,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                             <div className="text-sm text-zinc-500 font-mono">{user.email}</div>
                                             {user.is_admin && (
                                                 <span className="mt-2 inline-block px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                                                    Game Master
+                                                    {t('Settings.GameMaster') || "Game Master"}
                                                 </span>
                                             )}
                                         </div>
@@ -253,37 +256,37 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
 
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Display Nickname</label>
+                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.DisplayNickname') || "Display Nickname"}</label>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
                                                     value={nickname}
                                                     onChange={(e) => setNickname(e.target.value)}
                                                     className="flex-1 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
-                                                    placeholder="Enter your nickname"
+                                                    placeholder={t('Settings.EnterNickname') || "Enter your nickname"}
                                                 />
                                                 <button
                                                     onClick={handleSaveProfile}
                                                     disabled={loading}
                                                     className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
                                                 >
-                                                    {loading ? "..." : "Save"}
+                                                    {loading ? "..." : (t('Settings.Save') || "Save")}
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-zinc-600">Visible on public leaderboards.</p>
+                                            <p className="text-xs text-zinc-600">{t('Settings.VisibleOnLeaderboards') || "Visible on public leaderboards."}</p>
                                         </div>
 
                                         {/* Leaderboard Rank Section */}
                                         <div className="pt-6 border-t border-white/10">
-                                            <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 Leaderboard Rank</label>
+                                            <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 {t('Settings.LeaderboardRank') || "Leaderboard Rank"}</label>
                                             <div className="flex justify-between items-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-                                                <p className="text-xs text-gray-400">Update your wealth stats on the global leaderboard.</p>
+                                                <p className="text-xs text-gray-400">{t('Settings.UpdateWealthStats') || "Update your wealth stats on the global leaderboard."}</p>
                                                 <button
                                                     onClick={handleSyncStats}
                                                     disabled={syncLoading}
                                                     className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-4 py-2 rounded-lg text-sm font-bold border border-yellow-500/50 transition hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] disabled:opacity-50"
                                                 >
-                                                    {syncLoading ? "Syncing..." : "Sync Now"}
+                                                    {syncLoading ? (t('Settings.Syncing') || "Syncing...") : (t('Settings.SyncNow') || "Sync Now")}
                                                 </button>
                                             </div>
                                         </div>
@@ -294,23 +297,23 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             {/* PREFERENCES TAB */}
                             {activeTab === 'preferences' && (
                                 <motion.div key="preferences" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
-                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">App Preferences</h3>
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.AppPreferences') || "App Preferences"}</h3>
 
                                     {/* Start Page Selector */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Start Page</label>
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.StartPage') || "Start Page"}</label>
                                         <select
                                             className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
                                             value={defaultPage}
                                             onChange={(e) => setDefaultPage(e.target.value)}
                                         >
-                                            <option value="/">🏠 Dashboard</option>
-                                            <option value="/portfolio">📊 Portfolio</option>
-                                            <option value="/mars">🚀 Mars Strategy</option>
-                                            <option value="/viz">📉 Visualizations</option>
-                                            <option value="/cb">💹 Convertible Bond</option>
+                                            <option value="/">🏠 {t('Sidebar.Dashboard')}</option>
+                                            <option value="/portfolio">📊 {t('Sidebar.Portfolio')}</option>
+                                            <option value="/mars">🚀 {t('Sidebar.MarsStrategy')}</option>
+                                            <option value="/viz">📉 {t('Sidebar.Visualizations')}</option>
+                                            <option value="/cb">💹 {t('Sidebar.CB')}</option>
                                         </select>
-                                        <p className="text-xs text-zinc-600">Loads automatically on visit.</p>
+                                        <p className="text-xs text-zinc-600">{t('Settings.LoadsAutomatically') || "Loads automatically on visit."}</p>
                                     </div>
 
                                     {/* Language Selector */}
@@ -326,8 +329,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                                     key={langOption.code}
                                                     onClick={() => setLanguage(langOption.code as any)}
                                                     className={`p-3 rounded-xl flex items-center justify-between text-left transition-all border ${language === langOption.code
-                                                            ? 'bg-cyan-900/20 border-cyan-500/50'
-                                                            : 'bg-zinc-800/20 border-zinc-800 hover:border-cyan-500/30'
+                                                        ? 'bg-cyan-900/20 border-cyan-500/50'
+                                                        : 'bg-zinc-800/20 border-zinc-800 hover:border-cyan-500/30'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -348,42 +351,42 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
 
                                     {/* Region Selector (Fixed) */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Region Format</label>
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.RegionFormat') || "Region Format"}</label>
                                         <div className="grid grid-cols-1 gap-2">
                                             <div className="p-3 bg-cyan-900/20 border border-cyan-500/50 rounded-xl flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-2xl">🇹🇼</span>
-                                                    <div className="font-bold text-white">Taiwan (TWD)</div>
+                                                    <div className="font-bold text-white">{t('Settings.Taiwan') || "Taiwan (TWD)"}</div>
                                                 </div>
-                                                <div className="text-cyan-400 text-xs font-bold px-2 py-1 bg-cyan-900/50 rounded border border-cyan-500/30">Active</div>
+                                                <div className="text-cyan-400 text-xs font-bold px-2 py-1 bg-cyan-900/50 rounded border border-cyan-500/30">{t('Settings.Active') || "Active"}</div>
                                             </div>
                                             <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-2xl">🇨🇳</span>
-                                                    <div className="font-bold text-gray-500">China</div>
+                                                    <div className="font-bold text-gray-500">{t('Settings.China') || "China"}</div>
                                                 </div>
                                             </div>
                                             <div className="p-3 bg-zinc-800/20 border border-zinc-800 rounded-xl flex items-center justify-between opacity-50 cursor-not-allowed">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-2xl">🇺🇸</span>
-                                                    <div className="font-bold text-gray-500">USA</div>
+                                                    <div className="font-bold text-gray-500">{t('Settings.USA') || "USA"}</div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-zinc-600 mt-1">Global regions coming in Q4 2026.</p>
+                                        <p className="text-xs text-zinc-600 mt-1">{t('Settings.RegionComingSoon') || "Global regions coming in Q4 2026."}</p>
                                     </div>
 
                                     {/* Premium Badge (Server-granted, non-admin) */}
                                     {user?.is_premium && !user?.is_admin && (
                                         <div className="space-y-2">
-                                            <label className="text-xs font-bold text-yellow-400 uppercase tracking-wider">Account Status</label>
+                                            <label className="text-xs font-bold text-yellow-400 uppercase tracking-wider">{t('Settings.AccountStatus') || "Account Status"}</label>
                                             <div className="flex items-center gap-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
                                                 <div className="flex-1">
-                                                    <div className="font-bold text-white flex items-center gap-2">⭐ Premium Active</div>
-                                                    <div className="text-xs text-zinc-400">Privileged account — all premium features unlocked</div>
+                                                    <div className="font-bold text-white flex items-center gap-2">⭐ {t('Settings.PremiumActive') || "Premium Active"}</div>
+                                                    <div className="text-xs text-zinc-400">{t('Settings.PremiumDesc') || "Privileged account — all premium features unlocked"}</div>
                                                 </div>
                                                 <div className="px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                                    Active
+                                                    {t('Settings.Active') || "Active"}
                                                 </div>
                                             </div>
                                         </div>
@@ -416,7 +419,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                         onClick={handleSavePreferences}
                                         className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
                                     >
-                                        Save Preferences
+                                        {t('Settings.SavePreferences') || "Save Preferences"}
                                     </button>
                                 </motion.div>
                             )}
@@ -424,15 +427,15 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             {/* API KEY TAB */}
                             {activeTab === 'api' && (
                                 <motion.div key="api" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
-                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">AI Integration</h3>
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.AIIntegration') || "AI Integration"}</h3>
 
                                     <div className="p-4 bg-teal-500/10 border border-teal-500/20 rounded-xl text-sm text-teal-200 mb-6">
-                                        💡 <strong>Gemini Copilot</strong> requires a valid API Key.
-                                        <br /><span className="text-teal-400/70 text-xs">The default key is provided by the system, but you can override it here for higher rate limits.</span>
+                                        💡 <strong>{t('Settings.GeminiCopilot') || "Gemini Copilot"}</strong> {t('Settings.RequiresAPIKey') || "requires a valid API Key."}
+                                        <br /><span className="text-teal-400/70 text-xs">{t('Settings.DefaultKeyDesc') || "The default key is provided by the system, but you can override it here for higher rate limits."}</span>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Gemini API Key</label>
+                                        <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.GeminiAPIKey') || "Gemini API Key"}</label>
                                         <input
                                             type="password"
                                             value={apiKey}
@@ -446,7 +449,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                         onClick={handleSaveKey}
                                         className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition border border-white/5"
                                     >
-                                        Save Key
+                                        {t('Settings.SaveKey') || "Save Key"}
                                     </button>
                                 </motion.div>
                             )}
@@ -454,40 +457,40 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             {/* HELP TAB */}
                             {activeTab === 'help' && (
                                 <motion.div key="help" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-6">
-                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Help Center</h3>
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.HelpCenter') || "Help Center"}</h3>
 
                                     <div className="mb-6">
-                                        <a href="/doc" target="_blank" rel="noopener noreferrer"
-                                            className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
+                                        <button onClick={() => setShowDocModal(true)}
+                                            className="p-4 w-full bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4 text-left">
                                             <div className="text-2xl">📚</div>
                                             <div>
-                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">Documentation</div>
-                                                <div className="text-xs text-zinc-500">Visit our GitHub Wiki for detailed guides</div>
+                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">{t('Settings.Documentation') || "Documentation"}</div>
+                                                <div className="text-xs text-zinc-500">{t('Settings.DocDesc') || "Visit our Wiki for detailed guides"}</div>
                                             </div>
-                                        </a>
+                                        </button>
                                     </div>
 
-                                    <Accordion title={<span className="text-cyan-400 flex items-center gap-2">📖 Feature Guide</span>} defaultOpen={false}>
-                                        <div><strong className="text-cyan-300">Mars Strategy:</strong> Search & filter stocks using Top 50 strategy</div>
-                                        <div><strong className="text-cyan-300">Bar Chart Race:</strong> Animated wealth growth visualization</div>
-                                        <div><strong className="text-cyan-300">Portfolio:</strong> Track real investments with groups & transactions</div>
-                                        <div><strong className="text-cyan-300">Trend:</strong> Monthly cost trends and live prices</div>
-                                        <div><strong className="text-cyan-300">My Race:</strong> Watch your portfolio stocks compete</div>
-                                        <div><strong className="text-cyan-300">AI Copilot:</strong> Get investment advice from Mars AI</div>
-                                        <div><strong className="text-cyan-300">Leaderboard:</strong> Community rankings & public profiles</div>
+                                    <Accordion title={<span className="text-cyan-400 flex items-center gap-2">📖 {t('Settings.FeatureGuide') || "Feature Guide"}</span>} defaultOpen={false}>
+                                        <div><strong className="text-cyan-300">{t('Sidebar.MarsStrategy')}:</strong> {t('Settings.MarsDesc') || "Search & filter stocks using Top 50 strategy"}</div>
+                                        <div><strong className="text-cyan-300">{t('Sidebar.Race')}:</strong> {t('Settings.RaceDesc') || "Animated wealth growth visualization"}</div>
+                                        <div><strong className="text-cyan-300">{t('Sidebar.Portfolio')}:</strong> {t('Settings.PortfolioDesc') || "Track real investments with groups & transactions"}</div>
+                                        <div><strong className="text-cyan-300">{t('Sidebar.Trend')}:</strong> {t('Settings.TrendDesc') || "Monthly cost trends and live prices"}</div>
+                                        <div><strong className="text-cyan-300">{t('Sidebar.MyRace')}:</strong> {t('Settings.MyRaceDesc') || "Watch your portfolio stocks compete"}</div>
+                                        <div><strong className="text-cyan-300">{t('AICopilot.Title') || "Mars AI Copilot"}:</strong> {t('Settings.CopilotDesc') || "Get investment advice from Mars AI"}</div>
+                                        <div><strong className="text-cyan-300">{t('Settings.Leaderboard') || "Leaderboard"}:</strong> {t('Settings.LeaderboardDesc') || "Community rankings & public profiles"}</div>
                                     </Accordion>
 
-                                    <Accordion title={<span className="text-yellow-400 flex items-center gap-2">⭐ Premium Features</span>}>
-                                        <div>• <strong>AI Personality:</strong> Ruthless Wealth Manager mode</div>
-                                        <div>• <strong>Portfolio Groups:</strong> Up to 30 (vs 11 free)</div>
-                                        <div>• <strong>Targets/Group:</strong> Up to 200 (vs 50 free)</div>
-                                        <div>• <strong>Transactions:</strong> Up to 1000 (vs 100 free)</div>
-                                        <div>• <strong>CB Notifications:</strong> Email alerts</div>
-                                        <div>• <strong>Data Export:</strong> Filtered Excel</div>
+                                    <Accordion title={<span className="text-yellow-400 flex items-center gap-2">⭐ {t('Settings.PremiumFeatures') || "Premium Features"}</span>}>
+                                        <div>• <strong>{t('Settings.AIPersonality') || "AI Personality"}:</strong> {t('Settings.RuthlessMode') || "Ruthless Wealth Manager mode"}</div>
+                                        <div>• <strong>{t('Settings.PortfolioGroups') || "Portfolio Groups"}:</strong> {t('Settings.GroupsLimit') || "Up to 30 (vs 11 free)"}</div>
+                                        <div>• <strong>{t('Settings.TargetsGroup') || "Targets/Group"}:</strong> {t('Settings.TargetsLimit') || "Up to 200 (vs 50 free)"}</div>
+                                        <div>• <strong>{t('Settings.Transactions') || "Transactions"}:</strong> {t('Settings.TxLimit') || "Up to 1000 (vs 100 free)"}</div>
+                                        <div>• <strong>{t('Settings.CBNotifications') || "CB Notifications"}:</strong> {t('Settings.EmailAlerts') || "Email alerts"}</div>
+                                        <div>• <strong>{t('Settings.DataExport') || "Data Export"}:</strong> {t('Settings.FilteredExcel') || "Filtered Excel"}</div>
                                     </Accordion>
 
                                     <div className="text-xs text-gray-500 italic text-center">
-                                        💳 How to Subscribe: Coming Soon
+                                        💳 {t('Settings.SubscribeComingSoon') || "How to Subscribe: Coming Soon"}
                                     </div>
                                 </motion.div>
                             )}
@@ -495,65 +498,65 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                             {/* SUPPORT TAB */}
                             {activeTab === 'support' && (
                                 <motion.div key="support" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-6">
-                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Support & Feedback</h3>
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.SupportTitle') || "Support & Feedback"}</h3>
 
                                     <div className="mb-6">
                                         <a href="mailto:support@martian.com" className="p-4 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-xl transition group flex items-center gap-4">
                                             <div className="text-2xl">🆘</div>
                                             <div>
-                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">Email Support</div>
-                                                <div className="text-xs text-zinc-500">Get help directly from our team</div>
+                                                <div className="font-bold text-white group-hover:text-cyan-400 transition">{t('Settings.EmailSupport') || "Email Support"}</div>
+                                                <div className="text-xs text-zinc-500">{t('Settings.EmailSupportDesc') || "Get help directly from our team"}</div>
                                             </div>
                                         </a>
                                     </div>
 
                                     <div className="border-t border-white/10 pt-6">
-                                        <h3 className="text-md font-bold text-white mb-4">Send Feedback</h3>
-                                        <p className="text-sm text-zinc-400 mb-4">Help us improve the Martian System! Report bugs or suggest features.</p>
+                                        <h3 className="text-md font-bold text-white mb-4">{t('Settings.SendFeedback') || "Send Feedback"}</h3>
+                                        <p className="text-sm text-zinc-400 mb-4">{t('Settings.FeedbackDesc') || "Help us improve the Martian System! Report bugs or suggest features."}</p>
 
                                         <div className="grid grid-cols-2 gap-4 mb-4">
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Type</label>
+                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.Type') || "Type"}</label>
                                                 <select
                                                     value={feedbackType}
                                                     onChange={(e) => setFeedbackType(e.target.value)}
                                                     className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
                                                 >
-                                                    <option value="suggestion">💡 Suggestion</option>
-                                                    <option value="bug">🐛 Bug Report</option>
-                                                    <option value="question">❓ Question</option>
+                                                    <option value="suggestion">💡 {t('Settings.Suggestion') || "Suggestion"}</option>
+                                                    <option value="bug">🐛 {t('Settings.BugReport') || "Bug Report"}</option>
+                                                    <option value="question">❓ {t('Settings.Question') || "Question"}</option>
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Category</label>
+                                                <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.Category') || "Category"}</label>
                                                 <select
                                                     value={feedbackCategory}
                                                     onChange={(e) => setFeedbackCategory(e.target.value)}
                                                     className="w-full bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
                                                 >
-                                                    <option value="settings">Settings / General</option>
-                                                    <option value="subscription">Subscription</option>
-                                                    <option value="mars_strategy">Mars Strategy</option>
-                                                    <option value="bar_chart_race">Bar Chart Race</option>
-                                                    <option value="portfolio">Portfolio</option>
-                                                    <option value="trend">Trend Dashboard</option>
-                                                    <option value="my_race">My Portfolio Race</option>
-                                                    <option value="ai_copilot">AI Copilot</option>
-                                                    <option value="leaderboard">Leaderboard</option>
-                                                    <option value="cash_ladder">Cash Ladder</option>
-                                                    <option value="compound_interest">Compound Interest</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="settings">{t('Settings.SettingsGeneral') || "Settings / General"}</option>
+                                                    <option value="subscription">{t('Settings.SubscriptionCat') || "Subscription"}</option>
+                                                    <option value="mars_strategy">{t('Sidebar.MarsStrategy') || "Mars Strategy"}</option>
+                                                    <option value="bar_chart_race">{t('Sidebar.Race') || "Bar Chart Race"}</option>
+                                                    <option value="portfolio">{t('Sidebar.Portfolio') || "Portfolio"}</option>
+                                                    <option value="trend">{t('Sidebar.Trend') || "Trend Dashboard"}</option>
+                                                    <option value="my_race">{t('Sidebar.MyRace') || "My Portfolio Race"}</option>
+                                                    <option value="ai_copilot">{t('AICopilot.Title') || "AI Copilot"}</option>
+                                                    <option value="leaderboard">{t('Settings.Leaderboard') || "Leaderboard"}</option>
+                                                    <option value="cash_ladder">{t('Sidebar.Ladder') || "Cash Ladder"}</option>
+                                                    <option value="compound_interest">{t('Sidebar.Compound') || "Compound Interest"}</option>
+                                                    <option value="other">{t('Settings.Other') || "Other"}</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div className="space-y-2 mb-4">
-                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Message</label>
+                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.Message') || "Message"}</label>
                                             <textarea
                                                 value={feedbackMessage}
                                                 onChange={(e) => setFeedbackMessage(e.target.value)}
                                                 className="w-full h-32 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none resize-none"
-                                                placeholder="Describe your feedback here..."
+                                                placeholder={t('Settings.FeedbackPlaceholder') || "Describe your feedback here..."}
                                             />
                                         </div>
 
@@ -562,8 +565,54 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser }: S
                                             disabled={loading}
                                             className="w-full px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
                                         >
-                                            {loading ? "Sending..." : "Submit Feedback"}
+                                            {loading ? (t('Settings.Sending') || "Sending...") : (t('Settings.SubmitFeedback') || "Submit Feedback")}
                                         </button>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* SPONSOR TAB */}
+                            {activeTab === 'sponsor' && (
+                                <motion.div key="sponsor" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-6">
+                                    <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.SponsorTitle') || "Sponsor Us"}</h3>
+
+                                    <div className="bg-gradient-to-br from-[#0e1117] to-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl mb-6 relative overflow-hidden group">
+                                        {/* Gradient overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-orange-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                                        <div className="relative z-10 space-y-4">
+                                            <p className="text-zinc-300 text-sm leading-relaxed mb-6">
+                                                {t('Settings.SponsorDesc') || "Sponsor to our membership via the links below to receive VIP and PREMIUM access in our app. We will manually inject the membership to your account."}
+                                            </p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <a
+                                                    href="https://ko-fi.com/terranandes"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-4 bg-[#29abe0] hover:bg-[#228cb8] text-white p-4 rounded-xl transition-all shadow-[0_0_15px_rgba(41,171,224,0.3)] hover:shadow-[0_0_20px_rgba(41,171,224,0.5)] transform hover:-translate-y-1"
+                                                >
+                                                    <div className="bg-white p-2 rounded-full shadow-inner shrink-0 text-xl flex items-center justify-center w-10 h-10">☕</div>
+                                                    <div className="font-bold flex-1">Ko-fi</div>
+                                                    <svg className="w-5 h-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+
+                                                <a
+                                                    href="https://buymeacoffee.com/terranandes"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-4 bg-[#FFDD00] hover:bg-[#FFC000] text-black p-4 rounded-xl transition-all shadow-[0_0_15px_rgba(255,221,0,0.3)] hover:shadow-[0_0_20px_rgba(255,221,0,0.5)] transform hover:-translate-y-1"
+                                                >
+                                                    <div className="bg-white p-2 text-xl rounded-full shadow-inner shrink-0 flex items-center justify-center w-10 h-10">💛</div>
+                                                    <div className="font-bold flex-1">Buy Me a Coffee</div>
+                                                    <svg className="w-5 h-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

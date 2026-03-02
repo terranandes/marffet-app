@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TransactionFormModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ export function TransactionFormModal({
     onChange,
     onSave
 }: TransactionFormModalProps) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     return (
@@ -35,7 +37,7 @@ export function TransactionFormModal({
             >
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
                     <span className="text-[var(--color-cta)]">{isEditing ? "✏️" : "+"}</span>
-                    {isEditing ? "Edit Transaction" : "New Transaction"}
+                    {isEditing ? t('Portfolio.EditTransaction') : t('Portfolio.NewTransaction')}
                 </h3>
 
                 <div className="space-y-4">
@@ -64,7 +66,7 @@ export function TransactionFormModal({
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
-                                Shares
+                                {t('Portfolio.Shares')}
                             </label>
                             <input
                                 type="number"
@@ -76,7 +78,7 @@ export function TransactionFormModal({
                         </div>
                         <div>
                             <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
-                                Date
+                                {t('Portfolio.Date')}
                             </label>
                             <input
                                 type="date"
@@ -90,7 +92,7 @@ export function TransactionFormModal({
 
                     <div>
                         <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
-                            Price per Share
+                            {t('Portfolio.Price')}
                         </label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">$</span>

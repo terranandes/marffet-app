@@ -71,10 +71,20 @@
 
 ---
 
+## ☕ 贊助與會員資格 (Sponsorship & Memberships)
+
+喜歡瑪斯投資系統嗎？您可以透過贊助我們的開發工作來解鎖 **VIP** 或 **Premium (進階)** 功能！
+
+1. 前往 **設定 (Settings)** ⚙️ 並點擊 **贊助我們 (Sponsor Us)** 分頁。
+2. 選擇您偏好的平台：[Ko-fi](https://ko-fi.com/terranandes) 或 [Buy Me a Coffee](https://buymeacoffee.com/terranandes)。
+3. 贊助完成後，我們的系統管理員 (GM) 將會手動為您的帳號注入 VIP 或 Premium 會員資格。
+
+---
+
 ## 🛠 需要協助？
 - **發現錯誤 (Bug)？** 或 **有功能建議？** 請使用應用程式內的 ⚙️ 設定面板回報。
 - **有任何疑問？** 查看應用程式內的 文件頁面 (/doc) 快速了解所有功能。
 
 ---
 
-*由 Martian AI 團隊以 ❤️ 打造 • v0.2.1*
+*由 Martian AI 團隊以 ❤️ 打造 • v4.2*

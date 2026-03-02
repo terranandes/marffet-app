@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dividend } from "../services/portfolioService";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 // Types
 interface StockDetailModalProps {
@@ -30,6 +31,7 @@ export default function StockDetailModal({
     dividends,
     loading
 }: StockDetailModalProps) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     return (
@@ -46,7 +48,7 @@ export default function StockDetailModal({
                             <span className="bg-blue-600 text-xs px-2 py-1 rounded text-white">{stockId}</span>
                             {stockName}
                         </h2>
-                        <span className="text-xs text-zinc-500">Dividend Receipt History</span>
+                        <span className="text-xs text-zinc-500">{t('Portfolio.DividendReceiptHistory') || "Dividend Receipt History"}</span>
                     </div>
                     <button
                         onClick={onClose}
@@ -66,17 +68,17 @@ export default function StockDetailModal({
                         </div>
                     ) : dividends.length === 0 ? (
                         <div className="text-center py-20 text-zinc-500">
-                            No dividend history available.
+                            {t('Portfolio.NoDividendHistory') || "No dividend history available."}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-zinc-900 text-zinc-400 uppercase text-xs sticky top-0">
                                     <tr>
-                                        <th className="px-4 py-3">Ex-Date</th>
-                                        <th className="px-4 py-3 text-right">Shares</th>
-                                        <th className="px-4 py-3 text-right">$/Share</th>
-                                        <th className="px-4 py-3 text-right">Total Cash</th>
+                                        <th className="px-4 py-3">{t('Portfolio.ExDate') || "Ex-Date"}</th>
+                                        <th className="px-4 py-3 text-right">{t('Portfolio.Shares') || "Shares"}</th>
+                                        <th className="px-4 py-3 text-right">{t('Portfolio.PerShare') || "$/Share"}</th>
+                                        <th className="px-4 py-3 text-right">{t('Portfolio.TotalCash') || "Total Cash"}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -95,7 +97,7 @@ export default function StockDetailModal({
                                 </tbody>
                                 <tfoot className="bg-zinc-900 sticky bottom-0 border-t border-[var(--color-border)]">
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-3 text-right font-bold text-zinc-400">Total Received:</td>
+                                        <td colSpan={3} className="px-4 py-3 text-right font-bold text-zinc-400">{t('Portfolio.TotalReceived') || "Total Received:"}</td>
                                         <td className="px-4 py-3 font-mono font-bold text-[var(--color-warning)] text-lg text-right">
                                             ${dividends.reduce((acc, curr) => acc + (curr.amount || 0), 0).toLocaleString()}
                                         </td>

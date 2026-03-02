@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Group } from "../../../services/portfolioService";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface GroupSelectorProps {
     groups: Group[];
@@ -20,6 +21,7 @@ export function GroupSelector({
     onCreate,
     loading
 }: GroupSelectorProps) {
+    const { t } = useLanguage();
     const [newGroupName, setNewGroupName] = useState("");
 
     const handleCreate = () => {
@@ -36,7 +38,7 @@ export function GroupSelector({
                         type="text"
                         value={newGroupName}
                         onChange={(e) => setNewGroupName(e.target.value)}
-                        placeholder="Group name..."
+                        placeholder={t('Portfolio.GroupNamePlaceholder') || "Group name..."}
                         className="bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm flex-1 focus:border-[var(--color-cta)] outline-none"
                         onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     />
@@ -44,7 +46,7 @@ export function GroupSelector({
                         onClick={handleCreate}
                         className="bg-[var(--color-cta)] text-black px-4 py-2 rounded text-sm font-bold cursor-pointer"
                     >
-                        Create
+                        {t('Portfolio.CreateBtn') || "Create"}
                     </button>
                 </div>
             )}
@@ -74,7 +76,7 @@ export function GroupSelector({
                 ))}
                 {groups.length === 0 && !loading && (
                     <span className="text-[var(--color-text-muted)] text-sm">
-                        No groups yet. Create one to start tracking!
+                        {t('Portfolio.NoGroupsYet') || "No groups yet. Create one to start tracking!"}
                     </span>
                 )}
             </div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface Message {
     role: "user" | "model";

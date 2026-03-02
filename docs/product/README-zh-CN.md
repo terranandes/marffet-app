@@ -71,10 +71,20 @@
 
 ---
 
+## ☕ 赞助与会员资格 (Sponsorship & Memberships)
+
+喜欢玛斯投资系统吗？您可以通过赞助我们的开发工作来解锁 **VIP** 或 **Premium (高级)** 功能！
+
+1. 前往 **设置 (Settings)** ⚙️ 并点击 **赞助我们 (Sponsor Us)** 分页。
+2. 选择您偏好的平台：[Ko-fi](https://ko-fi.com/terranandes) 或 [Buy Me a Coffee](https://buymeacoffee.com/terranandes)。
+3. 赞助完成后，我们的系统管理员 (GM) 将会手动为您的账号注入 VIP 或 Premium 会员资格。
+
+---
+
 ## 🛠 需要协助？
 - **发现错误 (Bug)？** 或 **有功能建议？** 请使用应用程序内的 ⚙️ 设置面板回报。
 - **有任何疑问？** 查看应用程序内的 文档页面 (/doc) 快速了解所有功能。
 
 ---
 
-*由 Martian AI 团队以 ❤️ 打造 • v0.2.1*
+*由 Martian AI 团队以 ❤️ 打造 • v4.2*

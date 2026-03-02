@@ -1,5 +1,6 @@
 import React from "react";
 import { Transaction } from "../../../services/portfolioService";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TransactionHistoryModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ export function TransactionHistoryModal({
     onEdit,
     onDelete
 }: TransactionHistoryModalProps) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     return (
@@ -30,7 +32,9 @@ export function TransactionHistoryModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold">📜 Transaction History</h3>
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                        📜 {t('Portfolio.History')}
+                    </h3>
                     <button
                         onClick={onAdd}
                         className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-3 py-1.5 rounded text-sm hover:bg-[var(--color-cta)] hover:text-black transition cursor-pointer"
@@ -41,19 +45,19 @@ export function TransactionHistoryModal({
 
                 {transactions.length === 0 ? (
                     <p className="text-[var(--color-text-muted)] text-center py-8">
-                        No transactions yet. Add one above!
+                        {t('Portfolio.NoTransactionsYet')}
                     </p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm min-w-[500px]">
                             <thead>
                                 <tr className="text-left text-[var(--color-text-muted)] text-xs uppercase border-b border-white/10">
-                                    <th className="p-2">Date</th>
-                                    <th className="p-2">Type</th>
-                                    <th className="p-2 text-right">Shares</th>
-                                    <th className="p-2 text-right">Price</th>
-                                    <th className="p-2 text-right">Total</th>
-                                    <th className="p-2 text-center">Actions</th>
+                                    <th className="p-2">{t('Portfolio.Date')}</th>
+                                    <th className="p-2">{t('Portfolio.Type')}</th>
+                                    <th className="p-2 text-right">{t('Portfolio.Shares')}</th>
+                                    <th className="p-2 text-right">{t('Portfolio.Price')}</th>
+                                    <th className="p-2 text-right">{t('Portfolio.Total')}</th>
+                                    <th className="p-2 text-center">{t('Portfolio.Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">

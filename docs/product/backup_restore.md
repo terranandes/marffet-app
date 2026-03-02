@@ -2,7 +2,7 @@
 
 ## 1. Overview
 The Martian Investment System uses two primary databases:
-1. **SQLite (`portfolio.db`)**: Stores user-specific data (portfolios, groups, transactions).
+1. **SQLite (`portfolio.db`)**: Stores user-specific data (portfolios, groups, transactions, manual memberships).
 2. **DuckDB (`market.duckdb`)**: Stores the massive >5 Million row nominal price simulation universe.
 
 Since the application runs on **Ephemeral Cloud Containers** (e.g., Zeabur, Render), the filesystem is not persistent across deployments or crashes unless a specific Persistent Volume is mounted.

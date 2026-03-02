@@ -11,8 +11,10 @@ import { TransactionFormModal } from "./components/TransactionFormModal";
 import { TransactionHistoryModal } from "./components/TransactionHistoryModal";
 import { DividendHistoryModal } from "./components/DividendHistoryModal";
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function PortfolioPage() {
+    const { t } = useLanguage();
     const {
         groups, selectedGroupId, setSelectedGroupId,
         targets, loading, groupStats, dividendCash,
@@ -87,9 +89,9 @@ export default function PortfolioPage() {
             {!selectedGroupId && !loading && groups.length === 0 && (
                 <div className="glass-card p-8 text-center">
                     <p className="text-6xl mb-4">📊</p>
-                    <h2 className="text-2xl font-bold mb-2">Start Your Portfolio</h2>
+                    <h2 className="text-2xl font-bold mb-2">{t('Portfolio.StartTitle')}</h2>
                     <p className="text-[var(--color-text-muted)]">
-                        Create a group above to start tracking your investments.
+                        {t('Portfolio.StartDesc')}
                     </p>
                 </div>
             )}

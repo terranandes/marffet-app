@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Target } from "../../../services/portfolioService";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TargetListProps {
     targets: Target[];
@@ -21,6 +22,7 @@ export function TargetList({
     onShowDividends,
     onAddTarget
 }: TargetListProps) {
+    const { t } = useLanguage();
     const [newTargetId, setNewTargetId] = useState("");
     const [newTargetName, setNewTargetName] = useState("");
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -82,8 +84,8 @@ export function TargetList({
             {targets.length === 0 && (
                 <div className="hidden lg:flex flex-col items-center justify-center text-[var(--color-text-muted)] py-16 bg-black/20 rounded-xl border border-white/5 border-dashed">
                     <span className="text-3xl mb-3">📈</span>
-                    <span className="font-medium">No assets in this group yet.</span>
-                    <span className="text-xs opacity-70 mt-1">Add a ticker using the input above to start tracking.</span>
+                    <span className="font-medium">{t('Portfolio.NoAssetsYet')}</span>
+                    <span className="text-xs opacity-70 mt-1">{t('Portfolio.AddTickerToTrack')}</span>
                 </div>
             )}
 
@@ -92,12 +94,12 @@ export function TargetList({
                     <table className="w-full text-sm border-collapse">
                         <thead>
                             <tr className="border-b border-white/10 text-[var(--color-text-muted)] text-[10px] uppercase tracking-wider bg-black/20">
-                                <th className="text-left py-3 px-4 font-medium rounded-tl-lg">Asset</th>
-                                <th className="text-right py-3 px-4 font-medium">Position</th>
-                                <th className="text-right py-3 px-4 font-medium">Market Price</th>
-                                <th className="text-right py-3 px-4 font-medium w-48">Value & Weight</th>
-                                <th className="text-right py-3 px-4 font-medium">Unrealized Gain</th>
-                                <th className="text-right py-3 px-4 font-medium">Yield / Flow</th>
+                                <th className="text-left py-3 px-4 font-medium rounded-tl-lg">{t('Portfolio.Asset')}</th>
+                                <th className="text-right py-3 px-4 font-medium">{t('Portfolio.Position')}</th>
+                                <th className="text-right py-3 px-4 font-medium">{t('Portfolio.MarketPrice')}</th>
+                                <th className="text-right py-3 px-4 font-medium w-48">{t('Portfolio.ValueWeight')}</th>
+                                <th className="text-right py-3 px-4 font-medium">{t('Portfolio.UnrealizedPL')}</th>
+                                <th className="text-right py-3 px-4 font-medium">{t('Portfolio.YieldFlow')}</th>
                                 <th className="text-right py-3 px-4 font-medium rounded-tr-lg"></th>
                             </tr>
                         </thead>
@@ -179,7 +181,7 @@ export function TargetList({
                                                 onClick={() => onShowDividends(target.id, target.stock_id, target.stock_name || target.stock_id)}
                                             >
                                                 {formatCurrency(target.summary?.total_dividend_cash || 0)}
-                                                <span className="text-[10px] text-[var(--color-text-muted)] font-sans group-hover/div:text-amber-400 transition ml-0.5 opacity-60">Div</span>
+                                                <span className="text-[10px] text-[var(--color-text-muted)] font-sans group-hover/div:text-amber-400 transition ml-0.5 opacity-60">{t('Portfolio.Div')}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4 text-right">

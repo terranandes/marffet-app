@@ -89,6 +89,12 @@ The **Ruthless Wealth Manager** continuously monitors your portfolio against thr
     *   **Trigger (Sell)**: Premium **≥ 30%** (Overpriced).
     *   **Strategy**: "Lock the Spread." Automatically calculates the exact shares of Stock to sell/buy to fund the CB position, maintaining a 50/50 balance between the Bond and its Underlying Stock.
 
+### 2.2 Sponsorship & Memberships
+- **Goal**: Allow users to support the project and unlock Premium/VIP features.
+- **Mechanism**: Users sponsor via external platforms (Ko-fi, Buy Me a Coffee).
+- **Fulfillment**: The GM (Game Master) manually injects the membership into the user's account via the Admin Dashboard.
+- **Precedence**: Manually injected memberships override the default Free tier, but static environment variables (`GM_EMAILS`, etc.) take absolute precedence.
+
 ## 3. Target Audience
 -   **Retail Investors**: Looking to backtest strategies.
 -   **Financial Educators**: Demonstrating the power of compounding.

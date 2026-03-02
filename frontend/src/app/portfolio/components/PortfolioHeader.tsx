@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface PortfolioHeaderProps {
     isGuest: boolean;
@@ -17,6 +18,7 @@ export function PortfolioHeader({
     showAddGroup,
     onToggleAddGroup
 }: PortfolioHeaderProps) {
+    const { t } = useLanguage();
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(val);
     };
@@ -26,19 +28,19 @@ export function PortfolioHeader({
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-[var(--color-cta)] flex items-center gap-2">
-                        📊 My Portfolio
+                        📊 {t('Portfolio.Title') || "My Portfolio"}
                         {isGuest && (
                             <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded border border-yellow-500/50">
-                                Guest Mode
+                                {t('Portfolio.GuestMode') || "Guest Mode"}
                             </span>
                         )}
                     </h1>
                     <div className="text-sm text-[var(--color-text-muted)] mt-1">
-                        💰 Dividend Cash:{" "}
+                        💰 {t('Portfolio.DividendCash') || "Dividend Cash"}:{" "}
                         <span className="text-[var(--color-success)] font-mono font-bold">
                             ${formatCurrency(dividendCash.total_cash)}
                         </span>
-                        <span className="ml-2">({dividendCash.dividend_count} payments)</span>
+                        <span className="ml-2">({dividendCash.dividend_count} {t('Portfolio.Payments') || "payments"})</span>
                     </div>
                 </div>
                 <div className="flex gap-2 w-full lg:w-auto">
@@ -51,13 +53,13 @@ export function PortfolioHeader({
                             }`}
                     >
                         <span className={syncing ? "animate-spin" : ""}>{syncing ? "⏳" : "🔄"}</span>
-                        <span>{syncing ? "Syncing..." : "Sync Dividends"}</span>
+                        <span>{syncing ? (t('Portfolio.Syncing') || "Syncing...") : (t('Portfolio.SyncDividends') || "Sync Dividends")}</span>
                     </button>
                     <button
                         onClick={onToggleAddGroup}
                         className="flex-1 lg:flex-none bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition text-sm font-bold cursor-pointer"
                     >
-                        {showAddGroup ? "Cancel" : "+ New Group"}
+                        {showAddGroup ? (t('Portfolio.Cancel') || "Cancel") : (t('Portfolio.NewGroup') || "+ New Group")}
                     </button>
                 </div>
             </div>

@@ -69,6 +69,7 @@ export default function Sidebar() {
 
     // State for Settings Modal
     const [showSettings, setShowSettings] = useState(false);
+    const [settingsActiveTab, setSettingsActiveTab] = useState("profile");
 
     const fetchData = async () => {
         try {
@@ -362,123 +363,147 @@ export default function Sidebar() {
 
 
 
-                {isLoading ? (
-                    <div className="mt-auto mb-4 p-4 space-y-3 animate-pulse">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/10" />
-                            <div className="flex-1 space-y-2">
-                                <div className="h-3 w-20 bg-white/10 rounded" />
-                                <div className="h-2 w-16 bg-white/10 rounded" />
-                            </div>
-                        </div>
-                    </div>
-                ) : user ? (
-                    <div className="mt-auto mb-4 p-4 rounded-xl bg-[var(--color-bg-secondary)]/30 border border-[var(--color-border)]">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-cta)] to-blue-600 flex items-center justify-center text-white font-bold shadow-lg">
-                                {user.picture ? (
-                                    <img src={user.picture} alt={user.nickname || "User"} className="w-full h-full rounded-full" />
-                                ) : (
-                                    (user.nickname?.[0] || user.email?.[0] || "U").toUpperCase()
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-sm font-bold text-white truncate">
-                                    {user.nickname || user.email?.split("@")[0] || "User"}
-                                </div>
-                                <div className="text-xs text-[var(--color-text-muted)] truncate">
-                                    {user.email || "Guest"}
-                                </div>
-                            </div>
-                            {/* Settings Icon in User Card */}
-                            <button
-                                onClick={() => setShowSettings(true)}
-                                className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition"
-                                title="Settings"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
-                        </div>
+                <div className="mt-auto flex flex-col w-full">
+                    {/* Sponsor Us Link */}
+                    <div className="px-4 mb-4">
                         <button
                             onClick={() => {
-                                // Force hard navigation to ensure cookies are cleared properly by the browser
-                                // Use relative path to utilize Next.js Rewrite and keep user on the current host
-                                window.location.href = `/auth/logout`;
+                                setSettingsActiveTab("sponsor");
+                                setShowSettings(true);
                             }}
-                            className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
+                            className="w-full py-2.5 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-orange-500/10 border border-pink-500/20 rounded-xl text-pink-300 hover:text-white hover:border-pink-500/50 transition-all text-xs font-bold flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(236,72,153,0.05)] hover:shadow-[0_0_15px_rgba(236,72,153,0.2)]"
                         >
-                            {t('Sidebar.SignOut')}
+                            <svg className="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                            {t('Sidebar.SponsorUs')}
                         </button>
                     </div>
-                ) : (
-                    <div className="mt-auto mb-4 p-4 space-y-2">
-                        <a
-                            href={`/auth/login`}
-                            className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
-                        >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
-                            </svg>
-                            {t('Sidebar.SignInGoogle')}
-                        </a>
-                        <button
-                            onClick={async () => {
-                                // Use relative path to leverage Next.js rewrites
-                                // Helper function to attempt guest login
-                                const attemptGuestLogin = async () => {
-                                    const res = await fetch(`/auth/guest`, {
-                                        method: "POST",
-                                        credentials: "include"
-                                    });
-                                    return res;
-                                };
 
-                                try {
-                                    // First attempt
-                                    let res = await attemptGuestLogin();
-
-                                    // If first attempt fails (common with cross-origin cookies), retry once
-                                    if (!res.ok) {
-                                        console.log("Guest login first attempt failed, retrying...");
-                                        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
-                                        res = await attemptGuestLogin();
-                                    }
-
-                                    if (res.ok) {
-                                        fetchData(); // Refresh user state
-                                    } else {
-                                        alert("Failed to enter guest mode");
-                                    }
-                                } catch (e) {
-                                    console.error("Guest mode error:", e);
-                                    alert("Network error");
-                                }
-                            }}
-                            className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 text-zinc-300 font-semibold rounded-xl hover:bg-white/10 transition-all border border-white/10"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            {t('Sidebar.ExploreGuest')}
-                        </button>
-                        <p className="text-xs text-zinc-500 text-center">Data stored locally only</p>
-                        <div className="flex justify-center">
+                    {isLoading ? (
+                        <div className="mb-4 p-4 space-y-3 animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-white/10" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 w-20 bg-white/10 rounded" />
+                                    <div className="h-2 w-16 bg-white/10 rounded" />
+                                </div>
+                            </div>
+                        </div>
+                    ) : user ? (
+                        <div className="mb-4 mx-4 p-4 rounded-xl bg-[var(--color-bg-secondary)]/30 border border-[var(--color-border)]">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-cta)] to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shrink-0">
+                                    {user.picture ? (
+                                        <img src={user.picture} alt={user.nickname || "User"} className="w-full h-full rounded-full" />
+                                    ) : (
+                                        (user.nickname?.[0] || user.email?.[0] || "U").toUpperCase()
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-bold text-white truncate">
+                                        {user.nickname || user.email?.split("@")[0] || "User"}
+                                    </div>
+                                    <div className="text-xs text-[var(--color-text-muted)] truncate">
+                                        {user.email || "Guest"}
+                                    </div>
+                                </div>
+                                {/* Settings Icon in User Card */}
+                                <button
+                                    onClick={() => {
+                                        setSettingsActiveTab("profile");
+                                        setShowSettings(true);
+                                    }}
+                                    className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition shrink-0"
+                                    title="Settings"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+                            </div>
                             <button
-                                onClick={() => setShowSettings(true)}
-                                className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition border border-white/5"
-                                title="Settings"
+                                onClick={() => {
+                                    // Force hard navigation to ensure cookies are cleared properly by the browser
+                                    // Use relative path to utilize Next.js Rewrite and keep user on the current host
+                                    window.location.href = `/auth/logout`;
+                                }}
+                                className="block w-full py-2 text-center text-xs font-bold text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition cursor-pointer"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
+                                {t('Sidebar.SignOut')}
                             </button>
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <div className="mb-4 mx-4 space-y-2">
+                            <a
+                                href={`/auth/login`}
+                                className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-[var(--color-cta)] transition-all shadow-lg shadow-white/10 hover:shadow-[var(--color-cta)]/20"
+                            >
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
+                                </svg>
+                                {t('Sidebar.SignInGoogle')}
+                            </a>
+                            <button
+                                onClick={async () => {
+                                    // Use relative path to leverage Next.js rewrites
+                                    // Helper function to attempt guest login
+                                    const attemptGuestLogin = async () => {
+                                        const res = await fetch(`/auth/guest`, {
+                                            method: "POST",
+                                            credentials: "include"
+                                        });
+                                        return res;
+                                    };
+
+                                    try {
+                                        // First attempt
+                                        let res = await attemptGuestLogin();
+
+                                        // If first attempt fails (common with cross-origin cookies), retry once
+                                        if (!res.ok) {
+                                            console.log("Guest login first attempt failed, retrying...");
+                                            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+                                            res = await attemptGuestLogin();
+                                        }
+
+                                        if (res.ok) {
+                                            fetchData(); // Refresh user state
+                                        } else {
+                                            alert("Failed to enter guest mode");
+                                        }
+                                    } catch (e) {
+                                        console.error("Guest mode error:", e);
+                                        alert("Network error");
+                                    }
+                                }}
+                                className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 text-zinc-300 font-semibold rounded-xl hover:bg-white/10 transition-all border border-white/10"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {t('Sidebar.ExploreGuest')}
+                            </button>
+                            <p className="text-xs text-zinc-500 text-center">Data stored locally only</p>
+                            <div className="flex justify-center mt-2">
+                                <button
+                                    onClick={() => {
+                                        setSettingsActiveTab("profile");
+                                        setShowSettings(true);
+                                    }}
+                                    className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition border border-white/5"
+                                    title="Settings"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <div className="p-4 border-t border-zinc-800/50">
                     <DataTimestamp />
@@ -493,6 +518,7 @@ export default function Sidebar() {
                 onClose={() => setShowSettings(false)}
                 user={user}
                 onUpdateUser={fetchData}
+                initialTab={settingsActiveTab}
             />
         </>
     );

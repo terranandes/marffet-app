@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ChartSkeleton } from "@/components/Skeleton";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface RaceDataPoint {
     month: string;
@@ -17,6 +18,7 @@ interface AssetGroups {
 }
 
 export default function MyRacePage() {
+    const { t } = useLanguage();
     const [raceData, setRaceData] = useState<RaceDataPoint[]>([]);
     const [assetGroups, setAssetGroups] = useState<AssetGroups>({ stock: [], etf: [], cb: [] });
     const [loading, setLoading] = useState(true);
@@ -151,10 +153,10 @@ export default function MyRacePage() {
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-pink-600 bg-clip-text text-transparent">
-                            🏎️ My Race
+                            {t('MyRace.Title')}
                         </h1>
                         <p className="text-[var(--color-text-muted)]">
-                            Watch your portfolio holdings compete over time
+                            {t('MyRace.Subtitle')}
                         </p>
                     </div>
 
@@ -166,20 +168,20 @@ export default function MyRacePage() {
                                 disabled={isPlaying || raceData.length === 0}
                                 className="bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)] px-4 py-2 rounded hover:bg-[var(--color-success)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
                             >
-                                ▶ Play
+                                {t('MyRace.Play')}
                             </button>
                             <button
                                 onClick={pauseRace}
                                 disabled={!isPlaying}
                                 className="bg-[var(--color-warning)]/20 border border-[var(--color-warning)] text-[var(--color-warning)] px-4 py-2 rounded hover:bg-[var(--color-warning)] hover:text-black transition font-bold text-sm cursor-pointer disabled:opacity-50"
                             >
-                                ⏸ Pause
+                                {t('MyRace.Pause')}
                             </button>
                             <button
                                 onClick={fetchRaceData}
                                 className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-4 py-2 rounded hover:bg-[var(--color-cta)] hover:text-black transition font-bold text-sm cursor-pointer"
                             >
-                                🔄 Refresh
+                                {t('MyRace.Refresh')}
                             </button>
                         </div>
                     </div>
@@ -201,7 +203,7 @@ export default function MyRacePage() {
                                 className="w-full accent-[var(--color-cta)] h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                             />
                             <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">
-                                {months.length} Qtrs
+                                {months.length} {t('MyRace.Qtrs')}
                             </span>
                         </div>
                         {/* Year Ticks (Optional Logic) */}
@@ -222,24 +224,24 @@ export default function MyRacePage() {
                 ) : raceData.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="text-6xl mb-4">🏎️</p>
-                        <h2 className="text-xl font-bold mb-2 text-[var(--color-text-muted)]">No Race Data Yet</h2>
+                        <h2 className="text-xl font-bold mb-2 text-[var(--color-text-muted)]">{t('MyRace.NoData')}</h2>
                         <p className="text-[var(--color-text-muted)]">
-                            Add transactions in Portfolio tab to see your investments race!
+                            {t('MyRace.AddTransactions')}
                         </p>
                         <a
                             href="/portfolio"
                             className="inline-block mt-4 bg-[var(--color-cta)] text-black px-4 py-2 rounded font-bold"
                         >
-                            Go to Portfolio →
+                            {t('MyRace.GoToPortfolio')}
                         </a>
                     </div>
                 ) : currentFrame.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="text-[var(--color-cta)] text-lg mb-2">
-                            {raceData.length} data points ready
+                            {t('MyRace.DataPointsReady').replace('{count}', raceData.length.toString())}
                         </p>
                         <p className="text-[var(--color-text-muted)]">
-                            Click Play to start the race!
+                            {t('MyRace.ClickPlay')}
                         </p>
                     </div>
                 ) : (
@@ -284,26 +286,25 @@ export default function MyRacePage() {
                 )}
             </div>
 
-            {/* Asset Stats */}
             <div className="glass-card rounded-xl p-4">
                 <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                         <div className="text-2xl font-bold text-[var(--color-cta)]">
                             {assetGroups.stock?.length || 0}
                         </div>
-                        <div className="text-xs text-[var(--color-text-muted)]">Stocks</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{t('MyRace.Stocks')}</div>
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-[var(--color-primary)]">
                             {assetGroups.etf?.length || 0}
                         </div>
-                        <div className="text-xs text-[var(--color-text-muted)]">ETFs</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{t('MyRace.ETFs')}</div>
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-[var(--color-success)]">
                             {assetGroups.cb?.length || 0}
                         </div>
-                        <div className="text-xs text-[var(--color-text-muted)]">CBs</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{t('MyRace.CBs')}</div>
                     </div>
                 </div>
             </div>

@@ -21,6 +21,7 @@
 1. **強大回測 (Backtesting)**：不想當韭菜？先用歷史數據驗證你的策略！
 2. **AI 投資顧問**：內建 AI Copilot，隨時問診你的投資組合。
 3. **超越傳統**：介面更帥、功能更強，完全可以取代 MoneyCome 和 Yahoo 股市。
+4. **贊助解鎖 VIP**：只需一杯咖啡的錢，即可解鎖進階功能！☕
 
 👉 立即免費試用： https://martian-app.zeabur.app/
 
@@ -68,6 +69,7 @@ I built this entire platform leveraging **AntiGravity** AI, and it’s packed wi
 ✅ **Pro-Level Backtesting**: Validate your strategies before spending a dime.
 ✅ **AI Copilot**: Get instant insights and consultation on your holdings.
 ✅ **Modern UI**: A superior alternative to Yahoo Finance and MoneyCome.
+✅ **VIP Access**: Buy me a coffee to unlock Premium Tier! ☕
 
 Check it out here: https://martian-app.zeabur.app/
 

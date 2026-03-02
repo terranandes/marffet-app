@@ -28,6 +28,22 @@ Displays user registration counts, active users (Web/Mobile, last 30 days), and 
 
 ---
 
+### Section: 👑 Membership Injection (default: open)
+
+Manually manage user access via Google emails. Grants are stored persistently in `/data/portfolio.db` (`user_memberships` table).
+
+| Input | Description | Result State |
+| :--- | :--- | :--- |
+| **Email** | Valid Google account email. | Target user account identifier |
+| **Tier** | `VIP` or `PREMIUM` | Access level overrides `FREE` |
+| **Duration** | `Monthly` (30d), `Annually` (365d), `Permanent` (99y) | Expiration date of access |
+| **Add** | Injects or updates membership. | Appears in active table below |
+| **Revoke** | Immediately deletes the injected membership. | User reverts to highest remaining tier |
+
+*Note: Environment variables (`GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS`) always take static precedence. If injected status expires, user reverts to static `.env` settings or Free tier.*
+
+---
+
 ### Section: 📅 Routine Operations (default: closed)
 
 | Action | Control Label | Technical Endpoint | Scope | Data Persistence |

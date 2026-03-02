@@ -1,5 +1,6 @@
 import React from "react";
 import { Dividend } from "../../../services/portfolioService";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface DividendHistoryModalProps {
     data: { targetId: string; stockId: string; stockName: string } | null;
@@ -14,6 +15,7 @@ export function DividendHistoryModal({
     dividends,
     loading
 }: DividendHistoryModalProps) {
+    const { t } = useLanguage();
     if (!data) return null;
 
     const formatCurrency = (val: number) => {
@@ -49,13 +51,14 @@ export function DividendHistoryModal({
                 {loading ? (
                     <div className="text-center py-12">
                         <div className="animate-spin text-4xl mb-2">⏳</div>
-                        <div className="text-[var(--color-text-muted)]">Loading dividends...</div>
+                        <div className="text-[var(--color-text-muted)]">{t('Portfolio.LoadingDividends')}</div>
                     </div>
                 ) : dividends.length === 0 ? (
                     <div className="text-center py-8 bg-black/20 rounded-lg">
                         <div className="text-4xl mb-2">📭</div>
-                        <p className="text-[var(--color-text-muted)]">No dividend records found for this stock.</p>
+                        <p className="text-[var(--color-text-muted)]">{t('Portfolio.NoDividends')}</p>
                         <p className="text-xs text-[var(--color-text-muted)] mt-1 opacity-70">
+                            {/* Keep standard string for now, or add "Try clicking sync" to translation file */}
                             (Try clicking "Sync Dividends" at the top to fetch latest data)
                         </p>
                     </div>
@@ -64,12 +67,12 @@ export function DividendHistoryModal({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="text-left text-[var(--color-text-muted)] text-xs uppercase border-b border-white/10">
-                                    <th className="p-3">Ex-Date</th>
-                                    <th className="p-3">Payment Date</th>
-                                    <th className="p-3 text-right">Cash Div</th>
-                                    <th className="p-3 text-right">Stock Div</th>
-                                    <th className="p-3 text-right">Held Shares</th>
-                                    <th className="p-3 text-right">Total Cash</th>
+                                    <th className="p-3">{t('Portfolio.ExDate')}</th>
+                                    <th className="p-3">{t('Portfolio.PaymentDate')}</th>
+                                    <th className="p-3 text-right">{t('Portfolio.CashDiv')}</th>
+                                    <th className="p-3 text-right">{t('Portfolio.StockDiv')}</th>
+                                    <th className="p-3 text-right">{t('Portfolio.HeldShares')}</th>
+                                    <th className="p-3 text-right">{t('Portfolio.TotalCash')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">

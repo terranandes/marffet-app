@@ -158,6 +158,13 @@ export default function AdminPage() {
     // Loading states for buttons
     const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
 
+    // Membership Management State
+    const [memberships, setMemberships] = useState<any[]>([]);
+    const [loadingMemberships, setLoadingMemberships] = useState(false);
+    const [memberEmail, setMemberEmail] = useState("");
+    const [memberTier, setMemberTier] = useState("PREMIUM");
+    const [memberDuration, setMemberDuration] = useState("1");
+
     useEffect(() => {
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         if (isLocal) setDeepUniverse(true);
@@ -196,6 +203,65 @@ export default function AdminPage() {
         }
         setLoadingFeedback(false);
     }, []);
+
+    const fetchMemberships = useCallback(async () => {
+        setLoadingMemberships(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/memberships`, { credentials: "include" });
+            if (res.ok) setMemberships(await res.json());
+        } catch {
+            console.error("Membership fetch error");
+        }
+        setLoadingMemberships(false);
+    }, []);
+
+    const handleInjectMembership = async () => {
+        if (!memberEmail) return toast.error("Email required");
+        await withLoading("inject-membership", async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/memberships`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: memberEmail,
+                        tier: memberTier,
+                        duration_months: parseInt(memberDuration)
+                    }),
+                    credentials: "include"
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    toast.success(data.message);
+                    setMemberEmail("");
+                    fetchMemberships();
+                } else {
+                    toast.error(data.detail || "Injection failed");
+                }
+            } catch {
+                toast.error("Network Error injecting membership");
+            }
+        });
+    };
+
+    const handleRevokeMembership = async (email: string) => {
+        if (!confirm(`Revoke membership for ${email}?`)) return;
+        await withLoading(`revoke-${email}`, async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/memberships/${encodeURIComponent(email)}`, {
+                    method: "DELETE",
+                    credentials: "include"
+                });
+                if (res.ok) {
+                    toast.success("Membership revoked");
+                    fetchMemberships();
+                } else {
+                    toast.error("Failed to revoke");
+                }
+            } catch {
+                toast.error("Network Error revoking membership");
+            }
+        });
+    };
 
     const fetchCrawlerStatus = useCallback(async () => {
         try {
@@ -409,10 +475,11 @@ export default function AdminPage() {
     useEffect(() => {
         fetchMetrics();
         fetchFeedback();
+        fetchMemberships();
         fetchCrawlerStatus();
         const interval = setInterval(fetchCrawlerStatus, 5000);
         return () => clearInterval(interval);
-    }, [fetchMetrics, fetchFeedback, fetchCrawlerStatus]);
+    }, [fetchMetrics, fetchFeedback, fetchMemberships, fetchCrawlerStatus]);
 
     const updateFeedbackStatus = async (id: number, status: string) => {
         try {
@@ -512,12 +579,12 @@ export default function AdminPage() {
                     <div className="bg-[#0d0d1a] border border-white/5 rounded-sm p-3 flex items-center gap-3 text-xs font-mono">
                         <div
                             className={`px-2 py-1 rounded-sm border flex items-center gap-2 transition-all ${crawlerStatus.is_running
-                                    ? "bg-amber-900/30 border-amber-500 text-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.2)]"
-                                    : crawlerStatus.status === "success"
-                                        ? "bg-emerald-900/30 border-emerald-500 text-emerald-400"
-                                        : crawlerStatus.status === "error"
-                                            ? "bg-red-900/30 border-red-500 text-red-400"
-                                            : "bg-gray-800 border-gray-600 text-gray-400"
+                                ? "bg-amber-900/30 border-amber-500 text-amber-400 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                                : crawlerStatus.status === "success"
+                                    ? "bg-emerald-900/30 border-emerald-500 text-emerald-400"
+                                    : crawlerStatus.status === "error"
+                                        ? "bg-red-900/30 border-red-500 text-red-400"
+                                        : "bg-gray-800 border-gray-600 text-gray-400"
                                 }`}
                         >
                             {crawlerStatus.is_running ? (
@@ -849,6 +916,131 @@ export default function AdminPage() {
 
                     <div className="text-[10px] text-[var(--color-text-muted)] text-center mt-4 font-mono tracking-widest uppercase">
                         Admin access only • {new Date().getFullYear()} Martian Investment
+                    </div>
+                </CollapsibleSection>
+
+                {/* ── Section: Membership Injection ── */}
+                <CollapsibleSection id="memberships" title="Membership Injection" icon="👑" defaultOpen={false} accentColor="emerald">
+                    <div className="flex flex-col gap-6">
+                        {/* Injection Form */}
+                        <div className="bg-black/30 border border-emerald-900/30 rounded-sm p-4">
+                            <h3 className="text-sm font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                                🪄 Inject Membership
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-400">User Email</label>
+                                    <input
+                                        type="email"
+                                        value={memberEmail}
+                                        onChange={(e) => setMemberEmail(e.target.value)}
+                                        placeholder="user@example.com"
+                                        className="bg-gray-900 border border-gray-700 rounded-sm px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-400">Tier</label>
+                                    <select
+                                        value={memberTier}
+                                        onChange={(e) => setMemberTier(e.target.value)}
+                                        className="bg-gray-900 border border-gray-700 rounded-sm px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none"
+                                    >
+                                        <option value="PREMIUM">Premium</option>
+                                        <option value="VIP">VIP</option>
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-400">Duration</label>
+                                    <select
+                                        value={memberDuration}
+                                        onChange={(e) => setMemberDuration(e.target.value)}
+                                        className="bg-gray-900 border border-gray-700 rounded-sm px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none"
+                                    >
+                                        <option value="1">1 Month</option>
+                                        <option value="3">3 Months</option>
+                                        <option value="6">6 Months</option>
+                                        <option value="12">1 Year (12 Months)</option>
+                                        <option value="240">Lifetime (20 Years)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button
+                                        onClick={handleInjectMembership}
+                                        disabled={loadingBtn === "inject-membership" || !memberEmail}
+                                        className={`${btnBase} w-full justify-center bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-200 border-emerald-700/50 h-[38px]`}
+                                    >
+                                        {loadingBtn === "inject-membership" ? <Spinner /> : "Inject"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Injected Memberships Table */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-gray-300">Active Injections</h3>
+                                <button
+                                    onClick={fetchMemberships}
+                                    className="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1 transition"
+                                >
+                                    🔄 Refresh
+                                </button>
+                            </div>
+
+                            <div className="bg-black/20 rounded-sm border border-white/5 overflow-hidden">
+                                {loadingMemberships ? (
+                                    <div className="p-8 text-center flex items-center justify-center gap-3 text-gray-500">
+                                        <Spinner /> <span className="text-sm">Loading Memberships...</span>
+                                    </div>
+                                ) : memberships.length === 0 ? (
+                                    <div className="p-8 text-center text-gray-500 text-sm">
+                                        No manually injected memberships found.
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-sm whitespace-nowrap">
+                                            <thead className="text-xs text-gray-500 bg-black/40 border-b border-white/5 uppercase tracking-wider">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-medium">Email</th>
+                                                    <th className="px-4 py-3 font-medium">Tier</th>
+                                                    <th className="px-4 py-3 font-medium">Valid Until</th>
+                                                    <th className="px-4 py-3 font-medium">Injected By</th>
+                                                    <th className="px-4 py-3 font-medium text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {memberships.map((m) => (
+                                                    <tr key={m.email} className="hover:bg-white/[0.02] transition">
+                                                        <td className="px-4 py-3 text-gray-200">{m.email}</td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`px-2 py-0.5 rounded-sm text-xs font-medium border ${m.tier === 'VIP'
+                                                                    ? 'bg-purple-900/30 text-purple-300 border-purple-700/50'
+                                                                    : 'bg-emerald-900/30 text-emerald-300 border-emerald-700/50'
+                                                                }`}>
+                                                                {m.tier}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-gray-400 font-mono text-xs">
+                                                            {new Date(m.valid_until).toLocaleString()}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-gray-500 text-xs">{m.injected_by}</td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <button
+                                                                onClick={() => handleRevokeMembership(m.email)}
+                                                                disabled={loadingBtn === `revoke-${m.email}`}
+                                                                className="text-red-400 hover:text-red-300 text-xs font-medium transition disabled:opacity-50"
+                                                            >
+                                                                {loadingBtn === `revoke-${m.email}` ? '...' : 'Revoke'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </CollapsibleSection>
             </div>

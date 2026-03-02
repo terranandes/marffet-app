@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import ShareButton from "@/components/ShareButton";
 import { LeaderboardSkeleton } from "@/components/Skeleton";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface LeaderboardEntry {
     id: string;
@@ -16,6 +17,7 @@ interface LeaderboardEntry {
 }
 
 export default function LadderPage() {
+    const { t } = useLanguage();
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -88,10 +90,10 @@ export default function LadderPage() {
             {/* Header */}
             <div className="text-center">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent">
-                    🏆 Cash Ladder
+                    {t('Ladder.Title')}
                 </h1>
                 <p className="text-[var(--color-text-muted)]">
-                    Investor Leaderboard - Ranked by ROI
+                    {t('Ladder.Subtitle')}
                 </p>
             </div>
 
@@ -102,8 +104,8 @@ export default function LadderPage() {
                 ) : leaderboard.length === 0 ? (
                     <div className="text-center py-20 text-[var(--color-text-muted)]">
                         <p className="text-6xl mb-4">🏆</p>
-                        <h2 className="text-xl font-bold mb-2">No Rankings Yet</h2>
-                        <p>Be the first to sync your portfolio stats!</p>
+                        <h2 className="text-xl font-bold mb-2">{t('Ladder.NoRankings')}</h2>
+                        <p>{t('Ladder.BeFirst')}</p>
                     </div>
                 ) : (
                     <div className="divide-y divide-[var(--color-border)]">
@@ -138,10 +140,10 @@ export default function LadderPage() {
                                                     className="w-6 h-6 rounded-full"
                                                 />
                                             )}
-                                            {user.nickname || `User ${user.id.substring(0, 8)}`}
+                                            {user.nickname || `${t('Ladder.Anonymous')} ${user.id.substring(0, 8)}`}
                                         </div>
                                         <div className="text-xs text-[var(--color-text-muted)]">
-                                            Invested: {user.holdings_count || "?"} Assets
+                                            {t('Ladder.Invested')}: {user.holdings_count || "?"} {t('Ladder.Assets')}
                                         </div>
                                     </div>
 
@@ -164,7 +166,7 @@ export default function LadderPage() {
             {/* Sync Stats Button */}
             <div className="text-center">
                 <p className="text-sm text-[var(--color-text-muted)] mb-2">
-                    Update your ranking by syncing your portfolio stats
+                    {t('Ladder.SyncInfo')}
                 </p>
                 <button
                     onClick={async () => {
@@ -175,7 +177,7 @@ export default function LadderPage() {
                             });
                             if (res.ok) {
                                 const data = await res.json();
-                                alert(`Rank synced! ROI: ${data.roi}%`);
+                                alert(t('Ladder.RankSynced').replace('{roi}', data.roi));
                                 fetchLeaderboard();
                             }
                         } catch (err) {
@@ -184,15 +186,15 @@ export default function LadderPage() {
                     }}
                     className="bg-[var(--color-cta)]/20 border border-[var(--color-cta)] text-[var(--color-cta)] px-6 py-2 rounded-lg hover:bg-[var(--color-cta)] hover:text-black transition font-bold cursor-pointer"
                 >
-                    📊 Sync My Stats
+                    {t('Ladder.SyncMyStats')}
                 </button>
             </div>
 
             {/* Share Button (Fixed Bottom-Right for Mobile or Header) */}
             <div className="fixed bottom-6 right-6 z-40 md:static md:text-center md:mt-4">
                 <ShareButton
-                    text="Check out the Martian Investment Leaderboard! 🏆"
-                    label="Share Rankings"
+                    text={`Check out the Martian Investment Leaderboard! 🏆`}
+                    label={t('Ladder.ShareRankings')}
                 />
             </div>
 
@@ -208,12 +210,12 @@ export default function LadderPage() {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-xl font-bold">{profileData.nickname || "Anonymous"}</h2>
+                                <h2 className="text-xl font-bold">{profileData.nickname || t('Ladder.Anonymous')}</h2>
                                 <div className="flex gap-2">
                                     <ShareButton
                                         title={`${profileData.nickname}'s Portfolio`}
                                         text={`Check out ${profileData.nickname}'s performance on Martian! ROI: ${profileData.roi || 0}%`}
-                                        label="Share"
+                                        label={t('Ladder.Share')}
                                     />
                                     <button
                                         onClick={() => setShowProfileModal(false)}
@@ -228,7 +230,7 @@ export default function LadderPage() {
                             {profileData.holdings && profileData.holdings.length > 0 && (
                                 <div className="mb-4">
                                     <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
-                                        Top Holdings
+                                        {t('Ladder.TopHoldings')}
                                     </h3>
                                     <div className="space-y-1">
                                         {profileData.holdings.slice(0, 5).map((h) => (
@@ -236,7 +238,7 @@ export default function LadderPage() {
                                                 <span>{h.stock_name || h.stock_id}</span>
                                                 {/* Privacy: Hide exact shares */}
                                                 {/* <span className="font-mono">{h.shares} shares</span> */}
-                                                <span className="text-xs bg-white/10 px-2 py-0.5 rounded">Holding</span>
+                                                <span className="text-xs bg-white/10 px-2 py-0.5 rounded">{t('Ladder.Holding')}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -247,7 +249,7 @@ export default function LadderPage() {
                             {profileData.allocation && profileData.allocation.length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-bold text-[var(--color-text-muted)] mb-2">
-                                        Allocation
+                                        {t('Ladder.Allocation')}
                                     </h3>
                                     <div className="h-4 rounded-full overflow-hidden flex">
                                         {profileData.allocation.map((a, i) => (

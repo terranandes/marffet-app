@@ -18,7 +18,7 @@ class BackupService:
         TARGET PATH: /app/portfolio.db in the repo.
         """
         token = os.getenv("GITHUB_TOKEN")
-        repo = os.getenv("GITHUB_REPO") # e.g. "terranandes/martian"
+        repo = os.getenv("GITHUB_REPO") # e.g. "terranandes/marffet-app"
         
         if not token or not repo:
             logger.warning("[Backup] GITHUB_TOKEN or GITHUB_REPO not set. Skipping backup.")

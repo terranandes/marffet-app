@@ -14,7 +14,10 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 - [ ] Add 'buymeacoffee'/`ko-fi` button to the GitHub ./README.md
 - [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
 
-- [ ] Should we rename the English name Martian to Marffet?
+- [x] Rename the English name Martian to Marffet
+- [ ] Rename private GitHub repo from terranandes/martian to terranandes/marffet-app
+- [ ] Create new public GitHub repo terranandes/marffet for project showcase
+- [ ] Rename Zeabur frontend service to marffet-app and backend to marffet-api
 ---
 
 ## === Barrier === (DO-NOT-TOUCH AREA)

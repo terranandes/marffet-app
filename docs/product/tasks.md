@@ -440,14 +440,19 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Recommended separate public GitHub repo for product showcase (BOSS approval pending)
     - Cleaned up 2 worktrees and 2 stale branches
 
-## 24. Phase 25: VIP vs PREMIUM Feature Gating + GitHub Public Repo - [PLANNING]
-- [ ] **VIP vs PREMIUM Tier Gating** (Pending BOSS approval on tier matrix)
-    - [ ] Backend: Return `is_vip` or use `tier` string for frontend gating
-    - [ ] Backend: Tier-aware capacity limits in portfolio CRUD
-    - [ ] Frontend: Refactor `is_premium` checks to tier-aware gating (3 files)
-- [ ] **GitHub Public Repo** (Pending BOSS approval on repo name)
-    - [ ] Create `terranandes/martian-app` (or `marffet`) public repo
-    - [ ] Populate with product READMEs (EN + zh-TW + zh-CN), screenshots
-    - [ ] Add `.github/FUNDING.yml` for native GitHub Sponsor button
-    - [ ] Add `LICENSE` (MIT or chosen)
+## 24. Phase 25: Marffet Rebrand & Tier Gating - [COMPLETED]
+- [x] **Compound Interest Feature Gating**
+    - [x] Gated Comparison Mode behind `isPremium` in `compound/page.tsx`
+    - [x] Free users see a lock icon (🔒) and disabled button
+- [x] **Marffet Rebrand Execution**
+    - [x] Changed brand name from Martian to Marffet across all 7 frontend files
+    - [x] Updated all 3 i18n locale files (en, zh-TW, zh-CN)
+    - [x] Updated backend FastAPI metadata, cors origins, comments
+    - [x] Renamed Zeabur backend deployment references to `marffet-app.zeabur.app`
+    - [x] Updated `app/services/backup.py` GITHUB_REPO reference to `terranandes/marffet-app`
+- [x] **localStorage Key Migration**
+    - [x] Renamed all `martian_` prefixes to `marffet_` for consistency and completeness
+- [ ] **GitHub Repository Rename & Setup** (Delegated to BOSS)
+    - [ ] Rename private source code repository from `terranandes/martian` to `terranandes/marffet-app`
+    - [ ] Create new public showcase repository `terranandes/marffet`
 

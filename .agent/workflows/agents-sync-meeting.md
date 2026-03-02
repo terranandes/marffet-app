@@ -11,7 +11,9 @@ are starting a brief discussion on or follow the rules/workflows below:
 - features implemented
 - features unimplemented or deferred
 - features planned to next phase
-- deployment completeness
+- deployment completeness(marffet-app.zeabur.app)
+- private github repo completeness (terranandes/marffet)
+- puplic github repo completeness (terranandes/marffet-app)
 - discrepancy between Local-Run and Deployment (currently in Zeabur only)
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user

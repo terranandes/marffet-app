@@ -85,8 +85,8 @@ def log_activity(conn: sqlite3.Connection, user_id: str, platform: str, action: 
     )
     return log_id
 
-def get_admin_metrics(conn: sqlite3.Connection) -> Dict[str, Any]:
-    """Get admin dashboard metrics."""
+def get_admin_metrics(conn: sqlite3.Connection, gm_emails: set = None, premium_emails: set = None, vip_emails: set = None) -> Dict[str, Any]:
+    """Get admin dashboard metrics. Merges static users.subscription_tier with dynamic user_memberships and env var overrides."""
     cursor = conn.cursor()
     
     # Total users
@@ -102,22 +102,62 @@ def get_admin_metrics(conn: sqlite3.Connection) -> Dict[str, Any]:
     """)
     active_by_platform = {row['platform']: row['count'] for row in cursor.fetchall()}
     
-    # Tiers
+    # Tier counting: merge static subscription_tier + dynamic user_memberships + env var overrides
+    # Tier levels: 0=free, 1=premium, 2=vip, 3=gm
+    
+    # Step 1: Get all user emails and their static DB tier
     cursor.execute("""
-        SELECT COALESCE(subscription_tier, 0) as tier, COUNT(*) as count
+        SELECT email, COALESCE(subscription_tier, 0) as tier
         FROM users
-        GROUP BY tier
     """)
-    tiers = {row['tier']: row['count'] for row in cursor.fetchall()}
+    user_tiers = {}
+    for row in cursor.fetchall():
+        user_tiers[row['email']] = row['tier']
+    
+    # Step 2: Overlay active injected memberships (higher tier wins)
+    tier_name_to_level = {'PREMIUM': 1, 'VIP': 2}
+    try:
+        cursor.execute("""
+            SELECT email, tier FROM user_memberships
+            WHERE valid_until > datetime('now')
+        """)
+        for row in cursor.fetchall():
+            email = row['email']
+            injected_level = tier_name_to_level.get(row['tier'], 0)
+            current_level = user_tiers.get(email, 0)
+            if injected_level > current_level:
+                user_tiers[email] = injected_level
+    except Exception:
+        pass  # user_memberships table may not exist yet
+    
+    # Step 3: Overlay env var emails (highest precedence: GM > VIP > PREMIUM)
+    if gm_emails:
+        for email in gm_emails:
+            if email and email in user_tiers:
+                user_tiers[email] = 3  # GM
+    if vip_emails:
+        for email in vip_emails:
+            if email and email in user_tiers and user_tiers[email] < 2:
+                user_tiers[email] = 2  # VIP
+    if premium_emails:
+        for email in premium_emails:
+            if email and email in user_tiers and user_tiers[email] < 1:
+                user_tiers[email] = 1  # PREMIUM
+    
+    # Step 4: Count tiers (GM excluded from premium/vip counts — separate admin tier)
+    tier_counts = {0: 0, 1: 0, 2: 0, 3: 0}
+    for level in user_tiers.values():
+        if level in tier_counts:
+            tier_counts[level] += 1
     
     return {
         "total_users": total_users,
         "active_users_web": active_by_platform.get('web', 0),
         "active_users_mobile": active_by_platform.get('mobile', 0),
         "subscription_tiers": {
-            "free": tiers.get(0, 0),
-            "premium": tiers.get(1, 0),
-            "vip": tiers.get(2, 0)
+            "free": tier_counts.get(0, 0),
+            "premium": tier_counts.get(1, 0),
+            "vip": tier_counts.get(2, 0)
         }
     }
 

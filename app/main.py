@@ -1296,7 +1296,8 @@ async def get_admin_dashboard_metrics(user: dict = Depends(get_current_user)):
     
     try:
         with get_db() as conn:
-            metrics = user_repo.get_admin_metrics(conn)
+            from app.auth import GM_EMAILS, PREMIUM_EMAILS, VIP_EMAILS
+            metrics = user_repo.get_admin_metrics(conn, gm_emails=GM_EMAILS, premium_emails=PREMIUM_EMAILS, vip_emails=VIP_EMAILS)
         return metrics
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

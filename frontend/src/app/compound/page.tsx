@@ -134,14 +134,23 @@ export default function CompoundPage() {
                 { name: t('Compound.BuyLowest'), type: "line", data: res.BAL?.history?.map(h => h.value) || [], smooth: true, lineStyle: { width: 2, type: "dashed" }, itemStyle: { color: "#4ecdc4" } }
             );
         } else {
+            // Build unified X-axis from union of all stocks' year ranges
+            const allYearsSet = new Set<number>();
+            results.forEach(res => {
+                res.BAO?.history?.forEach(h => allYearsSet.add(h.year));
+            });
+            xAxisData = Array.from(allYearsSet).sort((a, b) => a - b);
+
             results.forEach((res, idx) => {
                 if (res.BAO?.history) {
-                    if (xAxisData.length === 0) xAxisData = res.BAO.history.map(h => h.year);
+                    // Create a year→value map for O(1) lookups
+                    const yearMap = new Map(res.BAO.history.map(h => [h.year, h.value]));
                     series.push({
                         name: `${res.name}(${res.code})`,
                         type: "line",
-                        data: res.BAO.history.map(h => h.value),
+                        data: xAxisData.map(year => yearMap.get(year) ?? null),
                         smooth: true,
+                        connectNulls: false,
                         lineStyle: { width: 2 },
                         itemStyle: { color: colors[idx % colors.length] }
                     });
@@ -178,14 +187,23 @@ export default function CompoundPage() {
                 { name: t('Compound.BuyLowest'), type: "line", data: res.BAL?.history?.map(h => h.dividend) || [], smooth: true, lineStyle: { type: "dashed" }, itemStyle: { color: "#4ecdc4" } }
             );
         } else {
+            // Build unified X-axis from union of all stocks' year ranges
+            const allYearsSet = new Set<number>();
+            results.forEach(res => {
+                res.BAO?.history?.forEach(h => allYearsSet.add(h.year));
+            });
+            xAxisData = Array.from(allYearsSet).sort((a, b) => a - b);
+
             results.forEach((res, idx) => {
                 if (res.BAO?.history) {
-                    if (xAxisData.length === 0) xAxisData = res.BAO.history.map(h => h.year);
+                    // Create a year→dividend map for O(1) lookups
+                    const yearMap = new Map(res.BAO.history.map(h => [h.year, h.dividend]));
                     series.push({
                         name: `${res.name}(${res.code})`,
                         type: "line",
-                        data: res.BAO.history.map(h => h.dividend),
+                        data: xAxisData.map(year => yearMap.get(year) ?? null),
                         smooth: true,
+                        connectNulls: false,
                         areaStyle: { opacity: 0.2 },
                         itemStyle: { color: colors[idx % colors.length] }
                     });

@@ -1,6 +1,6 @@
 # Marffet Investment System - Technical Specifications
-**Version**: 4.0
-**Date**: 2026-02-17
+**Version**: 5.0
+**Date**: 2026-03-03
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
@@ -28,8 +28,8 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 ### 1.1 Components
 | Component | Tech | Role | URL |
 |-----------|------|------|-----|
-| Backend | FastAPI (Python 3.12) | REST API, Auth, Simulation Engine | `martian-api.zeabur.app` |
-| Frontend | Next.js 14+ | UI, Visualization (ECharts), SSR | `martian-app.zeabur.app` |
+| Backend | FastAPI (Python 3.12) | REST API, Auth, Simulation Engine | `marffet-api.zeabur.app` |
+| Frontend | Next.js 16 (React 18) | UI, Visualization (ECharts), SSR | `marffet-app.zeabur.app` |
 
 ### 1.2 Authentication
 - **Protocol**: OAuth 2.0 (Google)
@@ -37,11 +37,43 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 - **CORS**: Backend allows specific Frontend origin
 
 ### 1.3 Access Control & Memberships
-- **Tiers**: `FREE`, `PREMIUM`, `VIP`, `GM` (Game Master)
-- **Precedence Logic**: `GM` > `VIP` > `PREMIUM`. The highest available tier is always granted.
-- **Assignment Mechanisms**:
-  1. **Static (Environment Variables)**: `GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS` configure immutable access.
-  2. **Dynamic (Database Injection)**: Manual injection via Admin Dashboard into the `user_memberships` table (`portfolio.db`). Supports varying durations (monthly, annually, lifetime) and automatic expiration handling.
+
+The system enforces a **5-tier access model** with strict precedence: `GM > VIP > PREMIUM > FREE > Guest`.
+
+#### Tier Definitions
+
+| Tier | Auth Required | How Assigned | Description |
+|:-----|:-------------|:-------------|:------------|
+| **Guest** | ❌ No login | Automatic | Unauthenticated visitor. Data stored in `localStorage` only. Severely limited. |
+| **FREE** | ✅ Google OAuth | Automatic on sign-up | Standard registered user. Server-side data persistence. |
+| **PREMIUM** | ✅ Google OAuth | `PREMIUM_EMAILS` env var or DB injection | Unlocks premium analysis and export features. |
+| **VIP** | ✅ Google OAuth | `VIP_EMAILS` env var or DB injection | All PREMIUM features + priority support + future exclusive features (email alerts, early access). |
+| **GM** | ✅ Google OAuth | `GM_EMAILS` env var only | Full admin powers: dashboard, membership injection, system operations, crawl controls. |
+
+#### Feature Access Matrix
+
+| Feature | Guest | FREE | PREMIUM | VIP | GM |
+|:--------|:------|:-----|:--------|:----|:---|
+| Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Advanced (CAGR) |
+| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| Portfolio Groups | 3 max | 11 max | 30 max | 30 max | 30 max |
+| Targets per Group | 10 max | 50 max | 200 max | 200 max | 200 max |
+| Transactions per Target | 10 max | 100 max | 1,000 max | 1,000 max | 1,000 max |
+| AI Copilot | ❌ | Educator | Wealth Manager | Wealth Manager | Wealth Manager |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered |
+| Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Membership Injection | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+#### Precedence & Resolution
+- **Precedence**: `GM > VIP > PREMIUM > FREE`. The highest available tier is always granted.
+- **Static Assignment**: `GM_EMAILS`, `PREMIUM_EMAILS`, `VIP_EMAILS` environment variables provide immutable tier assignment.
+- **Dynamic Assignment**: Manual injection via Admin Dashboard into the `user_memberships` table (`portfolio.db`). Supports durations: Monthly (30d), Annually (365d), Permanent (99y). Expired injections gracefully revert to the static tier.
+- **Effective Tier**: `max(static_tier, injected_tier)`. The `/auth/me` endpoint computes and returns the effective `tier` string and `is_premium` boolean.
 - **Sponsorship Integration**: Users sponsoring via Ko-fi or Buy Me a Coffee can have their VIP/PREMIUM status manually injected by the GM.
 
 ## 2. API Specification
@@ -49,7 +81,7 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 ### 2.1 Base URLs
 | Environment | URL |
 |-------------|-----|
-| Production | `https://martian-api.zeabur.app` |
+| Production | `https://marffet-api.zeabur.app` |
 | Local | `http://localhost:8000` |
 
 ### 2.2 Key Endpoints
@@ -126,11 +158,17 @@ These triggers currently apply globally to all users:
 ### 4.2 Environment Variables
 | Variable | Service | Example |
 |----------|---------|---------|
-| `FRONTEND_URL` | Backend | `https://martian-app.zeabur.app` |
-| `NEXT_PUBLIC_API_URL` | Frontend | `https://martian-api.zeabur.app` |
+| `FRONTEND_URL` | Backend | `https://marffet-app.zeabur.app` |
+| `NEXT_PUBLIC_API_URL` | Frontend | `https://marffet-api.zeabur.app` |
 | `SECRET_KEY` | Backend | `long_random_string` |
 
 ## 5. Changelog
+
+### v5.0 (2026-03-03) - Marffet Rebrand & Tier Matrix Formalization
+- **Rebrand**: Renamed Martian → Marffet across frontend, backend, i18n, localStorage keys, and all product documentation.
+- **Tier Matrix**: Formalized the complete 5-tier access model (Guest → FREE → PREMIUM → VIP → GM) with detailed feature access matrix.
+- **Compound Interest Gating**: Comparison Mode gated behind PREMIUM+ tier.
+- **URL Update**: All references updated to `marffet-app.zeabur.app` / `marffet-api.zeabur.app`.
 
 ### v4.2 (2026-03-02) - Admin Membership & Sponsorship
 - **Membership Injection**: Added manual VIP/PREMIUM injection via Admin Dashboard (`user_memberships` in `portfolio.db`).

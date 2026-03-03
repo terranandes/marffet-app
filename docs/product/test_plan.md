@@ -1,6 +1,6 @@
 # Marffet Investment System - Test Plan
-**Version**: 4.2
-**Date**: 2026-03-02
+**Version**: 5.0
+**Date**: 2026-03-03
 **Owner**: [CV] Agent
 
 ## 1. Automated Testing Strategy
@@ -11,7 +11,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 |-------------|-----|--------|
 | Local Backend | http://localhost:8000 | ✅ |
 | Local Frontend | http://localhost:3000 | ✅ |
-| Zeabur Backend | martian-api.zeabur.app | ✅ Deployed |
+| Zeabur Backend | marffet-api.zeabur.app | ✅ Deployed |
+| Zeabur Frontend | marffet-app.zeabur.app | ✅ Deployed |
 
 ### 1.2 Test Cases
 
@@ -41,6 +42,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-22 | JSON Serialization | FastAPI Compliance | No 500 errors from nested NumPy types |
 | TC-23 | Data Accuracy | Nominal Consistency | TSMC CAGR 2010-2025 ~19.4% |
 | TC-24 | Premium Access | Access Tier Logic | PREMIUM_EMAILS grants premium status, GM_EMAILS grants admin+premium |
+| TC-25 | Tier Matrix | 5-Tier Enforcement | Guest/FREE/PREMIUM/VIP/GM tiers resolve correctly in `/auth/me` |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
@@ -105,7 +107,7 @@ uv run tests/unit/test_mobile_portfolio.py
 - [x] Revoke injected membership works
 
 ### User Settings & Access Control
-- [x] GM > PREMIUM > VIP precedence strictly enforced in `/api/auth/me`
+- [x] GM > VIP > PREMIUM > FREE > Guest precedence strictly enforced in `/api/auth/me`
 - [x] Expired manual injected memberships gracefully revert to previous static tier
 - [x] "Sponsor Us" tab is present in Settings Modal
 - [x] Ko-fi and Buy Me a Coffee links route correctly
@@ -198,7 +200,7 @@ uv run tests/unit/test_mobile_portfolio.py
 *   **Admin Dashboard**: Verify the dashboard shows up correctly (if logged in as GM).
 
 ### 5.2 Remote Verification Scenarios
-*   **Same as 5.1**, but executed against `https://martian-api.zeabur.app` and `https://martian-app.zeabur.app`.
+*   **Same as 5.1**, but executed against `https://marffet-api.zeabur.app` and `https://marffet-app.zeabur.app`.
 *   Verify API health endpoint.
 
 ### 5.3 Evidence Capture

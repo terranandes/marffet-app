@@ -1,6 +1,6 @@
 # 🚀 Marffet App Launch - Social Media Copy
 
-**App Link:** [https://martian-app.zeabur.app/](https://martian-app.zeabur.app/)
+**App Link:** [https://marffet-app.zeabur.app/](https://marffet-app.zeabur.app/)
 **Key Selling Points:**
 - Built with **AntiGravity** AI 🤖
 - Professional Stock Backtesting 📈
@@ -23,7 +23,7 @@
 3. **超越傳統**：介面更帥、功能更強，完全可以取代 MoneyCome 和 Yahoo 股市。
 4. **贊助解鎖 VIP**：只需一杯咖啡的錢，即可解鎖進階功能！☕
 
-👉 立即免費試用： https://martian-app.zeabur.app/
+👉 立即免費試用： https://marffet-app.zeabur.app/
 
 #MarffetApp #AntiGravity #投資理財 #AI #股票回測 #美股 #台股
 
@@ -43,7 +43,7 @@
 
 🔗 **連結在個人檔案 (Link in Bio)**
 快去玩玩看！👇
-https://martian-app.zeabur.app/
+https://marffet-app.zeabur.app/
 
 #投資 #理財 #股票 #AI工具 #AntiGravity #工程師 #創業 #StockMarket
 
@@ -53,7 +53,7 @@ https://martian-app.zeabur.app/
 剛用 AntiGravity 擼了一個投資 App，功能有點太強... 😅
 可以直接回測，還有 AI 陪你聊股票。
 感覺 Yahoo 股市跟 MoneyCome 可以刪掉了 (誤)
-趁伺服器還沒爆之前快來試試： https://martian-app.zeabur.app/  
+趁伺服器還沒爆之前快來試試： https://marffet-app.zeabur.app/  
 #AI #開發 #股票
 
 ---
@@ -71,7 +71,7 @@ I built this entire platform leveraging **AntiGravity** AI, and it’s packed wi
 ✅ **Modern UI**: A superior alternative to Yahoo Finance and MoneyCome.
 ✅ **VIP Access**: Buy me a coffee to unlock Premium Tier! ☕
 
-Check it out here: https://martian-app.zeabur.app/
+Check it out here: https://marffet-app.zeabur.app/
 
 #FinTech #AI #AntiGravity #Investing #StockMarket #Backtesting
 
@@ -98,5 +98,5 @@ Stop guessing, start investing with data.
 ### Option 3: Threads (Casual)
 Just shipped a new investment app using AntiGravity AI. 🚀
 It does backtesting, has an AI consultant, and honestly... it makes Yahoo Finance look ancient.
-Give it a spin: https://martian-app.zeabur.app/
+Give it a spin: https://marffet-app.zeabur.app/
 #Builder #AI #Stocks #Coding

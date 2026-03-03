@@ -33,7 +33,7 @@ The export downloads all simulated targets as an Excel file (`.xlsx`). **No top-
 
 - **Filtered**: All targets sorted by Final Wealth descending.
 - **Unfiltered**: All targets in raw calculation order.
-- The premium flag is read from `localStorage` (`martian_premium`) on the client side.
+- The premium flag is read from `localStorage` (`marffet_premium`) on the client side.
 
 ### 1.2 BCR (Bar Chart Race) Tab
 The **Bar Chart Race** provides a dynamic, animated visualization of the wealth trajectories for the top candidates identified in the Mars Strategy.

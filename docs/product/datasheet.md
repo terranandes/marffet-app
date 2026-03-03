@@ -59,18 +59,23 @@ The **Marffet Investment System** is a web-based simulation and portfolio manage
 | **Advice** | Suggests selling overheated stocks (+20% vs SMA) |
 | **Motto** | *"Execute the strategy. Don't fall in love with a stock."*
 
-#### Free vs Premium Feature Comparison
+#### Feature Comparison by Tier
 
-| Feature | Guest | Free | Premium |
-|---------|-------|------|---------|
-| **AI Bot Personality** | None | Educator (encouragement) | Ruthless Wealth Manager (rebalancing advice) |
-| **Portfolio Groups** | 3 max | 11 max | 30 max |
-| **Targets per Group** | 10 max | 50 max | 200 max |
-| **Transactions per Target** | 10 max | 100 max | 1000 max |
-| **CB Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts |
-| **Rebalancing Notifications** | ❌ | ❌ | ✅ In-App notification plus Email alerts when portfolio needs rebalancing |
-| **Bar Chart Race** | Basic | Basic | Advanced (custom metrics) |
-| **Data Export** | ❌ | ✅ Unfiltered CSV/Excel | ✅ Filtered CSV/Excel |
+| Feature | Guest | Free | Premium | VIP | GM |
+|---------|-------|------|---------|-----|----|
+| **AI Bot Personality** | None | 🎓 Educator (encouragement) | 💼 Ruthless Wealth Manager | 💼 Ruthless Wealth Manager | 💼 Ruthless Wealth Manager |
+| **Portfolio Groups** | 3 max | 11 max | 30 max | 30 max | 30 max |
+| **Targets per Group** | 10 max | 50 max | 200 max | 200 max | 200 max |
+| **Transactions per Target** | 10 max | 100 max | 1000 max | 1000 max | 1000 max |
+| **Compound Interest Comparison** | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| **CB Notifications** | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| **Rebalancing Notifications** | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| **Bar Chart Race** | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Advanced (CAGR) |
+| **Data Export** | ❌ | ✅ Unfiltered Excel | ✅ Filtered + Unfiltered | ✅ Filtered + Unfiltered | ✅ Filtered + Unfiltered |
+| **Server-Side Data** | ❌ (localStorage only) | ✅ | ✅ | ✅ | ✅ |
+| **Priority Support** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Early Access Features** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Admin Dashboard** | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ### 2.1 Premium Rebalancing Engine (Core Feature)
 The **Ruthless Wealth Manager** continuously monitors your portfolio against three key discipline metrics. Premium users receive **In-App Notifications** when action is required.
@@ -94,6 +99,7 @@ The **Ruthless Wealth Manager** continuously monitors your portfolio against thr
 - **Mechanism**: Users sponsor via external platforms (Ko-fi, Buy Me a Coffee).
 - **Fulfillment**: The GM (Game Master) manually injects the membership into the user's account via the Admin Dashboard.
 - **Precedence**: Tier ordering is `GM > VIP > PREMIUM > Free > Guest`. Manually injected memberships override the default Free tier, but static environment variables (`GM_EMAILS`, etc.) take absolute precedence. Guest users (no login) are not eligible.
+- **VIP vs PREMIUM**: VIP is a higher honor tier for top supporters — includes all PREMIUM features plus priority support and early access to new features.
 
 ## 3. Target Audience
 -   **Retail Investors**: Looking to backtest strategies.

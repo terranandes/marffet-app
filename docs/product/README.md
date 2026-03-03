@@ -10,7 +10,7 @@ Marffet is a web-based investment simulation and portfolio management tool that 
 ## 🚀 Getting Started
 
 ### Access the App
-- **URL**: [https://martian-app.zeabur.app](https://martian-app.zeabur.app)
+- **URL**: [https://marffet-app.zeabur.app](https://marffet-app.zeabur.app)
 - **Login**: Sign in with your **Google Account**
 - **Guest Mode**: Explore the simulator and visualizations without creating an account
 
@@ -92,19 +92,25 @@ An intelligent investment assistant powered by Google Gemini.
 
 ---
 
-## 💎 Free vs Premium
+## 💎 Membership Tiers
 
-| Feature | Guest | Free | Premium |
-|:--------|:------|:-----|:--------|
-| Mars Strategy | ✅ | ✅ | ✅ |
-| Bar Chart Race | Basic | Basic | Advanced (CAGR metrics) |
-| Portfolio Groups | 3 | 11 | 30 |
-| Targets per Group | 10 | 50 | 200 |
-| Transactions per Target | 10 | 100 | 1,000 |
-| AI Copilot | ❌ | Educator | Wealth Manager |
-| CB Notifications | ❌ | ❌ | ✅ In-App + Email |
-| Rebalancing Alerts | ❌ | ❌ | ✅ In-App + Email |
-| Data Export | ❌ | Unfiltered Excel | Filtered Excel |
+| Feature | Guest | Free | Premium | VIP | GM |
+|:--------|:------|:-----|:--------|:----|:---|
+| Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Advanced (CAGR) |
+| Compound Interest Comparison | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| Portfolio Groups | 3 | 11 | 30 | 30 | 30 |
+| Targets per Group | 10 | 50 | 200 | 200 | 200 |
+| Transactions per Target | 10 | 100 | 1,000 | 1,000 | 1,000 |
+| AI Copilot | ❌ | 🎓 Educator | 💼 Wealth Manager | 💼 Wealth Manager | 💼 Wealth Manager |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered |
+| Priority Support | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Early Access | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+> **How to upgrade?** Go to ⚙️ Settings → Sponsor Us → choose Ko-fi or Buy Me a Coffee. The GM will inject your membership!
 
 ---
 
@@ -126,4 +132,4 @@ Love the Marffet Investment System? You can sponsor our development and unlock *
 
 ---
 
-*Built with ❤️ by the Marffet AI Team • v4.2*
+*Built with ❤️ by the Marffet AI Team • v5.0*

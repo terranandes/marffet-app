@@ -452,7 +452,13 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Updated `app/services/backup.py` GITHUB_REPO reference to `terranandes/marffet`
 - [x] **localStorage Key Migration**
     - [x] Renamed all `martian_` prefixes to `marffet_` for consistency and completeness
-- [ ] **GitHub Repository Rename & Setup** (Delegated to BOSS)
-    - [ ] Rename private source code repository from `terranandes/martian` to `terranandes/marffet`
-    - [ ] Create new public showcase repository `terranandes/marffet-app`
+- [x] **GitHub Repository Rename & Setup** (Completed by BOSS)
+    - [x] Rename private source code repository from `terranandes/martian` to `terranandes/marffet`
+    - [x] Create new public showcase repository `terranandes/marffet-app`
+- [x] **5-Tier Access Model Formalization** (Document-Flow)
+    - [x] Defined Guest → FREE → PREMIUM → VIP → GM across all product docs
+    - [x] `specification.md` v5.0, `auth_db_architecture.md` v2.0, `datasheet.md`, `README.md` ×4, `test_plan.md`, `social_media_promo.md`
+    - [x] Cleaned all residual `martian-app/api` URL references from 10 product docs
+- [x] **Agents Sync Meeting - 2026-03-03 v3** (Ref: `docs/meeting/meeting_notes_2026_03_03_sync_v3.md` & `docs/code_review/code_review_2026_03_03_sync_v2.md`)
+    - Document-flow: 10 files, 205+/80−. Tier formalization complete. Zero residual martian refs.
 

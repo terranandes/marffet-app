@@ -87,7 +87,7 @@ To enable this flow, the Backend service requires specific environment variables
 | Variable | Description | Example |
 | :--- | :--- | :--- |
 | `GITHUB_TOKEN` | Personal Access Token (classic) with `repo` scope permission. | `ghp_A1b2...` |
-| `GITHUB_REPO` | The `username/repository` string. | `terranandes/martian` |
+| `GITHUB_REPO` | The `username/repository` string. | `terranandes/marffet` |
 
 ---
 

@@ -10,7 +10,7 @@ Marffet 是一款基于网页的投资模拟与投资组合追踪工具，旨在
 ## 🚀 快速开始
 
 ### 访问应用程序
-- **网址**: [https://martian-app.zeabur.app](https://martian-app.zeabur.app)
+- **网址**: [https://marffet-app.zeabur.app](https://marffet-app.zeabur.app)
 - **登录方式**: 使用您的 **Google 账号** 登录
 - **访客模式**: 无需建立账号即可探索模拟器与可视化图表
 

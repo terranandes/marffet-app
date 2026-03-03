@@ -11,7 +11,7 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 - [ ] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
 - [ ] Adjust the license to MIT?
-- [ ] Add 'buymeacoffee'/`ko-fi` button to the GitHub ./README.md
+- [ ] Add `buymeacoffee`/`ko-fi` button to the GitHub ./README.md
 - [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
 
 - [x] Rename the English name Martian to Marffet

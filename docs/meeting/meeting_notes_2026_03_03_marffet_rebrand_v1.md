@@ -23,7 +23,7 @@
 | # | Task | Owner | Status |
 |---|------|-------|--------|
 | 5 | Update product documentation (READMEs, datasheet, spec) | [PL]/[PM] | ⏳ Pending |
-| 6 | Create public repo `terranandes/marffet` | [PL] | ⏳ Pending |
+| 6 | Create public repo `terranandes/marffet-app` | [PL] | ⏳ Pending |
 | 7 | Update `tasks.md` and final commit | [PL] | ⏳ Pending |
 
 ---
@@ -47,8 +47,8 @@ After pushing `master` to origin and the Zeabur auto-deploy succeeds, Terran mus
 
 | # | Action | Details |
 |---|--------|---------|
-| 7 | **Rename private repo** | Rename `terranandes/martian` to `terranandes/marffet-app` |
-| 8 | **Create public repo** | Create `terranandes/marffet` for project showcase |
+| 7 | **Rename private repo** | Rename `terranandes/martian` to `terranandes/marffet` |
+| 8 | **Create public repo** | Create `terranandes/marffet-app` for project showcase |
 | 9 | **Add documentation** | Push product READMEs (EN, zh-TW, zh-CN) to the public repo |
 
 ### Google Cloud Console (OAuth)
@@ -85,6 +85,6 @@ After pushing `master` to origin and the Zeabur auto-deploy succeeds, Terran mus
 |----------|---------|-----------|
 | Rename app to "Marffet" (Martian + Buffet) | BOSS | Brand identity evolution |
 | Rename localStorage keys to `marffet_` | BOSS | Completeness over backward compat |
-| Keep private repo as `terranandes/martian` | BOSS | No repo name disruption |
-| Create separate public repo `terranandes/marffet` | BOSS | Clean showcase isolation |
+| Rename private repo to `terranandes/marffet` | BOSS | Clean brand alignment |
+| Create separate public repo `terranandes/marffet-app` | BOSS | Clean showcase isolation |
 | Gate comparison mode behind PREMIUM+ | BOSS | Feature differentiation for tier value |

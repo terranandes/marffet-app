@@ -449,10 +449,10 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Updated all 3 i18n locale files (en, zh-TW, zh-CN)
     - [x] Updated backend FastAPI metadata, cors origins, comments
     - [x] Renamed Zeabur backend deployment references to `marffet-app.zeabur.app`
-    - [x] Updated `app/services/backup.py` GITHUB_REPO reference to `terranandes/marffet-app`
+    - [x] Updated `app/services/backup.py` GITHUB_REPO reference to `terranandes/marffet`
 - [x] **localStorage Key Migration**
     - [x] Renamed all `martian_` prefixes to `marffet_` for consistency and completeness
 - [ ] **GitHub Repository Rename & Setup** (Delegated to BOSS)
-    - [ ] Rename private source code repository from `terranandes/martian` to `terranandes/marffet-app`
-    - [ ] Create new public showcase repository `terranandes/marffet`
+    - [ ] Rename private source code repository from `terranandes/martian` to `terranandes/marffet`
+    - [ ] Create new public showcase repository `terranandes/marffet-app`
 

@@ -15,8 +15,8 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 - [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
 
 - [x] Rename the English name Martian to Marffet
-- [ ] Rename private GitHub repo from terranandes/martian to terranandes/marffet-app
-- [ ] Create new public GitHub repo terranandes/marffet for project showcase
+- [ ] Rename private GitHub repo from terranandes/martian to terranandes/marffet
+- [ ] Create new public GitHub repo terranandes/marffet-app for project showcase
 - [ ] Rename Zeabur frontend service to marffet-app and backend to marffet-api
 ---
 

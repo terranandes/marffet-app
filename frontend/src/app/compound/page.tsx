@@ -121,7 +121,7 @@ export default function CompoundPage() {
     const wealthChartOption = useMemo(() => {
         if (results.length === 0) return {};
 
-        const colors = ["#00ffc3", "#ff6b6b", "#4ecdc4", "#ffe66d", "#a29bfe", "#fd79a8"];
+        const colors = ["#00ffc3", "#ff6b6b", "#ffd700", "#a29bfe", "#fd79a8", "#45b7d1"];
         const series: object[] = [];
         let xAxisData: number[] = [];
 
@@ -165,7 +165,7 @@ export default function CompoundPage() {
     const dividendChartOption = useMemo(() => {
         if (results.length === 0) return {};
 
-        const colors = ["#00ffc3", "#ff6b6b", "#4ecdc4", "#ffe66d", "#a29bfe", "#fd79a8"];
+        const colors = ["#00ffc3", "#ff6b6b", "#ffd700", "#a29bfe", "#fd79a8", "#45b7d1"];
         const series: object[] = [];
         let xAxisData: number[] = [];
 

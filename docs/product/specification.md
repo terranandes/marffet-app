@@ -55,16 +55,16 @@ The system enforces a **5-tier access model** with strict precedence: `GM > VIP 
 | Feature | Guest | FREE | PREMIUM | VIP | GM |
 |:--------|:------|:-----|:--------|:----|:---|
 | Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Advanced (CAGR) |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Full |
 | Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
-| Portfolio Groups | 3 max | 11 max | 30 max | 30 max | 30 max |
-| Targets per Group | 10 max | 50 max | 200 max | 200 max | 200 max |
-| Transactions per Target | 10 max | 100 max | 1,000 max | 1,000 max | 1,000 max |
-| AI Copilot | ❌ | Educator | Wealth Manager | Wealth Manager | Wealth Manager |
-| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
-| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
-| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered |
+| Portfolio Groups | 3 max | 11 max | 20 max | 30 max | ∞  |
+| Targets per Group | 10 max | 50 max | 100 max | 200 max | ∞  |
+| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max | ∞  |
+| AI Copilot | ❌ | Educator | Educator | Wealth Manager | Full |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | Full |
 | Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Membership Injection | ❌ | ❌ | ❌ | ❌ | ✅ |

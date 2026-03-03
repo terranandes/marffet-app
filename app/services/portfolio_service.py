@@ -3,32 +3,37 @@ from typing import List, Dict, Any
 import sqlite3
 
 from app.database import get_db
-from app.config import FREE_MAX_GROUPS, PREMIUM_MAX_GROUPS, FREE_MAX_TX_PER_TARGET, PREMIUM_MAX_TX_PER_TARGET
+from app.config import (
+    FREE_MAX_GROUPS, PREMIUM_MAX_GROUPS, VIP_MAX_GROUPS, GM_MAX_GROUPS,
+    FREE_MAX_TARGETS_PER_GROUP, PREMIUM_MAX_TARGETS_PER_GROUP, VIP_MAX_TARGETS_PER_GROUP, GM_MAX_TARGETS_PER_GROUP,
+    FREE_MAX_TX_PER_TARGET, PREMIUM_MAX_TX_PER_TARGET, VIP_MAX_TX_PER_TARGET, GM_MAX_TX_PER_TARGET
+)
 from app.repositories import user_repo, group_repo, target_repo, transaction_repo
 from app.services import market_data_service, calculation_service
 
 def create_group(user_id: str, name: str) -> Dict[str, Any]:
     with get_db() as conn:
         # Check tier limits
-        user_repo.get_user_profile(conn, user_id)
-        # Assuming profile has subscription_tier? user_repo.get_user_profile returns dict.
-        # But 'subscription_tier' might not be in the select list of get_user_profile?
-        # Checked user_repo: select nickname, picture, total_wealth, total_cost, total_roi, last_synced.
-        # It misses subscription_tier! I need to fix user_repo or fetch it here.
-        # I'll Fix user_repo later or just fetch tier here raw SQL?
-        # Better to fix user_repo or add get_tier.
-        # For now, I'll fetch tier manually to avoid context switch loop.
         cursor = conn.cursor()
-        cursor.execute("SELECT COALESCE(subscription_tier, 0) FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
-        tier = row[0] if row else 0
+        if not row:
+            raise ValueError("User not found")
         
-        limit = PREMIUM_MAX_GROUPS if tier > 0 else FREE_MAX_GROUPS
+        from app.auth import get_user_tier_by_email
+        tier = get_user_tier_by_email(conn, row['email'])
+        
+        limits = {
+            'FREE': FREE_MAX_GROUPS,
+            'PREMIUM': PREMIUM_MAX_GROUPS,
+            'VIP': VIP_MAX_GROUPS,
+            'GM': GM_MAX_GROUPS
+        }
+        limit = limits.get(tier, FREE_MAX_GROUPS)
         count = group_repo.count_groups(conn, user_id)
         
         if count >= limit:
-            tier_name = "Premium" if tier > 0 else "Free"
-            raise ValueError(f"Maximum {limit} groups allowed for {tier_name} tier")
+            raise ValueError(f"Maximum {limit} groups allowed for {tier} tier")
             
         group = group_repo.create_group(conn, user_id, name)
         group_repo.mark_initialized(conn, user_id)
@@ -66,6 +71,35 @@ def add_target(group_id: str, stock_id: str, stock_name: str = None, asset_type:
         stock_name = market_data_service.fetch_stock_name(stock_id)
         
     with get_db() as conn:
+        # Get group owner ID to check limits
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id FROM user_groups WHERE id = ?", (group_id,))
+        row = cursor.fetchone()
+        if not row:
+            raise ValueError("Group not found")
+            
+        user_id = row[0]
+        cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+        email_row = cursor.fetchone()
+        
+        if email_row:
+            from app.auth import get_user_tier_by_email
+            tier = get_user_tier_by_email(conn, email_row['email'])
+            
+            limits = {
+                'FREE': FREE_MAX_TARGETS_PER_GROUP,
+                'PREMIUM': PREMIUM_MAX_TARGETS_PER_GROUP,
+                'VIP': VIP_MAX_TARGETS_PER_GROUP,
+                'GM': GM_MAX_TARGETS_PER_GROUP
+            }
+            limit = limits.get(tier, FREE_MAX_TARGETS_PER_GROUP)
+            
+            cursor.execute("SELECT COUNT(*) FROM group_targets WHERE group_id = ?", (group_id,))
+            count = cursor.fetchone()[0]
+            
+            if count >= limit:
+                raise ValueError(f"Maximum {limit} targets per group allowed for {tier} tier")
+
         return target_repo.add_target(conn, group_id, stock_id, stock_name, asset_type)
 
 def list_targets(group_id: str) -> List[Dict[str, Any]]:
@@ -99,22 +133,32 @@ def add_transaction(target_id: str, tx_type: str, shares: int, price: float, tx_
         # Complex join. 
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT COALESCE(u.subscription_tier, 0), u.id
+            SELECT u.email, u.id
             FROM group_targets gt
             JOIN user_groups ug ON gt.group_id = ug.id
             JOIN users u ON ug.user_id = u.id
             WHERE gt.id = ?
         """, (target_id,))
         row = cursor.fetchone()
-        tier = row[0] if row else 0
-        user_id = row[1] if row else None
         
-        limit = PREMIUM_MAX_TX_PER_TARGET if tier > 0 else FREE_MAX_TX_PER_TARGET
-        count = transaction_repo.count_transactions(conn, target_id)
-        
-        if count >= limit:
-            tier_name = "Premium" if tier > 0 else "Free"
-            raise ValueError(f"Maximum {limit} transactions per target for {tier_name} tier")
+        if row:
+            user_id = row['id']
+            from app.auth import get_user_tier_by_email
+            tier = get_user_tier_by_email(conn, row['email'])
+            
+            limits = {
+                'FREE': FREE_MAX_TX_PER_TARGET,
+                'PREMIUM': PREMIUM_MAX_TX_PER_TARGET,
+                'VIP': VIP_MAX_TX_PER_TARGET,
+                'GM': GM_MAX_TX_PER_TARGET
+            }
+            limit = limits.get(tier, FREE_MAX_TX_PER_TARGET)
+            count = transaction_repo.count_transactions(conn, target_id)
+            
+            if count >= limit:
+                raise ValueError(f"Maximum {limit} transactions per target for {tier} tier")
+        else:
+            user_id = None
             
         tx = transaction_repo.add_transaction(conn, target_id, tx_type, shares, price, tx_date)
         

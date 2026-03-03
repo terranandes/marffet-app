@@ -292,6 +292,51 @@ async def auth_callback(request: Request):
         traceback.print_exc()
         return RedirectResponse(url=f"{FRONTEND_URL}?error=auth_failed")
 
+def get_user_tier_by_email(conn, email: str) -> str:
+    """Helper clearly evaluating precedence: GM > VIP > PREMIUM > FREE/Injected."""
+    # 1. Fetch Injected DB membership
+    cursor = conn.cursor()
+    cursor.execute("SELECT tier, valid_until FROM user_memberships WHERE email = ?", (email,))
+    membership_record = cursor.fetchone()
+
+    is_injected_premium = False
+    injected_tier = None
+    if membership_record:
+        try:
+            from datetime import datetime
+            valid_until = datetime.fromisoformat(membership_record['valid_until'])
+            if valid_until > datetime.now():
+                is_injected_premium = True
+                injected_tier = membership_record['tier']
+        except Exception as e:
+            print(f"[AUTH] Error parsing membership valid_until: {e}")
+
+    # 2. Check Static File-based Overrides
+    email_clean = email.strip().lower()
+    is_admin = email_clean in GM_EMAILS
+    is_env_vip = email_clean in VIP_EMAILS
+    is_env_premium = email_clean in PREMIUM_EMAILS
+
+    # Calculate effective tier based on highest precedence: GM > VIP > PREMIUM > FREE
+    tier_levels = {'FREE': 0, 'PREMIUM': 1, 'VIP': 2, 'GM': 3}
+
+    # Static config tier
+    static_tier = 'FREE'
+    if is_admin:
+        static_tier = 'GM'
+    elif is_env_vip:
+        static_tier = 'VIP'
+    elif is_env_premium:
+        static_tier = 'PREMIUM'
+
+    # Injected config tier
+    db_tier = injected_tier if is_injected_premium and injected_tier else 'FREE'
+
+    # The effective tier is the highest of the two
+    tier = static_tier if tier_levels.get(static_tier, 0) >= tier_levels.get(db_tier, 0) else db_tier
+    return tier
+
+
 @router.get("/me")
 async def get_me(request: Request): 
     # Checking raw session first for debug
@@ -309,56 +354,15 @@ async def get_me(request: Request):
     from app.repositories import user_repo
     with get_db() as conn:
         db_profile = user_repo.get_user_public_profile(conn, user['id'])
+        # Use helper
+        tier = get_user_tier_by_email(conn, user.get('email', ''))
         
-        # Check for injected VIP/Premium membership
-        cursor = conn.cursor()
-        cursor.execute("SELECT tier, valid_until FROM user_memberships WHERE email = ?", (user['email'],))
-        membership_record = cursor.fetchone()
-
-        
-    # Check if user is admin
-    is_admin = user.get('email', '').strip().lower() in GM_EMAILS
-    
-    # Check if user has premium privilege (admin or explicit email)
-    is_env_premium = is_admin or user.get('email', '').strip().lower() in PREMIUM_EMAILS or user.get('email', '').strip().lower() in VIP_EMAILS
-    is_env_vip = user.get('email', '').strip().lower() in VIP_EMAILS
-    
-    # Evaluate injected membership
-    is_injected_premium = False
-    injected_tier = None
-    if membership_record:
-        # Check if valid_until is in the future
-        try:
-            from datetime import datetime
-            valid_until = datetime.fromisoformat(membership_record['valid_until'])
-            if valid_until > datetime.now():
-                is_injected_premium = True
-                injected_tier = membership_record['tier']
-        except Exception as e:
-            print(f"[AUTH] Error parsing membership valid_until: {e}")
-
-    # Calculate effective tier based on highest precedence: GM > VIP > PREMIUM > FREE
-    # Default is FREE
-    tier_levels = {'FREE': 0, 'PREMIUM': 1, 'VIP': 2, 'GM': 3}
-    
-    # Static config tier
-    static_tier = 'FREE'
-    if is_admin:
-        static_tier = 'GM'
-    elif is_env_vip:
-        static_tier = 'VIP'
-    elif user.get('email', '').strip().lower() in PREMIUM_EMAILS:
-        static_tier = 'PREMIUM'
-        
-    # Injected config tier
-    db_tier = injected_tier if is_injected_premium and injected_tier else 'FREE'
-
-    # The effective tier is the highest of the two
-    tier = static_tier if tier_levels.get(static_tier, 0) >= tier_levels.get(db_tier, 0) else db_tier
+    # Check if user is admin explicitly
+    is_admin = tier == 'GM'
     
     # GM and VIP are treated as premium-capable tiers (all premium features unlocked)
     # PREMIUM tier gets a subset of premium features (defined by frontend gating)
-    is_premium = is_env_premium or is_injected_premium or (tier in ['VIP', 'PREMIUM', 'GM'])
+    is_premium = tier in ['PREMIUM', 'VIP', 'GM']
 
     
     # GEMINI CHECK

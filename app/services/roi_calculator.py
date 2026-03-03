@@ -205,10 +205,23 @@ class ROICalculator:
                 yearly_action_prices = df.groupby('year')['close'].first()
 
             yearly_end_prices = df.groupby('year')['close'].last()
-            # Filter out orphan years with < 20 trading days (pre-IPO rogue data)
+            # Filter: keep only the latest contiguous block of years
+            # This removes pre-IPO / 興櫃 (emerging board) data that precedes
+            # a gap before the stock's main board listing (IPO).
             year_counts = df.groupby('year').size()
-            valid_years = set(year_counts[year_counts >= 20].index)
-            sorted_years = sorted([y for y in years if y >= start_year and y in valid_years])
+            substantial_years = sorted([y for y in years if y >= start_year and year_counts.get(y, 0) >= 20])
+            if substantial_years:
+                # Split into contiguous groups (gap > 1 year = new group)
+                groups = [[substantial_years[0]]]
+                for y in substantial_years[1:]:
+                    if y - groups[-1][-1] <= 1:
+                        groups[-1].append(y)
+                    else:
+                        groups.append([y])
+                # Keep only the latest (most recent) contiguous group
+                sorted_years = groups[-1]
+            else:
+                sorted_years = []
         if not sorted_years:
             return {}
             

@@ -205,7 +205,10 @@ class ROICalculator:
                 yearly_action_prices = df.groupby('year')['close'].first()
 
             yearly_end_prices = df.groupby('year')['close'].last()
-            sorted_years = sorted([y for y in years if y >= start_year])
+            # Filter out orphan years with < 20 trading days (pre-IPO rogue data)
+            year_counts = df.groupby('year').size()
+            valid_years = set(year_counts[year_counts >= 20].index)
+            sorted_years = sorted([y for y in years if y >= start_year and y in valid_years])
         if not sorted_years:
             return {}
             

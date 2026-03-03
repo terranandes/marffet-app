@@ -462,3 +462,13 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-03 v3** (Ref: `docs/meeting/meeting_notes_2026_03_03_sync_v3.md` & `docs/code_review/code_review_2026_03_03_sync_v2.md`)
     - Document-flow: 10 files, 205+/80−. Tier formalization complete. Zero residual martian refs.
 
+## 25. Phase 26: Tier Differentiation (Backend Gating) - [IN PROGRESS]
+- [ ] **Backend: 4-Tier Limit Enforcement**
+    - [x] `config.py`: Added VIP/GM tier constants (Groups: 20/30/1000, Targets: 100/200/1000, Tx: 500/1000/10000)
+    - [ ] `auth.py`: Extract `get_user_tier_by_email()` helper — 🔴 **BUG-A: Duplicate `get_me` route + misplaced helper** (needs fix)
+    - [ ] `portfolio_service.py`: Tier-aware limits for create_group, add_target, add_transaction — 🔴 **BUG-B: Missing 5 module-level imports** (needs fix)
+    - [x] `specification.md`: Updated tier matrix (PREMIUM vs VIP differentiation)
+- [ ] **Verification**: Local smoke test after bug fixes (create group, add target, add transaction for each tier)
+- [/] **Agents Sync Meeting - 2026-03-03 v4** (Ref: `docs/meeting/meeting_notes_2026_03_03_sync_v4.md` & `docs/code_review/code_review_2026_03_03_sync_v3.md`)
+    - Code review: FAIL. 2 critical bugs found in `auth.py` and `portfolio_service.py`. Config + spec verified correct.
+

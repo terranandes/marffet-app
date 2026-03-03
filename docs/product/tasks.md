@@ -472,3 +472,19 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-03 v4** (Ref: `docs/meeting/meeting_notes_2026_03_03_sync_v4.md` & `docs/code_review/code_review_2026_03_03_sync_v3.md`)
     - Code review: FAIL → bugs fixed → committed `b419ea8`
 
+## 26. Phase 27: Chart Visualization & Data Integrity Fixes - [COMPLETED]
+- [x] **Comparison Mode X-Axis Alignment** (`fd33f1c`)
+    - [x] Built unified year-set from all stocks' history arrays (not just first stock)
+    - [x] Null-padding for missing years + `connectNulls: false`
+    - [x] Fixes 6533 (IPO ~2017) being plotted at wrong year positions vs 0050/2330
+- [x] **Comparison Chart Color Distinction** (`a0aeb4d`)
+    - [x] Stock 3 color changed from teal (too similar to Stock 1 cyan) to gold
+- [x] **Pre-IPO / 興櫃 Data Filtering** (`e4d0448`)
+    - [x] Root cause: DuckDB had 2 rogue data points for 6533 from 2004 (pre-IPO/未上市)
+    - [x] Gap detection algorithm in `roi_calculator.py`: years < 20 trading days excluded, then contiguous-block split, keep only latest group
+    - [x] Filters both orphan pre-listing points AND 興櫃 (emerging board) data preceding an IPO gap
+- [x] **BUG-012-CV Filed** — Home page i18n keys displayed raw (pre-existing, not regression)
+- [x] **Full E2E Local Test Sweep** — All 8 tabs verified via Playwright MCP
+- [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_03_04_sync_v1.md`)
+    - Prioritized next steps: BUG-012 fix, full-test restart, 5-tier E2E testing
+

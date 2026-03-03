@@ -1,9 +1,9 @@
-# 👽 Martian Investment System
+# 👽 Marffet Investment System
 **Your AI-powered investment companion.** Backtest strategies, track your portfolio, and compete on the leaderboard — all in a sleek, cyberpunk interface.
 
-## 🌟 What Is Martian?
+## 🌟 What Is Marffet?
 
-Martian is a web-based investment simulation and portfolio management tool that **proves "time in the market beats timing the market."** Watch 20+ years of Taiwan stock history unfold in dynamic visualizations, compare your performance against proven strategies, and get AI-powered insights.
+Marffet is a web-based investment simulation and portfolio management tool that **proves "time in the market beats timing the market."** Watch 20+ years of Taiwan stock history unfold in dynamic visualizations, compare your performance against proven strategies, and get AI-powered insights.
 
 ---
 
@@ -26,7 +26,7 @@ Martian is a web-based investment simulation and portfolio management tool that 
 ## 📊 Features
 
 ### 1. Mars Strategy Simulator 🪐
-The core of Martian. Simulates 20+ years of investment history to find the **Top 50 Survivors**.
+The core of Marffet. Simulates 20+ years of investment history to find the **Top 50 Survivors**.
 
 - **Customizable**: Set your Start Year, Initial Capital, and Annual Contribution
 - **Three Strategies**: Compare Buy-At-Opening (BAO), Buy-At-Highest (BAH), and Buy-At-Lowest (BAL)
@@ -69,7 +69,7 @@ Your personal bar chart race — watch your own holdings compete against each ot
 - **Quarterly Resolution**: See shifts in your top performers each quarter
 
 ### 7. Cash Ladder (Leaderboard) 🏆
-See how your ROI compares against other Martian users.
+See how your ROI compares against other Marffet users.
 
 - **Global Rankings**: Sorted by ROI percentage
 - **Public Profiles**: View others' top holdings and allocation (without dollar amounts)
@@ -110,7 +110,7 @@ An intelligent investment assistant powered by Google Gemini.
 
 ## ☕ Sponsorship & Memberships
 
-Love the Martian Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
+Love the Marffet Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
 
 1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
 2. Choose your preferred platform: [Ko-fi](https://ko-fi.com/terranandes) or [Buy Me a Coffee](https://buymeacoffee.com/terranandes).
@@ -126,4 +126,4 @@ Love the Martian Investment System? You can sponsor our development and unlock *
 
 ---
 
-*Built with ❤️ by the Martian AI Team • v4.2*
+*Built with ❤️ by the Marffet AI Team • v4.2*

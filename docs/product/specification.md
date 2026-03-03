@@ -1,4 +1,4 @@
-# Martian Investment System - Technical Specifications
+# Marffet Investment System - Technical Specifications
 **Version**: 4.0
 **Date**: 2026-02-17
 **Owner**: [SPEC] Agent

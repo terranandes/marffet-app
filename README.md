@@ -1,4 +1,4 @@
-# Martian Investment System 🚀
+# Marffet Investment System 🚀
 
 A full-stack quantitative stock analysis platform verifying that **"Time in the market beats timing the market."**
 
@@ -13,7 +13,7 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 -   **Compound Interest**: Simulate long-term compounding for single stocks or compare up to 3 assets.
 -   **Portfolio Tracker**: Manage holdings and transactions with a sleek Webull-style UI, ECharts allocation donuts, and live P/L.
 -   **Trend & My Race**: Personal investment curve + your holdings racing against each other.
--   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Martians.
+-   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Marffetians.
 -   **CB Arbitrage**: Convertible Bond premium monitoring and yield hunting.
 -   **AI Copilot**: Investment assistant powered by Gemini (Free: Educator / Premium: Wealth Manager).
 -   **Extreme Speed**: DuckDB + vectorized numpy resolves 20-year calculations in `<200ms`.
@@ -86,7 +86,7 @@ A: We recommend using a service that supports Docker or Python/Node apps, such a
 
 ## ☕ Sponsorship & Memberships
 
-Love the Martian Investment System? Support the project and unlock **Premium** or **VIP** features!
+Love the Marffet Investment System? Support the project and unlock **Premium** or **VIP** features!
 - ☕ **[Ko-fi](https://ko-fi.com/terranandes)**
 - 💛 **[Buy Me a Coffee](https://buymeacoffee.com/terranandes)**
 

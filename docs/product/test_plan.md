@@ -1,4 +1,4 @@
-# Martian Investment System - Test Plan
+# Marffet Investment System - Test Plan
 **Version**: 4.2
 **Date**: 2026-03-02
 **Owner**: [CV] Agent
@@ -17,7 +17,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 
 | ID | Feature | Description | Criteria |
 |----|---------|-------------|----------|
-| TC-01 | Landing | Home page loads | Title contains "Martian" |
+| TC-01 | Landing | Home page loads | Title contains "Marffet" |
 | TC-02 | Mars Strategy | Simulation works | Stock table shows 50 rows |
 | TC-03 | BCR | Bar Chart Race | Wealth/CAGR toggle works |
 | TC-04 | Guest Mode | Guest button | Creates guest session |

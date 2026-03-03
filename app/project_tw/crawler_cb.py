@@ -27,7 +27,7 @@ class CBCrawler:
         try:
             async with httpx.AsyncClient(verify=False) as client:
                 # No headers needed for OpenAPI usually, but adding User-Agent is good practice
-                headers = {"User-Agent": "MartianBot/1.0"}
+                headers = {"User-Agent": "MarffetBot/1.0"}
                 resp = await client.get(self.issuance_url, headers=headers, timeout=15.0)
                 if resp.status_code == 200:
                     data = resp.json()

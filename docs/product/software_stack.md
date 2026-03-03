@@ -1,4 +1,4 @@
-# Martian Investment System - Software Stack
+# Marffet Investment System - Software Stack
 **Version**: 4.2
 **Date**: 2026-03-02
 **Owner**: [PL][CODE][UI]

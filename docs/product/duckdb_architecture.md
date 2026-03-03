@@ -5,7 +5,7 @@
 **Primary Storage**: `data/market.duckdb`
 
 ## 1. Overview
-As of v3.0, the Martian system has transitioned from a JSON-based memory cache to a **columnar DuckDB DataLake**. This move was driven by the need to:
+As of v3.0, the Marffet system has transitioned from a JSON-based memory cache to a **columnar DuckDB DataLake**. This move was driven by the need to:
 - Reduce RAM usage on constrained environments (Zeabur).
 - Support large-scale, daily-level financial simulations (Mars Strategy).
 - Achieve O(1) cold-start performance for the dashboard.

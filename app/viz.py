@@ -11,7 +11,7 @@ sys.path.append(os.getcwd())
 
 from app.project_tw.strategies.cb import CBStrategy
 
-st.set_page_config(page_title="Martian Investment", layout="wide", page_icon="🚀")
+st.set_page_config(page_title="Marffet Investment", layout="wide", page_icon="🚀")
 
 # Styling
 st.markdown("""
@@ -34,7 +34,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 Martian Investment System")
+st.title("🚀 Marffet Investment System")
 
 tabs = st.tabs(["📊 Mars Strategy", "🏁 Bar Chart Race", "💰 Convertible Bond (CB)"])
 

@@ -1,7 +1,7 @@
 # Database Backup & Recovery Specification
 
 ## 1. Overview
-The Martian Investment System uses two primary databases:
+The Marffet Investment System uses two primary databases:
 1. **SQLite (`portfolio.db`)**: Stores user-specific data (portfolios, groups, transactions, manual memberships).
 2. **DuckDB (`market.duckdb`)**: Stores the massive >5 Million row nominal price simulation universe.
 

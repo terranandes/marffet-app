@@ -5,7 +5,7 @@
 **Module**: `app/project_tw/crawler.py`, `scripts/ops/reimport_twse_dividends.py`
 
 ## 1. Overview
-The Martian Crawler is designed for **Market-Wide Batch Analysis**. It prioritizes **Nominal Data Accuracy** over speed, ensuring that the backtesting engine processes valid historical dividends without "Adjusted Close" distortion.
+The Marffet Crawler is designed for **Market-Wide Batch Analysis**. It prioritizes **Nominal Data Accuracy** over speed, ensuring that the backtesting engine processes valid historical dividends without "Adjusted Close" distortion.
 
 ### Key Components
 - **`StockInfoService`**: O(1) Fetcher for official TWSE/TPEX stock list & names.

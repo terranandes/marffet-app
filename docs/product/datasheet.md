@@ -1,9 +1,9 @@
-# Product Datasheet: Martian Investment System
+# Product Datasheet: Marffet Investment System
 
 > **Vision**: Gamifying long-term investment strategies to prove that "Time in the market beats timing the market."
 
 ## 1. Executive Summary
-The **Martian Investment System** is a web-based simulation and portfolio management tool designed to educate users on the benefits of long-term compounding. By comparing a user's manual trading performance ("My Race") against a mechanized, history-proven strategy ("Mars Strategy"), the platform visually demonstrates the efficacy of consistent investing.
+The **Marffet Investment System** is a web-based simulation and portfolio management tool designed to educate users on the benefits of long-term compounding. By comparing a user's manual trading performance ("My Race") against a mechanized, history-proven strategy ("Mars Strategy"), the platform visually demonstrates the efficacy of consistent investing.
 
 ## 2. Key Features
 
@@ -17,7 +17,7 @@ The **Martian Investment System** is a web-based simulation and portfolio manage
 -   **Performance**: Extremely fast. Utilizes a singleton DuckDB DataLake and vectorized numpy math to calculate 20-year lifespans in `<200ms`.
 
 ### 2. Social Leaderboard (Community)
--   **Rankings**: See how your portfolio ROI stacks up against other "Martians".
+-   **Rankings**: See how your portfolio ROI stacks up against other "Marffetians".
 -   **Public Profiles**: Share read-only views of your Asset Allocation and Top Holdings (without exposing sensitive dollar values).
 -   **Privacy-First**: PII (Emails) and net worth are strictly hidden from public APIs.
 
@@ -102,4 +102,4 @@ The **Ruthless Wealth Manager** continuously monitors your portfolio against thr
 
 ## 4. Market Fit
 -   **Problem**: Most investment tools are either dry spreadsheets or high-frequency trading platforms.
--   **Solution**: Martian Investment combines the fun of a "Race" visualization with the rigor of historical data, making long-term holding exciting.
+-   **Solution**: Marffet Investment combines the fun of a "Race" visualization with the rigor of historical data, making long-term holding exciting.

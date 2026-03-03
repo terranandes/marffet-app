@@ -7,7 +7,7 @@
 ## 1. Feature Overview
 
 ### 1.1 Mars Strategy Tab
-The **Mars Strategy** is the primary analysis engine for the Martian Investment System. it performs high-fidelity historical simulations to rank stocks based on their ability to accumulate wealth over long periods.
+The **Mars Strategy** is the primary analysis engine for the Marffet Investment System. it performs high-fidelity historical simulations to rank stocks based on their ability to accumulate wealth over long periods.
 
 *   **Goal**: Find "Survivors" that deliver consistent CAGR and high final wealth.
 *   **Input**: Start Year (2000+), Initial Capital, Annual Contribution.

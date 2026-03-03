@@ -1,4 +1,4 @@
-# 🚀 Martian App Launch - Social Media Copy
+# 🚀 Marffet App Launch - Social Media Copy
 
 **App Link:** [https://martian-app.zeabur.app/](https://martian-app.zeabur.app/)
 **Key Selling Points:**
@@ -15,7 +15,7 @@
 **標題：別再用 Yahoo 股市了！用 AI 幫你寫的投資神器 🚀**
 
 嗨大家！👋
-這是我最近用 **AntiGravity** 人工智慧開發的全新投資 App —— **Martian (火星人)**！
+這是我最近用 **AntiGravity** 人工智慧開發的全新投資 App —— **Marffet**！
 
 為什麼你該試試？
 1. **強大回測 (Backtesting)**：不想當韭菜？先用歷史數據驗證你的策略！
@@ -25,7 +25,7 @@
 
 👉 立即免費試用： https://martian-app.zeabur.app/
 
-#MartianApp #AntiGravity #投資理財 #AI #股票回測 #美股 #台股
+#MarffetApp #AntiGravity #投資理財 #AI #股票回測 #美股 #台股
 
 ---
 
@@ -36,7 +36,7 @@
 這是我用 AI (AntiGravity) 打造的股票 App，這介面...太科幻了吧！🤯 🪐
 
 ❌ 你的看盤軟體還停在 2010 年？
-✅ 來試試 Martian：
+✅ 來試試 Marffet：
 🔥 **秒速回測** - 策略有沒有效跑一下就知道
 🧠 **AI 諮詢** - 投資不懂直接問 AI
 📈 **戰情室儀表板** - 完勝 Yahoo/MoneyCome
@@ -63,7 +63,7 @@ https://martian-app.zeabur.app/
 ### Option 1: Facebook / LinkedIn (Professional)
 **Title: I built a Next-Gen Investment App using AI 🚀**
 
-Introducing **Martian** – A smarter way to manage your portfolio.
+Introducing **Marffet** – A smarter way to manage your portfolio.
 I built this entire platform leveraging **AntiGravity** AI, and it’s packed with features designed for serious investors:
 
 ✅ **Pro-Level Backtesting**: Validate your strategies before spending a dime.
@@ -82,7 +82,7 @@ Check it out here: https://martian-app.zeabur.app/
 
 **Caption:**
 Built this beast using AntiGravity AI 🤖✨
-Meet **Martian** – Your new investment command center.
+Meet **Marffet** – Your new investment command center.
 
 🚀 **Backtest** strategies in seconds
 🧠 **Consult** with AI on market trends

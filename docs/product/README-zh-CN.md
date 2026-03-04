@@ -4,7 +4,13 @@
 
 **您的专属 AI 投资助手。** 在充满赛博朋克 (Cyberpunk) 风格的界面上，回测投资策略、追踪您的投资组合，并在排行榜上与他人竞争。
 
-## 🌟 什么是 Marffet？
+## 🖼️ 应用预览
+
+| 首页 | 玛斯策略 | 复利计算 | 股票赛跑 |
+|:---:|:---:|:---:|:---:|
+| ![首页](screenshots/landing.png) | ![玛斯策略](screenshots/mars_strategy.png) | ![复利](screenshots/compound_chart.png) | ![赛跑](screenshots/bar_chart_race.png) |
+
+---
 
 Marffet 是一款基于网页的投资模拟与投资组合追踪工具，旨在用数据证明 **“留在市场的时间，胜过预测市场的时机”**。您可以在此观察台湾股市 20 多年来的动态历史可视化图表，将您的投资与经过历史验证的策略进行比较，并获得 AI 驱动的投资见解。
 
@@ -94,9 +100,8 @@ Marffet 是一款基于网页的投资模拟与投资组合追踪工具，旨在
 
 喜欢玛斯投资系统吗？您可以通过赞助我们的开发工作来解锁 **VIP** 或 **Premium (高级)** 功能！
 
-[![Buy Me A Coffee](../../frontend/public/images/bmc-yellow-button.png)](https://www.buymeacoffee.com/terranandes)
-<br/>
-[![Ko-Fi](../../frontend/public/images/kofi-blue-button.png)](https://ko-fi.com/terranandes)
+<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="../../frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
+<a href="https://ko-fi.com/terranandes" target="_blank"><img src="../../frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
 
 1. 前往 **设置 (Settings)** ⚙️ 并点击 **赞助我们 (Sponsor Us)** 分页。
 2. 选择您偏好的平台进行赞助。

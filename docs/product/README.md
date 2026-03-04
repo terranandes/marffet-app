@@ -4,7 +4,13 @@
 
 **Your AI-powered investment companion.** Backtest strategies, track your portfolio, and compete on the leaderboard — all in a sleek, cyberpunk interface.
 
-## 🌟 What Is Marffet?
+## 🖼️ App Preview
+
+| Home | Mars Strategy | Compound Chart | Bar Chart Race |
+|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/landing.png) | ![Mars Strategy](screenshots/mars_strategy.png) | ![Compound](screenshots/compound_chart.png) | ![BCR](screenshots/bar_chart_race.png) |
+
+---
 
 Marffet is a web-based investment simulation and portfolio management tool that **proves "time in the market beats timing the market."** Watch 20+ years of Taiwan stock history unfold in dynamic visualizations, compare your performance against proven strategies, and get AI-powered insights.
 
@@ -123,9 +129,8 @@ An intelligent investment assistant powered by Google Gemini.
 
 Love the Marffet Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
 
-[![Buy Me A Coffee](../../frontend/public/images/bmc-yellow-button.png)](https://www.buymeacoffee.com/terranandes)
-<br/>
-[![Ko-Fi](../../frontend/public/images/kofi-blue-button.png)](https://ko-fi.com/terranandes)
+<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="../../frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
+<a href="https://ko-fi.com/terranandes" target="_blank"><img src="../../frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
 
 1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
 2. Choose your preferred platform to sponsor.

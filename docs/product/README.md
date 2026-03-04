@@ -1,4 +1,7 @@
 # 👽 Marffet Investment System
+
+🌐 [繁體中文](./README-zh-TW.md) | [简体中文](./README-zh-CN.md)
+
 **Your AI-powered investment companion.** Backtest strategies, track your portfolio, and compete on the leaderboard — all in a sleek, cyberpunk interface.
 
 ## 🌟 What Is Marffet?
@@ -94,18 +97,20 @@ An intelligent investment assistant powered by Google Gemini.
 
 ## 💎 Membership Tiers
 
-| Feature | Guest | Free | Premium | VIP | GM |
+| Feature | Guest | FREE | PREMIUM | VIP | GM |
 |:--------|:------|:-----|:--------|:----|:---|
 | Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Advanced (CAGR) |
-| Compound Interest Comparison | 🔒 | 🔒 | ✅ | ✅ | ✅ |
-| Portfolio Groups | 3 | 11 | 30 | 30 | 30 |
-| Targets per Group | 10 | 50 | 200 | 200 | 200 |
-| Transactions per Target | 10 | 100 | 1,000 | 1,000 | 1,000 |
-| AI Copilot | ❌ | 🎓 Educator | 💼 Wealth Manager | 💼 Wealth Manager | 💼 Wealth Manager |
-| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
-| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ In-App + Email |
-| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Full |
+| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| Portfolio Groups | 3 max | 11 max | 20 max | 30 max | ∞ |
+| Targets per Group | 10 max | 50 max | 100 max | 200 max | ∞ |
+| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max | ∞ |
+| AI Copilot | ❌ | 🎓 Educator | 🎓 Educator | 💼 Wealth Manager | Full |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | Full |
+| Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Priority Support | ❌ | ❌ | ❌ | ✅ | ✅ |
 | Early Access | ❌ | ❌ | ❌ | ✅ | ✅ |
 | Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -132,4 +137,4 @@ Love the Marffet Investment System? You can sponsor our development and unlock *
 
 ---
 
-*Built with ❤️ by the Marffet AI Team • v5.0*
+*Built with ❤️ by the Marffet AI Team • v5.1*

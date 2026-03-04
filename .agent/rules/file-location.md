@@ -25,6 +25,7 @@ Keep clean room.
 | `./docs/product/README-zh-CN.md` | **End-Users** | User Manual in Simplified Chinese. Explains how to *use* the App. No technical jargon. |
 | `./docs/product/datasheet.md` | **Stakeholders / Business** | Product specs, market fit, and feature summary. |
 | `./docs/product/social_media_promo.md` | **Customers / Promotion** | Social media promo |
+| `./docs/product/marffet_showcase_github.md` | **Github Promotion for End-User/Investors** | Github Promotion |
 
 ---
 

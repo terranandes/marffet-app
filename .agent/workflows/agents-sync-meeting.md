@@ -2,6 +2,8 @@
 description: 6 agents sync-up meeting
 ---
 
+description = "6 agents sync-up meeting"
+prompt = """
 Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] <br>
 are starting a brief discussion on or follow the rules/workflows below:
 - project live progress at `docs/product/tasks.md`
@@ -11,9 +13,6 @@ are starting a brief discussion on or follow the rules/workflows below:
 - features implemented
 - features unimplemented or deferred
 - features planned to next phase
-- deployment completeness(marffet-app.zeabur.app)
-- private github repo completeness (terranandes/marffet)
-- puplic github repo completeness (terranandes/marffet-app)
 - discrepancy between Local-Run and Deployment (currently in Zeabur only)
 - triages for true bugs reported by end-user after we review it as a true one
 - process for feedback by end-user
@@ -24,8 +23,12 @@ are starting a brief discussion on or follow the rules/workflows below:
 - use skill 'multi-agent-brainstorming' to review current product-related plan/status/implementation/progress in `./docs/product`.
 - adjust plans in `./docs/plan` as necessary
 - do workflow `document-flow`
+- deployment completeness(marffet-app.zeabur.app)
+- private github repo completeness (terranandes/marffet)
+- public github repo completeness (terranandes/marffet-app)
 - integrate necessary current artifact `Implementation Plan`/`Task`/`Walkthrough` into `docs/product/tasks.md`
 
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.
 And save the meeting note at "./docs/meeting" and code-review note at "./docs/code_review". We always trace the notes.
 At last, do workflow `commit-but-push`.
+"""

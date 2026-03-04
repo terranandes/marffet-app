@@ -99,11 +99,11 @@ def run_mobile_test():
             # Add Stock
             print("   Adding Stock 2330...")
             # Wait for input to be visible
-            stock_input = page.get_by_placeholder("Stock ID (e.g. 2330)")
+            stock_input = page.get_by_placeholder("Ticker (e.g. 2330)")
             stock_input.wait_for(state="visible", timeout=5000)
             stock_input.fill("2330")
             page.get_by_placeholder("Name (e.g. 台積電)").fill("TSMC")
-            page.get_by_text("+ Add Stock").click()
+            page.get_by_text("+ Add Asset").click()
             time.sleep(2) # Wait for add
 
             # 3. Verification - MOBILE VIEW
@@ -142,7 +142,7 @@ def run_mobile_test():
             
             # Check if details hidden initially (e.g. "Shares", "Avg Cost")
             # "Shares" label is in the expanded details
-            if page.get_by_text("Shares", exact=True).count() == 0 or not page.get_by_text("Shares", exact=True).first.is_visible():
+            if page.get_by_text("Shares").count() == 0 or not page.get_by_text("Shares").first.is_visible():
                  print("✅ Details initially hidden")
             else:
                  print("⚠️ Details visible before click (might be expanded default?)")
@@ -151,11 +151,11 @@ def run_mobile_test():
             print("   Clicking 'TSMC' text to expand...")
             # We click the element containing "TSMC"
             # card_header.click() # This might be the container which absorbs click?
-            page.get_by_text("TSMC", exact=True).first.click()
+            page.get_by_text("TSMC", exact=True).locator("visible=true").first.click()
             time.sleep(1)
             
             # Check details visible
-            if page.get_by_text("Shares", exact=True).first.is_visible():
+            if page.get_by_text("Shares").first.is_visible():
                 print("✅ Card Expanded: Details Visible")
             else:
                 print("❌ Card Did Not Expand")
@@ -164,10 +164,10 @@ def run_mobile_test():
 
             # 5. Check Action Buttons
             print("\n🔘 VERIFICATION: Action Buttons")
-            if page.get_by_role("button", name="➕ Add Tx").is_visible():
-                print("✅ 'Add Tx' Button Visible")
+            if page.get_by_role("button", name="✚ Trade").is_visible():
+                print("✅ 'Trade' Button Visible")
             else:
-                print("❌ 'Add Tx' Button Missing")
+                print("❌ 'Trade' Button Missing")
 
             if page.get_by_role("button", name="📜 History").is_visible():
                 print("✅ 'History' Button Visible")

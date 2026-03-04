@@ -73,13 +73,11 @@ def run_e2e():
             page.get_by_text("E2E Test Group").click()
             
             # Inputs
-            page.get_by_placeholder("Stock ID (e.g. 2330)").fill("2330")
-            page.get_by_placeholder("Name (e.g. 台積電)").fill("TSMC")
-            
+            page.get_by_placeholder("Ticker (e.g. 2330)").fill("2330")
             page.get_by_placeholder("Name (e.g. 台積電)").fill("TSMC")
             
             # Click Add and Wait for Card
-            page.get_by_text("+ Add Stock").click()
+            page.get_by_text("+ Add Asset").click()
             
             # Wait for Card/Row to appear (Filter for visible one)
             # Desktop view: Table row. Mobile view (if any): Card.

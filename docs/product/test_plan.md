@@ -125,10 +125,10 @@ uv run tests/unit/test_mobile_portfolio.py
 ### v3.6 (Current) - Auth, Admin Dashboard & DB Locks
 | Test | Expected | Status |
 |------|----------|--------|
-| Auth Proxy Middleware | Login and Logout properly set/clear cookies and redirect | ⏳ Pending |
-| Admin User Growth API | `/api/admin/user-growth` returns cumulative metrics over time | ⏳ Pending |
-| Admin Dashboard UI | ECharts line chart renders Registered, Premium, and VIP lines | ⏳ Pending |
-| SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ⏳ Pending |
+| Auth Proxy Middleware | Login and Logout properly set/clear cookies and redirect | ✅ PASSED Remote |
+| Admin User Growth API | `/api/admin/user-growth` returns cumulative metrics over time | ✅ PASSED Remote |
+| Admin Dashboard UI | ECharts line chart renders Registered, Premium, and VIP lines | ✅ PASSED Remote |
+| SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ✅ PASSED Remote |
 | GM Tier Documentation | `marffet-app/README*` sanitized of GM mentions | ✅ PASSED Local |
 
 ### v3.5 (2026-03-01) - UI/UX Polish Verification (Modals, Notifications, Tabs)

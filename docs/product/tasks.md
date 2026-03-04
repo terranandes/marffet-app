@@ -483,7 +483,7 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - [x] Root cause: DuckDB had 2 rogue data points for 6533 from 2004 (pre-IPO/未上市)
     - [x] Gap detection algorithm in `roi_calculator.py`: years < 20 trading days excluded, then contiguous-block split, keep only latest group
     - [x] Filters both orphan pre-listing points AND 興櫃 (emerging board) data preceding an IPO gap
-- [x] **BUG-012-CV Filed** — Home page i18n keys displayed raw (pre-existing, not regression)
+- [x] **BUG-012-CV Fixed** — Home page i18n keys injected to `en.json`, `zh-TW.json`, `zh-CN.json` (`80fdeca`)
 - [x] **Full E2E Local Test Sweep** — All 8 tabs verified via Playwright MCP
 - [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_03_04_sync_v1.md`)
     - Prioritized next steps: BUG-012 fix, full-test restart, 5-tier E2E testing

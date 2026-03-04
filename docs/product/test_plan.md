@@ -43,6 +43,7 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-23 | Data Accuracy | Nominal Consistency | TSMC CAGR 2010-2025 ~19.4% |
 | TC-24 | Premium Access | Access Tier Logic | PREMIUM_EMAILS grants premium status, GM_EMAILS grants admin+premium |
 | TC-25 | Tier Matrix | 5-Tier Enforcement | Guest/FREE/PREMIUM/VIP/GM tiers resolve correctly in `/auth/me` |
+| TC-26 | Home Page i18n | BUG-012 Regression | Verify standard text is shown instead of raw keys like `Home.Title` |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.

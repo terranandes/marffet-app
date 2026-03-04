@@ -499,3 +499,7 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Document Sanitization**
     - [x] Created `marffet_showcase_github.md` with zero sensitive word leaks
 - [x] **Agents Sync Meeting v2** (Ref: `docs/meeting/meeting_notes_2026_03_04_sync_v2.md` & `docs/code_review/code_review_2026_03_04_sync_v2.md`)
+- [x] **Public Repo Markdown Corrections**
+    - [x] Updated sponsor badges (Ko-fi, BMC) to use explicit HTML `<img height="50">` to prevent UI overflow on GitHub rendering.
+    - [x] Corrected `marffet-app` root directory by swapping the original technical `README.md` for the translated End-User variations.
+- [x] **Agents Sync Meeting - 2026-03-05 v1** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v1.md` & `docs/code_review/code_review_2026_03_05_sync_v1.md`)

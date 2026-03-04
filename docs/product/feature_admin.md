@@ -37,8 +37,11 @@ The **Admin** tab (`/admin`) is the Game Master (GM) control panel. It provides 
 | Active Web Users    | Session tracking              | Users with recent web sessions    |
 | Active Mobile Users | Session tracking              | Users with recent mobile sessions |
 | Subscription Tiers  | `users` table                 | Free / Premium / VIP breakdown    |
+| Account Growth      | `users`/`user_memberships`    | Line chart of cumulative user growth |
 
-**Endpoint**: `GET /api/admin/metrics`
+**Endpoints**: 
+- `GET /api/admin/metrics` (Stat cards)
+- `GET /api/admin/user-growth` (Time-series chart data)
 
 ### 3.2 Data Pipeline Controls
 

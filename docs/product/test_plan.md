@@ -106,6 +106,7 @@ uv run tests/unit/test_mobile_portfolio.py
 - [x] Membership Injection Form visible and adds user target properly
 - [x] Listed active injected memberships display correct Tier and Expiration
 - [x] Revoke injected membership works
+- [x] Account Growth History chart renders 3 lines (Registered, Premium, VIP) properly over time
 
 ### User Settings & Access Control
 - [x] GM > VIP > PREMIUM > FREE > Guest precedence strictly enforced in `/api/auth/me`

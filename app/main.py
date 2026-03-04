@@ -224,7 +224,8 @@ app.add_middleware(
 
 # Proxy Headers (Must be added LAST to be executed FIRST/Outermost)
 # Ensures Request.url.scheme is 'https' for Session and Auth
-# app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"]) -> MOVED TO TOP (Line 92)
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"])

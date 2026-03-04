@@ -31,11 +31,16 @@ else:
 @contextmanager
 def get_db():
     """Context manager for database connections."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=15.0)
     conn.row_factory = sqlite3.Row  # Enable dict-like access
+    conn.execute("PRAGMA journal_mode=WAL") # Enable Write-Ahead Logging for concurrency
+    conn.execute("PRAGMA synchronous=NORMAL")
     try:
         yield conn
         conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 

@@ -103,25 +103,24 @@ An intelligent investment assistant powered by Google Gemini.
 
 ## 💎 Membership Tiers
 
-| Feature | Guest | FREE | PREMIUM | VIP | GM |
-|:--------|:------|:-----|:--------|:----|:---|
-| Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Full |
-| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
-| Portfolio Groups | 3 max | 11 max | 20 max | 30 max | ∞ |
-| Targets per Group | 10 max | 50 max | 100 max | 200 max | ∞ |
-| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max | ∞ |
-| AI Copilot | ❌ | 🎓 Educator | 🎓 Educator | 💼 Wealth Manager | Full |
-| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
-| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
-| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | Full |
-| Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
-| Priority Support | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Early Access | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Feature | Guest | FREE | PREMIUM | VIP |
+|:--------|:------|:-----|:--------|:----|
+| Mars Strategy | ✅ | ✅ | ✅ | ✅ |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) |
+| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ |
+| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ |
+| Portfolio Groups | 3 max | 11 max | 20 max | 30 max |
+| Targets per Group | 10 max | 50 max | 100 max | 200 max |
+| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max |
+| AI Copilot | ❌ | 🎓 Educator | 🎓 Educator | 💼 Wealth Manager |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered |
+| Server-Side Data | ❌ | ✅ | ✅ | ✅ |
+| Priority Support | ❌ | ❌ | ❌ | ✅ |
+| Early Access | ❌ | ❌ | ❌ | ✅ |
 
-> **How to upgrade?** Go to ⚙️ Settings → Sponsor Us → choose Ko-fi or Buy Me a Coffee. The GM will inject your membership!
+> **How to upgrade?** Go to ⚙️ Settings → Sponsor Us → choose Ko-fi or Buy Me a Coffee. Your membership will be activated!
 
 ---
 
@@ -134,7 +133,7 @@ Love the Marffet Investment System? You can sponsor our development and unlock *
 
 1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
 2. Choose your preferred platform to sponsor.
-3. Once sponsored, our Game Master (GM) will manually inject your Premium or VIP membership into your account.
+3. Once sponsored, we will manually activate your Premium or VIP membership on your account.
 
 ---
 

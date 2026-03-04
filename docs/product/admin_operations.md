@@ -25,6 +25,7 @@ A persistent crawler status indicator is always visible at the top of the dashbo
 ### Section: 📊 User Metrics (default: open)
 
 Displays user registration counts, active users (Web/Mobile, last 30 days), and subscription tier breakdown (Free/Premium/VIP).
+Includes an **Account Growth History** ECharts line graph showing cumulative registrations and premium/VIP subscriptions over time.
 
 ---
 

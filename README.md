@@ -15,6 +15,25 @@ Gamify your long-term investing by racing against the mechanized **Mars Strategy
 -   **Trend & My Race**: Personal investment curve + your holdings racing against each other.
 -   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Marffetians.
 -   **CB Arbitrage**: Convertible Bond premium monitoring and yield hunting.
+## 💎 Membership Tiers
+
+| Feature | Guest | FREE | PREMIUM | VIP | GM (Terran) |
+|:--------|:------|:-----|:--------|:----|:------------|
+| Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Full Access |
+| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| Portfolio Groups | 3 max | 11 max | 20 max | 30 max | ∞ |
+| Targets per Group | 10 max | 50 max | 100 max | 200 max | ∞ |
+| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max | ∞ |
+| AI Copilot | ❌ | 🎓 Educator | 🎓 Educator | 💼 Wealth Manager | 🌌 Orchestrator |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ Real-time |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | ✅ Real-time |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 All |
+| Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Priority Support | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Early Access | ❌ | ❌ | ❌ | ✅ | ✅ |
+
 -   **AI Copilot**: Investment assistant powered by Gemini (Free: Educator / Premium: Wealth Manager).
 -   **Extreme Speed**: DuckDB + vectorized numpy resolves 20-year calculations in `<200ms`.
 -   **Modern UI**: Next.js 16, TailwindCSS, skeleton loading, cyberpunk design.

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import ReactECharts from "echarts-for-react";
 
 /* ─── Types ─── */
 interface AdminMetrics {
@@ -136,10 +137,93 @@ function Spinner() {
     );
 }
 
+/* ─── User Growth Chart ─── */
+interface GrowthPoint { date: string; registered: number; premium: number; vip: number; }
+
+function UserGrowthChart({ data }: { data: GrowthPoint[] }) {
+    if (!data.length) {
+        return (
+            <div className="flex items-center justify-center h-40 text-zinc-600 text-sm">
+                No registration data yet.
+            </div>
+        );
+    }
+
+    const dates = data.map(d => d.date);
+    const option = {
+        backgroundColor: "transparent",
+        tooltip: {
+            trigger: "axis",
+            backgroundColor: "#0d0d1a",
+            borderColor: "#ffffff18",
+            textStyle: { color: "#e2e8f0", fontSize: 12 },
+        },
+        legend: {
+            data: ["Registered", "Premium", "VIP"],
+            textStyle: { color: "#94a3b8", fontSize: 11 },
+            top: 0,
+        },
+        grid: { left: 40, right: 16, top: 36, bottom: 24 },
+        xAxis: {
+            type: "category",
+            data: dates,
+            axisLine: { lineStyle: { color: "#334155" } },
+            axisLabel: { color: "#64748b", fontSize: 10, rotate: 30 },
+            boundaryGap: false,
+        },
+        yAxis: {
+            type: "value",
+            minInterval: 1,
+            axisLabel: { color: "#64748b", fontSize: 10 },
+            splitLine: { lineStyle: { color: "#1e293b" } },
+        },
+        series: [
+            {
+                name: "Registered",
+                type: "line",
+                data: data.map(d => d.registered),
+                smooth: true,
+                symbol: "none",
+                lineStyle: { color: "#22d3ee", width: 2 },
+                areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "#22d3ee30" }, { offset: 1, color: "#22d3ee04" }] } },
+            },
+            {
+                name: "Premium",
+                type: "line",
+                data: data.map(d => d.premium),
+                smooth: true,
+                symbol: "none",
+                lineStyle: { color: "#f59e0b", width: 2 },
+                areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "#f59e0b28" }, { offset: 1, color: "#f59e0b04" }] } },
+            },
+            {
+                name: "VIP",
+                type: "line",
+                data: data.map(d => d.vip),
+                smooth: true,
+                symbol: "none",
+                lineStyle: { color: "#34d399", width: 2 },
+                areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "#34d39928" }, { offset: 1, color: "#34d39904" }] } },
+            },
+        ],
+    };
+
+    return (
+        <div className="mt-4">
+            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></span>
+                Account Growth History
+            </p>
+            <ReactECharts option={option} style={{ height: 200 }} />
+        </div>
+    );
+}
+
 /* ─── Main Page ─── */
 export default function AdminPage() {
     const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
+    const [growthData, setGrowthData] = useState<GrowthPoint[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
@@ -477,6 +561,11 @@ export default function AdminPage() {
         fetchFeedback();
         fetchMemberships();
         fetchCrawlerStatus();
+        // Fetch user growth data once
+        fetch(`${API_BASE}/api/admin/user-growth`, { credentials: "include" })
+            .then(r => r.ok ? r.json() : [])
+            .then(setGrowthData)
+            .catch(() => { });
         const interval = setInterval(fetchCrawlerStatus, 5000);
         return () => clearInterval(interval);
     }, [fetchMetrics, fetchFeedback, fetchMemberships, fetchCrawlerStatus]);
@@ -679,6 +768,9 @@ export default function AdminPage() {
                                     <p className="text-2xl font-bold text-emerald-300 font-mono">{metrics.subscription_tiers.vip}</p>
                                 </div>
                             </div>
+
+                            {/* ── Account Growth History Chart ── */}
+                            <UserGrowthChart data={growthData} />
                         </div>
                     )}
                 </CollapsibleSection>
@@ -1043,7 +1135,7 @@ export default function AdminPage() {
                         </div>
                     </div>
                 </CollapsibleSection>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

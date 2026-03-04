@@ -248,3 +248,71 @@ async def revoke_membership(email: str, user: dict = Depends(get_admin_user)):
             raise HTTPException(status_code=404, detail="Membership not found.")
     return {"status": "ok", "message": f"Membership revoked for {email}"}
 
+
+# ==================== User Growth Analytics ====================
+
+@router.get("/user-growth")
+async def get_user_growth(user: dict = Depends(get_admin_user)):
+    """
+    Return cumulative registered/premium/vip account counts over time.
+    Used by the GM Dashboard Star History-style chart.
+    """
+    from app.database import get_db
+    from datetime import date
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # --- Registered users: all-time cumulative by date ---
+        cursor.execute("""
+            SELECT DATE(created_at) as day, COUNT(*) as cnt
+            FROM users
+            WHERE created_at IS NOT NULL
+            GROUP BY day
+            ORDER BY day
+        """)
+        reg_rows = cursor.fetchall()
+
+        # --- Paid memberships: cumulative by date and tier ---
+        cursor.execute("""
+            SELECT DATE(created_at) as day, tier, COUNT(*) as cnt
+            FROM user_memberships
+            WHERE created_at IS NOT NULL AND tier IN ('PREMIUM', 'VIP')
+            GROUP BY day, tier
+            ORDER BY day
+        """)
+        mem_rows = cursor.fetchall()
+
+    # Build all-dates set
+    all_dates = sorted(set(
+        [r["day"] for r in reg_rows] +
+        [r["day"] for r in mem_rows]
+    ))
+
+    if not all_dates:
+        return []
+
+    # Cumulative sums
+    reg_by_date = {r["day"]: r["cnt"] for r in reg_rows}
+    prem_by_date: dict[str, int] = {}
+    vip_by_date: dict[str, int] = {}
+    for r in mem_rows:
+        if r["tier"] == "PREMIUM":
+            prem_by_date[r["day"]] = prem_by_date.get(r["day"], 0) + r["cnt"]
+        elif r["tier"] == "VIP":
+            vip_by_date[r["day"]] = vip_by_date.get(r["day"], 0) + r["cnt"]
+
+    result = []
+    cum_reg = cum_prem = cum_vip = 0
+    for d in all_dates:
+        cum_reg += reg_by_date.get(d, 0)
+        cum_prem += prem_by_date.get(d, 0)
+        cum_vip += vip_by_date.get(d, 0)
+        result.append({
+            "date": d,
+            "registered": cum_reg,
+            "premium": cum_prem,
+            "vip": cum_vip,
+        })
+
+    return result

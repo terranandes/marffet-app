@@ -13,10 +13,15 @@ DB_PATH = Path(__file__).parent / "portfolio.db"
 
 @contextmanager
 def get_db():
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(DB_PATH), timeout=15.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
     try:
         yield conn
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 

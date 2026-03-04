@@ -140,7 +140,9 @@ class MarketCache:
                 pass # Check exists
             
             import sqlite3
-            with sqlite3.connect(cls.BASE_DIR / "data/portfolio.db") as conn:
+            with sqlite3.connect(cls.BASE_DIR / "data/portfolio.db", timeout=15.0) as conn:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=NORMAL")
                 cursor = conn.cursor()
                 # race_cache: stock_id, month (YYYY-MM), close_price
                 # We need to filter by start_year

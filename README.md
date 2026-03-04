@@ -4,7 +4,13 @@
 
 **Your AI-powered investment companion.** Backtest strategies, track your portfolio, and compete on the leaderboard — all in a sleek, cyberpunk interface.
 
-## 🌟 What Is Marffet?
+## 🖼️ App Preview
+
+| Home | Mars Strategy | Compound Chart | Bar Chart Race |
+|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/landing.png) | ![Mars Strategy](screenshots/mars_strategy.png) | ![Compound](screenshots/compound_chart.png) | ![BCR](screenshots/bar_chart_race.png) |
+
+---
 
 Marffet is a web-based investment simulation and portfolio management tool that **proves "time in the market beats timing the market."** Watch 20+ years of Taiwan stock history unfold in dynamic visualizations, compare your performance against proven strategies, and get AI-powered insights.
 

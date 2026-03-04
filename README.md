@@ -1,104 +1,143 @@
-# Marffet Investment System 🚀
+# 👽 Marffet Investment System
 
-A full-stack quantitative stock analysis platform verifying that **"Time in the market beats timing the market."**
+🌐 [繁體中文](./README-zh-TW.md) | [简体中文](./README-zh-CN.md)
 
-Gamify your long-term investing by racing against the mechanized **Mars Strategy** and see if you can beat the market!
+**Your AI-powered investment companion.** Backtest strategies, track your portfolio, and compete on the leaderboard — all in a sleek, cyberpunk interface.
 
-![Dashboard](frontend/public/martian_banner.png)
+## 🌟 What Is Marffet?
 
-## ✨ Features
-
--   **Mars Strategy**: Backtest 20+ years of Taiwan stock history — find the Top 50 survivors with Gaussian filtering.
--   **Bar Chart Race**: Watch stocks compete in an animated time-series visualization.
--   **Compound Interest**: Simulate long-term compounding for single stocks or compare up to 3 assets.
--   **Portfolio Tracker**: Manage holdings and transactions with a sleek Webull-style UI, ECharts allocation donuts, and live P/L.
--   **Trend & My Race**: Personal investment curve + your holdings racing against each other.
--   **Cash Ladder**: Global leaderboard ranked by ROI — compete with other Marffetians.
--   **CB Arbitrage**: Convertible Bond premium monitoring and yield hunting.
--   **AI Copilot**: Investment assistant powered by Gemini (Free: Educator / Premium: Wealth Manager).
--   **Extreme Speed**: DuckDB + vectorized numpy resolves 20-year calculations in `<200ms`.
--   **Modern UI**: Next.js 16, TailwindCSS, skeleton loading, cyberpunk design.
+Marffet is a web-based investment simulation and portfolio management tool that **proves "time in the market beats timing the market."** Watch 20+ years of Taiwan stock history unfold in dynamic visualizations, compare your performance against proven strategies, and get AI-powered insights.
 
 ---
 
-## ☁️ Run on GitHub (Codespaces)
+## 🚀 Getting Started
 
-**You can run this full application directly in your browser without installing anything!**
+### Access the App
+- **URL**: [https://marffet-app.zeabur.app](https://marffet-app.zeabur.app)
+- **Login**: Sign in with your **Google Account**
+- **Guest Mode**: Explore the simulator and visualizations without creating an account
 
-1.  Click the **"Code"** button (green) at the top of this repository.
-2.  Select **"Codespaces"** tab -> **"Create codespace on main"**.
-3.  Wait for the environment to build.
-4.  In the terminal, run:
-    ```bash
-    ./start_app.sh
-    ```
-5.  VS Code will show a popup: *"Your application running on port 5173 is available."*
-6.  Click **"Open in Browser"**.
-7.  🎉 The App is now running in the cloud!
+### First Steps
+1. **Sign In** with Google
+2. **Explore "Mars Strategy"** — see the top 50 stock survivors from 2006 to today
+3. **Add Your Holdings** in the Portfolio tab
+4. **Watch Your Race** — see your investments compete over time
+5. **Customize** your profile, nickname, and settings via the ⚙️ icon
 
 ---
 
-## 💻 Local Installation
+## 📊 Features
 
-If you prefer to run it on your own machine:
+### 1. Mars Strategy Simulator 🪐
+The core of Marffet. Simulates 20+ years of investment history to find the **Top 50 Survivors**.
 
-### Prerequisites
--   Python 3.12 (Managed by `uv`)
--   **Bun** 1.x (Frontend Runtime)
+- **Customizable**: Set your Start Year, Initial Capital, and Annual Contribution
+- **Three Strategies**: Compare Buy-At-Opening (BAO), Buy-At-Highest (BAH), and Buy-At-Lowest (BAL)
+- **Full Coverage**: TWSE stocks, TPEx/OTC, Bond ETFs (e.g., 00679B), and Convertible Bonds
+- **Blazing Fast**: Results in under 200ms thanks to DuckDB + vectorized computation
+- **Export**: Download Top 50 data as Excel spreadsheets
 
-### Setup (Required: uv)
+### 2. Bar Chart Race 🏎️
+A dynamic animated visualization of stock performance racing over time.
 
-We use `uv` for 10x faster setup and reliable dependency management.
+- **Watch History Unfold**: See which stocks rise and fall year by year
+- **Premium Feature**: CAGR metric toggle for advanced analysis
 
-1.  **Clone the repo**:
-    ```bash
-    git clone https://github.com/your-username/martian.git
-    cd martian
-    ```
+### 3. Compound Interest Calculator 💰
+Simulate long-term compounding with single stocks or compare multiple assets side by side.
 
-2.  **Initialize & Run**:
-    ```bash
-    # Install uv (if you haven't yet)
-    # curl -LsSf https://astral.sh/uv/install.sh | sh
-    
-    # Run the app directly
-    ./start_app.sh
-    ```
-    *Open `http://localhost:8000` in your browser.*
+- **Single Mode**: Calculate compound growth for one stock with dividends reinvested
+- **Comparison Mode**: Put up to 3 stocks head-to-head
 
-4.  **Important**: Google Sign-In requires your `GOOGLE_CLIENT_ID` and `SECRET` in `.env`.
-    *   Ensure your Google Cloud Console has `http://localhost:8000/auth/callback` added to "Authorized Redirect URIs".
-    *   If you see `Error 400: redirect_uri_mismatch`, check if you are accessing via `127.0.0.1` vs `localhost`.
+### 4. Portfolio Tracker 📋
+Manage your real investment portfolio with a sleek, "Webull-style" interface featuring full transaction history.
 
-**Q: Can I host this on GitHub Pages?**
-A: **Partially.** GitHub Pages only hosts static websites (HTML/JS). This app requires a Python backend to fetch stock data (TWSE) and calculate metrics.
--   If you deploy *only* the Frontend to GitHub Pages, it will show the UI, but **all analysis features will fail** because there is no backend API to talk to.
+- **Visual Allocation**: ECharts donut charts and premium stats cards for quick insights
+- **Groups**: Organize holdings into Dividend, Growth, Speculative, or custom categories
+- **Transactions**: Log buys and sells with dates, shares, and prices
+- **Real-Time Sync**: Pull current market data to calculate live P/L
+- **Responsive UX**: 7-column stacked desktop view and cyberpunk framed mobile cards with smooth stagger animations
 
-**Q: Where should I deploy it?**
-A: We recommend using a service that supports Docker or Python/Node apps, such as:
--   **Zeabur**
--   **Render** (Free tier available)
--   **Railway**
--   **Heroku**
--   **AWS / GCP**
+### 5. Portfolio Trend 📈
+Your personal investment curve aligned with your transaction history.
+
+- **Net Worth Over Time**: Visualize your portfolio growth month by month
+- **Dividend Tracking**: Toggle dividend income as a separate chart layer
+- **Realized & Unrealized P/L**: See both gains broken down
+
+### 6. My Race 🏁
+Your personal bar chart race — watch your own holdings compete against each other.
+
+- **Animated Playback**: Play, pause, and scrub through time
+- **Quarterly Resolution**: See shifts in your top performers each quarter
+
+### 7. Cash Ladder (Leaderboard) 🏆
+See how your ROI compares against other Marffet users.
+
+- **Global Rankings**: Sorted by ROI percentage
+- **Public Profiles**: View others' top holdings and allocation (without dollar amounts)
+- **Sync Stats**: Update your ranking with one click
+
+### 8. CB Strategy 🔧
+Specialized tools for Convertible Bond investors.
+
+- **Premium Monitoring**: Track CB premiums and identify arbitrage opportunities
+- **Yield Hunter**: Alerts when premium falls below -1% (buy) or rises above 30% (sell)
+
+### 9. Mars AI Copilot 🤖
+An intelligent investment assistant powered by Google Gemini.
+
+| | Free Tier | Premium Tier |
+|:--|:--|:--|
+| **Personality** | Encouraging Educator | Ruthless Wealth Manager |
+| **Focus** | Explains why buy-and-hold works | Active rebalancing advice |
+| **Advice** | General education | Sell overheated stocks, buy oversold ones |
+
+---
+
+## 💎 Membership Tiers
+
+| Feature | Guest | FREE | PREMIUM | VIP | GM |
+|:--------|:------|:-----|:--------|:----|:---|
+| Mars Strategy | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) | Full |
+| Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Compound Interest (Comparison) | 🔒 | 🔒 | ✅ | ✅ | ✅ |
+| Portfolio Groups | 3 max | 11 max | 20 max | 30 max | ∞ |
+| Targets per Group | 10 max | 50 max | 100 max | 200 max | ∞ |
+| Transactions per Target | 10 max | 100 max | 500 max | 1,000 max | ∞ |
+| AI Copilot | ❌ | 🎓 Educator | 🎓 Educator | 💼 Wealth Manager | Full |
+| CB Notifications | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Rebalancing Alerts | ❌ | ❌ | ✅ In-App | ✅ In-App + Email | Full |
+| Data Export | ❌ | 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | 📥 Filtered + 📦 Unfiltered | Full |
+| Server-Side Data | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Priority Support | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Early Access | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+> **How to upgrade?** Go to ⚙️ Settings → Sponsor Us → choose Ko-fi or Buy Me a Coffee. The GM will inject your membership!
 
 ---
 
 ## ☕ Sponsorship & Memberships
 
-Love the Marffet Investment System? Support the project and unlock **Premium** or **VIP** features!
+Love the Marffet Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
 
-[![Buy Me A Coffee](frontend/public/images/bmc-yellow-button.png)](https://www.buymeacoffee.com/terranandes)
-<br/>
-[![Ko-Fi](frontend/public/images/kofi-blue-button.png)](https://ko-fi.com/terranandes)
+<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
+<a href="https://ko-fi.com/terranandes" target="_blank"><img src="frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
 
-*Sponsoring grants you VIP/Premium access which is manually injected by the Game Master.*
+1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
+2. Choose your preferred platform to sponsor.
+3. Once sponsored, our Game Master (GM) will manually inject your Premium or VIP membership into your account.
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Need Help?
 
--   **Frontend**: Next.js 16 (React 18), TailwindCSS, ECharts, Recharts, Framer Motion.
--   **Backend**: FastAPI, Uvicorn, Python 3.12, uv (package manager).
--   **Data**: DuckDB (Market DataLake), SQLite (User Data), AsyncIO Crawler (TWSE/TPEx).
--   **DevOps**: Docker, Zeabur (auto-deploy), Playwright (E2E).
+- **Found a Bug?** Use the ⚙️ Settings panel in the app to report it
+- **Feature Request?** Send your ideas through the same Settings panel
+- **Questions?** Check the in-app documentation page (/doc) for a quick overview of all features
+
+---
+
+*Built with ❤️ by the Marffet AI Team • v5.1*

@@ -590,26 +590,18 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                                     href="https://ko-fi.com/terranandes"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-4 bg-[#29abe0] hover:bg-[#228cb8] text-white p-4 rounded-xl transition-all shadow-[0_0_15px_rgba(41,171,224,0.3)] hover:shadow-[0_0_20px_rgba(41,171,224,0.5)] transform hover:-translate-y-1"
+                                                    className="flex items-center justify-center transition-all transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(41,171,224,0.3)] rounded-xl"
                                                 >
-                                                    <div className="bg-white p-2 rounded-full shadow-inner shrink-0 text-xl flex items-center justify-center w-10 h-10">☕</div>
-                                                    <div className="font-bold flex-1">Ko-fi</div>
-                                                    <svg className="w-5 h-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
+                                                    <img src="/images/kofi-blue-button.png" alt="Ko-fi" className="h-12 w-auto object-contain rounded-xl" />
                                                 </a>
 
                                                 <a
                                                     href="https://buymeacoffee.com/terranandes"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-4 bg-[#FFDD00] hover:bg-[#FFC000] text-black p-4 rounded-xl transition-all shadow-[0_0_15px_rgba(255,221,0,0.3)] hover:shadow-[0_0_20px_rgba(255,221,0,0.5)] transform hover:-translate-y-1"
+                                                    className="flex items-center justify-center transition-all transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,221,0,0.3)] rounded-xl"
                                                 >
-                                                    <div className="bg-white p-2 text-xl rounded-full shadow-inner shrink-0 flex items-center justify-center w-10 h-10">💛</div>
-                                                    <div className="font-bold flex-1">Buy Me a Coffee</div>
-                                                    <svg className="w-5 h-5 shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
+                                                    <img src="/images/bmc-yellow-button.png" alt="Buy Me A Coffee" className="h-12 w-auto object-contain rounded-xl" />
                                                 </a>
                                             </div>
                                         </div>

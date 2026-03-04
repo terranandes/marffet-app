@@ -94,8 +94,12 @@ Marffet 是一款基於網頁的投資模擬與投資組合追蹤工具，旨在
 
 喜歡瑪斯投資系統嗎？您可以透過贊助我們的開發工作來解鎖 **VIP** 或 **Premium (進階)** 功能！
 
+[![Buy Me A Coffee](../../frontend/public/images/bmc-yellow-button.png)](https://www.buymeacoffee.com/terranandes)
+<br/>
+[![Ko-Fi](../../frontend/public/images/kofi-blue-button.png)](https://ko-fi.com/terranandes)
+
 1. 前往 **設定 (Settings)** ⚙️ 並點擊 **贊助我們 (Sponsor Us)** 分頁。
-2. 選擇您偏好的平台：[Ko-fi](https://ko-fi.com/terranandes) 或 [Buy Me a Coffee](https://buymeacoffee.com/terranandes)。
+2. 選擇您偏好的平台進行贊助。
 3. 贊助完成後，我們的系統管理員 (GM) 將會手動為您的帳號注入 VIP 或 Premium 會員資格。
 
 ---

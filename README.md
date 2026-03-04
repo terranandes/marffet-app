@@ -87,8 +87,10 @@ A: We recommend using a service that supports Docker or Python/Node apps, such a
 ## ☕ Sponsorship & Memberships
 
 Love the Marffet Investment System? Support the project and unlock **Premium** or **VIP** features!
-- ☕ **[Ko-fi](https://ko-fi.com/terranandes)**
-- 💛 **[Buy Me a Coffee](https://buymeacoffee.com/terranandes)**
+
+[![Buy Me A Coffee](frontend/public/images/bmc-yellow-button.png)](https://www.buymeacoffee.com/terranandes)
+<br/>
+[![Ko-Fi](frontend/public/images/kofi-blue-button.png)](https://ko-fi.com/terranandes)
 
 *Sponsoring grants you VIP/Premium access which is manually injected by the Game Master.*
 

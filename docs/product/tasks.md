@@ -488,3 +488,14 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting** (Ref: `docs/meeting/meeting_notes_2026_03_04_sync_v1.md`)
     - Prioritized next steps: BUG-012 fix, full-test restart, 5-tier E2E testing
 
+## 27. Phase 28: Public Repo Showcase - [COMPLETED]
+- [x] **Sync README Tier Tables**
+    - [x] `README.md`, `README-zh-TW.md`, `README-zh-CN.md` synced with `specification.md` v5.0 (9 cells fixed)
+    - [x] Language switcher links added and bumped to v5.1
+- [x] **Public Repo Setup** (`terranandes/marffet-app`)
+    - [x] Captured 4 dark-mode screenshots (Landing, Mars, Compound, BCR)
+    - [x] Added `LICENSE` (All Rights Reserved) and App Preview section
+    - [x] Pushed to GitHub `46e08c7`
+- [x] **Document Sanitization**
+    - [x] Created `marffet_showcase_github.md` with zero sensitive word leaks
+- [x] **Agents Sync Meeting v2** (Ref: `docs/meeting/meeting_notes_2026_03_04_sync_v2.md` & `docs/code_review/code_review_2026_03_04_sync_v2.md`)

@@ -505,3 +505,20 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-05 v1** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v1.md` & `docs/code_review/code_review_2026_03_05_sync_v1.md`)
 - [x] **Agents Sync Meeting - 2026-03-05 v3** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v3.md` & `docs/code_review/code_review_2026_03_05_sync_v3.md`)
     - Multi-agent brainstorm decided Phase 29 = Accounts-Over-Time (Net Worth Line Chart). Pushed 3 pending doc commits to origin/master.
+
+## 28. Phase 30: Document-Flow (BMAC/Ko-fi) & Mobile Sidebar Fix - [COMPLETED]
+- [x] **BMAC/Ko-fi Documentation** — Updated `marffet_showcase_github.md`, `social_media_promo.md`, `admin_operations.md`
+- [x] **Sensitive Word Cleanup** — Removed all `MoneyCome` references from `social_media_promo.md`
+- [x] **Mobile Sidebar Scroll Fix** — `h-[100dvh]`, split header/nav, `shrink-0` bottom panel, `AbortController` 8s timeout
+- [x] **Code Review** — APPROVED (`46d2af4`)
+- [x] **Agents Sync Meeting - 2026-03-05 v4** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v4.md` & `docs/code_review/code_review_2026_03_05_sync_v4.md`)
+    - BMAC/Ko-fi docs + sidebar fix approved. CV_full-test-local worktree cleaned. Mobile app-like plan (Phase 31) written and reviewed.
+
+## 29. Phase 31: Mobile App-Like Experience - [PLANNED]
+> Ref: [Plan](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience.md) | [Review](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience-review.md)
+- [ ] **Phase 1: Foundation** — Breakpoint alignment (`md:` → `lg:`), safe-area-insets, responsive spacing tokens
+- [ ] **Phase 2: Bottom Tab Bar** — Lift auth to shared context, BottomTabBar component, "More" popup overlay
+- [ ] **Phase 3: Touch Polish** — Global 44px touch targets, compact scroll tables, ECharts responsive
+- [ ] **Phase 4: PWA** — manifest.json (`minimal-ui`), icons, service worker (versioned cache)
+- [ ] **Phase 5: Page Transitions** — Framer Motion / CSS view-transitions, micro-interactions
+- [ ] **Phase 6: iPad Optimization** — Tablet layout (768-1023px), 2-column grids

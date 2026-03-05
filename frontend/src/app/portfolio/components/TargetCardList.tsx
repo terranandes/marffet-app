@@ -53,7 +53,7 @@ export function TargetCardList({
     };
 
     return (
-        <div className="lg:hidden w-full">
+        <div className="md:hidden w-full">
             {targets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-[var(--color-text-muted)] py-12 bg-black/20 rounded-xl border border-white/5 border-dashed mt-4">
                     <span className="text-3xl mb-3">📈</span>

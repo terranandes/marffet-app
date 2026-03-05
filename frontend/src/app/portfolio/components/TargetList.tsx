@@ -82,7 +82,7 @@ export function TargetList({
             </div>
 
             {targets.length === 0 && (
-                <div className="hidden lg:flex flex-col items-center justify-center text-[var(--color-text-muted)] py-16 bg-black/20 rounded-xl border border-white/5 border-dashed">
+                <div className="hidden md:flex flex-col items-center justify-center text-[var(--color-text-muted)] py-16 bg-black/20 rounded-xl border border-white/5 border-dashed">
                     <span className="text-3xl mb-3">📈</span>
                     <span className="font-medium">{t('Portfolio.NoAssetsYet')}</span>
                     <span className="text-xs opacity-70 mt-1">{t('Portfolio.AddTickerToTrack')}</span>
@@ -90,7 +90,7 @@ export function TargetList({
             )}
 
             {targets.length > 0 && (
-                <div className="hidden lg:block overflow-visible pb-12">
+                <div className="hidden md:block overflow-visible pb-12">
                     <table className="w-full text-sm border-collapse">
                         <thead>
                             <tr className="border-b border-white/10 text-[var(--color-text-muted)] text-[10px] uppercase tracking-wider bg-black/20">

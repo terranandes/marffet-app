@@ -2,22 +2,8 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [x] Multi-language.
-- [x] Add 'buy-me-coffee' button to our web app. 
-    - 1st button shall link to [https://www.buymeacoffee.com/terranandes](https://www.buymeacoffee.com/terranandes)
-    - 2nd button shall link to [https://ko-fi.com/terranandes](https://ko-fi.com/terranandes)
+- [ ] DesignMobile view used by default when using mobile phone/pad while switching to desktop view is possible
 
-- [x] Define GM, VIP, PREMIUM, FREE, Guest
-
-- [x] Publish to Github, and exchange docs/product/README*.md and ./README.md, where ./README.md shall include English/Zh-TW/Zh-CN text. We will never leakage any codes and technical stacks. We just promote the product.
-- [x] Adjust the license to All Rights Reserved
-- [x] Add `buymeacoffee`/`ko-fi` button to the GitHub ./README.md
-- [ ] implement the number of registered/premium/VIP accounts over time on GM Dashboard like Github star history
-
-- [x] Rename the English name Martian to Marffet
-- [x] Rename private GitHub repo from terranandes/martian to terranandes/marffet
-- [x] Create new public GitHub repo terranandes/marffet-app for project showcase
-- [x] Rename Zeabur frontend service to marffet-app and backend to marffet-api
 ---
 
 ## === Barrier === (DO-NOT-TOUCH AREA)

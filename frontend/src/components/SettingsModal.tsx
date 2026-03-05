@@ -13,6 +13,7 @@ interface User {
     picture?: string;
     is_admin?: boolean;
     is_premium?: boolean;
+    tier?: string;
 }
 
 interface SettingsModalProps {
@@ -59,6 +60,30 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
     const [feedbackCategory, setFeedbackCategory] = useState("settings");
     const [feedbackType, setFeedbackType] = useState("suggestion");
     const [feedbackMessage, setFeedbackMessage] = useState("");
+
+    // Read initial internal state from props if we need to force it open
+    // This allows the layout to control it directly or we use custom events
+    const [isInternalOpen, setIsInternalOpen] = useState(isOpen);
+
+    useEffect(() => {
+        setIsInternalOpen(isOpen);
+    }, [isOpen]);
+
+    // Global event listener for mobile bottom bar
+    useEffect(() => {
+        const handleOpenSettings = () => {
+            setIsInternalOpen(true);
+            setActiveTab("profile");
+        };
+        window.addEventListener('open-mobile-settings', handleOpenSettings);
+        return () => window.removeEventListener('open-mobile-settings', handleOpenSettings);
+    }, []);
+
+    // When internal close happens, call the prop onClose too
+    const handleClose = () => {
+        setIsInternalOpen(false);
+        onClose();
+    };
 
     // Status
     const [loading, setLoading] = useState(false);
@@ -166,14 +191,14 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
         setLoading(false);
     };
 
-    if (!isOpen || !user) return null;
+    if (!isInternalOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                onClick={onClose}
+                onClick={handleClose}
             />
 
             {/* Modal */}
@@ -184,7 +209,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         <span className="text-2xl">⚙️</span> {t('Settings.Title') || "Settings"}
                     </h2>
-                    <button onClick={onClose} className="text-zinc-400 hover:text-white transition hover:rotate-90 duration-300">
+                    <button onClick={handleClose} className="text-zinc-400 hover:text-white transition hover:rotate-90 duration-300">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -235,62 +260,106 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                 <motion.div key="profile" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="space-y-8">
                                     <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">{t('Settings.UserProfile') || "User Profile"}</h3>
 
-                                    <div className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
-                                        <div className="relative">
-                                            <img
-                                                src={user.picture}
-                                                className="w-20 h-20 rounded-full border-2 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                                            />
-                                            {user.is_admin && <div className="absolute -bottom-2 -right-2 text-xl">👑</div>}
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-bold text-white">{user.name}</div>
-                                            <div className="text-sm text-zinc-500 font-mono">{user.email}</div>
-                                            {user.is_admin && (
-                                                <span className="mt-2 inline-block px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                                                    {t('Settings.GameMaster') || "Game Master"}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.DisplayNickname') || "Display Nickname"}</label>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={nickname}
-                                                    onChange={(e) => setNickname(e.target.value)}
-                                                    className="flex-1 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
-                                                    placeholder={t('Settings.EnterNickname') || "Enter your nickname"}
-                                                />
-                                                <button
-                                                    onClick={handleSaveProfile}
-                                                    disabled={loading}
-                                                    className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
-                                                >
-                                                    {loading ? "..." : (t('Settings.Save') || "Save")}
-                                                </button>
+                                    {user ? (
+                                        <>
+                                            <div className="flex gap-4">
+                                                <div className="relative">
+                                                    <img
+                                                        src={user.picture || ""}
+                                                        alt="Profile"
+                                                        className="w-20 h-20 rounded-xl object-cover border border-zinc-700 shadow-xl"
+                                                    />
+                                                    {user.is_admin && <div className="absolute -bottom-2 -right-2 text-xl">👑</div>}
+                                                </div>
+                                                <div className="flex flex-col justify-center">
+                                                    <div className="text-2xl font-bold text-white">{user.name}</div>
+                                                    <div className="text-sm text-zinc-500 font-mono">{user.email}</div>
+                                                    {user.is_admin && (
+                                                        <div className="mt-1 text-xs text-amber-500 font-bold bg-amber-500/10 inline-block px-2 py-0.5 rounded border border-amber-500/20">
+                                                            SYSTEM ADMINISTRATOR
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-zinc-600">{t('Settings.VisibleOnLeaderboards') || "Visible on public leaderboards."}</p>
-                                        </div>
 
-                                        {/* Leaderboard Rank Section */}
-                                        <div className="pt-6 border-t border-white/10">
-                                            <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 {t('Settings.LeaderboardRank') || "Leaderboard Rank"}</label>
-                                            <div className="flex justify-between items-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
-                                                <p className="text-xs text-gray-400">{t('Settings.UpdateWealthStats') || "Update your wealth stats on the global leaderboard."}</p>
-                                                <button
-                                                    onClick={handleSyncStats}
-                                                    disabled={syncLoading}
-                                                    className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-4 py-2 rounded-lg text-sm font-bold border border-yellow-500/50 transition hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] disabled:opacity-50"
+                                            <div className="space-y-6 pt-2">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t('Settings.DisplayNickname') || "Display Nickname"}</label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={nickname}
+                                                            onChange={(e) => setNickname(e.target.value)}
+                                                            className="flex-1 bg-black/40 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
+                                                            placeholder={t('Settings.EnterNickname') || "Enter your nickname"}
+                                                        />
+                                                        <button
+                                                            onClick={handleSaveProfile}
+                                                            disabled={loading}
+                                                            className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
+                                                        >
+                                                            {loading ? "..." : (t('Settings.Save') || "Save")}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-600">{t('Settings.VisibleOnLeaderboards') || "Visible on public leaderboards."}</p>
+                                                </div>
+
+                                                {/* Leaderboard Rank Section */}
+                                                <div className="pt-6 border-t border-white/10">
+                                                    <label className="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2 block">🏆 {t('Settings.LeaderboardRank') || "Leaderboard Rank"}</label>
+                                                    <div className="flex justify-between items-center p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+                                                        <p className="text-xs text-gray-400">{t('Settings.UpdateWealthStats') || "Update your wealth stats on the global leaderboard."}</p>
+                                                        <button
+                                                            onClick={handleSyncStats}
+                                                            disabled={syncLoading}
+                                                            className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 px-4 py-2 rounded-lg text-sm font-bold border border-yellow-500/50 transition hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] disabled:opacity-50 shrink-0 ml-4"
+                                                        >
+                                                            {syncLoading ? (t('Settings.Syncing') || "Syncing...") : (t('Settings.SyncNow') || "Sync Now")}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Sign Out Button */}
+                                                <div className="pt-6 border-t border-white/10">
+                                                    <button
+                                                        onClick={() => {
+                                                            window.location.href = `/auth/logout`;
+                                                        }}
+                                                        className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl transition border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] flex items-center justify-center gap-2"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                        </svg>
+                                                        {t('Sidebar.SignOut') || "Sign Out"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                                            <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center border-4 border-zinc-700 shadow-inner">
+                                                <span className="text-zinc-500 text-4xl">👤</span>
+                                            </div>
+                                            <div className="text-center space-y-2">
+                                                <h4 className="text-xl font-bold text-white">Welcome Guest</h4>
+                                                <p className="text-sm text-zinc-400 max-w-xs mx-auto">
+                                                    Sign in to save your portfolio, track your investments across devices, and compete on the leaderboard.
+                                                </p>
+                                            </div>
+
+                                            <div className="w-full max-w-sm pt-4">
+                                                <a
+                                                    href={`/auth/login`}
+                                                    className="flex items-center justify-center gap-3 w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-all shadow-lg hover:shadow-xl"
                                                 >
-                                                    {syncLoading ? (t('Settings.Syncing') || "Syncing...") : (t('Settings.SyncNow') || "Sync Now")}
-                                                </button>
+                                                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
+                                                    </svg>
+                                                    {t('Sidebar.SignInGoogle') || "Sign in with Google"}
+                                                </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </motion.div>
                             )}
 

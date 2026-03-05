@@ -3,6 +3,7 @@ description: Full coverage tests on local and remote Zeabur.
 ---
 
 [PL] Commit necessary files, but push, including deployment requirements. before the following jobs.
+All testing shall include both desktop and mobile view.
 Use skill `using-git-worktrees` to verify local APP.
 1. Create a worktree with current/specified commit and branch. <br>
    Notice git-ignored files but necessary, for example: `./.env`, should be copied as well into the worktree

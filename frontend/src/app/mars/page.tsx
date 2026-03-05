@@ -434,57 +434,59 @@ export default function MarsPage() {
                             </div>
 
                             {/* Strategy Table */}
-                            <div className="mb-8 rounded-lg overflow-hidden border border-[var(--color-border)]">
-                                <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-sm py-3 px-4">
-                                    <div>{t('Mars.Strategy')}</div>
-                                    <div className="text-center">{t('Mars.BuyOpen')}</div>
-                                    <div className="text-center">{t('Mars.BuyHigh')}</div>
-                                    <div className="text-center">{t('Mars.BuyLow')}</div>
-                                </div>
-                                <div className="divide-y divide-[var(--color-border)]">
-                                    {/* Final Value Row */}
-                                    <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">{t('Mars.FinalValue')}</div>
-
-                                        {/* BAO */}
-                                        <div className="text-center font-bold text-[var(--color-cta)] text-xl">
-                                            {detailLoading ? t('Mars.LoadingData') :
-                                                detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"}
-                                        </div>
-
-                                        {/* BAH */}
-                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
-                                            {detailLoading ? t('Mars.LoadingData') :
-                                                detailResult?.BAH?.finalValue ? formatCurrency(detailResult.BAH.finalValue) : "-"}
-                                        </div>
-
-                                        {/* BAL */}
-                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-xl">
-                                            {detailLoading ? t('Mars.LoadingData') :
-                                                detailResult?.BAL?.finalValue ? formatCurrency(detailResult.BAL.finalValue) : "-"}
-                                        </div>
+                            <div className="mb-8 rounded-lg overflow-x-auto border border-[var(--color-border)]">
+                                <div className="min-w-[500px]">
+                                    <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-[10px] md:text-sm py-3 px-2 md:px-4">
+                                        <div>{t('Mars.Strategy')}</div>
+                                        <div className="text-center">{t('Mars.BuyOpen')}</div>
+                                        <div className="text-center">{t('Mars.BuyHigh')}</div>
+                                        <div className="text-center">{t('Mars.BuyLow')}</div>
                                     </div>
+                                    <div className="divide-y divide-[var(--color-border)]">
+                                        {/* Final Value Row */}
+                                        <div className="grid grid-cols-4 py-4 px-2 md:px-4 bg-black/20 hover:bg-white/5 transition items-center">
+                                            <div className="font-bold text-white text-xs md:text-sm">{t('Mars.FinalValue')}</div>
 
-                                    {/* Total ROI Row */}
-                                    <div className="grid grid-cols-4 py-4 px-4 bg-black/20 hover:bg-white/5 transition">
-                                        <div className="font-bold text-white">{t('Mars.TotalROILabel')}</div>
+                                            {/* BAO */}
+                                            <div className="text-center font-bold text-[var(--color-cta)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"}
+                                            </div>
 
-                                        {/* BAO ROI */}
-                                        <div className="text-center font-bold text-[var(--color-success)] text-lg">
-                                            {detailLoading ? "..." :
-                                                detailResult?.BAO?.finalValue ? calculateTotalROI(detailResult.BAO.finalValue).toFixed(2) + "%" : "-"}
+                                            {/* BAH */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAH?.finalValue ? formatCurrency(detailResult.BAH.finalValue) : "-"}
+                                            </div>
+
+                                            {/* BAL */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAL?.finalValue ? formatCurrency(detailResult.BAL.finalValue) : "-"}
+                                            </div>
                                         </div>
 
-                                        {/* BAH ROI */}
-                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-lg">
-                                            {detailLoading ? "..." :
-                                                detailResult?.BAH?.finalValue ? calculateTotalROI(detailResult.BAH.finalValue).toFixed(2) + "%" : "-"}
-                                        </div>
+                                        {/* Total ROI Row */}
+                                        <div className="grid grid-cols-4 py-4 px-2 md:px-4 bg-black/20 hover:bg-white/5 transition items-center">
+                                            <div className="font-bold text-white text-xs md:text-sm truncate pr-1">{t('Mars.TotalROILabel')}</div>
 
-                                        {/* BAL ROI */}
-                                        <div className="text-center font-bold text-[var(--color-text-muted)] text-lg">
-                                            {detailLoading ? "..." :
-                                                detailResult?.BAL?.finalValue ? calculateTotalROI(detailResult.BAL.finalValue).toFixed(2) + "%" : "-"}
+                                            {/* BAO ROI */}
+                                            <div className="text-center font-bold text-[var(--color-success)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAO?.finalValue ? calculateTotalROI(detailResult.BAO.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
+
+                                            {/* BAH ROI */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAH?.finalValue ? calculateTotalROI(detailResult.BAH.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
+
+                                            {/* BAL ROI */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAL?.finalValue ? calculateTotalROI(detailResult.BAL.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -7,6 +7,7 @@ interface User {
     email?: string;
     is_admin?: boolean;
     is_premium?: boolean;
+    tier?: string;
     nickname?: string;
     picture?: string;
 }

@@ -514,11 +514,16 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-05 v4** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v4.md` & `docs/code_review/code_review_2026_03_05_sync_v4.md`)
     - BMAC/Ko-fi docs + sidebar fix approved. CV_full-test-local worktree cleaned. Mobile app-like plan (Phase 31) written and reviewed.
 
-## 29. Phase 31: Mobile App-Like Experience - [PLANNED]
+## 29. Phase 31: Mobile App-Like Experience - [IN PROGRESS]
 > Ref: [Plan](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience.md) | [Review](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience-review.md)
-- [ ] **Phase 1: Foundation** — Breakpoint alignment (`md:` → `lg:`), safe-area-insets, responsive spacing tokens
-- [ ] **Phase 2: Bottom Tab Bar** — Lift auth to shared context, BottomTabBar component, "More" popup overlay
-- [ ] **Phase 3: Touch Polish** — Global 44px touch targets, compact scroll tables, ECharts responsive
-- [ ] **Phase 4: PWA** — manifest.json (`minimal-ui`), icons, service worker (versioned cache)
-- [ ] **Phase 5: Page Transitions** — Framer Motion / CSS view-transitions, micro-interactions
-- [ ] **Phase 6: iPad Optimization** — Tablet layout (768-1023px), 2-column grids
+- [x] **Phase 1: Foundation** — Breakpoint alignment (`md:` → `lg:`), safe-area-insets, responsive spacing tokens (`991af7a`)
+- [x] **Phase 2: Bottom Tab Bar** — Lift auth to shared `UserContext.tsx`, BottomTabBar component, "More" popup overlay (`9f5dd4f`)
+- [x] **Phase 3: Touch Polish** — Global 44px touch targets, compact scroll tables (Mars horizontal scroll), AICopilot FAB repositioned (`bea5641`)
+- [x] **Phase 4: PWA** — manifest.json (`minimal-ui`), icons, service worker (versioned cache), offline fallback (`bea5641`)
+- [x] **Phase 5: Page Transitions** — Framer Motion `PageTransition.tsx` in `template.tsx` (`99fa5fc`)
+- [x] **Phase 6: iPad Optimization** — Tablet layout adjustments, TargetList/TargetCardList responsive fixes (`99fa5fc`)
+- [x] **Mobile UI Fixes** — BottomTabBar i18n, SettingsModal close/auth, Mars table scroll, testing workflow updates (`980c075`)
+- [x] **Sidebar Reorder** — Portfolio tab before CB in desktop nav (`8e061a8`)
+- [ ] **⚠️ REGRESSION FIX:** Desktop Sidebar User Profile section (Sign In/Guest/Sign Out) removed during Phase 2 auth refactor — needs restoration
+- [ ] **E2E Verification** — Desktop + mobile viewport Playwright tests (blocked on Sidebar regression fix)
+- [x] **Agents Sync Meeting - 2026-03-06 v1** (Ref: `docs/meeting/meeting_notes_2026_03_06_sync_v1.md` & `docs/code_review/code_review_2026_03_06_sync_v1.md`)

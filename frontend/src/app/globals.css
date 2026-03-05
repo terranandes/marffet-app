@@ -124,13 +124,24 @@ h6 {
 
 /* Responsive Spacing Tokens */
 :root {
-  --spacing-page: 1rem;        /* phone (< 768px) */
+  --spacing-page: 1rem;
+  /* phone (< 768px) */
 }
+
 @media (min-width: 768px) {
-  :root { --spacing-page: 1.5rem; }  /* tablet */
+  :root {
+    --spacing-page: 1.5rem;
+  }
+
+  /* tablet */
 }
+
 @media (min-width: 1024px) {
-  :root { --spacing-page: 2rem; }    /* desktop */
+  :root {
+    --spacing-page: 2rem;
+  }
+
+  /* desktop */
 }
 
 /* Safe Area Insets (notched iPhones in PWA mode) */
@@ -142,6 +153,7 @@ body {
 
 /* Global Touch Target Minimums (Apple HIG: 44px) */
 @media (max-width: 1023px) {
+
   button,
   a[href],
   [role="button"],
@@ -154,6 +166,7 @@ body {
 
 /* Button press scale effect for native feel */
 @media (max-width: 1023px) {
+
   button:active,
   a:active,
   [role="button"]:active {
@@ -162,11 +175,30 @@ body {
   }
 }
 
+/* Responsive Tables — horizontal scroll on mobile with sticky first column */
+@media (max-width: 1023px) {
+
+  .overflow-x-auto table,
+  table {
+    font-size: 0.8125rem;
+    /* 13px for readability on mobile */
+  }
+
+  .overflow-x-auto th:first-child,
+  .overflow-x-auto td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-bg-secondary);
+  }
+}
+
 /* Hide scrollbar on mobile nav (keep scrolling functional) */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

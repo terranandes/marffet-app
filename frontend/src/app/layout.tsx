@@ -18,11 +18,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Marffet Investment System",
   description: "Advanced Low-Volatility Stock Analysis",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
   other: {
     "viewport": "width=device-width, initial-scale=1, viewport-fit=cover",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "mobile-web-app-capable": "yes",
+    "theme-color": "#050510",
   },
   openGraph: {
     title: "Marffet Investment System",
@@ -68,6 +74,11 @@ export default function RootLayout({
           </div>
           <BottomTabBar />
         </ClientProviders>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'))}`,
+          }}
+        />
       </body>
     </html>
   );

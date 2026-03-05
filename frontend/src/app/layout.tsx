@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "../components/Sidebar";
+import BottomTabBar from "../components/BottomTabBar";
 import ClientProviders from "../components/ClientProviders";
 import "./globals.css";
 
@@ -61,10 +62,11 @@ export default function RootLayout({
         <ClientProviders>
           <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 lg:ml-64 p-4 lg:p-8 overflow-y-auto">
+            <main className="flex-1 lg:ml-64 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto">
               {children}
             </main>
           </div>
+          <BottomTabBar />
         </ClientProviders>
       </body>
     </html>

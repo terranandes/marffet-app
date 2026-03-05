@@ -120,7 +120,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
             {/* FAB Button */}
             <button
                 onClick={() => isLoggedIn && setIsOpen(!isOpen)}
-                className={`fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-[9999] transition-all duration-300 ${isLoggedIn
+                className={`fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-[50] transition-all duration-300 ${isLoggedIn
                     ? "bg-gradient-to-tr from-pink-600 to-rose-400 hover:scale-110 shadow-[0_0_20px_rgba(255,0,85,0.4)]"
                     : "bg-zinc-700 opacity-50 cursor-not-allowed"
                     }`}

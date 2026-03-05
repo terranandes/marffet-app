@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import SettingsModal from "./SettingsModal";
 import DataTimestamp from "./DataTimestamp";
 import { useLanguage } from "../lib/i18n/LanguageContext";
+import { useUser } from "../lib/UserContext";
 
 interface User {
     id: string | null;
@@ -57,98 +58,19 @@ const SidebarItem = ({
 
 export default function Sidebar() {
     const { t } = useLanguage();
+    const { user, isLoading, notifications, unreadCount, markAsRead, clearNotifications, refreshUser } = useUser();
     const [isOpen, setIsOpen] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const pathname = usePathname();
 
-    // Notifications State
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    // Notifications UI State (local)
     const [showNotifications, setShowNotifications] = useState(false);
-    const unreadCount = notifications.filter(n => !n.is_read).length;
 
     // State for Settings Modal
     const [showSettings, setShowSettings] = useState(false);
     const [settingsActiveTab, setSettingsActiveTab] = useState("profile");
 
-    const fetchData = async () => {
-        try {
-            // Use Relative URL to Proxy via Next.js (preserves Cookie)
-            const API_URL = "";
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            const userRes = await fetch(`${API_URL}/auth/me`, {
-                credentials: "include",
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (userRes.ok) {
-                const userData = await userRes.json();
-
-                // Only set user if they actually have an ID (not {id: null})
-                if (userData && userData.id) {
-                    setUser(userData);
-
-                    // Auto-sync premium status from server (privileged accounts)
-                    if (userData.is_premium) {
-                        localStorage.setItem("marffet_premium", "true");
-                    }
-
-                    // Fetch notifications if logged in
-                    const notifRes = await fetch(`${API_URL}/api/notifications`, {
-                        credentials: "include"
-                    });
-                    if (notifRes.ok) {
-                        setNotifications(await notifRes.json());
-                    }
-                } else {
-                    // User is logged out (id is null)
-                    setUser(null);
-                    setNotifications([]);
-                }
-            } else {
-                setUser(null);
-            }
-        } catch (e) {
-            console.error("Fetch error:", e);
-            setUser(null);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Fetch user info & notifications on mount
-    useEffect(() => {
-        fetchData();
-
-        // Poll notifications every 30s
-        const interval = setInterval(async () => {
-            try {
-                // Use relative path to leverage Next.js rewrites
-                const res = await fetch(`/api/notifications`, { credentials: "include" });
-                if (res.ok) setNotifications(await res.json());
-            } catch (e) { console.error("Poll error:", e); }
-        }, 30000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const markAsRead = async (id: number) => {
-        try {
-            // Use relative path to leverage Next.js rewrites
-            await fetch(`/api/notifications/${id}/read`, { method: "POST", credentials: "include" });
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
-        } catch (e) { console.error("Mark read error:", e); }
-    };
-
-    const clearNotifications = () => {
-        notifications.forEach(n => {
-            if (!n.is_read) markAsRead(n.id);
-        });
+    const handleClearNotifications = () => {
+        clearNotifications();
         setShowNotifications(false);
     };
 
@@ -217,7 +139,7 @@ export default function Sidebar() {
                                     <div className="absolute left-full top-0 ml-2 w-80 bg-[#0e1117] border border-zinc-800 rounded-xl shadow-2xl z-[100] overflow-hidden">
                                         <div className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
                                             <h3 className="font-bold text-sm text-white">Notifications</h3>
-                                            <button onClick={clearNotifications} className="text-xs text-blue-400 hover:text-blue-300">
+                                            <button onClick={handleClearNotifications} className="text-xs text-blue-400 hover:text-blue-300">
                                                 Mark all read
                                             </button>
                                         </div>
@@ -478,7 +400,7 @@ export default function Sidebar() {
                                         }
 
                                         if (res.ok) {
-                                            fetchData(); // Refresh user state
+                                            refreshUser(); // Refresh user state
                                         } else {
                                             alert("Failed to enter guest mode");
                                         }
@@ -526,7 +448,7 @@ export default function Sidebar() {
                 isOpen={showSettings}
                 onClose={() => setShowSettings(false)}
                 user={user}
-                onUpdateUser={fetchData}
+                onUpdateUser={refreshUser}
                 initialTab={settingsActiveTab}
             />
         </>

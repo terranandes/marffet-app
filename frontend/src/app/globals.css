@@ -119,3 +119,54 @@ h6 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== Mobile App-Like Responsive System ===== */
+
+/* Responsive Spacing Tokens */
+:root {
+  --spacing-page: 1rem;        /* phone (< 768px) */
+}
+@media (min-width: 768px) {
+  :root { --spacing-page: 1.5rem; }  /* tablet */
+}
+@media (min-width: 1024px) {
+  :root { --spacing-page: 2rem; }    /* desktop */
+}
+
+/* Safe Area Insets (notched iPhones in PWA mode) */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Global Touch Target Minimums (Apple HIG: 44px) */
+@media (max-width: 1023px) {
+  button,
+  a[href],
+  [role="button"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+  }
+}
+
+/* Button press scale effect for native feel */
+@media (max-width: 1023px) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
+  }
+}
+
+/* Hide scrollbar on mobile nav (keep scrolling functional) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

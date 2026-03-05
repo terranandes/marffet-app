@@ -17,6 +17,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Marffet Investment System",
   description: "Advanced Low-Volatility Stock Analysis",
+  other: {
+    "viewport": "width=device-width, initial-scale=1, viewport-fit=cover",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "mobile-web-app-capable": "yes",
+  },
   openGraph: {
     title: "Marffet Investment System",
     description: "Advanced Low-Volatility Stock Analysis & Portfolio Tracking",
@@ -55,7 +61,7 @@ export default function RootLayout({
         <ClientProviders>
           <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+            <main className="flex-1 lg:ml-64 p-4 lg:p-8 overflow-y-auto">
               {children}
             </main>
           </div>

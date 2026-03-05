@@ -5,7 +5,11 @@
 - Built with **AntiGravity** AI 🤖
 - Professional Stock Backtesting 📈
 - AI Investment Consultant 🧠
-- Better than Yahoo Stock / MoneyCome ⚡
+- Modern alternative to Yahoo Stock ⚡
+
+**Sponsorship Links:**
+- ☕ Buy Me a Coffee: [buymeacoffee.com/terranandes](https://www.buymeacoffee.com/terranandes)
+- ❤️ Ko-fi: [ko-fi.com/terranandes](https://ko-fi.com/terranandes)
 
 ---
 
@@ -20,8 +24,10 @@
 為什麼你該試試？
 1. **強大回測 (Backtesting)**：不想當韭菜？先用歷史數據驗證你的策略！
 2. **AI 投資顧問**：內建 AI Copilot，隨時問診你的投資組合。
-3. **超越傳統**：介面更帥、功能更強，完全可以取代 MoneyCome 和 Yahoo 股市。
+3. **超越傳統**：介面更帥、功能更強，完全可以取代傳統看盤軟體。
 4. **贊助解鎖 VIP**：只需一杯咖啡的錢，即可解鎖進階功能！☕
+   - Buy Me a Coffee：https://www.buymeacoffee.com/terranandes
+   - Ko-fi：https://ko-fi.com/terranandes
 
 👉 立即免費試用： https://marffet-app.zeabur.app/
 
@@ -39,7 +45,7 @@
 ✅ 來試試 Marffet：
 🔥 **秒速回測** - 策略有沒有效跑一下就知道
 🧠 **AI 諮詢** - 投資不懂直接問 AI
-📈 **戰情室儀表板** - 完勝 Yahoo/MoneyCome
+📈 **戰情室儀表板** - 完勝傳統看盤軟體
 
 🔗 **連結在個人檔案 (Link in Bio)**
 快去玩玩看！👇
@@ -52,7 +58,7 @@ https://marffet-app.zeabur.app/
 ### Option 3: Threads (極簡嘴砲風)
 剛用 AntiGravity 擼了一個投資 App，功能有點太強... 😅
 可以直接回測，還有 AI 陪你聊股票。
-感覺 Yahoo 股市跟 MoneyCome 可以刪掉了 (誤)
+感覺傳統看盤軟體可以刪掉了 (誤)
 趁伺服器還沒爆之前快來試試： https://marffet-app.zeabur.app/  
 #AI #開發 #股票
 
@@ -68,8 +74,10 @@ I built this entire platform leveraging **AntiGravity** AI, and it’s packed wi
 
 ✅ **Pro-Level Backtesting**: Validate your strategies before spending a dime.
 ✅ **AI Copilot**: Get instant insights and consultation on your holdings.
-✅ **Modern UI**: A superior alternative to Yahoo Finance and MoneyCome.
-✅ **VIP Access**: Buy me a coffee to unlock Premium Tier! ☕
+✅ **Modern UI**: A superior alternative to traditional finance apps.
+✅ **VIP Access**: Support us on Ko-fi or Buy Me a Coffee to unlock Premium Tier! ☕
+   - ☕ https://www.buymeacoffee.com/terranandes
+   - ❤️ https://ko-fi.com/terranandes
 
 Check it out here: https://marffet-app.zeabur.app/
 
@@ -97,6 +105,6 @@ Stop guessing, start investing with data.
 
 ### Option 3: Threads (Casual)
 Just shipped a new investment app using AntiGravity AI. 🚀
-It does backtesting, has an AI consultant, and honestly... it makes Yahoo Finance look ancient.
+It does backtesting, has an AI consultant, and honestly... it makes traditional finance tools look ancient.
 Give it a spin: https://marffet-app.zeabur.app/
 #Builder #AI #Stocks #Coding

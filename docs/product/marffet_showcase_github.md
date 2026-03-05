@@ -1,7 +1,7 @@
 # Marffet — GitHub Showcase Guide
 **Owner:** [PM]
-**Version:** 1.0
-**Date:** 2026-03-04
+**Version:** 1.1
+**Date:** 2026-03-05
 
 ---
 
@@ -65,12 +65,25 @@ All 3 README files are cross-linked via a 🌐 language switcher at the top:
 | **AI Copilot** | Powered by Google Gemini with tier-based personalities |
 | **Multi-language** | English, 繁體中文, 简体中文 |
 | **Cyberpunk UI** | Dark mode, glassmorphism, Framer Motion animations |
+| **Admin Dashboard** | Account Growth History chart, Membership Injection, System Ops |
+| **Sponsor Integration** | Ko-fi & Buy Me a Coffee badges in Settings + README |
+
+### 🎗️ Sponsorship Platforms
+
+Users can support the project and unlock Premium/VIP features via:
+
+| Platform | URL | Badge |
+|:---------|:----|:------|
+| **Buy Me a Coffee** | [buymeacoffee.com/terranandes](https://www.buymeacoffee.com/terranandes) | ![BMAC](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black) |
+| **Ko-fi** | [ko-fi.com/terranandes](https://ko-fi.com/terranandes) | ![Ko-fi](https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white) |
+
+> **Fulfillment flow**: User sponsors → contacts GM with their registered email → GM injects VIP/PREMIUM via Admin Dashboard → user's tier is upgraded instantly.
 
 ### Tech Stack (for developers who visit)
 
 | Layer | Technology |
 |:------|:-----------|
-| Frontend | Next.js 16, React 18, ECharts, Framer Motion |
+| Frontend | Next.js 16, React 19, ECharts, Framer Motion |
 | Backend | FastAPI (Python 3.12), DuckDB |
 | Auth | Google OAuth 2.0 |
 | Hosting | Zeabur (Docker containers) |
@@ -99,6 +112,8 @@ When updating the public repo:
 - [ ] Verify tier table matches `specification.md` (single source of truth)
 - [ ] Ensure language switcher links are correct across all 3 READMEs
 - [ ] Check for sensitive word leaks (`grep -i "andes\|moneycome"`)
+- [ ] Verify BMAC/Ko-fi links are present and correct in READMEs and Settings Modal
+- [ ] Verify GM tier is **not** mentioned in public-facing READMEs
 - [ ] Regenerate screenshots if UI changes significantly
 - [ ] Update version number if features change
 - [ ] Never commit source code, `.env`, or backend logic to the public repo
@@ -118,4 +133,4 @@ When UI changes require new screenshots:
 
 ---
 
-*Last updated: 2026-03-04 by [PM]*
+*Last updated: 2026-03-05 by [PM]*

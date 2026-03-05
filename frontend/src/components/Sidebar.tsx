@@ -76,9 +76,15 @@ export default function Sidebar() {
             // Use Relative URL to Proxy via Next.js (preserves Cookie)
             const API_URL = "";
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             const userRes = await fetch(`${API_URL}/auth/me`, {
-                credentials: "include"
+                credentials: "include",
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (userRes.ok) {
                 const userData = await userRes.json();
@@ -177,9 +183,9 @@ export default function Sidebar() {
                 />
             )}
 
-            <aside className={`fixed left-0 top-0 h-screen w-64 bg-[var(--color-bg)]/90 backdrop-blur-xl border-r border-[var(--color-border)] flex flex-col z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+            <aside className={`fixed left-0 top-0 h-[100dvh] w-64 bg-[var(--color-bg)]/90 backdrop-blur-xl border-r border-[var(--color-border)] flex flex-col z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
                 }`}>
-                <div className="p-6">
+                <div className="p-6 shrink-0">
 
                     <div className="flex items-center justify-between mb-8 px-2">
                         <div className="flex items-center gap-3">
@@ -245,7 +251,10 @@ export default function Sidebar() {
                             </div>
                         )}
                     </div>
+                </div>
 
+                {/* Scrollable Nav Area */}
+                <div className="flex-1 overflow-y-auto min-h-0 px-6">
                     <nav className="flex flex-col gap-2">
                         {/* Mars Strategy */}
                         <SidebarItem
@@ -363,7 +372,7 @@ export default function Sidebar() {
 
 
 
-                <div className="mt-auto flex flex-col w-full">
+                <div className="mt-auto flex flex-col w-full shrink-0">
                     {/* Sponsor Us Link */}
                     <div className="px-4 mb-4">
                         <button

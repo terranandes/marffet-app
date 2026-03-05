@@ -43,6 +43,8 @@ Manually manage user access via Google emails. Grants are stored persistently in
 
 *Note: Environment variables (`GM_EMAILS`, `VIP_EMAILS`, `PREMIUM_EMAILS`) always take static precedence (`GM > VIP > PREMIUM`). If injected status expires, user reverts to static `.env` settings or Free tier. Guest users (no login) cannot receive injections.*
 
+> **Sponsorship Fulfillment Workflow**: When a user supports the project via **Ko-fi** or **Buy Me a Coffee**, they must provide their registered Google email to the GM. The GM then manually injects the `PREMIUM` or `VIP` status via this dashboard with the appropriate duration (e.g., Annually or Permanent).
+
 ---
 
 ### Section: 📅 Routine Operations (default: closed)

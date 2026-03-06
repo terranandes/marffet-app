@@ -31,41 +31,32 @@ def run_phase31_tests():
         try:
             print("\n🛑 TEST: Desktop Sidebar User Profile (Regression Fix)")
             desktop_page.goto(f'{BASE_URL}/portfolio')
-            desktop_page.wait_for_load_state('domcontentloaded')
+            desktop_page.wait_for_load_state('networkidle', timeout=30000)
             
             # Look for Guest or Sign In buttons scoped to the desktop sidebar (aside element)
             try:
                 sidebar = desktop_page.locator("aside").first
                 sidebar.wait_for(state="visible", timeout=5000)
                 
-                # Wait for React hydration and loading skeleton to disappear
-                desktop_page.wait_for_timeout(3000)
-                
-                # Wait for loading skeleton to be gone (the animate-pulse element)
-                try:
-                    desktop_page.locator("aside .animate-pulse").wait_for(state="hidden", timeout=10000)
-                except:
-                    pass  # May not be loading at all
-                
-                # Additional wait for user state to resolve
-                desktop_page.wait_for_timeout(2000)
-                
-                # Check for Sign In or Guest or Sign Out within the sidebar only
-                sidebar_signin = sidebar.get_by_text("Sign In with Google")
-                sidebar_guest = sidebar.get_by_text("Explore as Guest")
-                sidebar_signout = sidebar.get_by_text("Sign Out")
-                
+                # Poll for user profile buttons (auth/me may take time on Zeabur cold start)
                 found = False
-                for label, loc in [("Sign In with Google", sidebar_signin), ("Explore as Guest", sidebar_guest), ("Sign Out", sidebar_signout)]:
-                    if loc.count() > 0 and loc.first.is_visible():
-                        print(f"✅ Sidebar User Profile found: '{label}' visible.")
-                        found = True
+                for attempt in range(15):  # 15 * 2s = 30s max
+                    sidebar_signin = sidebar.get_by_text("Sign In with Google")
+                    sidebar_guest = sidebar.get_by_text("Explore as Guest")
+                    sidebar_signout = sidebar.get_by_text("Sign Out")
+                    
+                    for label, loc in [("Sign In with Google", sidebar_signin), ("Explore as Guest", sidebar_guest), ("Sign Out", sidebar_signout)]:
+                        if loc.count() > 0 and loc.first.is_visible():
+                            print(f"✅ Sidebar User Profile found: '{label}' visible. (attempt {attempt+1})")
+                            found = True
+                            break
+                    if found:
                         break
+                    desktop_page.wait_for_timeout(2000)
                 
                 if not found:
-                    # Take a debug screenshot before failing
                     desktop_page.screenshot(path=f'{SCREENSHOT_DIR}/desktop_sidebar_debug_state.png')
-                    raise Exception("No user profile buttons visible in sidebar aside")
+                    raise Exception("No user profile buttons visible in sidebar aside after 30s")
                 
                 desktop_page.screenshot(path=f'{SCREENSHOT_DIR}/desktop_sidebar_fixed.png')
             except Exception as e:

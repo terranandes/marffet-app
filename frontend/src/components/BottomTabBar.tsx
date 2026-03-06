@@ -50,7 +50,7 @@ export default function BottomTabBar() {
             {/* Zone 3: Scrollable Tabs */}
             <nav
                 ref={scrollRef}
-                className="flex-1 flex overflow-x-auto snap-x snap-mandatory"
+                className="flex-1 flex overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory"
                 style={{
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',

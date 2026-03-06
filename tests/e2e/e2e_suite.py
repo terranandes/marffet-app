@@ -35,13 +35,19 @@ def run_e2e():
             
             # 1. Navigation & Guest Badge
             page.goto(f'{BASE_URL}/portfolio')
-            # 'networkidle' is flaky with background polling. Use load or domcontentloaded.
             page.wait_for_load_state('domcontentloaded')
             
-            print("   Verifying Guest Mode Badge...")
-            # Check for "Guest Mode" text
+            print("   Checking for Guest mode entry...")
+            # Try to click the guest button if it's there (new Sidebar behavior)
+            guest_btn = page.locator('button', has_text="Explore as Guest")
+            if guest_btn.count() > 0 and guest_btn.first.is_visible():
+                print("   Clicking 'Explore as Guest'...")
+                guest_btn.first.click()
+                page.wait_for_timeout(2000) # Wait for auth to process
+            
+            print("   Verifying Guest Mode Badge or Status...")
             try:
-                page.get_by_text("Guest Mode").wait_for(state="visible", timeout=5000)
+                page.get_by_text("Guest Mode").wait_for(state="visible", timeout=2000)
                 print("✅ Guest Mode Badge Found")
             except:
                 print("ℹ️ Guest Mode Badge NOT found (Likely responding as Logged In/API-Available)")
@@ -80,35 +86,23 @@ def run_e2e():
             page.get_by_text("+ Add Asset").click()
             
             # Wait for Card/Row to appear (Filter for visible one)
-            # Desktop view: Table row. Mobile view (if any): Card.
-            # We filter for visibility to avoid picking hidden mobile elements.
-            page.get_by_text("TSMC").locator("visible=true").first.wait_for(state="visible", timeout=10000)
+            # Find row containing 2330
+            page.locator("tr", has_text="2330").locator("visible=true").first.wait_for(state="visible", timeout=10000)
             print("✅ Stock 'TSMC' Added")
             
             page.screenshot(path=f'{SCREENSHOT_DIR}/2_added_stock.png')
 
             # 4. Add Transaction
             print("\n🛑 TEST 3: Add Transaction")
-            # Find "+Tx" button. There might be multiple if multiple stocks.
-            # limit to row with TSMC
-            # row = page.locator("tr", has_text="TSMC")
-            # row.get_by_text("+Tx").click()
-            # Simplified:
-            # Fix for Mobile/Desktop DOM duplication:
-            # We must ensure we click the VISIBLE button (Desktop).
-            # .first might pick the hidden mobile one.
-            tx_btns = page.locator("button", has_text="+Tx")
-            # Iterate to find visible one
-            clicked = False
-            for i in range(tx_btns.count()):
-                if tx_btns.nth(i).is_visible():
-                    tx_btns.nth(i).click()
-                    clicked = True
-                    break
+            # Find the row for TSMC and click its dropdown menu
+            row = page.locator("tr", has_text="TSMC").locator("visible=true").first
+            # Click the dropdown button (it's the only button in the row)
+            row.locator("button").click()
             
-            if not clicked:
-                print("❌ No visible '+Tx' button found!") 
-            # page.locator("button", has_text="+Tx").first.click()
+            # Wait for dropdown to appear and click 'Add Transaction'
+            add_tx_btn = page.get_by_text("Add Transaction").locator("visible=true").first
+            add_tx_btn.wait_for(state="visible", timeout=5000)
+            add_tx_btn.click()
             
             # Modal opens
             print("   Modal Opened. Entering Buy 1000 shares @ 500...")

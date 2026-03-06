@@ -137,10 +137,10 @@ uv run tests/unit/test_mobile_portfolio.py
 ### v3.7 (2026-03-06) - Mobile App-Like UI & Sidebar Regression
 | Test | Expected | Status |
 |------|----------|--------|
-| Bottom Tab Bar | Mobile layout displays BottomTabBar with 5 standard tabs | ❌ FAILED (BUG-014) |
+| Bottom Tab Bar | Mobile layout displays BottomTabBar with 5 standard tabs | ✅ PASSED Local |
 | PWA Service Worker | sw.js is registered and intercepts network requests | ⏳ Pending |
 | Sidebar User Profile | Desktop Sidebar displays Sign In/Guest/Sign Out buttons | ✅ PASSED Local |
-| BUG-010-CV Retest | Mobile Card view click targets are easily tappable | ⏳ Pending |
+| BUG-010-CV Retest | Mobile Card view click targets are easily tappable | ✅ PASSED Local |
 
 ### v3.5 (2026-03-01) - UI/UX Polish Verification (Modals, Notifications, Tabs)
 | Test | Expected | Status |

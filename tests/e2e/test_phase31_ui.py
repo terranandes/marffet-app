@@ -49,13 +49,15 @@ def run_phase31_tests():
             mobile_page.wait_for_load_state('domcontentloaded')
             
             try:
-                # PWA/Mobile top bar (contains Marffet and bell)
-                mobile_page.get_by_text("Marffet").first.wait_for(state="visible", timeout=5000)
+                # Top bar text on portfolio page is 'Portfolio' not 'Marffet'.
+                # But to be safe across i18n, we check the nav fixed container.
+                top_bar = mobile_page.locator("div.fixed.top-0.lg\\:hidden")
+                top_bar.wait_for(state="visible", timeout=5000)
                 print("✅ Mobile Top Bar found.")
                 
-                # Bottom tabs (Home, Mars, Portfolio, CB, More)
-                mobile_page.get_by_text("Mars", exact=True).first.wait_for(state="visible", timeout=5000)
-                mobile_page.get_by_text("More", exact=True).first.wait_for(state="visible", timeout=5000)
+                # Bottom tabs (use link hrefs instead of text because of i18n, filter for visible)
+                mobile_page.locator('a[href="/mars"]').locator('visible=true').first.wait_for(state="visible", timeout=5000)
+                mobile_page.locator('a[href="/portfolio"]').locator('visible=true').first.wait_for(state="visible", timeout=5000)
                 print("✅ Bottom Tab Bar found.")
                 
                 mobile_page.screenshot(path=f'{SCREENSHOT_DIR}/mobile_tabs_ok.png')

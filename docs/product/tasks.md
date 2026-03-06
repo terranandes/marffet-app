@@ -526,4 +526,4 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Sidebar Reorder** — Portfolio tab before CB in desktop nav (`8e061a8`)
 - [ ] **⚠️ REGRESSION FIX:** Desktop Sidebar User Profile section (Sign In/Guest/Sign Out) removed during Phase 2 auth refactor — needs restoration
 - [ ] **E2E Verification** — Desktop + mobile viewport Playwright tests (blocked on Sidebar regression fix)
-- [x] **Agents Sync Meeting - 2026-03-06 v1** (Ref: `docs/meeting/meeting_notes_2026_03_06_sync_v1.md` & `docs/code_review/code_review_2026_03_06_sync_v1.md`)
+- [x] **Agents Sync Meeting - 2026-03-06 v2** (Ref: `docs/meeting/meeting_notes_2026_03_06_sync_v2.md` & `docs/code_review/code_review_2026_03_06_sync_v2.md`)

@@ -514,7 +514,7 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-05 v4** (Ref: `docs/meeting/meeting_notes_2026_03_05_sync_v4.md` & `docs/code_review/code_review_2026_03_05_sync_v4.md`)
     - BMAC/Ko-fi docs + sidebar fix approved. CV_full-test-local worktree cleaned. Mobile app-like plan (Phase 31) written and reviewed.
 
-## 29. Phase 31: Mobile App-Like Experience - [IN PROGRESS]
+## 29. Phase 31: Mobile App-Like Experience - [COMPLETED]
 > Ref: [Plan](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience.md) | [Review](file:///home/terwu01/github/marffet/docs/plan/2026-03-05-mobile-app-like-experience-review.md)
 - [x] **Phase 1: Foundation** — Breakpoint alignment (`md:` → `lg:`), safe-area-insets, responsive spacing tokens (`991af7a`)
 - [x] **Phase 2: Bottom Tab Bar** — Lift auth to shared `UserContext.tsx`, BottomTabBar component, "More" popup overlay (`9f5dd4f`)
@@ -524,6 +524,13 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Phase 6: iPad Optimization** — Tablet layout adjustments, TargetList/TargetCardList responsive fixes (`99fa5fc`)
 - [x] **Mobile UI Fixes** — BottomTabBar i18n, SettingsModal close/auth, Mars table scroll, testing workflow updates (`980c075`)
 - [x] **Sidebar Reorder** — Portfolio tab before CB in desktop nav (`8e061a8`)
-- [ ] **⚠️ REGRESSION FIX:** Desktop Sidebar User Profile section (Sign In/Guest/Sign Out) removed during Phase 2 auth refactor — needs restoration
-- [ ] **E2E Verification** — Desktop + mobile viewport Playwright tests (blocked on Sidebar regression fix)
+- [x] **REGRESSION FIX:** Desktop Sidebar User Profile section restored (`31ae886`)
+- [x] **BottomTabBar touch-pan-x** — Horizontal-only scroll, no vertical bounce (`6261a73`)
+- [x] **E2E Verification** — Full Playwright suite passed on local + remote Zeabur (`cc07143`)
+  - BUG-013-CV (guest mode/group timeout) → RESOLVED
+  - BUG-014-CV (mobile top/bottom bar visibility) → RESOLVED
+  - BUG-010-CV (mobile card click timeout) → VERIFIED PASSED
 - [x] **Agents Sync Meeting - 2026-03-06 v2** (Ref: `docs/meeting/meeting_notes_2026_03_06_sync_v2.md` & `docs/code_review/code_review_2026_03_06_sync_v2.md`)
+- [x] **Agents Sync Meeting - 2026-03-06 v3** (Ref: `docs/meeting/meeting_notes_2026_03_06_sync_v3.md` & `docs/code_review/code_review_2026_03_06_sync_v3.md`)
+    - Phase 31 declared COMPLETE. JIRA 15/15 closed. Worktrees cleaned up.
+

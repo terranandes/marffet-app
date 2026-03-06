@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime
 from authlib.integrations.starlette_client import OAuth
 from starlette.config import Config
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 
 # Configuration (Load from Env or default for dev)
@@ -338,7 +338,11 @@ def get_user_tier_by_email(conn, email: str) -> str:
 
 
 @router.get("/me")
-async def get_me(request: Request): 
+async def get_me(request: Request, response: Response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
     # Checking raw session first for debug
     if 'user' in request.session:
         print(f"[AUTH] /me Check: User found in session: {request.session['user'].get('email')}")
@@ -392,9 +396,11 @@ async def guest_login(request: Request):
 
 
 @router.get("/logout")
-async def logout(request: Request):
+async def logout(request: Request, response: Response):
     """Clear the user session and redirect to the frontend."""
     user_email = request.session.get('user', {}).get('email', 'unknown')
     request.session.clear()
     print(f"[AUTH] Logged out: {user_email}")
-    return RedirectResponse(url=FRONTEND_URL)
+    res = RedirectResponse(url=FRONTEND_URL)
+    res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return res

@@ -44,6 +44,9 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-24 | Premium Access | Access Tier Logic | PREMIUM_EMAILS grants premium status, GM_EMAILS grants admin+premium |
 | TC-25 | Tier Matrix | 5-Tier Enforcement | Guest/FREE/PREMIUM/VIP/GM tiers resolve correctly in `/auth/me` |
 | TC-26 | Home Page i18n | BUG-012 Regression | Verify standard text is shown instead of raw keys like `Home.Title` |
+| TC-27 | Mobile Navigation | Bottom Tab Bar | Verify Mobile Top Bar and Bottom 5 tabs appear |
+| TC-28 | Mobile Interaction | Touch Targets | Verify horizontal scroll on tables in mobile view |
+| TC-29 | Sidebar | User Profile | Verify Guest/Login/Logout visible in Desktop Sidebar |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
@@ -130,6 +133,14 @@ uv run tests/unit/test_mobile_portfolio.py
 | Admin Dashboard UI | ECharts line chart renders Registered, Premium, and VIP lines | ✅ PASSED Remote |
 | SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ✅ PASSED Remote |
 | GM Tier Documentation | `marffet-app/README*` sanitized of GM mentions | ✅ PASSED Local |
+
+### v3.7 (2026-03-06) - Mobile App-Like UI & Sidebar Regression
+| Test | Expected | Status |
+|------|----------|--------|
+| Bottom Tab Bar | Mobile layout displays BottomTabBar with 5 standard tabs | ❌ FAILED (BUG-014) |
+| PWA Service Worker | sw.js is registered and intercepts network requests | ⏳ Pending |
+| Sidebar User Profile | Desktop Sidebar displays Sign In/Guest/Sign Out buttons | ✅ PASSED Local |
+| BUG-010-CV Retest | Mobile Card view click targets are easily tappable | ⏳ Pending |
 
 ### v3.5 (2026-03-01) - UI/UX Polish Verification (Modals, Notifications, Tabs)
 | Test | Expected | Status |

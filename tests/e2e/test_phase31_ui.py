@@ -33,11 +33,25 @@ def run_phase31_tests():
             desktop_page.goto(f'{BASE_URL}/portfolio')
             desktop_page.wait_for_load_state('domcontentloaded')
             
-            # Look for Guest or Sign In buttons in the sidebar
+            # Look for Guest or Sign In buttons scoped to the desktop sidebar (aside element)
             try:
-                # Desktop sidebar usually has these texts if fixed
-                desktop_page.get_by_text("Sign In with Google").or_(desktop_page.get_by_text("Guest")).first.wait_for(state="visible", timeout=5000)
-                print("✅ Sidebar User Profile buttons found.")
+                sidebar = desktop_page.locator("aside").first
+                sidebar.wait_for(state="visible", timeout=5000)
+                # Check for Sign In or Guest or Sign Out within the sidebar only
+                sidebar_signin = sidebar.get_by_text("Sign In with Google")
+                sidebar_guest = sidebar.get_by_text("Explore as Guest")
+                sidebar_signout = sidebar.get_by_text("Sign Out")
+                
+                found = False
+                for label, loc in [("Sign In with Google", sidebar_signin), ("Explore as Guest", sidebar_guest), ("Sign Out", sidebar_signout)]:
+                    if loc.count() > 0 and loc.first.is_visible():
+                        print(f"✅ Sidebar User Profile found: '{label}' visible.")
+                        found = True
+                        break
+                
+                if not found:
+                    raise Exception("No user profile buttons visible in sidebar aside")
+                
                 desktop_page.screenshot(path=f'{SCREENSHOT_DIR}/desktop_sidebar_fixed.png')
             except Exception as e:
                 print("❌ Sidebar User Profile buttons missing!")

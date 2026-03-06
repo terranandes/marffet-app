@@ -33,21 +33,34 @@ def run_e2e():
         try:
             print(f"🔗 Header: Checking {BASE_URL}/portfolio")
             
+            # Remote timeout multiplier
+            is_remote = 'zeabur' in BASE_URL or 'https' in BASE_URL
+            T = 15000 if is_remote else 5000  # 15s remote, 5s local
+            
+            # 0. Clean session: logout first to ensure guest flow works
+            print("   Resetting session (logout)...")
+            try:
+                page.goto(f'{BASE_URL}/auth/logout', wait_until='domcontentloaded', timeout=10000)
+                page.wait_for_timeout(1000)
+            except:
+                pass  # May redirect or 404, that's fine
+            
             # 1. Navigation & Guest Badge
-            page.goto(f'{BASE_URL}/portfolio')
-            page.wait_for_load_state('domcontentloaded')
+            page.goto(f'{BASE_URL}/portfolio', wait_until='domcontentloaded', timeout=30000)
+            page.wait_for_load_state('networkidle', timeout=15000)
             
             print("   Checking for Guest mode entry...")
             # Try to click the guest button if it's there (new Sidebar behavior)
+            page.wait_for_timeout(2000)  # Wait for React hydration
             guest_btn = page.locator('button', has_text="Explore as Guest")
             if guest_btn.count() > 0 and guest_btn.first.is_visible():
                 print("   Clicking 'Explore as Guest'...")
                 guest_btn.first.click()
-                page.wait_for_timeout(2000) # Wait for auth to process
+                page.wait_for_timeout(3000) # Wait for auth to process
             
             print("   Verifying Guest Mode Badge or Status...")
             try:
-                page.get_by_text("Guest Mode").wait_for(state="visible", timeout=2000)
+                page.get_by_text("Guest Mode").wait_for(state="visible", timeout=3000)
                 print("✅ Guest Mode Badge Found")
             except:
                 print("ℹ️ Guest Mode Badge NOT found (Likely responding as Logged In/API-Available)")
@@ -67,7 +80,7 @@ def run_e2e():
                 
                 # Verify UI Update
                 expect_group = page.get_by_text("E2E Test Group")
-                expect_group.wait_for(state="visible", timeout=5000)
+                expect_group.wait_for(state="visible", timeout=T)
                 print("✅ Group 'E2E Test Group' Created")
             else:
                 # Might already be open or missing?
@@ -87,7 +100,7 @@ def run_e2e():
             
             # Wait for Card/Row to appear (Filter for visible one)
             # Find row containing 2330
-            page.locator("tr", has_text="2330").locator("visible=true").first.wait_for(state="visible", timeout=10000)
+            page.locator("tr", has_text="2330").locator("visible=true").first.wait_for(state="visible", timeout=max(T, 10000))
             print("✅ Stock 'TSMC' Added")
             
             page.screenshot(path=f'{SCREENSHOT_DIR}/2_added_stock.png')
@@ -101,7 +114,7 @@ def run_e2e():
             
             # Wait for dropdown to appear and click 'Add Transaction'
             add_tx_btn = page.get_by_text("Add Transaction").locator("visible=true").first
-            add_tx_btn.wait_for(state="visible", timeout=5000)
+            add_tx_btn.wait_for(state="visible", timeout=T)
             add_tx_btn.click()
             
             # Modal opens
@@ -123,7 +136,7 @@ def run_e2e():
             # Look for 1000 in shares column (visible only)
             # App renders raw number without commas currently
             try:
-                page.get_by_text("1000", exact=True).locator("visible=true").first.wait_for(state="visible", timeout=10000)
+                page.get_by_text("1000", exact=True).locator("visible=true").first.wait_for(state="visible", timeout=max(T, 10000))
                 print("✅ Transaction Saved (1000 shares visible)")
             except:
                 print("❌ Transaction Verification Failed (Timeout looking for '1000')")

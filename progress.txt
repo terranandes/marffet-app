@@ -1,19 +1,53 @@
-Task 1: DuckDB Engine & Schema - Completed. Created app/services/market_db.py and tests/unit/test_market_db.py, added duckdb dependency.
-Task 3: MarketDataProvider (Read Layer) - Completed. Created app/services/market_data_provider.py with DuckDB read methods and RAM cache, verified with unit tests.
-Task 4: Rewrite Backfill Writer - Completed. Modified app/services/market_data_service.py to write directly to DuckDB in batches. Removed JSON merging logic and atomic save helpers.
-Task 5: Update Calculation Service (Trend + Race + Portfolio) - Completed. Replaced MarketCache with MarketDataProvider, updated dividend fallback to use DuckDB, and optimized price fetching with monthly closes.
-Task 2: JSON → DuckDB Migration Script - Completed. Created script with V1/V2 support and idempotency. Migration is currently running.
-Task 6: Update Strategy Service (Mars + CB) - Completed. Migrated StrategyService to use MarketDataProvider, updated daily price mapping and dividend fetching to use DuckDB.
-Task 2 Optimization: Optimized migrate_json_to_duckdb.py using json.load, resulting in dramatic performance improvement. Fixed Year extraction bug and used V9 Arrow/Pandas Turbo for 55s migration.
-Task 7: Update Admin Router & Main Startup - Completed. Integrated MarketDataProvider into lifespan, added market-data stats endpoint, and replaced all MarketCache usage in app/main.py.
-Task 8: Revamp Cron Scripts - Completed. Updated supplement_prices.py and annual_prewarm.sh to use DuckDB-aligned backfill logic. Updated dividend_cache.py to write to DuckDB dividends table.
-Task 9: Revamp Ops Scripts - Completed. Verified scripts/ops/verify_integrity.py and patch_stock_data.py updated for DuckDB, deleted obsolete scripts.
-Task 10: Full System Verification - Completed. Passed integrity checks, verified monthly closes, and confirmed TSMC 2010 granularity (6,500 rows).
-Task 11: Cleanup & Deploy - Completed. Deleted 2.7GB of legacy JSON files. Dropped race_cache from portfolio.db. Updated Dockerfile and gitignore.
+# Marffet Full Feature Verification Campaign
+Last Updated: 2026-03-08 02:17 HKT
+Conversation: cded3ad9-0f12-4347-980d-355beb81bbd3
 
-Task 12: Phase 14-22 (Standardization, Dividends, Integrity, Correlation) - Completed and verified.
-Task 13: Phase F (Portfolio Beautification) - Completed Webull style with ECharts and condensed list UX.
-Task 14: Phase 23 (UI/UX Polish) - Completed Section A, B, E and C (AI Bot). Polished markdown, persistence, and mobile UX.
+## Status Board
 
-----------
-ralph-done-m1i89
+| Agent | Status | Current Task | Progress |
+|-------|--------|--------------|----------|
+| [PL] | ✅ Done | Sync Meeting v6, Plan v2.0 written | 100% |
+| [CV] | ⏳ Waiting BOSS | Pending Round 1 of verification | 0/10 |
+
+## Campaign Plan Reference
+- Plan: `docs/plan/2026-03-08-full-feature-verification-campaign.md` (v2.0)
+- Evidence: `tests/evidence/`
+- JIRA: `docs/jira/`
+- Meeting: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md`
+- Code Review: `docs/code_review/code_review_2026_03_08_sync_v6.md`
+- Tasks: `docs/product/tasks.md` Phase 35
+
+## Plan v2.0 Change Summary (vs v1.0)
+- Added CB tab as Section G (was missing)
+- Changed from "10 feature slices" to "10 full-scope rounds of A–N checklist"
+- All 14 feature areas (A–N) covered in every round
+
+## Iteration Log (10 Rounds — BOSS Gated)
+
+| Round | Date | Status | BOSS Verdict | Issues Found |
+|-------|------|--------|--------------|--------------|
+| 1 | — | ⏳ Pending BOSS | — | — |
+| 2 | — | ⏳ Pending | — | — |
+| 3 | — | ⏳ Pending | — | — |
+| 4 | — | ⏳ Pending | — | — |
+| 5 | — | ⏳ Pending | — | — |
+| 6 | — | ⏳ Pending | — | — |
+| 7 | — | ⏳ Pending | — | — |
+| 8 | — | ⏳ Pending | — | — |
+| 9 | — | ⏳ Pending | — | — |
+| 10 | — | ⏳ Pending | — | — |
+
+## Known Issues (Pre-Round 1)
+- BUG-017: Remote E2E Add Stock Timeout on Zeabur (cold start)
+- BUG-010: Mobile Portfolio Card Click Timeout (E2E flake, deferred)
+- local-test-2 auth mock: `guest_login` → `terranfund@gmail.com` (MUST revert before merge)
+- Frontend build: Use `frontend/node_modules/.bin/next` (not global `next`)
+
+## Resume Instructions
+Any agent can resume from any round:
+1. `cd .worktrees/local-test-2 && uv run uvicorn app.main:app --port 8001 &`
+2. `cd frontend && PORT=3001 NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 node_modules/.bin/next dev &`
+3. Tell [CV]: "resume Phase 35 Round X"
+
+## BOSS Open Action Items
+- Approve Round 1 start (say "Start Round 1")

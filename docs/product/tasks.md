@@ -565,9 +565,39 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - Code review: APPROVED (11 source files, 235+/308−). Fixed root `node_modules` tracked in git.
     - JIRA: 15/17 CLOSED. No new bugs. Phase 34 audit items identified from BOSS_TBD.md.
 
-## 32. Phase 34: Operational & Logic Internal Audit - [NEXT]
-> Ref: `BOSS_TBD.md` Barrier tasks
-- [ ] **Review Admin Dashboard** (current operations)
-- [ ] **Review notification Scheme** (triggers for free and paid users)
-- [ ] **Check tab Compound Interest**
-- [ ] **Check tab Cash Ladder**
+
+## 32. Phase 34: App Behavior & UX Fixes - [COMPLETED]
+> Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md`
+- [x] **Default Tab Redirect** — `/mars` → `/portfolio` in `page.tsx`. Existing users with `/mars` saved are migrated.
+- [x] **Settings Start Page Cleanup** — Removed `/mars` from dropdown in `SettingsModal.tsx`
+- [x] **Mars Background Warmup** — `warm_mars_cache()` task in `main.py` lifespan hook (local only; Zeabur guard in place)
+- [x] **Mars Chart Error Fix** — `detailResult.error` graceful display in `mars/page.tsx`
+- [x] **Test Plan v3.9** — Added Phase 34 test cases to `test_plan.md`
+- [x] **Agents Sync Meeting - 2026-03-08 v6** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md` & `docs/code_review/code_review_2026_03_08_sync_v6.md`)
+    - Code review: APPROVED. Phase 34 complete. Phase 35 Full Feature Verification Campaign planned.
+
+## 33. Phase 35: Full Feature Verification Campaign - [NEXT]
+> Ref: `docs/plan/2026-03-08-full-feature-verification-campaign.md`
+> Progress: `progress.txt`
+
+**Campaign:** 10 full-scope verification rounds, BOSS-gated between each round. Each round covers ALL features A–N.
+
+| Section | Feature Area | Status |
+|---------|-------------|--------|
+| A | Global Navigation | ⏳ Pending |
+| B | Auth System (5-Tier) | ⏳ Pending |
+| C | Mars Strategy Tab | ⏳ Pending |
+| D | Bar Chart Race | ⏳ Pending |
+| E | Compound Interest | ⏳ Pending |
+| F | Portfolio CRUD | ⏳ Pending |
+| G | Convertible Bond (CB) | ⏳ Pending |
+| H | Trend Dashboard | ⏳ Pending |
+| I | My Portfolio Race | ⏳ Pending |
+| J | Cash Ladder | ⏳ Pending |
+| K | Notifications | ⏳ Pending |
+| L | Settings Modal | ⏳ Pending |
+| M | AI Copilot | ⏳ Pending |
+| N | Admin Dashboard | ⏳ Pending |
+
+- [ ] Round 1 — Full verification (awaiting BOSS signal)
+- [ ] Round 2–10 — Fix → re-verify cycle

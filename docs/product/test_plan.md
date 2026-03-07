@@ -59,7 +59,7 @@ uv run pytest tests/integration/test_all_tabs.py -v
 ```
 *   **Scope**: All 8 sidebar tabs (Mars Strategy, Bar Chart Race, Compound, CB Strategy, Portfolio, Trend, My Race, Cash Ladder).
 *   **Coverage**: API endpoints + frontend page accessibility.
-*   **Last Run**: 2026-02-07, **15/15 PASSED** in 56.70s.
+*   **Last Run**: 2026-03-08, **15/15 PASSED** in 48.31s.
 
 #### B. Full E2E Suite (Playwright)
 ```bash
@@ -67,7 +67,7 @@ uv run python tests/e2e/e2e_suite.py
 ```
 *   **Scope**: Guest Mode, Group/Stock CRUD, Add Transactions, Mobile Layout verification.
 *   **Platform**: Desktop (1280x800) + Mobile (iPhone 12 viewport).
-*   **Last Run**: 2026-02-07, **PASSED** (0 regressions).
+*   **Last Run**: 2026-03-08, **PASSED Local**. Remote Zeabur Failed Desktop (Added BUG-017-CV Timeout Flake).
 
 #### C. Backend Data Verification
 ```bash

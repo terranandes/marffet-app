@@ -135,38 +135,6 @@ async def login(request: Request):
     redirect_obj = await oauth.google.authorize_redirect(request, redirect_uri, prompt='select_account')
     google_url = redirect_obj.headers.get("location")
     
-    # ITP Workaround: Instead of returning 302 directly (which Safari might strip cookies on),
-    # return a 200 OK page that saves the cookie, then JS redirects.
-    from fastapi.responses import HTMLResponse
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Redirecting...</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body {{ font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #fff; }}
-                .loader {{ border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }}
-                @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-            </style>
-        </head>
-        <body>
-            <div style="text-align:center">
-                <div class="loader" style="margin:0 auto 20px"></div>
-                <p>Connecting to Google...</p>
-                <div id="debug" style="display:none">{google_url}</div>
-            </div>
-            <script>
-                // Longer timeout to ensure cookie is processed before redirect
-                // Some browsers (Safari ITP, Firefox) need extra time
-                setTimeout(function() {{
-                    window.location.href = "{google_url}";
-                }}, 300);
-            </script>
-        </body>
-    </html>
-    """
-    response = HTMLResponse(content=html_content)
     # DEBUG: Inspect Headers and Session
     print(f"[AUTH DEBUG] Login Request Headers: {dict(request.headers)}")
     print(f"[AUTH DEBUG] Login Request Host: {request.headers.get('host')}")
@@ -174,8 +142,8 @@ async def login(request: Request):
 
     # Set a debug cookie to test persistence explicitly
     # Use dynamic config from main.py to match SessionMiddleware settings
-    from .main import COOKIE_SECURE, COOKIE_SAMESITE
-    response.set_cookie(
+    from .main import COOKIE_SECURE, COOKIE_SAMESITE, COOKIE_DOMAIN
+    redirect_obj.set_cookie(
         key="debug_persist", 
         value=f"set_at_{datetime.now().timestamp()}", 
         max_age=300, 
@@ -183,7 +151,7 @@ async def login(request: Request):
         samesite=COOKIE_SAMESITE,
         domain=COOKIE_DOMAIN # Match the session cookie domain
     )
-    return response
+    return redirect_obj
 
 # Frontend Redirect URL
 FRONTEND_URL = os.getenv('FRONTEND_URL', '/')

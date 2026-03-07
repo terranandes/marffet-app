@@ -2,8 +2,6 @@
 description: 6 agents sync-up meeting
 ---
 
-description = "6 agents sync-up meeting"
-prompt = """
 Here we're holding a sync-up meeting. Agents who act as [PM]/[SPEC]/[PL]/[CODE]/[UI]/[CV] <br>
 are starting a brief discussion on or follow the rules/workflows below:
 - project live progress at `docs/product/tasks.md`
@@ -31,4 +29,3 @@ are starting a brief discussion on or follow the rules/workflows below:
 At the end of meeting, [PL] report to me (Terran) the summary and coordinate other agents consequences later-on.
 And save the meeting note at "./docs/meeting" and code-review note at "./docs/code_review". We always trace the notes.
 At last, do workflow `commit-but-push`.
-"""

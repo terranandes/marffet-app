@@ -34,7 +34,7 @@
 | BUG-012-CV | ✅ RESOLVED | Already closed — Home i18n keys injected |
 | BUG-011-CV | ✅ RESOLVED | Already closed — Transaction edit fix |
 | BUG-000-CV | CLOSED | Worktree .env auto-copy handled |
-| BUG-001-CV | CLOSED | GCP API – Boss-dependent |
+| BUG-001-CV | CLOSED | GCP API enabled via Google AI Studio — Verified on Zeabur |
 | BUG-004-UI | CLOSED | DatePicker style fixed |
 | BUG-009-CV | CLOSED | Playwright crash — resolved |
 

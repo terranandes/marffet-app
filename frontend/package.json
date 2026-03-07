@@ -19,6 +19,7 @@
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
     "recharts": "^3.7.0",
+    "swr": "^2.4.1",
     "tailwind-merge": "^2.6.0",
     "uuid": "^13.0.0"
   },

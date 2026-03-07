@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChartSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -20,12 +21,15 @@ interface SimSettings {
     contribution: number;
 }
 
+const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res => {
+    if (!res.ok) throw new Error("Fetch failed");
+    return res.json();
+});
+
 export default function RacePage() {
     const { t } = useLanguage();
-    const [frames, setFrames] = useState<RaceFrame[]>([]);
     const [currentYear, setCurrentYear] = useState<number>(2015);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [metric, setMetric] = useState<"wealth" | "cagr">("wealth");
     const [user, setUser] = useState<any>(null);
 
@@ -56,75 +60,34 @@ export default function RacePage() {
     }, []);
 
     // Fetch user auth status
+    const { data: userData } = useSWR(`${API_BASE}/auth/me`, fetcher, { revalidateOnFocus: false });
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
-                if (res.ok) setUser(await res.json());
-            } catch (e) { console.error("Auth check failed", e); }
-        };
-        checkAuth();
-    }, []);
+        if (userData) setUser(userData);
+    }, [userData]);
 
     const animationRef = useRef<NodeJS.Timeout | null>(null);
     const chartRef = useRef<HTMLDivElement>(null);
 
     const TOP_N = 50;
 
-    // Fetch race data
-    const fetchRaceData = useCallback(async () => {
-        setLoading(true);
-        const cacheKey = `race_data_v2_${sim.startYear}_${sim.principal}_${sim.contribution}`;
-
-        // Try cache first
-        const cached = sessionStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const data = JSON.parse(cached);
-                // Validate data is not empty before using cache
-                if (Array.isArray(data) && data.length > 0) {
-                    setFrames(data);
-                    if (data.length > 0) {
-                        setCurrentYear(data[0].year);
-                    }
-                    setLoading(false);
-                    return;
-                } else {
-                    // Invalid/Empty cache - clear it
-                    sessionStorage.removeItem(cacheKey);
-                }
-            } catch (e) {
-                sessionStorage.removeItem(cacheKey);
-            }
+    // SWR Data Fetching for Race
+    const { data: rawFrames = [], isValidating: loading } = useSWR<RaceFrame[]>(
+        `${API_BASE}/api/race-data?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+        fetcher,
+        {
+            revalidateOnFocus: false, // Don't recalculate heavy sim on focus
+            revalidateIfStale: false
         }
+    );
 
-        try {
-            const res = await fetch(
-                `${API_BASE}/api/race-data?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
-            );
-            if (res.ok) {
-                const data = await res.json();
-                setFrames(data);
-                if (data.length > 0) {
-                    setCurrentYear(data[0].year);
+    const frames = Array.isArray(rawFrames) ? rawFrames : [];
 
-                    // Save to cache ONLY if we have data
-                    try {
-                        sessionStorage.setItem(cacheKey, JSON.stringify(data));
-                    } catch (e) {
-                        console.warn("Quota exceeded for sessionStorage");
-                    }
-                }
-            }
-        } catch (err) {
-            console.error("Failed to fetch race data:", err);
-        }
-        setLoading(false);
-    }, [sim]);
-
+    // Initialize current year on data load
     useEffect(() => {
-        fetchRaceData();
-    }, [fetchRaceData]);
+        if (frames.length > 0 && !isPlaying) {
+            setCurrentYear(frames[0].year);
+        }
+    }, [frames]); // Only runs when fetched data length actually changes
 
     // Get years from data
     const years = [...new Set(frames.map((f) => f.year))].sort((a, b) => a - b);

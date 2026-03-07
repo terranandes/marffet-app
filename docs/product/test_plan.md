@@ -47,6 +47,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-27 | Mobile Navigation | Bottom Tab Bar | Verify Mobile Top Bar and Bottom 5 tabs appear |
 | TC-28 | Mobile Interaction | Touch Targets | Verify horizontal scroll on tables in mobile view |
 | TC-29 | Sidebar | User Profile | Verify Guest/Login/Logout visible in Desktop Sidebar |
+| TC-30 | Tab Switching | SWR Caching | Verify switching between tabs takes <0.1s without showing loading skeletons on mobile/desktop |
+| TC-31 | Auth Smoothness | Google OAuth | Verify Login and Logout UI updates instantly without loops or freezing |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.
@@ -137,7 +139,8 @@ uv run tests/unit/test_mobile_portfolio.py
 ### v3.8 (2026-03-06) - Google Auth Fixes & UI Settings
 | Test | Expected | Status |
 |------|----------|--------|
-| Google Auth Caching | `/auth/me` does not cache stale JSON; Login/Logout UI updates immediately | ⏳ Pending Remote |
+| Google Auth Smoothness | Login/Logout flow is seamless without freezing; UI updates instantly | ⏳ Pending Local + Remote |
+| Tab Switching Snap | SWR caching allows instant tab switching on mobile and desktop | ⏳ Pending Local + Remote |
 | Settings Dashboard Translation | "Sidebar.Dashboard" changed to "Trend Dashboard" and correctly translated | ⏳ Pending Remote |
 | Settings CB Translation | "Sidebar.CB" changed to "Convertible Bond" and correctly translated | ⏳ Pending Remote |
 | Trophy Icon Duplication | No double "🏆" icons in the Settings leaderboard text | ⏳ Pending Remote |

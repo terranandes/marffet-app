@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
+import useSWR from "swr";
 import DataTimestamp from "@/components/DataTimestamp";
 import { TableSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -30,18 +31,13 @@ interface SimSettings {
 type SortKey = "finalValue" | "cagr_pct" | "volatility_pct" | "name";
 type SortDir = "asc" | "desc";
 
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
 export default function MarsPage() {
     const { t } = useLanguage();
-    const [stocks, setStocks] = useState<Stock[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isCalculating, setIsCalculating] = useState(false);
 
     // Selected Stock for Modal
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
-    const [detailResult, setDetailResult] = useState<any>(null); // Store BAO/BAH/BAL
-    const [detailLoading, setDetailLoading] = useState(false);
-
-
 
     // Simulation settings
     const [sim, setSim] = useState<SimSettings>({
@@ -49,28 +45,6 @@ export default function MarsPage() {
         principal: 1000000,
         contribution: 60000,
     });
-
-    // Fetch Detail Logic (Moved here to access 'sim')
-    useEffect(() => {
-        if (!selectedStock) {
-            setDetailResult(null);
-            return;
-        }
-        const fetchDetail = async () => {
-            setDetailLoading(true);
-            try {
-                const res = await fetch(
-                    `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
-                );
-                const data = await res.json();
-                setDetailResult(data);
-            } catch (e) {
-                console.error("Detail Fetch Error", e);
-            }
-            setDetailLoading(false);
-        };
-        fetchDetail();
-    }, [selectedStock, sim]);
 
     // Mobile Settings Toggle
     const [showSettings, setShowSettings] = useState(false);
@@ -96,38 +70,27 @@ export default function MarsPage() {
 
     const currentYear = new Date().getFullYear();
 
-    // Fetch stocks with simulation
-    const fetchStocks = async () => {
-        setIsCalculating(true);
-        try {
-            console.log(`[Mars] Fetching stocks for year ${sim.startYear}...`);
-            const res = await fetch(
-                `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`
-            );
-            const data = await res.json();
-            console.log(`[Mars] Received ${Array.isArray(data) ? data.length : 'non-array'} stocks.`);
-
-            if (Array.isArray(data)) {
-                setStocks(data);
-                if (data.length > 0) {
-                    setIsCalculating(false);
-                }
-            }
-        } catch (err) {
-            console.error("Failed to fetch stocks:", err);
-            setStocks([]);
-            setIsCalculating(false);
+    // SWR Fetching for Main Stock List
+    const { data: rawData = [], isValidating: isCalculating, mutate: mutateStocks } = useSWR(
+        `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+        fetcher,
+        {
+            revalidateOnFocus: false, // Don't recalculate heavy sim on focus
+            revalidateIfStale: false
         }
-        setLoading(false);
-        setIsCalculating(false);
-    };
+    );
 
-    useEffect(() => {
-        fetchStocks();
+    // SWR Fetching for Detail Modal
+    const { data: detailResult, isValidating: detailLoading } = useSWR(
+        selectedStock ? `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
+        fetcher,
+        {
+            revalidateOnFocus: false
+        }
+    );
 
-        // Auto-warm removed: Triggers heavy CPU load on backend
-
-    }, []); // Initial load
+    const stocks = Array.isArray(rawData) ? rawData : [];
+    const loading = stocks.length === 0 && isCalculating;
 
     // Sorted stocks
     const sortedStocks = useMemo(() => {
@@ -167,7 +130,7 @@ export default function MarsPage() {
     };
 
     const handleRecalculate = () => {
-        fetchStocks();
+        mutateStocks();
     };
 
     const handleExport = (mode: "filtered" | "unfiltered" = "unfiltered") => {

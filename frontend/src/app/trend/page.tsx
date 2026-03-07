@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
+import useSWR from "swr";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -11,6 +12,7 @@ interface TrendDataPoint {
     value: number;
     realized: number;
     dividend: number;
+    unrealized?: number;
 }
 
 interface AssetTarget {
@@ -30,65 +32,57 @@ interface LivePrices {
     [key: string]: { price: number; change: number; change_pct: number };
 }
 
+// Global fetcher for SWR
+const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res => {
+    if (!res.ok) throw new Error("Fetch failed");
+    return res.json();
+});
+
 export default function TrendPage() {
     const { t } = useLanguage();
-    const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
-    const [assetGroups, setAssetGroups] = useState<AssetGroups>({ stock: [], etf: [], cb: [] });
-    const [livePrices, setLivePrices] = useState<LivePrices>({});
     const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
 
     // Chart visibility toggles
     const [showCost, setShowCost] = useState(true);
     const [showValue, setShowValue] = useState(true);
     const [showRealized, setShowRealized] = useState(false);
     const [showDividend, setShowDividend] = useState(false);
-    const [showUnrealized, setShowUnrealized] = useState(true); // Show by default
+    const [showUnrealized, setShowUnrealized] = useState(true);
 
-    // Using relative path for API
     const API_BASE = "";
 
-    // Fetch user's portfolio trend data
-    const fetchTrendData = useCallback(async () => {
-        try {
-            // Fetch trend history (matches "real transactions" timeline via months=0)
-            const trendRes = await fetch(`${API_BASE}/api/portfolio/trend?months=0`, { credentials: "include" });
-            if (!trendRes.ok) throw new Error("Failed to fetch trend");
-            const trend = await trendRes.json();
+    // SWR Data Fetching
+    const { data: rawTrend, error: trendError, mutate: mutateTrend } = useSWR<TrendDataPoint[]>(`${API_BASE}/api/portfolio/trend?months=0`, fetcher);
+    const { data: assetGroups = { stock: [], etf: [], cb: [] }, error: groupError } = useSWR<AssetGroups>(`${API_BASE}/api/portfolio/by-type`, fetcher);
 
-            // Compute unrealized P/L = Market Value - Cost Basis
-            const trendWithUnrealized = trend.map((d: TrendDataPoint) => ({
-                ...d,
-                unrealized: (d.value || 0) - (d.cost || 0)
-            }));
-            setTrendData(trendWithUnrealized);
+    // Collect IDs for live price fetching
+    const stockIds = useMemo(() => {
+        if (!assetGroups) return "";
+        const allTargets = [...(assetGroups.stock || []), ...(assetGroups.etf || []), ...(assetGroups.cb || [])];
+        return allTargets.map((t) => t.stock_id).filter(Boolean).join(",");
+    }, [assetGroups]);
 
-            // Fetch asset groups (by type)
-            const groupRes = await fetch(`${API_BASE}/api/portfolio/by-type`, { credentials: "include" });
-            if (groupRes.ok) {
-                const groups = await groupRes.json();
-                setAssetGroups(groups);
+    // Fetch live prices only if we have IDs
+    const { data: livePrices = {} } = useSWR<LivePrices>(
+        stockIds ? `${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}` : null,
+        fetcher
+    );
 
-                // Collect stock IDs for live prices
-                const allTargets = [...(groups.stock || []), ...(groups.etf || []), ...(groups.cb || [])];
-                const ids = allTargets.map((t: AssetTarget) => t.stock_id).filter(Boolean).join(",");
+    // Process Trend Data to compute unrealized P/L
+    const trendData = useMemo(() => {
+        if (!rawTrend) return [];
+        return rawTrend.map(d => ({
+            ...d,
+            unrealized: (d.value || 0) - (d.cost || 0)
+        }));
+    }, [rawTrend]);
 
-                if (ids) {
-                    const priceRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${ids}`, { credentials: "include" });
-                    if (priceRes.ok) {
-                        setLivePrices(await priceRes.json());
-                    }
-                }
-            }
-        } catch (err) {
-            console.error("Trend fetch error:", err);
-        }
-        setLoading(false);
-    }, []);
+    const loading = !rawTrend && !trendError;
 
-    useEffect(() => {
-        fetchTrendData();
-    }, [fetchTrendData]);
+    // Refresh function mapped to SWR mutate
+    const fetchTrendData = useCallback(() => {
+        mutateTrend();
+    }, [mutateTrend]);
 
     // Calculate group total market value
     const getGroupTotal = (type: keyof AssetGroups) => {

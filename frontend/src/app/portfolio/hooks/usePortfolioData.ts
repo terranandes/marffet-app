@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import useSWR from "swr";
 import { PortfolioFactory, IPortfolioService, Group, Target, Dividend } from "../../../services/portfolioService";
 
 interface PortfolioDataState {
@@ -19,42 +20,11 @@ interface PortfolioDataState {
 }
 
 export function usePortfolioData() {
-    const [groups, setGroups] = useState<Group[]>([]);
     const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-    const [targets, setTargets] = useState<Target[]>([]);
-    const [loading, setLoading] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
     const [service, setService] = useState<IPortfolioService | null>(null);
-
-    // Stats
-    // Stats: Computed dynamically based on targets instead of stored in state 
-    // to ensure they reflect live updates when single targets are refreshed.
-    const groupStats = useMemo(() => {
-        let marketValue = 0;
-        let realized = 0;
-        let unrealized = 0;
-        let totalCost = 0;
-
-        targets.forEach((t) => {
-            marketValue += t.summary?.market_value || 0;
-            realized += t.summary?.realized_pnl || 0;
-            unrealized += t.summary?.unrealized_pnl || 0;
-            totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
-        });
-
-        return {
-            marketValue,
-            realized,
-            unrealized,
-            unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
-        };
-    }, [targets]);
-
-    const [dividendCash, setDividendCash] = useState({ total_cash: 0, dividend_count: 0 });
     const [syncing, setSyncing] = useState(false);
 
-    // Request tracking
-    const fetchRequestIdRef = useRef(0);
     const API_BASE = "";
 
     // Initialize Service
@@ -78,57 +48,64 @@ export function usePortfolioData() {
         initService();
     }, []);
 
-    const fetchGroups = useCallback(async () => {
-        if (!service) return;
-        setLoading(true);
-        const data = await service.getGroups();
-        setGroups(data);
-        if (data.length > 0 && !selectedGroupId) {
-            setSelectedGroupId(data[0].id);
-        }
-        setLoading(false);
-    }, [service, selectedGroupId]);
+    // SWR Fetchers wrapped around OOP Service
+    const fetchGroupsWithService = useCallback(() => service ? service.getGroups() : Promise.resolve([]), [service]);
+    const fetchTargetsWithService = useCallback(() => (service && selectedGroupId) ? service.getTargets(selectedGroupId) : Promise.resolve([]), [service, selectedGroupId]);
+    const fetchDividendsWithService = useCallback(() => service ? service.getDividendStats() : Promise.resolve({ total_cash: 0, dividend_count: 0 }), [service]);
 
-    const fetchTargets = useCallback(async () => {
-        if (!service || !selectedGroupId) return;
-        const requestId = ++fetchRequestIdRef.current;
-        setLoading(true);
-        const data = await service.getTargets(selectedGroupId);
+    // Setup SWR caching
+    const { data: groups = [], mutate: mutateGroups } = useSWR<Group[]>(
+        service ? "portfolio-groups" : null,
+        fetchGroupsWithService
+    );
 
-        if (requestId !== fetchRequestIdRef.current) {
-            console.log(`[Portfolio] Discarding stale response for request ${requestId}`);
-            return;
-        }
+    const { data: targets = [], mutate: mutateTargets, isValidating: targetsLoading } = useSWR<Target[]>(
+        (service && selectedGroupId) ? `portfolio-targets-${selectedGroupId}` : null,
+        fetchTargetsWithService
+    );
 
-        setTargets(data);
-        setLoading(false);
+    const { data: dividendCash = { total_cash: 0, dividend_count: 0 }, mutate: mutateDividends } = useSWR<{ total_cash: number; dividend_count: number }>(
+        service ? "portfolio-dividends" : null,
+        fetchDividendsWithService
+    );
 
-    }, [service, selectedGroupId]);
-
-    const fetchDividends = useCallback(async () => {
-        if (!service) return;
-        const data = await service.getDividendStats();
-        setDividendCash(data);
-    }, [service]);
-
+    // Initial group selection
     useEffect(() => {
-        if (service) {
-            fetchGroups();
-            fetchDividends();
+        if (groups.length > 0 && !selectedGroupId) {
+            setSelectedGroupId(groups[0].id);
         }
-    }, [service, fetchGroups, fetchDividends]);
+    }, [groups, selectedGroupId]);
 
-    useEffect(() => {
-        if (service && selectedGroupId) {
-            fetchTargets();
-        }
-    }, [service, selectedGroupId, fetchTargets]);
+    const loading = (!service && !isGuest) || (!targets && targetsLoading);
 
-    // Actions
+    // Stats: Computed dynamically based on targets instead of stored in state 
+    // to ensure they reflect live updates when single targets are refreshed.
+    const groupStats = useMemo(() => {
+        let marketValue = 0;
+        let realized = 0;
+        let unrealized = 0;
+        let totalCost = 0;
+
+        targets.forEach((t) => {
+            marketValue += t.summary?.market_value || 0;
+            realized += t.summary?.realized_pnl || 0;
+            unrealized += t.summary?.unrealized_pnl || 0;
+            totalCost += (t.summary?.avg_cost || 0) * (t.summary?.total_shares || 0);
+        });
+
+        return {
+            marketValue,
+            realized,
+            unrealized,
+            unrealizedPct: totalCost > 0 ? (unrealized / totalCost) * 100 : 0,
+        };
+    }, [targets]);
+
+    // Actions map directly to cache mutations
     const createGroup = async (name: string) => {
         if (!service || !name.trim()) return;
         if (await service.createGroup(name)) {
-            fetchGroups();
+            mutateGroups();
             return true;
         }
         return false;
@@ -138,7 +115,7 @@ export function usePortfolioData() {
         if (!service) return;
         if (await service.deleteGroup(groupId)) {
             if (selectedGroupId === groupId) setSelectedGroupId(null);
-            fetchGroups();
+            mutateGroups();
             return true;
         }
         return false;
@@ -147,7 +124,7 @@ export function usePortfolioData() {
     const addTarget = async (targetId: string, name: string) => {
         if (!service || !selectedGroupId || !targetId.trim()) return;
         if (await service.addTarget(selectedGroupId, targetId, name.trim() || "")) {
-            fetchTargets();
+            mutateTargets();
             return true;
         }
         return false;
@@ -156,7 +133,7 @@ export function usePortfolioData() {
     const deleteTarget = async (targetId: string) => {
         if (!service) return;
         if (await service.deleteTarget(targetId)) {
-            fetchTargets();
+            mutateTargets();
             return true;
         }
         return false;
@@ -165,11 +142,15 @@ export function usePortfolioData() {
     const syncDividends = async () => {
         if (!service) return;
         setSyncing(true);
-        await service.syncDividends();
-        await fetchTargets();
-        fetchDividends();
-        setSyncing(false);
+        try {
+            await service.syncDividends();
+            await mutateTargets();
+            await mutateDividends();
+        } finally {
+            setSyncing(false);
+        }
     };
+
 
     // Helper to refresh only one target's summary (Performance)
     const refreshSingleTarget = async (targetId: string) => {
@@ -179,9 +160,12 @@ export function usePortfolioData() {
         const newSummary = await service.getTargetSummary(targetId, currentPrice);
 
         if (newSummary) {
-            setTargets(prev => prev.map(t =>
-                t.id === targetId ? { ...t, summary: newSummary } : t
-            ));
+            mutateTargets(prev => {
+                if (!prev) return prev;
+                return prev.map(t =>
+                    t.id === targetId ? { ...t, summary: newSummary } : t
+                );
+            }, false); // don't revalidate immediately
         }
     };
 
@@ -202,6 +186,6 @@ export function usePortfolioData() {
         deleteTarget,
         syncDividends,
         refreshSingleTarget,
-        fetchTargets // exposed for manual refresh
+        fetchTargets: mutateTargets // exposed for manual refresh
     };
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import ShareButton from "@/components/ShareButton";
 import { LeaderboardSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -16,10 +17,14 @@ interface LeaderboardEntry {
     holdings_count?: number;
 }
 
+const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res => {
+    if (!res.ok) throw new Error("Fetch failed");
+    return res.json();
+});
+
 export default function LadderPage() {
     const { t } = useLanguage();
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-    const [loading, setLoading] = useState(true);
+
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileData, setProfileData] = useState<{
         nickname: string;
@@ -30,24 +35,16 @@ export default function LadderPage() {
 
     const API_BASE = "";
 
-    // Fetch all users leaderboard
-    const fetchLeaderboard = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(`${API_BASE}/api/leaderboard`, { credentials: "include" });
-            if (res.ok) {
-                const data = await res.json();
-                setLeaderboard(data);
-            }
-        } catch (err) {
-            console.error("Leaderboard fetch error:", err);
+    // SWR Data Fetching for Leaderboard
+    const { data: rawData = [], isValidating: loading, mutate: fetchLeaderboard } = useSWR<LeaderboardEntry[]>(
+        `${API_BASE}/api/leaderboard`,
+        fetcher,
+        {
+            revalidateOnFocus: false
         }
-        setLoading(false);
-    }, []);
+    );
 
-    useEffect(() => {
-        fetchLeaderboard();
-    }, [fetchLeaderboard]);
+    const leaderboard = Array.isArray(rawData) ? rawData : [];
 
     // Open user profile modal
     const openProfile = async (userId: string) => {

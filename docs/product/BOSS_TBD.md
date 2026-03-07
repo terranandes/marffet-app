@@ -2,7 +2,9 @@
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
-- [ ] DesignMobile view used by default when using mobile phone/pad while switching to desktop view is possible
+- [x] Design Mobile view used by default when using mobile phone/pad while switching to desktop view is possible
+- [ ] Google Auth performance check, always stuck in login/logout
+- [ ] AICopilot UI/UX Polish
 
 ---
 
@@ -13,8 +15,6 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 - [ ] check tab Cash Ladder
 
 - [ ] How to add google advertisement to the web app?
-
-- [ ] AICopilot enhancement
 
 - [ ] Test Google Cloud Run
 - [ ] DB/Warm Static files/locally cached files optimization

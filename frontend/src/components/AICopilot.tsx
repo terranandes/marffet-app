@@ -33,17 +33,17 @@ const LockIcon = () => (
 const ThinkingIndicator = () => (
     <div className="flex justify-start my-2">
         <div className="bg-[#1e1e24]/80 border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center shadow-lg backdrop-blur-md">
-            <motion.div 
-                className="w-1.5 h-1.5 bg-pink-400 rounded-full" 
-                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0 }} 
+            <motion.div
+                className="w-1.5 h-1.5 bg-pink-400 rounded-full"
+                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0 }}
             />
-            <motion.div 
-                className="w-1.5 h-1.5 bg-rose-400 rounded-full" 
-                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.15 }} 
+            <motion.div
+                className="w-1.5 h-1.5 bg-rose-400 rounded-full"
+                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.15 }}
             />
-            <motion.div 
-                className="w-1.5 h-1.5 bg-orange-400 rounded-full" 
-                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.3 }} 
+            <motion.div
+                className="w-1.5 h-1.5 bg-orange-400 rounded-full"
+                animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.3 }}
             />
         </div>
     </div>
@@ -154,11 +154,10 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                 whileHover={isLoggedIn ? { scale: 1.05 } : {}}
                 whileTap={isLoggedIn ? { scale: 0.95 } : {}}
                 onClick={() => isLoggedIn && setIsOpen(!isOpen)}
-                className={`fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-[50] transition-colors duration-300 ${
-                    isLoggedIn
+                className={`fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-[50] transition-colors duration-300 ${isLoggedIn
                         ? "bg-gradient-to-br from-pink-600 to-amber-600 text-white shadow-pink-500/30 hover:shadow-pink-400/50 cursor-pointer"
                         : "bg-zinc-800 text-zinc-500 border border-white/5 cursor-not-allowed opacity-80"
-                }`}
+                    }`}
                 title={isLoggedIn ? "Access Copilot" : "Login Required"}
             >
                 {isLoggedIn ? <SparklesIcon /> : <LockIcon />}
@@ -180,7 +179,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                                 <div className="absolute top-[-50%] left-[-20%] w-[140%] h-[150%] bg-gradient-to-r from-pink-500/10 via-purple-500/5 to-transparent rounded-full blur-2xl" />
                             </div>
-                            
+
                             <div className="relative z-10 flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.3)]">
                                     <SparklesIcon />
@@ -198,38 +197,38 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="relative z-10 flex items-center gap-1">
-                                <button 
-                                    onClick={clearChat} 
+                                <button
+                                    onClick={clearChat}
                                     className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
                                     title="Reset Conversation"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                                     </svg>
                                 </button>
-                                <button 
-                                    onClick={() => setIsOpen(false)} 
+                                <button
+                                    onClick={() => setIsOpen(false)}
                                     className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
                         </div>
 
                         {/* Scrollable Message List */}
-                        <div 
-                            ref={chatContainerRef} 
+                        <div
+                            ref={chatContainerRef}
                             className="flex-1 overflow-y-auto p-5 space-y-5 scroll-smooth custom-scrollbar bg-black/20"
                         >
                             {messages.map((msg, idx) => (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    key={idx} 
+                                    key={idx}
                                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
                                     {msg.role === "model" && (
@@ -238,17 +237,16 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                         </div>
                                     )}
                                     <div
-                                        className={`max-w-[85%] px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${
-                                            msg.role === "user"
-                                              ? "bg-zinc-100 text-black font-medium rounded-2xl rounded-tr-sm"
-                                              : "bg-[#1e1e24]/80 backdrop-blur-md text-zinc-200 border border-white/5 rounded-2xl rounded-tl-sm hover:border-white/10 transition-colors"
-                                        }`}
+                                        className={`max-w-[85%] px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${msg.role === "user"
+                                                ? "bg-zinc-100 text-black font-medium rounded-2xl rounded-tr-sm"
+                                                : "bg-[#1e1e24]/80 backdrop-blur-md text-zinc-200 border border-white/5 rounded-2xl rounded-tl-sm hover:border-white/10 transition-colors"
+                                            }`}
                                     >
-                                        <ReactMarkdown
-                                            className="prose prose-sm prose-invert max-w-none break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:list-disc [&>ul]:ml-4 [&_code]:bg-black/30 [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[12px] [&_pre]:bg-black/40 [&_pre]:p-3 [&_pre]:rounded-xl"
-                                        >
-                                            {msg.text}
-                                        </ReactMarkdown>
+                                        <div className={`prose prose-sm max-w-none break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:list-disc [&>ul]:ml-4 [&_code]:bg-black/30 [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[12px] [&_pre]:bg-black/40 [&_pre]:p-3 [&_pre]:rounded-xl ${msg.role === "model" ? "prose-invert" : ""}`}>
+                                            <ReactMarkdown>
+                                                {msg.text}
+                                            </ReactMarkdown>
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -266,7 +264,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                 >
                                     <p className="text-[11px] text-amber-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                                          <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
                                         </svg>
                                         API Key Required
                                     </p>
@@ -310,14 +308,13 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                 <button
                                     onClick={sendMessage}
                                     disabled={loading || !input.trim()}
-                                    className={`w-9 h-9 mr-1 rounded-xl flex items-center justify-center transition-all ${
-                                        input.trim() && !loading
+                                    className={`w-9 h-9 mr-1 rounded-xl flex items-center justify-center transition-all ${input.trim() && !loading
                                             ? "bg-white text-black shadow-[0_2px_10px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95"
                                             : "bg-white/5 text-zinc-500 cursor-not-allowed"
-                                    }`}
+                                        }`}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-0.5">
-                                      <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                                        <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
                                     </svg>
                                 </button>
                             </div>
@@ -330,7 +327,7 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-            
+
             {/* Optional: Add basic scrollbar styling scoped just to this component tree 
                 (Normally goes in global CSS, but acts as a quick polyfill here) */}
             <style jsx global>{`

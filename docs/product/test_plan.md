@@ -134,6 +134,15 @@ uv run tests/unit/test_mobile_portfolio.py
 | SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ✅ PASSED Remote |
 | GM Tier Documentation | `marffet-app/README*` sanitized of GM mentions | ✅ PASSED Local |
 
+### v3.8 (2026-03-06) - Google Auth Fixes & UI Settings
+| Test | Expected | Status |
+|------|----------|--------|
+| Google Auth Caching | `/auth/me` does not cache stale JSON; Login/Logout UI updates immediately | ⏳ Pending Remote |
+| Settings Dashboard Translation | "Sidebar.Dashboard" changed to "Trend Dashboard" and correctly translated | ⏳ Pending Remote |
+| Settings CB Translation | "Sidebar.CB" changed to "Convertible Bond" and correctly translated | ⏳ Pending Remote |
+| Trophy Icon Duplication | No double "🏆" icons in the Settings leaderboard text | ⏳ Pending Remote |
+| Google Sign-In Button | Settings Modal "Sign In with Google" triggers redirect properly | ⏳ Pending Remote |
+
 ### v3.7 (2026-03-06) - Mobile App-Like UI & Sidebar Regression
 | Test | Expected | Status |
 |------|----------|--------|

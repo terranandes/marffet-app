@@ -579,9 +579,6 @@ def get_simulation_detail(stock_id: str, start_year: int = 2010, principal: floa
         if cache_key in SIM_CACHE:
             print(f"[Detail] Cache Hit for {stock_id}")
             return SIM_CACHE[cache_key]
-        if cache_key in SIM_CACHE:
-            print(f"[Detail] Cache Hit for {stock_id}")
-            return SIM_CACHE[cache_key]
         from app.services.roi_calculator import ROICalculator
         import pandas as pd
         

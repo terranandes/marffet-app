@@ -235,3 +235,6 @@ data/raw_dividends/*.json
 data/ref/*.json
 data/ref/debug/
 .worktree/
+
+# Node modules (root-level for .agent/scripts tooling)
+node_modules/

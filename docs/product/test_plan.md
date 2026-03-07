@@ -136,6 +136,14 @@ uv run tests/unit/test_mobile_portfolio.py
 | SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ✅ PASSED Remote |
 | GM Tier Documentation | `marffet-app/README*` sanitized of GM mentions | ✅ PASSED Local |
 
+### v3.9 (Current) - App Behavior Modifications
+| Test | Expected | Status |
+|------|----------|--------|
+| Default Tab Redirection | `/mars` default preference gets intercepted and redirects to `/portfolio` | ⏳ Pending Local |
+| Settings Tab Mars Removal | "Mars Strategy" is not available in Start Page dropdown | ⏳ Pending Local |
+| Mars Chart Error Handling | Shows "Error" gracefully instead of hanging | ⏳ Pending Local |
+| Mars Background Cache | `SIM_CACHE` warms up automatically on startup without blocking REST API | ⏳ Pending Local |
+
 ### v3.8 (2026-03-06) - Google Auth Fixes & UI Settings
 | Test | Expected | Status |
 |------|----------|--------|

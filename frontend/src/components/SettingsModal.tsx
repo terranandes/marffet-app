@@ -378,7 +378,6 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                         >
                                             <option value="/">🏠 {t('Sidebar.TrendDashboard')}</option>
                                             <option value="/portfolio">📊 {t('Sidebar.Portfolio')}</option>
-                                            <option value="/mars">🚀 {t('Sidebar.MarsStrategy')}</option>
                                             <option value="/viz">📉 {t('Sidebar.Visualizations')}</option>
                                             <option value="/cb">💹 {t('Sidebar.ConvertibleBond')}</option>
                                         </select>

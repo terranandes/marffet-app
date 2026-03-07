@@ -413,7 +413,8 @@ export default function MarsPage() {
                                             {/* BAO */}
                                             <div className="text-center font-bold text-[var(--color-cta)] text-sm md:text-xl truncate px-1">
                                                 {detailLoading ? "..." :
-                                                    detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"}
+                                                    (detailResult?.error ? <span className="text-red-400 text-xs">Error</span> :
+                                                        (detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"))}
                                             </div>
 
                                             {/* BAH */}

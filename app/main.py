@@ -105,6 +105,59 @@ async def lifespan(app: FastAPI):
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup only - heavy jobs use external cron)")
         
+        # 1.5.3 Pre-calculate Mars Strategy default params into SIM_CACHE
+        async def warm_mars_cache():
+            try:
+                # Wait for MarketDataProvider to finish warming prices somewhat
+                await asyncio.sleep(5)
+                print("[Startup] Warming Mars Strategy Cache (2006, 1M, 60k)...")
+                from app.services.strategy_service import MarsStrategy
+                import pandas as pd
+                strategy = MarsStrategy()
+                
+                raw_results = await strategy.analyze(
+                    stock_ids=["ALL"],
+                    start_year=2006,
+                    principal=1_000_000,
+                    contribution=60_000
+                )
+                
+                # Fetch Names
+                SOURCE_FILE = BASE_DIR / "app/project_tw/references/stock_list_s2006e2026_filtered.xlsx"
+                name_map = {}
+                if SOURCE_FILE.exists():
+                    try:
+                        name_df = pd.read_excel(SOURCE_FILE)
+                        for _, row in name_df.iterrows():
+                            name_map[str(row['id'])] = row['name']
+                    except Exception:
+                        pass
+                
+                sim_results = []
+                for res in raw_results:
+                    sid = str(res['stock_code'])
+                    res['id'] = sid
+                    res['name'] = name_map.get(sid, res.get('stock_name', sid))
+                    res['valid_years'] = res.get('valid_lasting_years', 0)
+                    sim_results.append(res)
+                
+                sim_results = sanitize_for_json(sim_results)
+                
+                cache_key = (2006, 1_000_000, 60_000)
+                SIM_CACHE[cache_key] = {
+                    "timestamp": time.time(),
+                    "data": sim_results
+                }
+                print(f"[Startup] Mars Strategy Cache Warmed successfully ({len(sim_results)} items).")
+            except Exception as e:
+                print(f"[Startup Error] Failed to warm Mars cache: {e}")
+                
+        # To avoid OOM bootloop on Zeabur (512MB RAM limit), only pre-warm locally or on stronger instances.
+        if os.getenv("ZEABUR_ENVIRONMENT_NAME") is None and os.getenv("ENVIRONMENT") != "production":
+            asyncio.create_task(warm_mars_cache())
+        else:
+            print("[Startup] Skipping Mars Cache Warm-up defensively due to Remote Environment constraints.")
+        
     except BaseException as e:
         print(f"[Startup] Error initializing services: {e}")
     

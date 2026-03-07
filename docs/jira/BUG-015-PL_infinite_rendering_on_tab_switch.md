@@ -2,7 +2,7 @@
 **Reporter:** [PL]
 **Date:** 2026-03-07
 **Component:** Frontend (Navigation / Page Rendering)
-**Status:** Open
+**Status:** CLOSED (Fixed via SWR refactor in Phase 33)
 
 ## Description
 When navigating between tabs on either the mobile view or the desktop view, the application unnecessarily unmounts and remounts the page content, resulting in a constant "Rendering..." state (Skeleton loaders). The UI feels sluggish instead of instantaneously snapping between previously loaded views.

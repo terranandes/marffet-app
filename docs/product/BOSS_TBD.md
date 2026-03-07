@@ -3,6 +3,7 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 
 ## Web APP Next to do
 - [x] Design Mobile view used by default when using mobile phone/pad while switching to desktop view is possible
+- [ ] tab display smoothly without infinite rendering on both mobile and desktop view.
 - [ ] Google Auth performance check, always stuck in login/logout
 - [ ] AICopilot UI/UX Polish
 

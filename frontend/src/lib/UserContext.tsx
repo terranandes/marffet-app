@@ -49,7 +49,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const fetchUser = useCallback(async () => {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 15000);
 
             const res = await fetch("/auth/me", {
                 credentials: "include",
@@ -86,8 +86,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
             } else {
                 setUser(null);
             }
-        } catch (e) {
-            console.error("Auth check failed:", e);
+        } catch (e: any) {
+            if (e.name !== 'AbortError' && e.message !== 'Auth fetch timeout') {
+                console.error("Auth check failed:", e);
+            }
             setUser(null);
         } finally {
             setIsLoading(false);

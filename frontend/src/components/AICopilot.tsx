@@ -155,8 +155,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                 whileTap={isLoggedIn ? { scale: 0.95 } : {}}
                 onClick={() => isLoggedIn && setIsOpen(!isOpen)}
                 className={`fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl z-[50] transition-colors duration-300 ${isLoggedIn
-                        ? "bg-gradient-to-br from-pink-600 to-amber-600 text-white shadow-pink-500/30 hover:shadow-pink-400/50 cursor-pointer"
-                        : "bg-zinc-800 text-zinc-500 border border-white/5 cursor-not-allowed opacity-80"
+                    ? "bg-gradient-to-br from-pink-600 to-amber-600 text-white shadow-pink-500/30 hover:shadow-pink-400/50 cursor-pointer"
+                    : "bg-zinc-800 text-zinc-500 border border-white/5 cursor-not-allowed opacity-80"
                     }`}
                 title={isLoggedIn ? "Access Copilot" : "Login Required"}
             >
@@ -171,10 +171,10 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                        className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-full sm:h-[600px] sm:max-h-[85vh] bg-[#0c0c0e]/95 backdrop-blur-2xl rounded-none sm:rounded-[2rem] flex flex-col z-[9999] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.4)] border-t sm:border border-white/10"
+                        className="fixed bottom-0 sm:bottom-24 right-0 sm:right-6 w-full sm:w-[420px] h-[100dvh] sm:h-[600px] sm:max-h-[85vh] bg-[#0c0c0e]/95 backdrop-blur-2xl rounded-none sm:rounded-[2rem] flex flex-col z-[9999] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.4)] border-t sm:border border-white/10"
                     >
-                        {/* Premium Header */}
-                        <div className="relative bg-white/[0.02] p-5 shrink-0 border-b border-white/5 flex items-center justify-between">
+                        {/* Premium Header - Safe Area Padding for Notch/Dynamic Island */}
+                        <div className="relative bg-white/[0.02] px-5 py-4 pt-[max(1rem,env(safe-area-inset-top))] shrink-0 border-b border-white/5 flex items-center justify-between">
                             {/* Ambient Glow */}
                             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                                 <div className="absolute top-[-50%] left-[-20%] w-[140%] h-[150%] bg-gradient-to-r from-pink-500/10 via-purple-500/5 to-transparent rounded-full blur-2xl" />
@@ -238,8 +238,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                     )}
                                     <div
                                         className={`max-w-[85%] px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${msg.role === "user"
-                                                ? "bg-zinc-100 text-black font-medium rounded-2xl rounded-tr-sm"
-                                                : "bg-[#1e1e24]/80 backdrop-blur-md text-zinc-200 border border-white/5 rounded-2xl rounded-tl-sm hover:border-white/10 transition-colors"
+                                            ? "bg-zinc-100 text-black font-medium rounded-2xl rounded-tr-sm"
+                                            : "bg-[#1e1e24]/80 backdrop-blur-md text-zinc-200 border border-white/5 rounded-2xl rounded-tl-sm hover:border-white/10 transition-colors"
                                             }`}
                                     >
                                         <div className={`prose prose-sm max-w-none break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:list-disc [&>ul]:ml-4 [&_code]:bg-black/30 [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[12px] [&_pre]:bg-black/40 [&_pre]:p-3 [&_pre]:rounded-xl ${msg.role === "model" ? "prose-invert" : ""}`}>
@@ -309,8 +309,8 @@ export default function AICopilot({ user, portfolioContext }: AICopilotProps) {
                                     onClick={sendMessage}
                                     disabled={loading || !input.trim()}
                                     className={`w-9 h-9 mr-1 rounded-xl flex items-center justify-center transition-all ${input.trim() && !loading
-                                            ? "bg-white text-black shadow-[0_2px_10px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95"
-                                            : "bg-white/5 text-zinc-500 cursor-not-allowed"
+                                        ? "bg-white text-black shadow-[0_2px_10px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95"
+                                        : "bg-white/5 text-zinc-500 cursor-not-allowed"
                                         }`}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-0.5">

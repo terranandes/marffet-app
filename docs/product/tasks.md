@@ -23,16 +23,6 @@
 | 17 | Grand Correlation & Zeabur Deploy | 84.71% match rate, Parquet backup, nightly pipeline |
 | 18 | Pure Nominal DB Rebuild | Strict nominal prices, absolute dividends, 67.45→84.71% |
 | 19-21 | Correlation Math Tuning | SplitDetector, emerging market exclusion, final tuning |
-
-### Remaining Open Items from Archived Phases
-- [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch) — Phase 14
-- [ ] TSMC CAGR ~19% frontend UI verification (pending Boss review) — Phase 17
-- [ ] **BUG-000-CV**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
-- [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
-- [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch — resolved by Phase 18 rebuild <!-- id: bug-115 -->
-- [ ] **Interactive Backfill Dashboard** — Admin feature, low priority
-- [ ] **Mobile Premium Overhaul** — deferred
-
 | 22 | Multi-Language Support (i18n) | LanguageContext, 3 locales, all pages translated |
 | 23 | Phase 23: UI/UX Polish | GM Dashboard, Settings Modal, Phase E/F, Portfolio Webull style |
 | 24 | VIP/PREMIUM Membership Injection | Membership API, tier precedence, sponsorship links |
@@ -43,6 +33,16 @@
 | 29 | Accounts-Over-Time Chart | Admin Net Worth Line Chart |
 | 30 | Document-Flow & Mobile Sidebar | BMAC/Ko-fi docs, sidebar scroll fix |
 | 31 | Mobile App-Like Experience | Bottom tab bar, PWA, touch polish, page transitions |
+### Remaining Open Items from Archived Phases
+- [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch) — Phase 14
+- [ ] TSMC CAGR ~19% frontend UI verification (pending Boss review) — Phase 17
+- [ ] **BUG-000-CV**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
+- [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
+- [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch — resolved by Phase 18 rebuild <!-- id: bug-115 -->
+- [ ] **Interactive Backfill Dashboard** — Admin feature, low priority
+- [ ] **Mobile Premium Overhaul** — deferred
+
+
 
 ## 30. Phase 32: Google Auth Stabilization & UI/UX Polish - [COMPLETED]
 > Ref: `docs/meeting/meeting_notes_2026_03_07_sync_v2.md`

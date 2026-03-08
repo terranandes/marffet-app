@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 
 interface User {
     id: string | null;
@@ -47,8 +48,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const router = useRouter();
+    const { mutate: globalMutate } = useSWRConfig();
+
+    // Ref to track the notification polling interval so we can kill it on logout
+    const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // Ref to track in-flight AbortControllers so we can abort them all on logout
+    const activeControllersRef = useRef<Set<AbortController>>(new Set());
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    // Register an AbortController so it can be terminated on logout
+    const registerController = useCallback((controller: AbortController) => {
+        activeControllersRef.current.add(controller);
+        return () => { activeControllersRef.current.delete(controller); };
+    }, []);
 
     const login = () => {
         window.location.href = "/auth/login";
@@ -56,20 +69,41 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const logout = useCallback(async () => {
         try {
-            await fetch('/auth/logout', { method: 'GET' });
+            // 1. STOP all notification polling immediately
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+
+            // 2. ABORT all in-flight fetch requests (safe: AbortError is silently caught)
+            activeControllersRef.current.forEach(controller => {
+                try { controller.abort(); } catch { /* already aborted */ }
+            });
+            activeControllersRef.current.clear();
+
+            // 3. CLEAR all SWR cached data globally (prevents stale renders)
+            await globalMutate(() => true, undefined, { revalidate: false });
+
+            // 4. RESET local state
             setUser(null);
             setNotifications([]);
             localStorage.removeItem('marffet_premium');
-            router.push('/'); // Fast client-side redirect
+
+            // 5. Fire-and-forget server logout (non-blocking)
+            fetch('/auth/logout', { method: 'GET' }).catch(() => { });
+
+            // 6. Instant client-side redirect
+            router.push('/');
         } catch (e) {
             console.error("Logout failed", e);
             window.location.href = '/auth/logout'; // Fallback
         }
-    }, [router]);
+    }, [router, globalMutate]);
 
     const fetchUser = useCallback(async () => {
+        const controller = new AbortController();
+        const unregister = registerController(controller);
         try {
-            const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 15000);
 
             const res = await fetch("/auth/me", {
@@ -93,6 +127,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     try {
                         const notifRes = await fetch("/api/notifications", {
                             credentials: "include",
+                            signal: controller.signal,
                         });
                         if (notifRes.ok) {
                             setNotifications(await notifRes.json());
@@ -114,8 +149,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUser(null);
         } finally {
             setIsLoading(false);
+            unregister();
         }
-    }, []);
+    }, [registerController]);
 
     const markAsRead = useCallback(async (id: number) => {
         try {
@@ -137,12 +173,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
         });
     }, [notifications, markAsRead]);
 
-    // Fetch on mount
+    // Fetch on mount + notification polling
     useEffect(() => {
         fetchUser();
 
         // Poll notifications every 30s
-        const interval = setInterval(async () => {
+        pollingIntervalRef.current = setInterval(async () => {
             try {
                 const res = await fetch("/api/notifications", { credentials: "include" });
                 if (res.ok) setNotifications(await res.json());
@@ -151,7 +187,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }
         }, 30000);
 
-        return () => clearInterval(interval);
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+        };
     }, [fetchUser]);
 
     return (

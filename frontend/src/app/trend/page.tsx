@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useUser } from "@/lib/UserContext";
 
 interface TrendDataPoint {
     month: string;
@@ -12,60 +13,71 @@ interface TrendDataPoint {
     value: number;
     realized: number;
     dividend: number;
-    unrealized?: number;
-}
-
-interface AssetTarget {
-    stock_id: string;
-    stock_name: string;
-    total_shares: number;
-    avg_cost: number;
+    unrealized: number;
 }
 
 interface AssetGroups {
-    stock: AssetTarget[];
-    etf: AssetTarget[];
-    cb: AssetTarget[];
+    [key: string]: {
+        stock_id: string;
+        stock_name: string;
+        total_shares: number;
+        avg_cost: number;
+    }[];
 }
 
 interface LivePrices {
-    [key: string]: { price: number; change: number; change_pct: number };
+    [key: string]: {
+        price: number;
+        change: number;
+        change_pct: number;
+    };
 }
 
-// Global fetcher for SWR
+const API_BASE = "";
 const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res => {
-    if (!res.ok) throw new Error("Fetch failed");
+    if (!res.ok) throw new Error('API return non-200');
     return res.json();
 });
 
 export default function TrendPage() {
     const { t } = useLanguage();
+    const { user } = useUser();
     const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
-    // Chart visibility toggles
+    // Chart Toggles
     const [showCost, setShowCost] = useState(true);
     const [showValue, setShowValue] = useState(true);
-    const [showRealized, setShowRealized] = useState(false);
-    const [showDividend, setShowDividend] = useState(false);
+    const [showRealized, setShowRealized] = useState(true);
+    const [showDividend, setShowDividend] = useState(true);
     const [showUnrealized, setShowUnrealized] = useState(true);
 
-    const API_BASE = "";
+    // SWR Data Fetching (Only run if user is logged in)
+    const { data: rawTrend, error: trendError, mutate: mutateTrend } = useSWR<TrendDataPoint[]>(
+        user ? `${API_BASE}/api/portfolio/trend?months=0` : null,
+        fetcher
+    );
+    const { data: assetGroups = { stock: [], etf: [], cb: [] }, error: groupError } = useSWR<AssetGroups>(
+        user ? `${API_BASE}/api/portfolio/by-type` : null,
+        fetcher
+    );
 
-    // SWR Data Fetching
-    const { data: rawTrend, error: trendError, mutate: mutateTrend } = useSWR<TrendDataPoint[]>(`${API_BASE}/api/portfolio/trend?months=0`, fetcher);
-    const { data: assetGroups = { stock: [], etf: [], cb: [] }, error: groupError } = useSWR<AssetGroups>(`${API_BASE}/api/portfolio/by-type`, fetcher);
-
-    // Collect IDs for live price fetching
-    const stockIds = useMemo(() => {
-        if (!assetGroups) return "";
-        const allTargets = [...(assetGroups.stock || []), ...(assetGroups.etf || []), ...(assetGroups.cb || [])];
-        return allTargets.map((t) => t.stock_id).filter(Boolean).join(",");
+    // Calculate if we have any active shares to determine if we should fetch live prices
+    const hasActiveShares = useMemo(() => {
+        if (!assetGroups) return false;
+        return Object.values(assetGroups).some(group =>
+            group.some(target => (target.total_shares || 0) > 0)
+        );
     }, [assetGroups]);
 
-    // Fetch live prices only if we have IDs
+    // Live Prices (Only fetch if logged in AND has active shares)
+    const shouldFetchLivePrices = user && hasActiveShares;
     const { data: livePrices = {} } = useSWR<LivePrices>(
-        stockIds ? `${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}` : null,
-        fetcher
+        shouldFetchLivePrices ? "/api/portfolio/live_prices" : null,
+        fetcher,
+        {
+            refreshInterval: 60000, // Refresh live prices every 60s
+            revalidateOnFocus: true
+        }
     );
 
     // Process Trend Data to compute unrealized P/L

@@ -48,9 +48,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
-    const login = useCallback(() => {
-        window.location.href = '/login';
-    }, []);
+    const login = () => {
+        window.location.href = "/auth/login";
+    };
 
     const logout = useCallback(async () => {
         try {

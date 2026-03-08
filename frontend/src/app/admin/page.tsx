@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import ReactECharts from "echarts-for-react";
+import { useUser } from "@/lib/UserContext";
 
 /* ─── Types ─── */
 interface AdminMetrics {
@@ -221,6 +222,7 @@ function UserGrowthChart({ data }: { data: GrowthPoint[] }) {
 
 /* ─── Main Page ─── */
 export default function AdminPage() {
+    const { user } = useUser();
     const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
     const [growthData, setGrowthData] = useState<GrowthPoint[]>([]);
@@ -256,6 +258,10 @@ export default function AdminPage() {
 
     /* ─── Fetchers ─── */
     const fetchMetrics = useCallback(async () => {
+        if (!user) {
+            setLoadingMetrics(false);
+            return;
+        }
         setLoadingMetrics(true);
         setError(null);
         try {
@@ -271,9 +277,13 @@ export default function AdminPage() {
             setError("Network error");
         }
         setLoadingMetrics(false);
-    }, []);
+    }, [user]);
 
     const fetchFeedback = useCallback(async () => {
+        if (!user) {
+            setLoadingFeedback(false);
+            return;
+        }
         setLoadingFeedback(true);
         try {
             const [listRes, statsRes] = await Promise.all([
@@ -286,9 +296,13 @@ export default function AdminPage() {
             console.error("Feedback fetch error");
         }
         setLoadingFeedback(false);
-    }, []);
+    }, [user]);
 
     const fetchMemberships = useCallback(async () => {
+        if (!user) {
+            setLoadingMemberships(false);
+            return;
+        }
         setLoadingMemberships(true);
         try {
             const res = await fetch(`${API_BASE}/api/admin/memberships`, { credentials: "include" });
@@ -297,7 +311,7 @@ export default function AdminPage() {
             console.error("Membership fetch error");
         }
         setLoadingMemberships(false);
-    }, []);
+    }, [user]);
 
     const handleInjectMembership = async () => {
         if (!memberEmail) return toast.error("Email required");

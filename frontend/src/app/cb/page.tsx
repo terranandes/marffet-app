@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useUser } from "@/lib/UserContext";
 
 interface CBData {
     code: string;
@@ -15,6 +16,11 @@ interface CBData {
     description: string;
 }
 
+interface CBResponse {
+    action: string;
+    description: string;
+}
+
 const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res => {
     if (!res.ok) throw new Error("Fetch failed");
     return res.json();
@@ -22,18 +28,19 @@ const fetcher = (url: string) => fetch(url, { credentials: "include" }).then(res
 
 export default function CBPage() {
     const { t } = useLanguage();
+    const { user } = useUser();
 
     const API_BASE = "";
 
     // SWR Data Fetching for Portfolio CBs
     const { data: portfolioCBs = [], isValidating: loadingPortfolio } = useSWR<CBData[]>(
-        `${API_BASE}/api/cb/portfolio`,
-        fetcher
+        user ? "/api/cb/my_cbs" : null,
+        (url: string) => fetch(url, { credentials: "include" }).then((res) => res.json())
     );
 
     // Analyzer State
     const [cbInput, setCbInput] = useState("");
-    const [cbResult, setCbResult] = useState<CBData | null>(null);
+    const [cbResult, setCbResult] = useState<(CBData & { action: string, description: string }) | null>(null);
     const [loadingAnalyze, setLoadingAnalyze] = useState(false);
 
     // Analyze CB

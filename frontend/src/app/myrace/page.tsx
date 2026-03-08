@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ChartSkeleton } from "@/components/Skeleton";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useUser } from "@/lib/UserContext";
 
 interface RaceDataPoint {
     month: string;
@@ -19,6 +20,7 @@ interface AssetGroups {
 
 export default function MyRacePage() {
     const { t } = useLanguage();
+    const { user } = useUser();
     const [raceData, setRaceData] = useState<RaceDataPoint[]>([]);
     const [assetGroups, setAssetGroups] = useState<AssetGroups>({ stock: [], etf: [], cb: [] });
     const [loading, setLoading] = useState(true);
@@ -36,6 +38,10 @@ export default function MyRacePage() {
 
     // Fetch race data
     const fetchRaceData = useCallback(async () => {
+        if (!user) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const raceRes = await fetch(`${API_BASE}/api/portfolio/race-data`, { credentials: "include" });
@@ -56,7 +62,7 @@ export default function MyRacePage() {
 
     useEffect(() => {
         fetchRaceData();
-    }, [fetchRaceData]);
+    }, [fetchRaceData, user]);
 
     // Get months from data
     const months = [...new Set(raceData.map((d) => d.month))].sort();

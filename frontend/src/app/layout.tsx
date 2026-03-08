@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import BottomTabBar from "../components/BottomTabBar";
 import MobileTopBar from "../components/MobileTopBar";
 import ClientProviders from "../components/ClientProviders";
+import AuthGuard from "../components/AuthGuard";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -71,7 +72,9 @@ export default function RootLayout({
             <Sidebar />
             <MobileTopBar />
             <main className="flex-1 lg:ml-64 pt-14 lg:pt-0 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto w-full max-w-full">
-              {children}
+              <AuthGuard>
+                {children}
+              </AuthGuard>
             </main>
           </div>
           <BottomTabBar />

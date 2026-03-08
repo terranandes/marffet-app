@@ -378,7 +378,6 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                             onChange={(e) => setDefaultPage(e.target.value)}
                                         >
                                             <option value="/">🏠 {t('Home.Title') || 'Home'}</option>
-                                            <option value="/mars">🚀 {t('Sidebar.MarsStrategy')}</option>
                                             <option value="/portfolio">📊 {t('Sidebar.Portfolio')}</option>
                                             <option value="/trend">📈 {t('Sidebar.TrendDashboard')}</option>
                                             <option value="/viz">📉 {t('Sidebar.Visualizations')}</option>

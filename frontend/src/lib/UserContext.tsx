@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 interface User {
     id: string | null;
@@ -45,6 +46,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const router = useRouter();
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -58,12 +60,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setNotifications([]);
             localStorage.removeItem('marffet_premium');
-            window.location.href = '/'; // Fast redirect home without hitting Next.js server proxy for logout
+            router.push('/'); // Fast client-side redirect
         } catch (e) {
             console.error("Logout failed", e);
             window.location.href = '/auth/logout'; // Fallback
         }
-    }, []);
+    }, [router]);
 
     const fetchUser = useCallback(async () => {
         try {

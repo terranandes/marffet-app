@@ -13,7 +13,12 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     // Redirect to default page preference if set
-    const defaultPage = localStorage.getItem("marffet_default_page");
+    let defaultPage = localStorage.getItem("marffet_default_page");
+    if (defaultPage === "/mars") {
+      defaultPage = "/portfolio";
+      localStorage.setItem("marffet_default_page", defaultPage);
+    }
+
     if (defaultPage && defaultPage !== "/" && defaultPage !== "") {
       router.replace(defaultPage);
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useLanguage } from "../lib/i18n/LanguageContext";
+import { useUser } from "../lib/UserContext";
 
 interface User {
     id: string | null;
@@ -55,6 +56,8 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
     const [region, setRegion] = useState("TW"); // Fixed to TW
     const [defaultPage, setDefaultPage] = useState("/"); // Default to Dashboard
     const [isPremium, setIsPremium] = useState(false);
+
+    const { login, logout } = useUser();
 
     // Feedback State
     const [feedbackCategory, setFeedbackCategory] = useState("settings");
@@ -322,9 +325,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                                 {/* Sign Out Button */}
                                                 <div className="pt-6 border-t border-white/10">
                                                     <button
-                                                        onClick={() => {
-                                                            window.location.href = `/auth/logout`;
-                                                        }}
+                                                        onClick={() => logout()}
                                                         className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl transition border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] flex items-center justify-center gap-2"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,7 +350,7 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
 
                                             <div className="w-full max-w-sm pt-4">
                                                 <button
-                                                    onClick={() => window.location.href = '/auth/login'}
+                                                    onClick={() => login()}
                                                     className="flex items-center justify-center gap-3 w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-all shadow-lg hover:shadow-xl"
                                                 >
                                                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -376,10 +377,13 @@ export default function SettingsModal({ isOpen, onClose, user, onUpdateUser, ini
                                             value={defaultPage}
                                             onChange={(e) => setDefaultPage(e.target.value)}
                                         >
-                                            <option value="/">🏠 {t('Sidebar.TrendDashboard')}</option>
+                                            <option value="/">🏠 {t('Home.Title') || 'Home'}</option>
+                                            <option value="/mars">🚀 {t('Sidebar.MarsStrategy')}</option>
                                             <option value="/portfolio">📊 {t('Sidebar.Portfolio')}</option>
+                                            <option value="/trend">📈 {t('Sidebar.TrendDashboard')}</option>
                                             <option value="/viz">📉 {t('Sidebar.Visualizations')}</option>
                                             <option value="/cb">💹 {t('Sidebar.ConvertibleBond')}</option>
+                                            <option value="/myrace">🏁 {t('Sidebar.MyPortfolioRace') || 'My Race'}</option>
                                         </select>
                                         <p className="text-xs text-zinc-600">{t('Settings.LoadsAutomatically') || "Loads automatically on visit."}</p>
                                     </div>

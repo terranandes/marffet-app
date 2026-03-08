@@ -580,28 +580,14 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-08 v8** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v8.md` & `docs/code_review/code_review_2026_03_08_sync_v8.md`)
     - Code review: APPROVED. Implemented strict `AuthGuard` for zero-load unauthenticated pages. Refactored logout to client-side Next.js router. Deleted redundant `/login` page completely.
 
-## 33. Phase 35: Full Feature Verification Campaign - [NEXT]
+## 33. Phase 35: Full Feature Verification Campaign - [IN PROGRESS]
 > Ref: `docs/plan/2026-03-08-full-feature-verification-campaign.md`
-> Progress: `progress.txt`
 
-**Campaign:** 10 full-scope verification rounds, BOSS-gated between each round. Each round covers ALL features A–N.
+**Campaign:** 10 full-scope verification rounds, BOSS-gated between each round.
 
-| Section | Feature Area | Status |
-|---------|-------------|--------|
-| A | Global Navigation | ⏳ Pending |
-| B | Auth System (5-Tier) | ⏳ Pending |
-| C | Mars Strategy Tab | ⏳ Pending |
-| D | Bar Chart Race | ⏳ Pending |
-| E | Compound Interest | ⏳ Pending |
-| F | Portfolio CRUD | ⏳ Pending |
-| G | Convertible Bond (CB) | ⏳ Pending |
-| H | Trend Dashboard | ⏳ Pending |
-| I | My Portfolio Race | ⏳ Pending |
-| J | Cash Ladder | ⏳ Pending |
-| K | Notifications | ⏳ Pending |
-| L | Settings Modal | ⏳ Pending |
-| M | AI Copilot | ⏳ Pending |
-| N | Admin Dashboard | ⏳ Pending |
-
-- [ ] Round 1 — Full verification (awaiting BOSS signal)
-- [ ] Round 2–10 — Fix → re-verify cycle
+- [x] **Round 1** — Guest Login Verification (10/10 areas PASSED)
+    - Evidence: `tests/evidence/round1_area_*.png` (27 screenshots)
+    - **Hotfix 35.1**: CB tab `portfolioCBs.map` TypeError fixed in `cb/page.tsx`
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v9.md` & `docs/code_review/code_review_2026_03_08_sync_v9.md`)
+- [ ] **Round 2** — Authenticated User Verification (`terranfund@gmail.com`)
+- [ ] Round 3–10 — Fix → re-verify cycle

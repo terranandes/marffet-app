@@ -33,10 +33,11 @@ export default function CBPage() {
     const API_BASE = "";
 
     // SWR Data Fetching for Portfolio CBs
-    const { data: portfolioCBs = [], isValidating: loadingPortfolio } = useSWR<CBData[]>(
+    const { data = [], isValidating: loadingPortfolio } = useSWR<CBData[]>(
         user ? "/api/cb/my_cbs" : null,
-        (url: string) => fetch(url, { credentials: "include" }).then((res) => res.json())
+        fetcher
     );
+    const portfolioCBs = Array.isArray(data) ? data : [];
 
     // Analyzer State
     const [cbInput, setCbInput] = useState("");

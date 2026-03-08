@@ -590,5 +590,6 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
     - **Hotfix 35.1**: CB tab `portfolioCBs.map` TypeError fixed in `cb/page.tsx`
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v9.md` & `docs/code_review/code_review_2026_03_08_sync_v9.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v10.md` & `docs/code_review/code_review_2026_03_08_sync_v10.md`)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v11.md` & `docs/code_review/code_review_2026_03_08_sync_v11.md`)
 - [ ] **Round 2** — Authenticated User Verification (`terranfund@gmail.com`)
 - [ ] Round 3–10 — Fix → re-verify cycle

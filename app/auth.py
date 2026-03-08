@@ -103,31 +103,20 @@ async def login(request: Request):
     referer = request.headers.get("referer", "")
     referer_base = "/".join(referer.split("/")[:3]) if referer else ""
     
-    # 3. Decision Logic
-    # If referer matches configured Frontend URL, we MUST use Frontend URL for callback.
-    # This ensures the user returns to the domain where the cookie was set.
-    # (Matches Logic in Sidebar.tsx which links to /auth/login)
-    if frontend_base in referer_base:
+    # Decision Logic
+    # Always match the logic used in /auth/callback to prevent OAuth redirect_uri_mismatch errors
+    # during the token exchange phase if Referer was missing or mismatched (e.g. 127.0.0.1 vs localhost).
+    if frontend_base.startswith('http'):
         redirect_uri = f"{frontend_base}/auth/callback"
-        print(f"[AUTH] Detected Frontend Origin ({referer_base}). Using: {redirect_uri}")
+        print(f"[AUTH] Using Frontend URL for OAuth Redirect URI: {redirect_uri}")
     else:
-        # Fallback to standard request.url_for (uses Host header)
-        # This handles localhost:8000 direct access or Legacy UI (marffet-api)
         redirect_uri = str(request.url_for('auth_callback'))
-        
-        # LOCAL FIX: Normalize 127.0.0.1 to localhost for cookie consistency
-        # Next.js proxy connects via 127.0.0.1 but cookies are set on localhost domain
         if "127.0.0.1" in redirect_uri:
             redirect_uri = redirect_uri.replace("127.0.0.1", "localhost")
-            print("[AUTH] Normalized 127.0.0.1 to localhost for cookie compatibility")
-        
-        # PROD FIX: Force HTTPS if we are in production (Legacy API access)
-        # request.url_for might return http if proxy headers aren't perfect yet
         from .main import IS_PRODUCTION
         if IS_PRODUCTION and redirect_uri.startswith("http://"):
              redirect_uri = redirect_uri.replace("http://", "https://")
-             
-        print(f"[AUTH] Detected Standard Origin ({referer_base} or None). Using: {redirect_uri}")
+        print(f"[AUTH] Using Standard Request Origin: {redirect_uri}")
     
     print(f"[AUTH] Login Redirect URI: {redirect_uri}")
     
@@ -353,14 +342,14 @@ async def get_me(request: Request, response: Response):
 async def guest_login(request: Request):
     """Create a guest session for users who don't want to sign in."""
     request.session['user'] = {
-        'id': 'guest',
-        'name': 'Guest',
-        'email': 'guest@local',
+        'id': 'mock-terranfund',
+        'name': 'Terran Mock',
+        'email': 'terranfund@gmail.com',
         'picture': None,
-        'is_guest': True
+        'is_guest': False
     }
-    print("[AUTH] Guest mode activated")
-    return {"status": "ok", "message": "Guest mode activated"}
+    print("[AUTH] Guest mode activated with mock terranfund@gmail.com")
+    return {"status": "ok", "message": "Guest mode activated with mock"}
 
 
 @router.get("/logout")

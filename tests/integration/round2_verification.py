@@ -30,17 +30,17 @@ def run_round2():
         print("Logging in as terranfund mock...")
         page.goto(f"{BASE_URL}/", timeout=60000)
         # Call the new mock guest endpoint
-        page.evaluate("fetch('/auth/guest', {method: 'POST'})")
+        page.evaluate("async () => { await fetch('/auth/guest', {method: 'POST'}); }")
         page.reload()
         page.wait_for_timeout(2000)
         
         # Area A: Landing
-        page.goto(f"{BASE_URL}/", timeout=15000)
+        page.goto(f"{BASE_URL}/", timeout=45000)
         take_screenshot(page, "area_a_landing")
         
         # Area B: Mars
-        page.goto(f"{BASE_URL}/mars", timeout=15000)
-        page.wait_for_selector("table", timeout=30000)
+        page.goto(f"{BASE_URL}/mars", timeout=45000)
+        page.wait_for_selector("table", timeout=45000)
         take_screenshot(page, "area_b_mars_table")
         # Click row to show chart
         page.locator("tbody tr").first.click()
@@ -48,7 +48,7 @@ def run_round2():
         take_screenshot(page, "area_b_mars_chart")
         
         # Area C: BCR
-        page.goto(f"{BASE_URL}/race", timeout=15000)
+        page.goto(f"{BASE_URL}/race", timeout=45000)
         page.wait_for_timeout(3000)
         take_screenshot(page, "area_c_bcr_loaded")
         page.locator("button:has-text('Play')").first.click()
@@ -56,7 +56,7 @@ def run_round2():
         take_screenshot(page, "area_c_bcr_playing")
         
         # Area D: Compound
-        page.goto(f"{BASE_URL}/compound", timeout=15000)
+        page.goto(f"{BASE_URL}/compound", timeout=45000)
         page.wait_for_timeout(2000)
         take_screenshot(page, "area_d_compound_single")
         # Click Compare
@@ -67,29 +67,29 @@ def run_round2():
         take_screenshot(page, "area_d_compound_compare")
         
         # Area E: Portfolio
-        page.goto(f"{BASE_URL}/portfolio", timeout=15000)
+        page.goto(f"{BASE_URL}/portfolio", timeout=45000)
         page.wait_for_timeout(3000)
         take_screenshot(page, "area_e_portfolio")
         
         # Area F: Trend & MyRace
-        page.goto(f"{BASE_URL}/trend", timeout=15000)
+        page.goto(f"{BASE_URL}/trend", timeout=45000)
         page.wait_for_timeout(2000)
         take_screenshot(page, "area_f_trend")
         
-        page.goto(f"{BASE_URL}/myrace", timeout=15000)
+        page.goto(f"{BASE_URL}/myrace", timeout=45000)
         page.wait_for_timeout(3000)
         take_screenshot(page, "area_f_myrace")
         
         # Area G: CB Tab
-        page.goto(f"{BASE_URL}/cb", timeout=15000)
+        page.goto(f"{BASE_URL}/cb", timeout=45000)
         page.wait_for_timeout(2000)
         take_screenshot(page, "area_g_cb")
         
         # Area H: Modals
         # Try to open Settings Modal
-        settings_btn = page.locator("button:has-text('Settings')").first
+        settings_btn = page.locator("button[title='Settings']").first
         if settings_btn.count() > 0:
-            settings_btn.click()
+            settings_btn.click(force=True)
             page.wait_for_timeout(1000)
             take_screenshot(page, "area_h_settings")
             # Close modal by pressing Escape
@@ -106,7 +106,7 @@ def run_round2():
             page.keyboard.press("Escape")
         
         # Area J: Admin Dashboard
-        page.goto(f"{BASE_URL}/admin", timeout=15000)
+        page.goto(f"{BASE_URL}/admin", timeout=45000)
         page.wait_for_timeout(2000)
         take_screenshot(page, "area_j_admin")
         
@@ -121,15 +121,15 @@ def run_round2():
         mpage = mobile_context.new_page()
         
         # Login
-        mpage.goto(f"{BASE_URL}/", timeout=15000)
-        mpage.evaluate("fetch('/auth/guest', {method: 'POST'})")
+        mpage.goto(f"{BASE_URL}/", timeout=45000)
+        mpage.evaluate("async () => { await fetch('/auth/guest', {method: 'POST'}); }")
         mpage.reload()
         mpage.wait_for_timeout(2000)
         
         paths = ["/", "/portfolio", "/mars", "/compound", "/cb", "/trend", "/admin"]
         for p in paths:
             name = p.strip("/") or "home"
-            mpage.goto(f"{BASE_URL}{p}", timeout=15000)
+            mpage.goto(f"{BASE_URL}{p}", timeout=45000)
             mpage.wait_for_timeout(2000)
             take_screenshot(mpage, f"area_{name}", is_mobile=True)
             

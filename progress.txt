@@ -36,12 +36,26 @@ Conversation: 3f5e9054-307b-4986-a150-d2064db27a79
 
 **Round 1 Status:** ✅ CAPTURED — Awaiting BOSS Verdict
 
+## Round 2 Execution Log (2026-03-08)
+- [x] Area A: Global Navigation & Landing
+- [x] Area B: Mars Strategy Tab
+- [x] Area C: Bar Chart Race 
+- [x] Area D: Compound Interest (Comparison mode accessible)
+- [x] Area E: Portfolio 
+- [x] Area F: Trend Dashboard & MyRace
+- [x] Area G: CB Tab
+- [x] Area H: Settings Modal
+- [x] Area I: AI Copilot
+- [x] Area J: Admin Dashboard
+
+**Round 2 Status:** ✅ CAPTURED (Authenticated: terranfund@gmail.com) — Awaiting BOSS Verdict
+
 ## Overall Campaign Progress (10 Rounds — BOSS Gated)
 
 | Round | Date | Status | BOSS Verdict | Issues Found |
 |-------|------|--------|--------------|--------------|
-| 1 | 2026-03-08 | ✅ All Areas Captured | ⏳ Pending | 0 blockers |
-| 2 | — | ⏳ Pending | — | — |
+| 1 | 2026-03-08 | ✅ All Areas Captured | ✅ PASS | 0 blockers |
+| 2 | 2026-03-08 | ✅ All Areas Captured | ⏳ Pending | 0 blockers |
 | 3 | — | ⏳ Pending | — | — |
 | 4 | — | ⏳ Pending | — | — |
 | 5 | — | ⏳ Pending | — | — |
@@ -54,15 +68,8 @@ Conversation: 3f5e9054-307b-4986-a150-d2064db27a79
 ## Known Issues (Pre-Round 1)
 - BUG-017: Remote E2E Add Stock Timeout on Zeabur (cold start)
 - BUG-010: Mobile Portfolio Card Click Timeout (E2E flake, deferred)
-- local-test-2 auth mock: `guest_login` → `terranfund@gmail.com` (MUST revert before merge)
-- Frontend build: Use `npm run dev` from main repository (NOT worktree)
-
-## Resume Instructions
-Any agent can resume from any round:
-1. `cd .worktrees/local-test-2 && uv run uvicorn app.main:app --port 8001 &`
-2. `cd frontend && PORT=3001 NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 npm run dev &`
-3. Tell [CV]: "resume Phase 35 Round X"
+- Frontend build: Use `npm run dev` from main repository
 
 ## BOSS Open Action Items
-- Review Round 1 evidence in `tests/evidence/round1_*.png`
+- Review Round 2 evidence in `tests/evidence/round2_*.png`
 - Issue verdict: PASS / FAIL / re-test specific areas

@@ -238,3 +238,6 @@ data/ref/debug/
 
 # Node modules (root-level for .agent/scripts tooling)
 node_modules/
+
+# Test Evidence
+tests/evidence/

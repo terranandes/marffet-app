@@ -166,10 +166,11 @@ async def lifespan(app: FastAPI):
     # Shutdown Logic
     try:
         if hasattr(app.state, 'scheduler'):
-            app.state.scheduler.shutdown()
-            print("[Shutdown] Scheduler Stopped")
-    except Exception:
-        pass
+            # wait=False ensures that we don't hang Uvicorn shutdown if a job is sleeping/running
+            app.state.scheduler.shutdown(wait=False)
+            print("[Shutdown] Scheduler Stopped cleanly")
+    except Exception as e:
+        print(f"[Shutdown Error] {e}")
 
 _STARTUP_RAN = False  # Flag to track lifespan startup execution
 

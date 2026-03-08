@@ -6,27 +6,41 @@ Conversation: 3f5e9054-307b-4986-a150-d2064db27a79
 
 | Agent | Status | Current Task | Progress |
 |-------|--------|--------------|----------|
-| [PL] | ✅ Done | Sync Meeting v6, Plan v2.0 written | 100% |
-| [CV] | ⏳ Waiting BOSS | Pending Round 1 of verification | 0/10 |
+| [PL] | ✅ Done | Sync Meeting v7, Plan v2.0 written | 100% |
+| [CV] | ⏳ Awaiting BOSS | Round 1 complete (A-J captured). Await verdict. | 100% (Round 1) |
 
 ## Campaign Plan Reference
 - Plan: `docs/plan/2026-03-08-full-feature-verification-campaign.md` (v2.0)
 - Evidence: `tests/evidence/`
 - JIRA: `docs/jira/`
-- Meeting: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md`
-- Code Review: `docs/code_review/code_review_2026_03_08_sync_v6.md`
+- Meeting: `docs/meeting/meeting_notes_2026_03_08_sync_v7.md`
+- Code Review: `docs/code_review/code_review_2026_03_08_sync_v7.md`
 - Tasks: `docs/product/tasks.md` Phase 35
 
 ## Plan v2.0 Change Summary (vs v1.0)
-- Added CB tab as Section G (was missing)
-- Changed from "10 feature slices" to "10 full-scope rounds of A–N checklist"
-- All 14 feature areas (A–N) covered in every round
+- Changed from "10 feature slices" to "10 full-scope rounds of Areas A–J"
+- All feature areas (A–J) covered in every Round (1-10)
+- Added CB tab as Area G
 
-## Iteration Log (10 Rounds — BOSS Gated)
+## Round 1 Execution Log (2026-03-08)
+- [x] Area A: Global Navigation & Landing
+- [x] Area B: Mars Strategy Tab (50 rows, chart, mobile)
+- [x] Area C: Bar Chart Race (bars, animation, year slider)
+- [x] Area D: Compound Interest (single mode, premium gate)
+- [x] Area E: Portfolio (Guest mode, empty state, CTA)
+- [x] Area F: Trend Dashboard (empty state, CTA)
+- [x] Area G: Auth + CB Tab (terranfund mock, GM tier, CB analyzer)
+- [x] Area H: Settings Modal (6 tabs, SYSTEM ADMINISTRATOR badge)
+- [x] Area I: AI Copilot (Wealth Manager Mode, chat panel)
+- [x] Area J: Admin Dashboard (GM metrics, growth chart, ops)
+
+**Round 1 Status:** ✅ CAPTURED — Awaiting BOSS Verdict
+
+## Overall Campaign Progress (10 Rounds — BOSS Gated)
 
 | Round | Date | Status | BOSS Verdict | Issues Found |
 |-------|------|--------|--------------|--------------|
-| 1 | — | ⏳ Pending BOSS | — | — |
+| 1 | 2026-03-08 | ✅ All Areas Captured | ⏳ Pending | 0 blockers |
 | 2 | — | ⏳ Pending | — | — |
 | 3 | — | ⏳ Pending | — | — |
 | 4 | — | ⏳ Pending | — | — |
@@ -41,13 +55,14 @@ Conversation: 3f5e9054-307b-4986-a150-d2064db27a79
 - BUG-017: Remote E2E Add Stock Timeout on Zeabur (cold start)
 - BUG-010: Mobile Portfolio Card Click Timeout (E2E flake, deferred)
 - local-test-2 auth mock: `guest_login` → `terranfund@gmail.com` (MUST revert before merge)
-- Frontend build: Use `frontend/node_modules/.bin/next` (not global `next`)
+- Frontend build: Use `npm run dev` from main repository (NOT worktree)
 
 ## Resume Instructions
 Any agent can resume from any round:
 1. `cd .worktrees/local-test-2 && uv run uvicorn app.main:app --port 8001 &`
-2. `cd frontend && PORT=3001 NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 node_modules/.bin/next dev &`
+2. `cd frontend && PORT=3001 NEXT_PUBLIC_API_URL=http://127.0.0.1:8001 npm run dev &`
 3. Tell [CV]: "resume Phase 35 Round X"
 
 ## BOSS Open Action Items
-- Approve Round 1 start (say "Start Round 1")
+- Review Round 1 evidence in `tests/evidence/round1_*.png`
+- Issue verdict: PASS / FAIL / re-test specific areas

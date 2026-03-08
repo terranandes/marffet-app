@@ -27,6 +27,8 @@ interface UserContextType {
     notifications: Notification[];
     unreadCount: number;
     refreshUser: () => Promise<void>;
+    login: () => void;
+    logout: () => Promise<void>;
     markAsRead: (id: number) => Promise<void>;
     clearNotifications: () => void;
 }
@@ -45,6 +47,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    const login = useCallback(() => {
+        window.location.href = '/login';
+    }, []);
+
+    const logout = useCallback(async () => {
+        try {
+            await fetch('/auth/logout', { method: 'GET' });
+            setUser(null);
+            setNotifications([]);
+            localStorage.removeItem('marffet_premium');
+            window.location.href = '/'; // Fast redirect home without hitting Next.js server proxy for logout
+        } catch (e) {
+            console.error("Logout failed", e);
+            window.location.href = '/auth/logout'; // Fallback
+        }
+    }, []);
 
     const fetchUser = useCallback(async () => {
         try {
@@ -141,6 +160,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 notifications,
                 unreadCount,
                 refreshUser: fetchUser,
+                login,
+                logout,
                 markAsRead,
                 clearNotifications,
             }}

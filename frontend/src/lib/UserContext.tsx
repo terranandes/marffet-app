@@ -103,15 +103,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const fetchUser = useCallback(async () => {
         const controller = new AbortController();
         const unregister = registerController(controller);
-        try {
-            const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 15000);
+        // Ensure we timeout the entire fetch process, not just the first request
+        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 10000);
 
+        try {
             const res = await fetch("/auth/me", {
                 credentials: "include",
                 signal: controller.signal,
             });
-
-            clearTimeout(timeoutId);
 
             if (res.ok) {
                 const data = await res.json();
@@ -123,7 +122,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         localStorage.setItem("marffet_premium", "true");
                     }
 
-                    // Fetch notifications
+                    // Fetch notifications - wrapped in its own try/catch so it doesn't fail the whole user fetch
                     try {
                         const notifRes = await fetch("/api/notifications", {
                             credentials: "include",
@@ -132,8 +131,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         if (notifRes.ok) {
                             setNotifications(await notifRes.json());
                         }
-                    } catch {
+                    } catch (notifErr) {
                         // Notifications are non-critical
+                        console.warn("Notice: Notifications fetch failed or timed out", notifErr);
                     }
                 } else {
                     setUser(null);
@@ -148,6 +148,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }
             setUser(null);
         } finally {
+            clearTimeout(timeoutId);
             setIsLoading(false);
             unregister();
         }

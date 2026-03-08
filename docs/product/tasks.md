@@ -576,7 +576,9 @@ Based on `brainstorm_2026_02_21_correlation_recovery.md`, all data will be rebui
 - [x] **Agents Sync Meeting - 2026-03-08 v6** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md` & `docs/code_review/code_review_2026_03_08_sync_v6.md`)
     - Code review: APPROVED. Phase 34 complete. Phase 35 Full Feature Verification Campaign planned.
 - [x] **Agents Sync Meeting - 2026-03-08 v7** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v7.md` & `docs/code_review/code_review_2026_03_08_sync_v7.md`)
-    - Code review: APPROVED. Cleaned temp files, fixed duplicate cache check in `main.py`. Phase 35 Phase 35 awaiting BOSS signal.
+    - Code review: APPROVED. Cleaned temp files, fixed duplicate cache check in `main.py`. Phase 35 awaiting BOSS signal.
+- [x] **Agents Sync Meeting - 2026-03-08 v8** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v8.md` & `docs/code_review/code_review_2026_03_08_sync_v8.md`)
+    - Code review: APPROVED. Implemented strict `AuthGuard` for zero-load unauthenticated pages. Refactored logout to client-side Next.js router. Deleted redundant `/login` page completely.
 
 ## 33. Phase 35: Full Feature Verification Campaign - [NEXT]
 > Ref: `docs/plan/2026-03-08-full-feature-verification-campaign.md`

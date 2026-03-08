@@ -89,41 +89,87 @@ uv run tests/unit/test_mobile_portfolio.py
 *   **Scope**: Full end-to-end framework verification (Build + Start + Playwright MCP) executed in an isolated git worktree (`.worktrees/martian-test-local`) on alternate ports (3001/8001) to prevent impacting the developer's main environment. Highly effective for catching Next.js hydration and build-time compilation errors.
 
 
-## 2. Manual Verification Checklist
+## 2. Full Feature Verification Checklist (One Round Pass)
 
-### Mars Strategy
-- [x] Table sorts by Simulated Final (default)
-- [x] Table sorts by CAGR when clicked
-- [x] Shows Top 50 only
-- [x] Export Excel button works
+**Goal:** Exhaustively verify every designed feature in the Marffet system across Desktop and Mobile viewports for a single full-coverage pass.
+**Evidence:** Ensure screenshot evidence is collected for each step to validate UI integrity without side-effects.
 
-### Authentication
-- [x] Google Login redirects properly
-- [x] Guest Mode creates local session
-- [x] Logout clears session
+### Area A: Global Navigation & Landing
+- [ ] Home page loads with title "Marffet"
+- [ ] Desktop sidebar shows 8+ nav links
+- [ ] Mobile Bottom Tab Bar shows 5 scrollable tabs
+- [ ] Default page is NOT `/mars` (must be portfolio or home)
+- [ ] Clicking each tab routes to correct page
 
-### Admin Dashboard (GM Only)
-- [x] System Operations visible
-- [x] Update Market Data works
-- [x] Rebuild All works
-- [x] Backup to GitHub works (Manual Trigger)
-- [x] Rebuild & Push Pre-warm works
-- [x] Membership Injection Form visible and adds user target properly
-- [x] Listed active injected memberships display correct Tier and Expiration
-- [x] Revoke injected membership works
-- [x] Account Growth History chart renders 3 lines (Registered, Premium, VIP) properly over time
+### Area B: Mars Strategy Tab
+- [ ] Simulation table loads with 50 rows
+- [ ] Table sortable by CAGR column
+- [ ] Clicking a row → line chart appears (NOT stuck loading)
+- [ ] Chart shows wealth over time for that stock
+- [ ] Excel export button works (downloads file)
+- [ ] Mobile view shows card layout
 
-### User Settings & Access Control
-- [x] GM > VIP > PREMIUM > FREE > Guest precedence strictly enforced in `/api/auth/me`
-- [x] Expired manual injected memberships gracefully revert to previous static tier
-- [x] "Sponsor Us" tab is present in Settings Modal
-- [x] Ko-fi and Buy Me a Coffee links route correctly
-- [x] Sidebar Sponsor Us button directs specifically to Sponsor tab in Settings Modal
+### Area C: Bar Chart Race Tab
+- [ ] BCR chart renders with stock bars
+- [ ] Wealth / CAGR / Dividend toggle works
+- [ ] Year slider responds
+- [ ] Play button animates race
+- [ ] No duplicate year 2006 bug
 
-### AI Copilot (New)
-- [x] FAB visible on Portfolio/Race pages
-- [x] Chat works without client-side key (if server key set)
-- [x] "Missing API Key" error properly handled
+### Area D: Compound Interest Tab
+- [ ] Single stock mode renders chart
+- [ ] Comparison Mode gated for Guest/FREE (shows lock icon)
+- [ ] Premium user sees Comparison Mode
+- [ ] BAO/BAH/BAL strategy toggle works
+- [ ] CAGR and ROI values displayed correctly
+
+### Area E: Portfolio Tab
+- [ ] Group creation works
+- [ ] Group deletion works
+- [ ] Target (stock) add to group works
+- [ ] Transaction add (Buy) works
+- [ ] Transaction history shows added transactions
+- [ ] Dividend sync button works
+- [ ] Stats summary shows Market Value / P&L
+- [ ] Mobile card view replaces table on narrow viewport
+
+### Area F: Trend Dashboard & My Race
+- [ ] Trend area chart renders with data (for logged-in user)
+- [ ] Toggle Cost/Value/Unrealized P&L checkboxes update chart
+- [ ] Active Holdings section shows stocks by type
+- [ ] My Race tab renders personalized race animation
+
+### Area G: Auth System & Convertible Bond (CB) Tab
+- [ ] "Sign In with Google" redirects to accounts.google.com
+- [ ] Guest mode sets guest session and shows badge
+- [ ] Logout cleanly and elegantly clears session via Next.js router
+- [ ] In-flight fetches intentionally abort on logout (zero side effects)
+- [ ] `/auth/me` returns correct tier
+- [ ] Compound Comparison gated for Guest/FREE
+- [ ] CB Tab loads and allows CB search / add to portfolio
+- [ ] Option B (AuthGuard) blocks heavy load execution for unauthenticated states
+
+### Area H: Notifications & Modals
+- [ ] Notification bell shows alert count badge
+- [ ] Clicking bell opens notification panel
+- [ ] SMA alert shows stock + recommendation
+- [ ] Settings Modal opens with 4+ tabs
+- [ ] Start Page dropdown explicitly does NOT show "Mars Strategy"
+- [ ] Transaction & Dividend History modals open correctly
+
+### Area I: AI Copilot
+- [ ] FAB (floating rocket ✨ button) visible on Portfolio page
+- [ ] Clicking FAB opens chat panel with slide-in animation
+- [ ] Message sent returns AI response (using server key fallback)
+- [ ] Free tier gets Education persona / Premium tier gets Wealth Manager
+- [ ] API Key input field visible in Settings Modal
+
+### Area J: Admin Dashboard & Mobile Full Test
+- [ ] Admin Dashboard visible to `terranfund` (if GM)
+- [ ] System Ops buttons visible + User growth chart renders
+- [ ] Membership Injection form visible
+- [ ] All 9 tabs load on iPhone 12 viewport
+- [ ] Bottom Tab Bar scrollable horizontally
 
 ## 3. Regression Tests
 

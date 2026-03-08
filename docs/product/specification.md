@@ -31,10 +31,12 @@ Decoupled Client-Server architecture for containerized deployment (Zeabur).
 | Backend | FastAPI (Python 3.12) | REST API, Auth, Simulation Engine | `marffet-api.zeabur.app` |
 | Frontend | Next.js 16 (React 18) | UI, Visualization (ECharts), SSR | `marffet-app.zeabur.app` |
 
-### 1.2 Authentication
+### 1.2 Authentication & App Lifecycle
 - **Protocol**: OAuth 2.0 (Google)
 - **Cookie**: `httpOnly`, `SameSite=None`, `Secure`
-- **CORS**: Backend allows specific Frontend origin
+- **Option B (Strict Loading)**: An `<AuthGuard>` intercepts all private routes. If a user lacks a session (User or Guest), no background API calls, SWR fetches, or calculations are permitted. A global login prompt is shown instead.
+- **Graceful Termination**: On logout, all in-flight API requests are forcibly aborted via `AbortController`, the global SWR cache is wiped, background polling is stopped, and the client router instantly redirects to home, guaranteeing zero side-effects.
+- **Start Page Constraint**: The `MARS Strategy` tab is strictly prohibited from being set as the default start page to avoid resource-intensive loading on cold starts.
 
 ### 1.3 Access Control & Memberships
 

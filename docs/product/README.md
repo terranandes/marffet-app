@@ -20,8 +20,8 @@ Marffet is a web-based investment simulation and portfolio management tool that 
 
 ### Access the App
 - **URL**: [https://marffet-app.zeabur.app](https://marffet-app.zeabur.app)
-- **Login**: Sign in with your **Google Account**
-- **Guest Mode**: Explore the simulator and visualizations without creating an account
+- **Login Required**: To ensure peak performance and prevent heavy background loading, all features require you to **Sign in with your Google Account**.
+- **Guest Mode**: Explore the simulator and visualizations without creating an account by clicking "Explore as Guest".
 
 ### First Steps
 1. **Sign In** with Google

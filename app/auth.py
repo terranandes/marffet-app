@@ -342,14 +342,14 @@ async def get_me(request: Request, response: Response):
 async def guest_login(request: Request):
     """Create a guest session for users who don't want to sign in."""
     request.session['user'] = {
-        'id': 'mock-terranfund',
-        'name': 'Terran Mock',
-        'email': 'terranfund@gmail.com',
+        'id': 'guest',
+        'name': 'Guest',
+        'email': 'guest@local',
         'picture': None,
-        'is_guest': False
+        'is_guest': True
     }
-    print("[AUTH] Guest mode activated with mock terranfund@gmail.com")
-    return {"status": "ok", "message": "Guest mode activated with mock"}
+    print("[AUTH] Guest mode activated")
+    return {"status": "ok", "message": "Guest mode activated"}
 
 
 @router.get("/logout")

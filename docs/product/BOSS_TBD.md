@@ -56,7 +56,7 @@ https://skills.sh/?q=memory
 | **Google Antigravity** | `.agent/rules/`          | `~/.gemini/GEMINI.md`          |
 | **Gemini CLI**         | `./GEMINI.md`            | `~/.gemini/GEMINI.md`          |
 | **OpenCode**           | `./AGENTS.md`            | `~/.config/opencode/AGENTS.md` |
-| **Claude**             | `./CLAUDE.md`, `.claude/CLAUDE.md` and `.claude/rules/`                                                   | `~/.claude/CLAUDE.md` |
+| **Claude**             | `./CLAUDE.md`, `.claude/CLAUDE.md` and `.claude/rules/` | `~/.claude/CLAUDE.md` |
 
 ## AI 工具 Skills 目錄對照表
 

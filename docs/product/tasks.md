@@ -98,5 +98,8 @@
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v10.md` & `docs/code_review/code_review_2026_03_08_sync_v10.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v11.md` & `docs/code_review/code_review_2026_03_08_sync_v11.md`)
 - [x] **Round 2** — Authenticated User Verification (`terranfund@gmail.com`)
-    - Evidence: `tests/evidence/round2_area_*.png` (20+ screenshots)
-- [ ] Round 3–10 — Fix → re-verify cycle
+    - Evidence: `tests/evidence/round2_area_*.png` (20+ screenshots, Desktop + Mobile)
+    - **Hotfix 35.2**: Mobile Infinite Spinner — `UserContext.tsx` timeout fix (`dd995de`)
+    - **Hotfix 35.3**: Google Sign-In Failure — `auth.py` redirect_uri sync (`b1d8746`)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_10_sync_v12.md` & `docs/code_review/code_review_2026_03_10_sync_v12.md`)
+- [ ] Round 3–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)

@@ -56,6 +56,7 @@ https://skills.sh/?q=memory
 | **Google Antigravity** | `.agent/rules/`          | `~/.gemini/GEMINI.md`          |
 | **Gemini CLI**         | `./GEMINI.md`            | `~/.gemini/GEMINI.md`          |
 | **OpenCode**           | `./AGENTS.md`            | `~/.config/opencode/AGENTS.md` |
+| **Claude**             | `./CLAUDE.md`, `.claude/CLAUDE.md` and `.claude/rules/`                                                   | `~/.claude/CLAUDE.md` |
 
 ## AI 工具 Skills 目錄對照表
 
@@ -64,6 +65,7 @@ https://skills.sh/?q=memory
 | **Google Antigravity**   | `.agent/skills/`         | `~/.gemini/antigravity/global_skills/`  |
 | **Gemini CLI**           | `.gemini/skills/`        | `~/.gemini/skills/`                     |
 | **OpenCode**             | `.opencode/skills/`      | `~/.config/opencode/skills/`            |
+| **Claude**             | `.claude/skills/`      | `~/.claude/skills/`            |
 
 ## AI 工具 workflows/commands 目錄對照表
 
@@ -72,3 +74,4 @@ https://skills.sh/?q=memory
 | **Google Antigravity** | `.agent/workflows/`      | `~/.gemini/antigravity/global_workflows`  |
 | **Gemini CLI**         | `.gemini/commands/`      | `~/.gemini/commands/`                     |
 | **OpenCode**           | `.opencode/commands/`    | `~/.config/opencode/commands/`            |
+| **Claude**           | `.claude/commands/`    | `~/.claude/commands/`            |

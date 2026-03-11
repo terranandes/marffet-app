@@ -110,5 +110,8 @@
     - **Full Suite Run:** Executed `e2e_suite.py` containing both Desktop and Mobile passes. Desktop passed perfectly ✅, but `test_mobile_portfolio.py` failed due to responsive viewport DOM selection limitations. Filed BUG-020-CV.
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
-- [ ] Round 4: Cross-Device Sync (Pending `[PL]` approval)
+- [x] Round 4: Cross-Device Sync (Pending `[PL]` approval)
+    - Full E2E suite executed on `marffet-app.zeabur.app`.
+    - Desktop tests failed due to timeouts (15s limit) during group creation logic.
+    - Mobile UI tests failed consecutively with known issue BUG-020.
 - [ ] Round 4–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)

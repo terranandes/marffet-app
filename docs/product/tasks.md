@@ -105,5 +105,7 @@
 - [x] Round 3: Verified login/logout flow for terranstock and terranandes mock accounts.
     - Evidence: `tests/evidence/round3/` (6 screenshots: dashboard, settings, logged-out per account)
     - Sequential A→B→A test script upgraded (pending re-execution with servers running)
+    - ⚠️ **FINDING**: Test script uses `?email=` param but `/auth/guest` ignores it → needs `/auth/test-login` endpoint
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
 - [ ] Round 4–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)

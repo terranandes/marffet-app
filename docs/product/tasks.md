@@ -104,8 +104,11 @@
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_10_sync_v12.md` & `docs/code_review/code_review_2026_03_10_sync_v12.md`)
 - [x] Round 3: Verified login/logout flow for terranstock and terranandes mock accounts.
     - Evidence: `tests/evidence/round3/` (6 screenshots: dashboard, settings, logged-out per account)
-    - Sequential A→B→A test script upgraded (pending re-execution with servers running)
-    - ⚠️ **FINDING**: Test script uses `?email=` param but `/auth/guest` ignores it → needs `/auth/test-login` endpoint
+    - Sequential A-B-A test script in `round3_verification.py` fails to switch accounts because `/auth/guest` endpoint ignores `?email=` queries. See JIRA BUG-019-CV.
+    - **Resolution:** A safelisted `/auth/test-login` mock endpoint was implemented in `app/auth.py` locked behind `TESTING=true` environment variable.
+    - **Re-run:** Executed `round3_verification.py` locally and verified 3-stage iterative account switching ✅.
+    - **Full Suite Run:** Executed `e2e_suite.py` containing both Desktop and Mobile passes. Desktop passed perfectly ✅, but `test_mobile_portfolio.py` failed due to responsive viewport DOM selection limitations. Filed BUG-020-CV.
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
+- [ ] Round 4: Cross-Device Sync (Pending `[PL]` approval)
 - [ ] Round 4–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)

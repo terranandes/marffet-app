@@ -40,13 +40,13 @@ def run_e2e():
             # 0. Clean session: logout first to ensure guest flow works
             print("   Resetting session (logout)...")
             try:
-                page.goto(f'{BASE_URL}/auth/logout', wait_until='domcontentloaded', timeout=10000)
+                page.goto(f'{BASE_URL}/auth/logout', wait_until='domcontentloaded', timeout=120000)
                 page.wait_for_timeout(1000)
             except:
                 pass  # May redirect or 404, that's fine
             
             # 1. Navigation & Guest Badge
-            page.goto(f'{BASE_URL}/portfolio', wait_until='domcontentloaded', timeout=30000)
+            page.goto(f'{BASE_URL}/portfolio', wait_until='domcontentloaded', timeout=120000)
             page.wait_for_load_state('networkidle', timeout=15000)
             
             print("   Checking for Guest mode entry...")

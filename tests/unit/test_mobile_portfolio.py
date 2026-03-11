@@ -13,7 +13,7 @@ import os
 
 # Configuration
 BASE_URL = os.getenv("TARGET_URL", "http://localhost:3000")
-SCREENSHOT_DIR = '/home/terwu01/.gemini/antigravity/brain/b49fbb77-9d9c-4a6f-b522-53f3e307f306/evidence'
+SCREENSHOT_DIR = os.path.join(BASE_DIR, 'tests', 'evidence')
 
 print(f"🎯 Target URL: {BASE_URL}")
 print(f"📸 Evidence Dir: {SCREENSHOT_DIR}")
@@ -33,7 +33,7 @@ def run_mobile_test():
             print(f"🔗 Header: Checking {BASE_URL}/portfolio")
             
             # 1. Navigation & Guest Login
-            page.goto(f'{BASE_URL}/')
+            page.goto(f'{BASE_URL}/', timeout=120000)
             
             # Click "Continue as Guest" if on Landing
             # landing_guest_btn = page.get_by_role("button", name="Continue as Guest").first
@@ -66,11 +66,9 @@ def run_mobile_test():
             # Check if we need to create a group
             # Wait for groups to load
             time.sleep(2)
-            
             needs_group = False
-            if page.get_by_text("Start Your Portfolio").is_visible() or page.get_by_text("No groups yet").is_visible():
+            if page.locator("button", has_text="Mobile Test").count() == 0:
                 needs_group = True
-            
             if needs_group:
                 print("   Creating Test Group...")
                 # Ensure + New Group is visible

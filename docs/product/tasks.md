@@ -103,4 +103,7 @@
     - **Hotfix 35.3**: Google Sign-In Failure — `auth.py` redirect_uri sync (`b1d8746`)
     - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_10_sync_v12.md` & `docs/code_review/code_review_2026_03_10_sync_v12.md`)
 - [x] Round 3: Verified login/logout flow for terranstock and terranandes mock accounts.
+    - Evidence: `tests/evidence/round3/` (6 screenshots: dashboard, settings, logged-out per account)
+    - Sequential A→B→A test script upgraded (pending re-execution with servers running)
+    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
 - [ ] Round 4–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)

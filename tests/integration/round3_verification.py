@@ -68,10 +68,10 @@ async def test_auth_flow(page, context, index, email):
         except Exception:
             pass
 
-    await context.clear_cookies()
-
+    # Do not clear cookies here; let the flow be continuous
+    
 async def run():
-    print("=== Phase 35: Round 3 Login/Logout Verification ===")
+    print("=== Phase 35: Round 3 Sequential Login Verification ===")
     if os.path.exists(EVIDENCE_DIR):
         shutil.rmtree(EVIDENCE_DIR)
     os.makedirs(EVIDENCE_DIR, exist_ok=True)
@@ -85,8 +85,9 @@ async def run():
         )
         page = await context.new_page()
         
-        emails = ["terranstock@gmail.com", "terranandes@gmail.com"]
-        for i, email in enumerate(emails):
+        # Sequential Flow: A -> B -> A
+        accounts_flow = ["terranstock@gmail.com", "terranandes@gmail.com", "terranstock@gmail.com"]
+        for i, email in enumerate(accounts_flow):
             await test_auth_flow(page, context, i+1, email)
             
         await browser.close()

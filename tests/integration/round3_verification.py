@@ -10,15 +10,15 @@ async def test_auth_flow(page, context, index, email):
     print(f"\n--- Testing Account: {email} ---")
     
     # Go to app
-    await page.goto("http://localhost:3000", timeout=45000, wait_until="domcontentloaded")
+    await page.goto("http://localhost:3001", timeout=120000, wait_until="domcontentloaded")
     
     # 1. Login
     print(f"[{index}] Logging in as {email}...")
-    login_res = await context.request.post(f"http://localhost:8000/auth/guest?email={email}")
+    login_res = await context.request.post(f"http://localhost:8001/auth/test-login?email={email}")
     if not login_res.ok:
         print(f"[{index}] Warning: Login returned status {login_res.status}")
         
-    await page.goto("http://localhost:3000/")
+    await page.goto("http://localhost:3001/", wait_until="domcontentloaded")
     
     # Wait for dashboard items to load to confirm login
     try:

@@ -361,3 +361,19 @@ async def logout(request: Request, response: Response):
     res = RedirectResponse(url=FRONTEND_URL)
     res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return res
+
+@router.post("/test-login")
+async def test_login(request: Request, email: str = "guest@local", name: str = "Test User"):
+    """Dedicated test endpoint for E2E mocked logins. ONLY available when TESTING=true."""
+    if os.getenv('TESTING', '').lower() != 'true':
+        raise HTTPException(status_code=404, detail="Not Found")
+        
+    request.session['user'] = {
+        'id': email.split('@')[0],
+        'name': name,
+        'email': email,
+        'picture': None,
+        'is_guest': email == 'guest@local'
+    }
+    print(f"[AUTH TEST] Mock session activated for {email}")
+    return {"status": "ok", "message": f"Test session activated for {email}"}

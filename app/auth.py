@@ -348,8 +348,8 @@ async def guest_login(request: Request):
         'picture': None,
         'is_guest': True
     }
-    print("[AUTH] Guest mode activated")
-    return {"status": "ok", "message": "Guest mode activated"}
+    print("[AUTH] Guest session activated")
+    return {"status": "ok", "message": "Guest session activated"}
 
 
 @router.get("/logout")

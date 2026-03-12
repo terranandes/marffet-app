@@ -104,7 +104,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const controller = new AbortController();
         const unregister = registerController(controller);
         // Ensure we timeout the entire fetch process, not just the first request
-        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 10000);
+        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 30000);
 
         try {
             const res = await fetch("/auth/me", {

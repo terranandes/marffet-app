@@ -22,45 +22,43 @@ if not os.path.exists(SCREENSHOT_DIR):
     os.makedirs(SCREENSHOT_DIR)
 
 def run_mobile_test():
+    print("🚀 Launching Mobile Browser (iPhone 12 Viewport)...")
+    
+    # Check what URL to test against
+    target_url = os.environ.get("TARGET_URL", "http://localhost:3000").replace("localhost", "127.0.0.1")
+    BASE_URL = target_url
+
+    print(f"🎯 Target URL: {BASE_URL}")
+    print(f"🔗 Header: Checking {BASE_URL}/portfolio")
+
     with sync_playwright() as p:
-        print("🚀 Launching Mobile Browser (iPhone 12 Viewport)...")
         browser = p.chromium.launch(headless=True)
         # iPhone 12 Viewport
         context = browser.new_context(viewport={'width': 390, 'height': 844})
         page = context.new_page()
 
         try:
-            print(f"🔗 Header: Checking {BASE_URL}/portfolio")
             
             # 1. Navigation & Guest Login
-            page.goto(f'{BASE_URL}/', timeout=120000)
+            page.goto(f'{BASE_URL}/', timeout=120000, wait_until="domcontentloaded")
             
             # Click "Continue as Guest" if on Landing
             # landing_guest_btn = page.get_by_role("button", name="Continue as Guest").first
-            # If sidebar is hidden, this fails. App handles it.
-            pass
-            # if landing_guest_btn.is_visible():
-            #      landing_guest_btn.click(force=True)
-            #      time.sleep(1)
+            # 1. Login directly via the test endpoint
+            print("   Logging in via test endpoint...")
+            # We use GET to set cookies using native navigation via FRONTEND PROXY to ensure valid cookie domain
+            login_url = f"{BASE_URL}/auth/test-login?email=mobile@test.com&name=MobileTest"
+            
+            # Hit endpoint directly to obtain session cookie
+            page.goto(login_url, wait_until="domcontentloaded", timeout=120000)
+            page.wait_for_load_state('networkidle')
 
-            page.goto(f'{BASE_URL}/portfolio')
-            # Removed networkidle which can hang on polling
-            # page.wait_for_load_state('networkidle')
-            time.sleep(2) # Simple wait for load
+            # Now navigate to Portfolio
+            print("   Navigating to Portfolio...")
+            page.goto(f"{BASE_URL}/portfolio", wait_until="networkidle", timeout=120000)
             
-            # Handle "Continue as Guest" if shown on Portfolio page
-            # Note: On Mobile, the sidebar button is hidden. 
-            # The app automatically switches to Guest Mode on 401, so explicit click is not needed.
-            try:
-                guest_btn = page.get_by_role("button", name="Continue as Guest").first
-                if guest_btn.is_visible():
-                     # Only click if actually in viewport (e.g. if we were on desktop or added a mobile button)
-                     # For now, we skip to avoid "outside viewport" error on hidden sidebar
-                     pass
-            except:
-                pass
-            
-            time.sleep(1)
+            # Simple wait for hydration
+            page.wait_for_timeout(3000)
 
             # 2. Setup: Create Group and Add Stock for Testing
             # Check if we need to create a group
@@ -72,25 +70,48 @@ def run_mobile_test():
             if needs_group:
                 print("   Creating Test Group...")
                 # Ensure + New Group is visible
-                new_group_btn = page.locator("button", has_text="+ New Group")
-                if new_group_btn.is_visible():
-                    new_group_btn.click()
-                else:
-                    # Maybe icon version on mobile? No, text is "+ New Group" in JSX
-                    print("⚠️ Cannot find + New Group button")
+                new_group_btn = page.locator("button", has_text="+ New Group").first
+                try:
+                    new_group_btn.wait_for(state="visible", timeout=10000)
+                except Exception as e:
+                    print("   [DEBUG] + New Group not found. Taking screenshot.")
+                    page.screenshot(path=f'{SCREENSHOT_DIR}/debug_new_group_timeout.png')
+                    print("   [DEBUG] Parsing HTML to file...")
+                    with open(f"{SCREENSHOT_DIR}/debug_body.html", "w") as f:
+                        f.write(page.locator("body").inner_html())
+                    raise e
+                # 2. Click + New Group
+                try:
+                    new_group_btn = page.locator("button", has_text="+ New Group").first
+                    new_group_btn.wait_for(state="visible", timeout=10000)
+                    new_group_btn.scroll_into_view_if_needed()
+                except Exception as e:
+                    page.locator("body").evaluate("el => el.innerHTML").encode("utf-8")
+                    raise e
+                new_group_btn.click()
                 
-                page.get_by_placeholder("Group name...").fill("Mobile Test")
-                page.get_by_role("button", name="Create").click()
+                group_name_input = page.get_by_placeholder("Group name...")
+                group_name_input.wait_for(state="visible", timeout=5000)
+                group_name_input.press_sequentially("Mobile Test", delay=50)
+                page.wait_for_timeout(500)
+                group_name_input.press("Enter")
+                page.wait_for_timeout(1500)
+                
                 # Wait for creation - Wait for the TAB button
-                page.locator("button", has_text="Mobile Test").first.wait_for(state="visible", timeout=5000)
+                try:
+                    page.locator("button", has_text="Mobile Test").first.wait_for(state="visible", timeout=10000)
+                except Exception as e:
+                    print("   [DEBUG] Parsing HTML to file after Group Creation timeout...")
+                    with open(f"{SCREENSHOT_DIR}/debug_body.html", "w") as f:
+                        f.write(page.locator("body").inner_html())
+                    raise e
             
             # Select group
             print("   Selecting Group 'Mobile Test'...")
             group_tab = page.locator("button", has_text="Mobile Test").first
-            if group_tab.is_visible():
-                group_tab.click()
-            else:
-                print("❌ Group 'Mobile Test' tab not found!")
+            # Scroll horizontal list if needed
+            group_tab.scroll_into_view_if_needed()
+            group_tab.click()
             
             time.sleep(1) # Wait for state update
 

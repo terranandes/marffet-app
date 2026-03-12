@@ -10,15 +10,16 @@ async def test_auth_flow(page, context, index, email):
     print(f"\n--- Testing Account: {email} ---")
     
     # Go to app
-    await page.goto("http://localhost:3001", timeout=120000, wait_until="domcontentloaded")
+    await page.goto("http://127.0.0.1:3001", timeout=120000, wait_until="domcontentloaded")
     
     # 1. Login
     print(f"[{index}] Logging in as {email}...")
-    login_res = await context.request.post(f"http://localhost:8001/auth/test-login?email={email}")
-    if not login_res.ok:
-        print(f"[{index}] Warning: Login returned status {login_res.status}")
+    try:
+        await page.goto(f"http://127.0.0.1:3001/auth/test-login?email={email}", wait_until="domcontentloaded", timeout=120000)
+    except Exception as e:
+        print(f"[{index}] Warning: Login goto hit exception: {e}")
         
-    await page.goto("http://localhost:3001/", wait_until="domcontentloaded")
+    await page.goto("http://127.0.0.1:3001/", wait_until="domcontentloaded")
     
     # Wait for dashboard items to load to confirm login
     try:
@@ -47,12 +48,13 @@ async def test_auth_flow(page, context, index, email):
         # Take screenshot of whatever is currently shown in settings
         await page.screenshot(path=f"{EVIDENCE_DIR}/{index}b_{email.split('@')[0]}_settings.png")
         
-        # Wait for the logout button (red text) to appear inside the modal
-        await page.wait_for_selector("button.text-red-500", timeout=5000)
+        import re
+        # Wait for the logout button to appear inside the modal using text content
+        logout_btn = page.locator("button").filter(has_text=re.compile(r"(Log out|Sign out|登出)", re.IGNORECASE)).first
+        await logout_btn.wait_for(state="visible", timeout=5000)
         
         # 3. Logout
         print(f"[{index}] Logging out via settings...")
-        logout_btn = page.locator("button.text-red-500").first
         await logout_btn.click(force=True)
         
         # Wait for redirect to public/auth block view

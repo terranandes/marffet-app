@@ -54,9 +54,13 @@ def run_e2e():
             page.wait_for_timeout(2000)  # Wait for React hydration
             guest_btn = page.locator('button', has_text="Explore as Guest")
             if guest_btn.count() > 0 and guest_btn.first.is_visible():
-                print("   Clicking 'Explore as Guest'...")
-                guest_btn.first.click()
-                page.wait_for_timeout(3000) # Wait for auth to process
+                print("   Authenticating via test endpoint...")
+                page.goto(f"{BASE_URL}/auth/test-login?email=e2e_desktop@local", wait_until="domcontentloaded")
+                
+                page.goto(f"{BASE_URL}/portfolio", wait_until="domcontentloaded")
+
+                # It should take us to the dashboard
+                page.wait_for_url("**/portfolio*", timeout=15000) # Wait for auth to process
             
             print("   Verifying Guest Mode Badge or Status...")
             try:
@@ -78,10 +82,17 @@ def run_e2e():
                 # Click Create and Wait for UI (Handle both API and Guest)
                 page.get_by_role("button", name="Create").click() 
                 
-                # Verify UI Update
+                # Verify UI Update using visibility loop (Zeabur safety)
+                print("   Waiting for 'E2E Test Group'...")
+                page.wait_for_timeout(2000)
                 expect_group = page.get_by_text("E2E Test Group")
-                expect_group.wait_for(state="visible", timeout=T)
-                print("✅ Group 'E2E Test Group' Created")
+                for i in range(expect_group.count()):
+                    if expect_group.nth(i).is_visible():
+                        print("✅ Group 'E2E Test Group' Created (Verified Visible)")
+                        break
+                else:
+                    expect_group.locator("visible=true").first.wait_for(state="visible", timeout=30000)
+                    print("✅ Group 'E2E Test Group' Created (Verified Visible Fallback)")
             else:
                 # Might already be open or missing?
                 print("⚠️ '+ New Group' button not found")

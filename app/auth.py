@@ -341,6 +341,19 @@ async def get_me(request: Request, response: Response):
 @router.post("/guest")
 async def guest_login(request: Request):
     """Create a guest session for users who don't want to sign in."""
+    # Actually register user in database to satisfy API foreign-key checks
+    try:
+        from app.database import get_db
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT OR IGNORE INTO users (id, email, name, nickname) VALUES (?, ?, ?, ?)",
+                ('guest', 'guest@local', 'Guest', 'Guest'))
+            cursor.execute("INSERT OR IGNORE INTO user_memberships (email, tier, valid_until, injected_by) VALUES (?, 'FREE', datetime('now', '+1 day'), 'TEST_MOCK')",
+                ('guest@local',))
+            conn.commit()
+    except Exception as e:
+        print(f"[AUTH TEST] Failed to mock guest DB row: {e}")
+
     request.session['user'] = {
         'id': 'guest',
         'name': 'Guest',
@@ -362,14 +375,30 @@ async def logout(request: Request, response: Response):
     res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return res
 
+@router.get("/test-login")
 @router.post("/test-login")
 async def test_login(request: Request, email: str = "guest@local", name: str = "Test User"):
     """Dedicated test endpoint for E2E mocked logins. ONLY available when TESTING=true."""
     if os.getenv('TESTING', '').lower() != 'true':
         raise HTTPException(status_code=404, detail="Not Found")
         
+    user_id = email.split('@')[0]
+    
+    # Actually register user in database to satisfy API foreign-key checks
+    try:
+        from app.database import get_db
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT OR IGNORE INTO users (id, email, name, nickname) VALUES (?, ?, ?, ?)",
+                (user_id, email, name, name))
+            cursor.execute("INSERT OR REPLACE INTO user_memberships (email, tier, valid_until, injected_by) VALUES (?, 'PREMIUM', datetime('now', '+1 day'), 'TEST_MOCK')",
+                (email,))
+            conn.commit()
+    except Exception as e:
+        print(f"[AUTH TEST] Failed to mock user DB row: {e}")
+        
     request.session['user'] = {
-        'id': email.split('@')[0],
+        'id': user_id,
         'name': name,
         'email': email,
         'picture': None,

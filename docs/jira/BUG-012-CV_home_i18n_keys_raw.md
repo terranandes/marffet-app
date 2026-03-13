@@ -4,7 +4,7 @@
 **Date:** 2026-03-04
 **Severity:** Medium
 **Priority:** Low (cosmetic, pre-existing)
-**Status:** OPEN
+**Status:** CLOSED
 
 ## Description
 The Home landing page (`/`) displays raw i18n translation keys instead of translated text.

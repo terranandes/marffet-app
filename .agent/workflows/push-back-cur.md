@@ -1,0 +1,8 @@
+---
+description: Tiny up, reoport the states, push back necessitie and run the test flow again
+---
+
+1. Run skill `code-review-checklist`
+2. [PL] Push back necessary files, including deployment requirements, public/private repo, to Github.
+3. [PL] Report the tiny-up states and status.
+4. [PL] Show me how to run the APP, I will check it when I'm available.

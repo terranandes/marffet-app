@@ -1,7 +1,0 @@
----
-description: commit current change but push
----
-
-1. [PL] Commit necessary files, but push, including deployment requirements.
-2. [PL] Report the tiny-up states and status.
-3. [PL] Show me how to run the APP, I will check it when I'm available.

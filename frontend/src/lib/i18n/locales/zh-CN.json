@@ -23,7 +23,9 @@
         "AssetsLabel": "资产",
         "ValueLabel": "总值",
         "DataPoints": "数据点",
-        "Charts": "图表"
+        "Charts": "图表",
+        "ActiveBadge": "使用中",
+        "DevBadge": "开发中"
     },
     "Settings": {
         "Title": "设置",

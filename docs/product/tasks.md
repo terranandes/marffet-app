@@ -130,4 +130,8 @@
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v17.md` & `docs/code_review/code_review_2026_03_13_sync_v17.md`)
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v18.md` & `docs/code_review/code_review_2026_03_13_sync_v18.md`)
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_14_sync_v19.md` & `docs/code_review/code_review_2026_03_14_sync_v19.md`)
-- [ ] **Round 5–10** — Remote Zeabur campaign + feature-specific verification (pending BOSS signal on scope)
+- [x] **Round 5** — Zeabur Remote Verification Campaign
+  - Evidence: `tests/evidence/nonguest_*.png` and `state_gm.json` testing.
+  - Verified Guest Mode via `e2e_suite.py` against Zeabur production URL.
+  - Verified Authenticated (Premium GM) flow via `test_nonguest_remote.py` and manual BOSS verification of gated features.
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_14_sync_v20.md` & `docs/code_review/code_review_2026_03_14_sync_v20.md`)

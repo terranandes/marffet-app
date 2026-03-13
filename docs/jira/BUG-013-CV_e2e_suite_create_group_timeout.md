@@ -2,10 +2,10 @@
 
 **Reporter:** [CV] Agent
 **Date:** 2026-03-06
-**Status:** OPEN
+**Status:** FIXED
 
 ## Description
-The `tests/e2e/e2e_suite.py` test fails during `TEST 1: Create Group` with a timeout when waiting for the created group name to become visible.
+The `tests/e2e/e2e_suite.py` test fails during `TEST 1: Create Group` with a timeout. Verified as FIXED on 2026-03-13 after Guest Mode refactor. All tests passed.
 
 ## Steps to Reproduce
 1. Start the application locally.

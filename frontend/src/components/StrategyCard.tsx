@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface Metric {
     label: string;
@@ -22,6 +23,8 @@ export default function StrategyCard({
     status,
     metrics,
 }: StrategyCardProps) {
+    const { t } = useLanguage();
+
     return (
         <Link
             href={href}
@@ -35,11 +38,11 @@ export default function StrategyCard({
                     <div className="text-4xl">{icon}</div>
                     {status === "active" ? (
                         <span className="px-2 py-1 rounded text-[10px] uppercase font-bold bg-green-500/10 text-green-400 border border-green-500/20">
-                            Active
+                            {t('Home.ActiveBadge')}
                         </span>
                     ) : (
                         <span className="px-2 py-1 rounded text-[10px] uppercase font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                            Dev
+                            {t('Home.DevBadge')}
                         </span>
                     )}
                 </div>

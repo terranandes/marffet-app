@@ -23,7 +23,9 @@
         "AssetsLabel": "Assets",
         "ValueLabel": "Value",
         "DataPoints": "Data Points",
-        "Charts": "Charts"
+        "Charts": "Charts",
+        "ActiveBadge": "Active",
+        "DevBadge": "Dev"
     },
     "Settings": {
         "Title": "Settings",

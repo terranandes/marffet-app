@@ -1,4 +1,5 @@
 # Marffet Project Tasks
+
 **Owner:** [PL] Project Leader
 **Status:** Active
 
@@ -33,29 +34,33 @@
 | 29 | Accounts-Over-Time Chart | Admin Net Worth Line Chart |
 | 30 | Document-Flow & Mobile Sidebar | BMAC/Ko-fi docs, sidebar scroll fix |
 | 31 | Mobile App-Like Experience | Bottom tab bar, PWA, touch polish, page transitions |
+
 ### Remaining Open Items from Archived Phases
+
 - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch) — Phase 14
 - [ ] TSMC CAGR ~19% frontend UI verification (pending Boss review) — Phase 17
 - [ ] **BUG-000-CV**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
 - [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
 - [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch — resolved by Phase 18 rebuild <!-- id: bug-115 -->
+- [ ] **BUG-021-CV**: Guest Mode uses Shared Backend DB instead of LocalStorage — 🔴 CRITICAL
 - [ ] **Interactive Backfill Dashboard** — Admin feature, low priority
 - [ ] **Mobile Premium Overhaul** — deferred
 
-
-
 ## 30. Phase 32: Google Auth Stabilization & UI/UX Polish - [COMPLETED]
+>
 > Ref: `docs/meeting/meeting_notes_2026_03_07_sync_v2.md`
+
 - [x] **Google Auth Diagnostics & Fix** (`auth.py`)
-    - [x] Identified Safari ITP HTML workaround as root cause of Next.js rewrite freezing.
-    - [x] Replaced with standard HTTP `RedirectResponse` resolving the loop.
-    - [x] Verified login/logout stability locally.
+  - [x] Identified Safari ITP HTML workaround as root cause of Next.js rewrite freezing.
+  - [x] Replaced with standard HTTP `RedirectResponse` resolving the loop.
+  - [x] Verified login/logout stability locally.
 - [x] **AICopilot UI/UX Polish** (`AICopilot.tsx`)
-    - [x] Upgraded design system using newly introduced `ui-ux-pro-max` workflow.
-    - [x] Added `backdrop-blur-2xl` glassmorphism, Framer Motion animations, sleek SVGs, and responsive sticky input.
+  - [x] Upgraded design system using newly introduced `ui-ux-pro-max` workflow.
+  - [x] Added `backdrop-blur-2xl` glassmorphism, Framer Motion animations, sleek SVGs, and responsive sticky input.
 - [x] **Agents Sync Meeting - 2026-03-07 v2** (Ref: `docs/meeting/meeting_notes_2026_03_07_sync_v2.md` & `docs/code_review/code_review_2026_03_07_sync_v2.md`)
 
 ## 31. Phase 33: Client-Side Routing & Rendering Optimization - [COMPLETED]
+
 - [x] **File BUG-015** for infinite rendering state on Tab Switch (Mobile/Desktop)
 - [x] **Install SWR** caching library for the Next.js frontend
 - [x] **Refactor Tabs** to use SWR (Mars, Race, Portfolio, Trend, CB, Ladder, Compound) replacing native Context/useState logic
@@ -68,50 +73,57 @@
 - [x] **Backend Deadlock Recovery** — Long-running Uvicorn on port 8000 diagnosed and restarted.
 - [x] **Agents Sync Meeting - 2026-03-07 v4** (Ref: `docs/meeting/meeting_notes_2026_03_07_sync_v4.md` & `docs/code_review/code_review_2026_03_07_sync_v4.md`)
 - [x] **Agents Sync Meeting - 2026-03-07 v5** (Ref: `docs/meeting/meeting_notes_2026_03_07_sync_v5.md` & `docs/code_review/code_review_2026_03_07_sync_v5.md`)
-    - Code review: APPROVED (11 source files, 235+/308−). Fixed root `node_modules` tracked in git.
-    - JIRA: 15/17 CLOSED. No new bugs. Phase 34 audit items identified from BOSS_TBD.md.
-
+  - Code review: APPROVED (11 source files, 235+/308−). Fixed root `node_modules` tracked in git.
+  - JIRA: 15/17 CLOSED. No new bugs. Phase 34 audit items identified from BOSS_TBD.md.
 
 ## 32. Phase 34: App Behavior & UX Fixes - [COMPLETED]
+>
 > Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md`
+
 - [x] **Default Tab Redirect** — `/mars` → `/portfolio` in `page.tsx`. Existing users with `/mars` saved are migrated.
 - [x] **Settings Start Page Cleanup** — Removed `/mars` from dropdown in `SettingsModal.tsx`
 - [x] **Mars Background Warmup** — `warm_mars_cache()` task in `main.py` lifespan hook (local only; Zeabur guard in place)
 - [x] **Mars Chart Error Fix** — `detailResult.error` graceful display in `mars/page.tsx`
 - [x] **Test Plan v3.9** — Added Phase 34 test cases to `test_plan.md`
 - [x] **Agents Sync Meeting - 2026-03-08 v6** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v6.md` & `docs/code_review/code_review_2026_03_08_sync_v6.md`)
-    - Code review: APPROVED. Phase 34 complete. Phase 35 Full Feature Verification Campaign planned.
+  - Code review: APPROVED. Phase 34 complete. Phase 35 Full Feature Verification Campaign planned.
 - [x] **Agents Sync Meeting - 2026-03-08 v7** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v7.md` & `docs/code_review/code_review_2026_03_08_sync_v7.md`)
-    - Code review: APPROVED. Cleaned temp files, fixed duplicate cache check in `main.py`. Phase 35 awaiting BOSS signal.
+  - Code review: APPROVED. Cleaned temp files, fixed duplicate cache check in `main.py`. Phase 35 awaiting BOSS signal.
 - [x] **Agents Sync Meeting - 2026-03-08 v8** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v8.md` & `docs/code_review/code_review_2026_03_08_sync_v8.md`)
-    - Code review: APPROVED. Implemented strict `AuthGuard` for zero-load unauthenticated pages. Refactored logout to client-side Next.js router. Deleted redundant `/login` page completely.
+  - Code review: APPROVED. Implemented strict `AuthGuard` for zero-load unauthenticated pages. Refactored logout to client-side Next.js router. Deleted redundant `/login` page completely.
 
 ## 33. Phase 35: Full Feature Verification Campaign - [IN PROGRESS]
+>
 > Ref: `docs/plan/2026-03-08-full-feature-verification-campaign.md`
 
 **Campaign:** 10 full-scope verification rounds, BOSS-gated between each round.
 
 - [x] **Round 1** — Guest Login Verification (10/10 areas PASSED)
-    - Evidence: `tests/evidence/round1_area_*.png` (27 screenshots)
-    - **Hotfix 35.1**: CB tab `portfolioCBs.map` TypeError fixed in `cb/page.tsx`
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v9.md` & `docs/code_review/code_review_2026_03_08_sync_v9.md`)
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v10.md` & `docs/code_review/code_review_2026_03_08_sync_v10.md`)
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v11.md` & `docs/code_review/code_review_2026_03_08_sync_v11.md`)
+  - Evidence: `tests/evidence/round1_area_*.png` (27 screenshots)
+  - **Hotfix 35.1**: CB tab `portfolioCBs.map` TypeError fixed in `cb/page.tsx`
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v9.md` & `docs/code_review/code_review_2026_03_08_sync_v9.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v10.md` & `docs/code_review/code_review_2026_03_08_sync_v10.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v11.md` & `docs/code_review/code_review_2026_03_08_sync_v11.md`)
 - [x] **Round 2** — Authenticated User Verification (`terranfund@gmail.com`)
-    - Evidence: `tests/evidence/round2_area_*.png` (20+ screenshots, Desktop + Mobile)
-    - **Hotfix 35.2**: Mobile Infinite Spinner — `UserContext.tsx` timeout fix (`dd995de`)
-    - **Hotfix 35.3**: Google Sign-In Failure — `auth.py` redirect_uri sync (`b1d8746`)
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_10_sync_v12.md` & `docs/code_review/code_review_2026_03_10_sync_v12.md`)
-- [x] Round 3: Verified login/logout flow for terranstock and terranandes mock accounts.
-    - Evidence: `tests/evidence/round3/` (6 screenshots: dashboard, settings, logged-out per account)
-    - Sequential A-B-A test script in `round3_verification.py` fails to switch accounts because `/auth/guest` endpoint ignores `?email=` queries. See JIRA BUG-019-CV.
-    - **Resolution:** A safelisted `/auth/test-login` mock endpoint was implemented in `app/auth.py` locked behind `TESTING=true` environment variable.
-    - **Re-run:** Executed `round3_verification.py` locally and verified 3-stage iterative account switching ✅.
-    - **Full Suite Run:** Executed `e2e_suite.py` containing both Desktop and Mobile passes. Desktop passed perfectly ✅, but `test_mobile_portfolio.py` failed due to responsive viewport DOM selection limitations. Filed BUG-020-CV.
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
-    - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
-- [x] Round 4: Cross-Device Sync (Pending `[PL]` approval)
-    - Full E2E suite executed on `marffet-app.zeabur.app`.
-    - Desktop tests failed due to timeouts (15s limit) during group creation logic.
-    - Mobile UI tests failed consecutively with known issue BUG-020.
-- [ ] Round 4–10 — Fix → re-verify cycle (pending BOSS decision on sufficiency)
+  - Evidence: `tests/evidence/round2_area_*.png` (20+ screenshots, Desktop + Mobile)
+  - **Hotfix 35.2**: Mobile Infinite Spinner — `UserContext.tsx` timeout fix (`dd995de`)
+  - **Hotfix 35.3**: Google Sign-In Failure — `auth.py` redirect_uri sync (`b1d8746`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_10_sync_v12.md` & `docs/code_review/code_review_2026_03_10_sync_v12.md`)
+- [x] **Round 3** — Multi-Account Login/Logout Verification (A→B→A Sequential)
+  - Evidence: `tests/evidence/round3/` (6 screenshots: dashboard, settings, logged-out per account)
+  - **Resolution:** `/auth/test-login` mock endpoint with `TESTING=true` gate implemented in `app/auth.py`.
+  - **Re-run:** `round3_verification.py` verified 3-stage A→B→A account switching ✅.
+  - **Hotfix 35.4**: `auth.py`/`auth/guest` now both inject mock users into SQLite + grant PREMIUM tier to avoid silent 500 errors on group creation.
+  - **Hotfix 35.5**: `UserContext.tsx` auth timeout 10s→30s to prevent mobile spinner false-dismissal.
+  - **Hotfix 35.6**: All Playwright scripts patched with `press_sequentially(delay=50)` to prevent React 18 event loss.
+  - **Hotfix 35.7**: `round3_verification.py` now uses `127.0.0.1:3001` proxy routing instead of direct backend POST.
+  - **BUG-020-CV CLOSED**: Mobile group locator issue resolved via PREMIUM tier auto-grant + sequential typing.
+  - Full suite: `round3_verification.py` ✅ · `e2e_suite.py` (Desktop) ✅ · `test_mobile_portfolio.py` (Mobile) ✅
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v13.md` & `docs/code_review/code_review_2026_03_12_sync_v13.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v15.md` & `docs/code_review/code_review_2026_03_13_sync_v15.md`)
+- [x] **Round 4** — Guest Mode Verification (`/auth/guest` Endpoint)
+  - ❌ **FAILED**: Multi-Agent review found severe bug `BUG-021-CV` indicating Guest Mode incorrectly uses persistent backend SQLite shared DB rather than proper isolated LocalStorage.
+  - Evidence: `guest_mode_architecture_analysis.md`
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v16.md` & `docs/code_review/code_review_2026_03_13_sync_v16.md`)
+- [ ] **Round 5–10** — Remote Zeabur campaign + feature-specific verification (pending BOSS signal on scope)

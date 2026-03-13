@@ -1,16 +1,19 @@
 # BOSS_TBD
+
 This file is owned by BOSS, prohibited from modification by any AI Agents on any platforms.
 
 ## Web APP Next to do
+
 - [ ] execute plan 2026-03-08-full-feature-verification-campaign.md
 - [x] Design Mobile view used by default when using mobile phone/pad while switching to desktop view is possible
 - [ ] tab display smoothly without infinite rendering on both mobile and desktop view.
-- [ ] Google Auth performance check, always stuck in login/logout
+- [ ] Google Auth performance check, always stucked in login/logout
 - [ ] AICopilot UI/UX Polish
 
 ---
 
 ## === Barrier === (DO-NOT-TOUCH AREA)
+
 - [ ] Review Admin Dashboard, what are the current operations?
 - [ ] Review notification Scheme, what are the current triggers for free and paid users?
 - [ ] check tab Compound Interest
@@ -25,18 +28,19 @@ This file is owned by BOSS, prohibited from modification by any AI Agents on any
 ---
 
 ## BOSS TBD (DO-NOT-TOUCH AREA)
+
 - Ralph Wiggum plugin/workflow suitable for AntiGravity
 - adopt Ralph extension
-    - Ralph Loop (currently testing)
-    - Ralph.sh
-    - Ralphban
+  - Ralph Loop (currently testing)
+  - Ralph.sh
+  - Ralphban
 
 Skill to transform plan to PRD.md
-https://github.com/snarktank/ralph
-https://skills.sh/?q=ralph
+<https://github.com/snarktank/ralph>
+<https://skills.sh/?q=ralph>
 
 MCP related MCP or skill
-https://skills.sh/?q=memory
+<https://skills.sh/?q=memory>
 
 - Low priority
 

@@ -125,5 +125,8 @@
 - [x] **Round 4** — Guest Mode Verification (`/auth/guest` Endpoint)
   - Evidence: `guest_mode_architecture_analysis.md`, `tests/evidence/1_portfolio_guest.png`
   - **Resolution:** Guest Mode rebuilt to rely 100% on `LocalStorage`. The backend session generation has been completely removed to prevent `users` table pollution. The frontend test suite `e2e_suite.py` was updated to accurately interact with the `Explore as Guest` UI element and successfully verified Group / Transaction handling.
+  - **Dividend Sync Fix:** Resolved mapping discrepancy in `calculation_service.py`. Flattened `total_cash` to `total_dividend_cash` in the target summary API to match frontend expectations.
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v16.md` & `docs/code_review/code_review_2026_03_13_sync_v16.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v17.md` & `docs/code_review/code_review_2026_03_13_sync_v17.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v18.md` & `docs/code_review/code_review_2026_03_13_sync_v18.md`)
 - [ ] **Round 5–10** — Remote Zeabur campaign + feature-specific verification (pending BOSS signal on scope)

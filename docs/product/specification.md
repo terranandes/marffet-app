@@ -1,6 +1,6 @@
 # Marffet Investment System - Technical Specifications
-**Version**: 5.0
-**Date**: 2026-03-03
+**Version**: 5.1
+**Date**: 2026-03-13
 **Owner**: [SPEC] Agent
 
 ## 1. System Architecture
@@ -165,6 +165,11 @@ These triggers currently apply globally to all users:
 | `SECRET_KEY` | Backend | `long_random_string` |
 
 ## 5. Changelog
+
+### v5.1 (2026-03-13) - Dividend Sync Fix & Guest Mode Round 4
+- **Dividend Sync Fix**: Resolved mapping discrepancy where the backend nested `total_cash` but the frontend expected `total_dividend_cash` in the target summary.
+- **Guest Mode Architecture**: Finalized refactor to strictly use `localStorage`. Backend `users` table no longer stores "guest@local" entries.
+- **Mobile E2E**: Verified Round 4 Guest Flow on mobile viewport with refined Playwright locators.
 
 ### v5.0 (2026-03-03) - Marffet Rebrand & Tier Matrix Formalization
 - **Rebrand**: Renamed Martian → Marffet across frontend, backend, i18n, localStorage keys, and all product documentation.

@@ -1,6 +1,6 @@
 # Portfolio Tab — Feature Specification
 
-**Date**: 2026-02-17
+**Date**: 2026-03-13
 **Owner**: [SPEC] Agent
 **Status**: Production
 
@@ -104,7 +104,7 @@ User ──1:N──▶ Group ──1:N──▶ Target ──1:N──▶ Trans
 | `GET`    | `/api/portfolio/race-data`             | Race data for My Race BCR          |
 | `GET`    | `/api/portfolio/ladder`                | Asset distribution ladder          |
 | `POST`   | `/api/portfolio/sync-stats`            | Sync wealth stats for leaderboard  |
-| `GET`    | `/api/portfolio/targets/{tid}/summary` | P/L summary for a target          |
+| `GET`    | `/api/portfolio/targets/{tid}/summary` | P/L summary for a target (flat `total_dividend_cash`) |
 
 ---
 
@@ -139,7 +139,7 @@ User ──1:N──▶ Group ──1:N──▶ Target ──1:N──▶ Trans
 ## 7. Data Flow
 
 ```
-User Input (Buy/Sell) ──▶ portfolio.db ──▶ Portfolio Page
+User Input (Buy/Sell) ──▶ portfolio.db (or localStorage for Guest) ──▶ Portfolio Page
                                              │
 DuckDB (dividends table) ──▶ Sync ──▶ portfolio.db (dividends)
                                              │

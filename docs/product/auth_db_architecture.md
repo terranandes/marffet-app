@@ -1,5 +1,5 @@
 # Auth & Database Architecture (Post-Recovery)
-**Date:** 2026-03-03
+**Date**: 2026-03-13
 **Version:** 2.0
 **Status:** Stable / Production-Ready
 
@@ -70,7 +70,7 @@ The backend enforces a strict **5-tier access model** with precedence: `GM > VIP
 
 | Tier | Auth | Assignment Method | Identity |
 |:-----|:-----|:-----------------|:---------|
-| **Guest** | None (unauthenticated) | Automatic | `id: "guest"`, `email: "guest@local"`, `is_guest: true` |
+| **Guest** | None (unauthenticated) | Automatic | `id: "guest"`, `email: "guest@local"`, `is_guest: true`. **Architecture**: Data strictly in `localStorage`. No backend DB persistence. |
 | **FREE** | Google OAuth | Automatic on sign-up | Registered Google user, no tier assignment |
 | **PREMIUM** | Google OAuth | `PREMIUM_EMAILS` env var or DB injection | Subscriber-level access |
 | **VIP** | Google OAuth | `VIP_EMAILS` env var or DB injection | Honor tier for top supporters |

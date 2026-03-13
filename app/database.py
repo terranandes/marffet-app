@@ -35,6 +35,7 @@ def get_db():
     conn.row_factory = sqlite3.Row  # Enable dict-like access
     conn.execute("PRAGMA journal_mode=WAL") # Enable Write-Ahead Logging for concurrency
     conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA foreign_keys=ON") # Enable Cascade Deletes
     try:
         yield conn
         conn.commit()

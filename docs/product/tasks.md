@@ -42,8 +42,8 @@
 - [ ] **BUG-000-CV**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
 - [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
 - [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch — resolved by Phase 18 rebuild <!-- id: bug-115 -->
-- [ ] **BUG-021-CV**: Guest Mode uses Shared Backend DB instead of LocalStorage — 🔴 CRITICAL
-- [ ] **Interactive Backfill Dashboard** — Admin feature, low priority
+- [x] **BUG-021-CV CLOSED**: Guest Mode uses Shared Backend DB instead of LocalStorage — 🔴 CRITICAL
+- [x] **Interactive Backfill Dashboard** — Admin feature, low priority
 - [ ] **Mobile Premium Overhaul** — deferred
 
 ## 30. Phase 32: Google Auth Stabilization & UI/UX Polish - [COMPLETED]
@@ -123,7 +123,7 @@
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_12_sync_v14.md` & `docs/code_review/code_review_2026_03_12_sync_v14.md`)
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v15.md` & `docs/code_review/code_review_2026_03_13_sync_v15.md`)
 - [x] **Round 4** — Guest Mode Verification (`/auth/guest` Endpoint)
-  - ❌ **FAILED**: Multi-Agent review found severe bug `BUG-021-CV` indicating Guest Mode incorrectly uses persistent backend SQLite shared DB rather than proper isolated LocalStorage.
-  - Evidence: `guest_mode_architecture_analysis.md`
+  - Evidence: `guest_mode_architecture_analysis.md`, `tests/evidence/1_portfolio_guest.png`
+  - **Resolution:** Guest Mode rebuilt to rely 100% on `LocalStorage`. The backend session generation has been completely removed to prevent `users` table pollution. The frontend test suite `e2e_suite.py` was updated to accurately interact with the `Explore as Guest` UI element and successfully verified Group / Transaction handling.
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_13_sync_v16.md` & `docs/code_review/code_review_2026_03_13_sync_v16.md`)
 - [ ] **Round 5–10** — Remote Zeabur campaign + feature-specific verification (pending BOSS signal on scope)

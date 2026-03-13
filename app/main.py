@@ -61,6 +61,18 @@ async def lifespan(app: FastAPI):
         # 1. Initialize DB
         init_db()
         print("[Startup] Portfolio Database Initialized")
+        
+        # 1.1 Clean up legacy guest DB session (Guest Mode is now strictly LocalStorage)
+        try:
+            from app.database import get_db
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM user_memberships WHERE email = 'guest@local'")
+                cursor.execute("DELETE FROM users WHERE id = 'guest'")
+                conn.commit()
+                print("[Startup] Cleaned up legacy guest DB session.")
+        except Exception as e:
+            print(f"[Startup] Failed to clean up legacy guest DB session: {e}")
 
         from app.services.market_data_provider import MarketDataProvider
         from app.services.market_db import init_schema

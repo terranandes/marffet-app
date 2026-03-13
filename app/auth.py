@@ -340,29 +340,11 @@ async def get_me(request: Request, response: Response):
 
 @router.post("/guest")
 async def guest_login(request: Request):
-    """Create a guest session for users who don't want to sign in."""
-    # Actually register user in database to satisfy API foreign-key checks
-    try:
-        from app.database import get_db
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("INSERT OR IGNORE INTO users (id, email, name, nickname) VALUES (?, ?, ?, ?)",
-                ('guest', 'guest@local', 'Guest', 'Guest'))
-            cursor.execute("INSERT OR IGNORE INTO user_memberships (email, tier, valid_until, injected_by) VALUES (?, 'FREE', datetime('now', '+1 day'), 'TEST_MOCK')",
-                ('guest@local',))
-            conn.commit()
-    except Exception as e:
-        print(f"[AUTH TEST] Failed to mock guest DB row: {e}")
-
-    request.session['user'] = {
-        'id': 'guest',
-        'name': 'Guest',
-        'email': 'guest@local',
-        'picture': None,
-        'is_guest': True
-    }
-    print("[AUTH] Guest session activated")
-    return {"status": "ok", "message": "Guest session activated"}
+    """Create a guest session for users who don't want to sign in. (Client-Side LocalStorage Only)"""
+    # Simply return 200 OK to satisfy the frontend.
+    # No backend session is created, and no database records are inserted.
+    print("[AUTH] Guest login requested (Client-Side LocalStorage Mode)")
+    return {"status": "ok", "message": "Guest session activated", "is_guest": True}
 
 
 @router.get("/logout")

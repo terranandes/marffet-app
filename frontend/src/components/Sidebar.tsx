@@ -344,32 +344,14 @@ export default function Sidebar() {
                             </button>
                             <button
                                 id="guest-login-btn"
-                                onClick={async () => {
-                                    const attemptGuestLogin = async () => {
-                                        const res = await fetch(`/auth/guest`, {
-                                            method: "POST",
-                                            credentials: "include"
-                                        });
-                                        return res;
-                                    };
-
+                                onClick={() => {
                                     try {
-                                        let res = await attemptGuestLogin();
-
-                                        if (!res.ok) {
-                                            console.log("Guest login first attempt failed, retrying...");
-                                            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
-                                            res = await attemptGuestLogin();
-                                        }
-
-                                        if (res.ok) {
-                                            refreshUser(); // Refresh user state
-                                        } else {
-                                            alert("Failed to enter guest mode");
-                                        }
+                                        console.log("Activating Guest Mode (Client-Side LocalStorage)");
+                                        localStorage.setItem("marffet_guest_mode", "true");
+                                        refreshUser(); // Refresh user state to bypass backend
                                     } catch (e) {
                                         console.error("Guest mode error:", e);
-                                        alert("Network error");
+                                        alert("Failed to activate guest mode locally");
                                     }
                                 }}
                                 className="flex items-center justify-center gap-2 w-full py-3 bg-white/5 text-zinc-300 font-semibold rounded-xl hover:bg-white/10 transition-all border border-white/10"

@@ -303,7 +303,40 @@ class GuestPortfolioService implements IPortfolioService {
     private loadData(): GuestData {
         if (typeof window === "undefined") return { groups: [], targets: [], transactions: [] };
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { groups: [], targets: [], transactions: [] };
+        if (!raw) {
+            // Seed default portfolio for first-time guests to match backend initialization
+            const g1Id = uuidv4();
+            const g2Id = uuidv4();
+            const g3Id = uuidv4();
+
+            const defaultData: GuestData = {
+                groups: [
+                    { id: g1Id, name: "火星股 (Mars Stocks)" },
+                    { id: g2Id, name: "高股息債券ETF (Bond ETFs)" },
+                    { id: g3Id, name: "美台尖牙ETF (US-TW FANG ETFs)" }
+                ],
+                targets: [
+                    // Mars Stocks
+                    { id: uuidv4(), group_id: g1Id, stock_id: "2330", stock_name: "台積電" },
+                    { id: uuidv4(), group_id: g1Id, stock_id: "2317", stock_name: "鴻海" },
+                    { id: uuidv4(), group_id: g1Id, stock_id: "2454", stock_name: "聯發科" },
+                    { id: uuidv4(), group_id: g1Id, stock_id: "2412", stock_name: "中華電" },
+                    { id: uuidv4(), group_id: g1Id, stock_id: "2308", stock_name: "台達電" },
+                    { id: uuidv4(), group_id: g1Id, stock_id: "0050", stock_name: "元大台灣50" },
+                    // Bond ETFs
+                    { id: uuidv4(), group_id: g2Id, stock_id: "00937B", stock_name: "群益ESG投等債20+" },
+                    { id: uuidv4(), group_id: g2Id, stock_id: "00679B", stock_name: "元大美債20年" },
+                    { id: uuidv4(), group_id: g2Id, stock_id: "00687B", stock_name: "國泰20年美債" },
+                    // US-TW FANG ETFs
+                    { id: uuidv4(), group_id: g3Id, stock_id: "00757", stock_name: "統一FANG+" },
+                    { id: uuidv4(), group_id: g3Id, stock_id: "00830", stock_name: "國泰費城半導體" },
+                    { id: uuidv4(), group_id: g3Id, stock_id: "00662", stock_name: "富邦NASDAQ" }
+                ],
+                transactions: []
+            };
+            this.saveData(defaultData);
+            return defaultData;
+        }
         try { return JSON.parse(raw); } catch { return { groups: [], targets: [], transactions: [] }; }
     }
 

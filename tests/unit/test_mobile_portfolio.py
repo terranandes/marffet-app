@@ -40,55 +40,52 @@ def run_mobile_test():
         try:
             
             # 1. Navigation & Guest Login
-            page.goto(f'{BASE_URL}/', timeout=120000, wait_until="domcontentloaded")
-            
-            # Click "Continue as Guest" if on Landing
-            # landing_guest_btn = page.get_by_role("button", name="Continue as Guest").first
-            # 1. Login directly via the test endpoint
-            print("   Logging in via test endpoint...")
-            # We use GET to set cookies using native navigation via FRONTEND PROXY to ensure valid cookie domain
-            login_url = f"{BASE_URL}/auth/test-login?email=mobile@test.com&name=MobileTest"
-            
-            # Hit endpoint directly to obtain session cookie
-            page.goto(login_url, wait_until="domcontentloaded", timeout=120000)
-            page.wait_for_load_state('networkidle')
-
-            # Now navigate to Portfolio
             print("   Navigating to Portfolio...")
-            page.goto(f"{BASE_URL}/portfolio", wait_until="networkidle", timeout=120000)
+            page.goto(f"{BASE_URL}/portfolio", wait_until="domcontentloaded", timeout=120000)
             
             # Simple wait for hydration
             page.wait_for_timeout(3000)
 
+            # Click "Explore as Guest" button
+            print("   Waiting for Explore as Guest button...")
+            try:
+                # Target specifically the visible one to avoid hitting the hidden sidebar button
+                guest_btn = page.locator('button:visible', has_text="Explore as Guest").first
+                guest_btn.wait_for(state="visible", timeout=15000)
+                print("   Clicking Explore as Guest button...")
+                guest_btn.click()
+                page.wait_for_timeout(2000) # Wait for local state to update
+            except Exception as e:
+                print(f"   ⚠️ Guest button error: {e}. checking if logged in...")
+
+            # Now we should be on the portfolio page
+            print("   Verifying Portfolio Page...")
+            page.wait_for_load_state('networkidle', timeout=15000)
+
             # 2. Setup: Create Group and Add Stock for Testing
             # Check if we need to create a group
             # Wait for groups to load
+            print("   Checking for existing group...")
             time.sleep(2)
             needs_group = False
             if page.locator("button", has_text="Mobile Test").count() == 0:
                 needs_group = True
+            
             if needs_group:
                 print("   Creating Test Group...")
-                # Ensure + New Group is visible
-                new_group_btn = page.locator("button", has_text="+ New Group").first
+                # Find and click "+ New Group" button in PortfolioHeader
+                # Use a locator that handles the text more flexibly
+                new_group_btn = page.locator('button', has_text="+ New Group").first
                 try:
-                    new_group_btn.wait_for(state="visible", timeout=10000)
-                except Exception as e:
-                    print("   [DEBUG] + New Group not found. Taking screenshot.")
-                    page.screenshot(path=f'{SCREENSHOT_DIR}/debug_new_group_timeout.png')
-                    print("   [DEBUG] Parsing HTML to file...")
-                    with open(f"{SCREENSHOT_DIR}/debug_body.html", "w") as f:
-                        f.write(page.locator("body").inner_html())
-                    raise e
-                # 2. Click + New Group
-                try:
-                    new_group_btn = page.locator("button", has_text="+ New Group").first
-                    new_group_btn.wait_for(state="visible", timeout=10000)
+                    new_group_btn.wait_for(state="visible", timeout=15000)
                     new_group_btn.scroll_into_view_if_needed()
+                    new_group_btn.click()
                 except Exception as e:
-                    page.locator("body").evaluate("el => el.innerHTML").encode("utf-8")
+                    print("   [DEBUG] + New Group not found. Taking diagnostic screenshot.")
+                    page.screenshot(path=f'{SCREENSHOT_DIR}/debug_new_group_timeout.png')
+                    with open(f"{SCREENSHOT_DIR}/debug_body.html", "w") as f:
+                        f.write(page.content())
                     raise e
-                new_group_btn.click()
                 
                 group_name_input = page.get_by_placeholder("Group name...")
                 group_name_input.wait_for(state="visible", timeout=5000)

@@ -30,10 +30,18 @@ export function usePortfolioData() {
     // Initialize Service
     useEffect(() => {
         const initService = async () => {
+            const isGuestModeLocal = localStorage.getItem("marffet_guest_mode") === "true";
+            if (isGuestModeLocal) {
+                console.log("Guest Mode Active (LocalStorage Bypass)");
+                setService(PortfolioFactory.getService(false));
+                setIsGuest(true);
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/api/portfolio/targets?group_id=auth_check`, { credentials: "include" });
                 if (res.status === 401 || res.status === 403) {
-                    console.log("Unauthorized, using Guest Mode");
+                    console.log("Unauthorized, falling back to Guest Mode");
                     setService(PortfolioFactory.getService(false));
                     setIsGuest(true);
                 } else {

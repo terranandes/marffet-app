@@ -54,13 +54,11 @@ def run_e2e():
             page.wait_for_timeout(2000)  # Wait for React hydration
             guest_btn = page.locator('button', has_text="Explore as Guest")
             if guest_btn.count() > 0 and guest_btn.first.is_visible():
-                print("   Authenticating via test endpoint...")
-                page.goto(f"{BASE_URL}/auth/test-login?email=e2e_desktop@local", wait_until="domcontentloaded")
+                print("   Clicking Explore as Guest button...")
+                guest_btn.first.click()
                 
-                page.goto(f"{BASE_URL}/portfolio", wait_until="domcontentloaded")
-
-                # It should take us to the dashboard
-                page.wait_for_url("**/portfolio*", timeout=15000) # Wait for auth to process
+                # It should refresh user and take us to the guest state
+                page.wait_for_timeout(1000) # Wait for local state to update
             
             print("   Verifying Guest Mode Badge or Status...")
             try:

@@ -88,6 +88,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setNotifications([]);
             localStorage.removeItem('marffet_premium');
+            localStorage.removeItem('marffet_guest_mode');
 
             // 5. Fire-and-forget server logout (non-blocking)
             fetch('/auth/logout', { method: 'GET' }).catch(() => { });
@@ -107,6 +108,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
         const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 30000);
 
         try {
+            // Check for explicit guest mode first
+            if (localStorage.getItem("marffet_guest_mode") === "true") {
+                setUser({ id: "guest", email: "guest@local", is_guest: true, nickname: "Guest" } as User);
+                setIsLoading(false);
+                unregister();
+                clearTimeout(timeoutId);
+                return;
+            }
+
             const res = await fetch("/auth/me", {
                 credentials: "include",
                 signal: controller.signal,

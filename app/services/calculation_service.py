@@ -79,6 +79,7 @@ def get_target_summary(target_id: str, current_price: float = None) -> Dict[str,
         "total_cost": total_cost,
         "realized_pnl": realized_pnl,
         "tx_count": tx_count,
+        "total_dividend_cash": total_div_cash,
         "dividends": {
             "total_cash": total_div_cash,
             "history": dividend_history

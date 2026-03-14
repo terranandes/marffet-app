@@ -182,6 +182,14 @@ uv run tests/unit/test_mobile_portfolio.py
 | SQLite WAL Concurrency | Simultaneous DB connections don't hang (timeout=15.0) | ✅ PASSED Remote |
 | GM Tier Documentation | `marffet-app/README*` sanitized of GM mentions | ✅ PASSED Local |
 
+### v3.10 (Current) - Mobile UX Polish & Error Tracking
+| Test | Expected | Status |
+|------|----------|--------|
+| PWA Start URL | `manifest.json` start_url is `/`, allowing user preference redirection | ⏳ Pending |
+| Portfolio Skeletons | Skeleton loaders appear while portfolio data is fetching | ⏳ Pending |
+| Global SWR Cache | All tabs (Mars, Race, Portfolio, Trend, CB, Ladder) switch instantly with `keepPreviousData: true` | ⏳ Pending |
+| Error Boundary | App shows recovery UI on render crashes (`error.tsx`) | ⏳ Pending |
+
 ### v3.9 (Current) - App Behavior Modifications
 | Test | Expected | Status |
 |------|----------|--------|

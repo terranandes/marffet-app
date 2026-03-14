@@ -92,7 +92,7 @@
 - [x] **Agents Sync Meeting - 2026-03-08 v8** (Ref: `docs/meeting/meeting_notes_2026_03_08_sync_v8.md` & `docs/code_review/code_review_2026_03_08_sync_v8.md`)
   - Code review: APPROVED. Implemented strict `AuthGuard` for zero-load unauthenticated pages. Refactored logout to client-side Next.js router. Deleted redundant `/login` page completely.
 
-## 33. Phase 35: Full Feature Verification Campaign - [IN PROGRESS]
+## 33. Phase 35: Full Feature Verification Campaign - [COMPLETED]
 >
 > Ref: `docs/plan/2026-03-08-full-feature-verification-campaign.md`
 
@@ -135,3 +135,8 @@
   - Verified Guest Mode via `e2e_suite.py` against Zeabur production URL.
   - Verified Authenticated (Premium GM) flow via `test_nonguest_remote.py` and manual BOSS verification of gated features.
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_14_sync_v20.md` & `docs/code_review/code_review_2026_03_14_sync_v20.md`)
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v22.md` & `docs/code_review/code_review_2026_03_15_sync_v22.md`)
+- [x] **Round 6** — Local Isolation Verification Campaign
+  - Executed via `@[/full-test]` triggering `full-test-local` worktree on ports 3001/8001.
+  - Verified Guest flow on UI via `e2e_suite.py` and mobile layout.
+  - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_15_test_v23.md` & `docs/code_review/code_review_2026_03_15_test_v23.md`)

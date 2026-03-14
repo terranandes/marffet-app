@@ -140,3 +140,22 @@
   - Executed via `@[/full-test]` triggering `full-test-local` worktree on ports 3001/8001.
   - Verified Guest flow on UI via `e2e_suite.py` and mobile layout.
   - Agents Sync Meeting (Ref: `docs/meeting/meeting_notes_2026_03_15_test_v23.md` & `docs/code_review/code_review_2026_03_15_test_v23.md`)
+
+## 34. Phase 36: Mobile UX Polish & Error Tracking - [COMPLETED]
+>
+> Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v24.md`
+> Evidence: `walkthrough.md`, `mobile_verify_1_portfolio.png`, `mobile_verify_2_switch_back.png`
+
+- [x] **PWA Landing Page Fix** — `manifest.json` `start_url`: `/`.
+- [x] **Portfolio Skeleton UI** — Added `animate-pulse` components for data hydration states.
+- [x] **Global SWR Tab Caching** — Applied `keepPreviousData: true` to all primary tabs.
+- [x] **Global Error Boundary** — Implemented `frontend/src/app/error.tsx` for production recovery.
+- [x] **Public Showcase Sync** — Synchronized READMEs and images to `marffet-app` public repository.
+- [x] **Agents Sync Meeting - 2026-03-15 v24** (Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v24.md` & `docs/code_review/code_review_2026_03_15_sync_v24.md`)
+  - Code review: APPROVED. Perceived performance on mobile 🚀.
+  - Phase 36 complete. Transitioning to Phase 37 Remote Sweep.
+
+## 35. Phase 37: Full Feature Verification Campaign (Remote) - [IN PROGRESS]
+- [ ] Production-level verification of PWA installs.
+- [ ] Mobile browser cache/performance audit on Zeabur.
+- [ ] Final sign-off for Phase 36/37 features on physical devices.

@@ -64,17 +64,20 @@ export function usePortfolioData() {
     // Setup SWR caching
     const { data: groups = [], mutate: mutateGroups } = useSWR<Group[]>(
         service ? "portfolio-groups" : null,
-        fetchGroupsWithService
+        fetchGroupsWithService,
+        { keepPreviousData: true, fallbackData: [] }
     );
 
     const { data: targets = [], mutate: mutateTargets, isValidating: targetsLoading } = useSWR<Target[]>(
         (service && selectedGroupId) ? `portfolio-targets-${selectedGroupId}` : null,
-        fetchTargetsWithService
+        fetchTargetsWithService,
+        { keepPreviousData: true, fallbackData: [] }
     );
 
     const { data: dividendCash = { total_cash: 0, dividend_count: 0 }, mutate: mutateDividends } = useSWR<{ total_cash: number; dividend_count: number }>(
         service ? "portfolio-dividends" : null,
-        fetchDividendsWithService
+        fetchDividendsWithService,
+        { keepPreviousData: true, fallbackData: { total_cash: 0, dividend_count: 0 } }
     );
 
     // Initial group selection

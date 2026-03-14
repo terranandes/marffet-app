@@ -96,6 +96,13 @@ export default function PortfolioPage() {
                 </div>
             )}
 
+            {loading && (
+                <div className="glass-card p-5 rounded-xl space-y-4 animate-pulse mt-4">
+                    <div className="h-32 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
+                    <div className="h-64 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
+                </div>
+            )}
+
             <TransactionFormModal
                 isOpen={!!showTxForm}
                 onClose={() => setShowTxForm(null)}

@@ -60,7 +60,7 @@ export default function RacePage() {
     }, []);
 
     // Fetch user auth status
-    const { data: userData } = useSWR(`${API_BASE}/auth/me`, fetcher, { revalidateOnFocus: false });
+    const { data: userData } = useSWR(`${API_BASE}/auth/me`, fetcher, { revalidateOnFocus: false, keepPreviousData: true });
     useEffect(() => {
         if (userData) setUser(userData);
     }, [userData]);
@@ -76,7 +76,8 @@ export default function RacePage() {
         fetcher,
         {
             revalidateOnFocus: false, // Don't recalculate heavy sim on focus
-            revalidateIfStale: false
+            revalidateIfStale: false,
+            keepPreviousData: true
         }
     );
 

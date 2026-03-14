@@ -40,7 +40,8 @@ export default function LadderPage() {
         `${API_BASE}/api/leaderboard`,
         fetcher,
         {
-            revalidateOnFocus: false
+            revalidateOnFocus: false,
+            keepPreviousData: true
         }
     );
 

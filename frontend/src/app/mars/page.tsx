@@ -76,7 +76,8 @@ export default function MarsPage() {
         fetcher,
         {
             revalidateOnFocus: false, // Don't recalculate heavy sim on focus
-            revalidateIfStale: false
+            revalidateIfStale: false,
+            keepPreviousData: true
         }
     );
 
@@ -85,7 +86,8 @@ export default function MarsPage() {
         selectedStock ? `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
         fetcher,
         {
-            revalidateOnFocus: false
+            revalidateOnFocus: false,
+            keepPreviousData: true
         }
     );
 

@@ -2,7 +2,7 @@
   "name": "Marffet Investment System",
   "short_name": "Marffet",
   "description": "Advanced Low-Volatility Stock Analysis & Portfolio Tracking for Taiwan Market",
-  "start_url": "/mars",
+  "start_url": "/",
   "display": "minimal-ui",
   "background_color": "#050510",
   "theme_color": "#050510",

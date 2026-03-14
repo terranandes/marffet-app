@@ -54,11 +54,13 @@ export default function TrendPage() {
     // SWR Data Fetching (Only run if user is logged in)
     const { data: rawTrend, error: trendError, mutate: mutateTrend } = useSWR<TrendDataPoint[]>(
         user ? `${API_BASE}/api/portfolio/trend?months=0` : null,
-        fetcher
+        fetcher,
+        { keepPreviousData: true }
     );
     const { data: assetGroups = { stock: [], etf: [], cb: [] }, error: groupError } = useSWR<AssetGroups>(
         user ? `${API_BASE}/api/portfolio/by-type` : null,
-        fetcher
+        fetcher,
+        { keepPreviousData: true }
     );
 
     // Calculate if we have any active shares to determine if we should fetch live prices
@@ -76,7 +78,8 @@ export default function TrendPage() {
         fetcher,
         {
             refreshInterval: 60000, // Refresh live prices every 60s
-            revalidateOnFocus: true
+            revalidateOnFocus: true,
+            keepPreviousData: true
         }
     );
 

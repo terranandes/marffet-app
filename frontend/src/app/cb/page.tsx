@@ -35,7 +35,8 @@ export default function CBPage() {
     // SWR Data Fetching for Portfolio CBs
     const { data = [], isValidating: loadingPortfolio } = useSWR<CBData[]>(
         user ? "/api/cb/my_cbs" : null,
-        fetcher
+        fetcher,
+        { keepPreviousData: true }
     );
     const portfolioCBs = Array.isArray(data) ? data : [];
 

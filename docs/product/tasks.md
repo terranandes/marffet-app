@@ -175,10 +175,11 @@
 - [ ] Physical device PWA install verification (Boss-led)
 - [ ] Update `docs/product/feature_portfolio.md` (add skeleton loader note)
 
-### Agents Sync Meeting — 2026-03-15 v25 & v26
+### Agents Sync Meeting — 2026-03-15 v25, v26, v27
 - [x] v25 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v25.md` & `docs/code_review/code_review_2026_03_15_sync_v25.md`
 - [x] v26 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md` & `docs/code_review/code_review_2026_03_15_sync_v26.md`
-  - BUG-021 post-mortem complete. Phase 37 unblocked.
+- [x] v27 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v27.md` & `docs/code_review/code_review_2026_03_15_sync_v27.md`
+  - Mars Landing Protection & Cache Warm-up implemented and verified. Phase 37 accelerated.
 
 ## 36. Phase 38: Backlog Items
 - [ ] CSRF token on `/auth/logout` endpoint

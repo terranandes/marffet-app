@@ -110,7 +110,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const fetchUser = useCallback(async () => {
         const controller = new AbortController();
         const unregister = registerController(controller);
-        // Ensure we timeout the entire fetch process, not just the first request
         const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 30000);
 
         try {
@@ -123,41 +122,64 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 return;
             }
 
-            const res = await fetch("/auth/me", {
-                credentials: "include",
-                signal: controller.signal,
-            });
+            // Retry /auth/me with exponential backoff (3 attempts: 1s, 2s, 4s)
+            const MAX_RETRIES = 3;
+            let lastError: any = null;
 
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.id) {
-                    setUser(data);
+            for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                try {
+                    const res = await fetch("/auth/me", {
+                        credentials: "include",
+                        signal: controller.signal,
+                    });
 
-                    // Auto-sync premium status
-                    if (data.is_premium) {
-                        localStorage.setItem("marffet_premium", "true");
-                    }
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.id) {
+                            setUser(data);
 
-                    // Fetch notifications - wrapped in its own try/catch so it doesn't fail the whole user fetch
-                    try {
-                        const notifRes = await fetch("/api/notifications", {
-                            credentials: "include",
-                            signal: controller.signal,
-                        });
-                        if (notifRes.ok) {
-                            setNotifications(await notifRes.json());
+                            if (data.is_premium) {
+                                localStorage.setItem("marffet_premium", "true");
+                            }
+
+                            // Notifications are non-critical
+                            try {
+                                const notifRes = await fetch("/api/notifications", {
+                                    credentials: "include",
+                                    signal: controller.signal,
+                                });
+                                if (notifRes.ok) {
+                                    setNotifications(await notifRes.json());
+                                }
+                            } catch (notifErr) {
+                                console.warn("Notice: Notifications fetch failed or timed out", notifErr);
+                            }
+                        } else {
+                            setUser(null);
+                            setNotifications([]);
                         }
-                    } catch (notifErr) {
-                        // Notifications are non-critical
-                        console.warn("Notice: Notifications fetch failed or timed out", notifErr);
+                        return; // Success — exit retry loop
+                    } else {
+                        // Server responded with error (401/403/500) — no point retrying
+                        setUser(null);
+                        return;
                     }
-                } else {
-                    setUser(null);
-                    setNotifications([]);
+                } catch (fetchErr: any) {
+                    lastError = fetchErr;
+                    if (fetchErr.name === 'AbortError' || fetchErr.message === 'Auth fetch timeout') {
+                        throw fetchErr; // Don't retry on explicit abort/timeout
+                    }
+                    if (attempt < MAX_RETRIES - 1) {
+                        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+                        console.warn(`Auth fetch attempt ${attempt + 1}/${MAX_RETRIES} failed, retrying in ${delay}ms...`);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
                 }
-            } else {
-                setUser(null);
             }
+
+            // All retries exhausted
+            console.error("Auth check failed after retries:", lastError);
+            setUser(null);
         } catch (e: any) {
             if (e.name !== 'AbortError' && e.message !== 'Auth fetch timeout') {
                 console.error("Auth check failed:", e);

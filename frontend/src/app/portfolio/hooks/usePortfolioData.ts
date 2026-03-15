@@ -27,7 +27,7 @@ export function usePortfolioData() {
 
     const API_BASE = "";
 
-    // Initialize Service
+    // Initialize Service with retry logic
     useEffect(() => {
         const initService = async () => {
             const isGuestModeLocal = localStorage.getItem("marffet_guest_mode") === "true";
@@ -38,19 +38,30 @@ export function usePortfolioData() {
                 return;
             }
 
-            try {
-                const res = await fetch(`${API_BASE}/api/portfolio/targets?group_id=auth_check`, { credentials: "include" });
-                if (res.status === 401 || res.status === 403) {
-                    console.log("Unauthorized, falling back to Guest Mode");
-                    setService(PortfolioFactory.getService(false));
-                    setIsGuest(true);
-                } else {
-                    setService(PortfolioFactory.getService(true));
+            // Retry auth check with exponential backoff (3 attempts: 1s, 2s, 4s)
+            const MAX_RETRIES = 3;
+            for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                try {
+                    const res = await fetch(`${API_BASE}/api/portfolio/targets?group_id=auth_check`, { credentials: "include" });
+                    if (res.status === 401 || res.status === 403) {
+                        console.log("Unauthorized, falling back to Guest Mode");
+                        setService(PortfolioFactory.getService(false));
+                        setIsGuest(true);
+                    } else {
+                        setService(PortfolioFactory.getService(true));
+                    }
+                    return; // Success or explicit auth failure — exit
+                } catch (e) {
+                    if (attempt < MAX_RETRIES - 1) {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        console.warn(`Portfolio auth check attempt ${attempt + 1}/${MAX_RETRIES} failed, retrying in ${delay}ms...`);
+                        await new Promise(r => setTimeout(r, delay));
+                    } else {
+                        console.log("API Unreachable after retries, using Guest Mode");
+                        setService(PortfolioFactory.getService(false));
+                        setIsGuest(true);
+                    }
                 }
-            } catch (e) {
-                console.log("API Unreachable, using Guest Mode");
-                setService(PortfolioFactory.getService(false));
-                setIsGuest(true);
             }
         };
         initService();
@@ -197,6 +208,7 @@ export function usePortfolioData() {
         deleteTarget,
         syncDividends,
         refreshSingleTarget,
+        targetsLoading,
         fetchTargets: mutateTargets // exposed for manual refresh
     };
 }

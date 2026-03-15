@@ -90,10 +90,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('marffet_premium');
             localStorage.removeItem('marffet_guest_mode');
 
-            // 5. Fire-and-forget server logout (non-blocking)
-            fetch('/auth/logout', { method: 'GET' }).catch(() => { });
+            // 5. AWAIT server logout so session cookie is cleared BEFORE any new login attempt.
+            // Fire-and-forget was causing auth_failed on account switch: the next /auth/login
+            // would write the new OAuth state into a stale session, making /auth/callback fail.
+            try {
+                await fetch('/auth/logout', { method: 'GET', credentials: 'include' });
+            } catch {
+                // Non-critical: session will expire naturally, but best-effort is fine
+            }
 
-            // 6. Instant client-side redirect
+            // 6. Redirect AFTER session is cleared
             router.push('/');
         } catch (e) {
             console.error("Logout failed", e);

@@ -350,10 +350,32 @@ async def guest_login(request: Request):
 @router.get("/logout")
 async def logout(request: Request, response: Response):
     """Clear the user session and redirect to the frontend."""
+    from .main import COOKIE_SECURE, COOKIE_SAMESITE, COOKIE_DOMAIN
     user_email = request.session.get('user', {}).get('email', 'unknown')
     request.session.clear()
     print(f"[AUTH] Logged out: {user_email}")
-    res = RedirectResponse(url=FRONTEND_URL)
+
+    # Determine response: if called via fetch() (e.g. XMLHttpRequest, credentials:include),
+    # return JSON so the await resolves cleanly. Otherwise redirect browser.
+    accept = request.headers.get("accept", "")
+    is_fetch = "application/json" in accept or request.headers.get("x-requested-with") == "XMLHttpRequest"
+    
+    if is_fetch:
+        # Return JSON — the frontend fetch() will resolve and can then router.push()
+        res = JSONResponse({"status": "ok"})
+    else:
+        # Full browser navigation (fallback or direct URL visit)
+        res = RedirectResponse(url=FRONTEND_URL)
+    
+    # Explicitly delete the session cookie so it's cleared immediately in the browser.
+    # This is the safest way to ensure the cookie is gone before the next login.
+    res.delete_cookie(
+        key="session",
+        domain=COOKIE_DOMAIN,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        path="/"
+    )
     res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return res
 

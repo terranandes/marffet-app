@@ -155,7 +155,32 @@
   - Code review: APPROVED. Perceived performance on mobile 🚀.
   - Phase 36 complete. Transitioning to Phase 37 Remote Sweep.
 
-## 35. Phase 37: Full Feature Verification Campaign (Remote) - [IN PROGRESS]
-- [ ] Production-level verification of PWA installs.
-- [ ] Mobile browser cache/performance audit on Zeabur.
-- [ ] Final sign-off for Phase 36/37 features on physical devices.
+
+## 35. Phase 37: Full Feature Verification Campaign (Remote) — [IN PROGRESS]
+>
+> Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md`
+
+### BUG Fixes
+- [x] **BUG-021** — Auth Account Switch Failure (`?error=auth_failed`)
+  - Root Cause: Fire-and-forget logout race condition in `UserContext.tsx`
+  - Fix 1: `await fetch('/auth/logout')` before `router.push('/')` in `UserContext.tsx`
+  - Fix 2: `auth.py` logout returns JSON for `fetch()`, explicitly `delete_cookie("session")`
+  - Ref: `docs/jira/BUG-021-PL_auth_account_switch_failure.md`
+  - Commit: `c1a2b97`
+
+### Pending
+- [ ] Fix BUG-020 mobile E2E locator (`test_mobile_portfolio.py`)
+- [ ] Add `isValidating` background-fetch spinner per tab
+- [ ] Full remote Playwright E2E sweep on Zeabur production
+- [ ] Physical device PWA install verification (Boss-led)
+- [ ] Update `docs/product/feature_portfolio.md` (add skeleton loader note)
+
+### Agents Sync Meeting — 2026-03-15 v25 & v26
+- [x] v25 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v25.md` & `docs/code_review/code_review_2026_03_15_sync_v25.md`
+- [x] v26 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md` & `docs/code_review/code_review_2026_03_15_sync_v26.md`
+  - BUG-021 post-mortem complete. Phase 37 unblocked.
+
+## 36. Phase 38: Backlog Items
+- [ ] CSRF token on `/auth/logout` endpoint
+- [ ] Sentry error integration (deferred from Phase 36)
+- [ ] AI Copilot feature (ref: `docs/product/feature_ai_copilot.md`)

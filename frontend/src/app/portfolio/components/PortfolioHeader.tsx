@@ -8,6 +8,7 @@ interface PortfolioHeaderProps {
     onSync: () => void;
     showAddGroup: boolean;
     onToggleAddGroup: () => void;
+    isValidating?: boolean;
 }
 
 export function PortfolioHeader({
@@ -16,7 +17,8 @@ export function PortfolioHeader({
     syncing,
     onSync,
     showAddGroup,
-    onToggleAddGroup
+    onToggleAddGroup,
+    isValidating = false
 }: PortfolioHeaderProps) {
     const { t } = useLanguage();
     const formatCurrency = (val: number) => {
@@ -32,6 +34,11 @@ export function PortfolioHeader({
                         {isGuest && (
                             <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded border border-yellow-500/50">
                                 {t('Portfolio.GuestMode') || "Guest Mode"}
+                            </span>
+                        )}
+                        {isValidating && !syncing && (
+                            <span className="text-[10px] animate-pulse bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30 font-normal ml-1">
+                                📡 REVALIDATING
                             </span>
                         )}
                     </h1>

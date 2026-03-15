@@ -60,7 +60,7 @@ Keep clean room.
 
 - `./docs/meeting/meeting_notes_YYYY_MM_DD_[topic_]v{version}.md`
   - **Format:** Strict ISO date format.
-  - **version** is the verison on the the date
+  - **version** is the verison on the the date. The version shall starts from v1 for the same date.
   - **Trigger:** Auto-generated after any multi-agent synchronization session.
 
 ### Technical Stack (Shared Ownership)

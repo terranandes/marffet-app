@@ -18,7 +18,7 @@ export default function PortfolioPage() {
     const {
         groups, selectedGroupId, setSelectedGroupId,
         targets, loading, groupStats, dividendCash,
-        syncing, isGuest, service,
+        syncing, isGuest, service, targetsLoading,
         createGroup, deleteGroup, addTarget, deleteTarget,
         syncDividends, refreshSingleTarget
     } = usePortfolioData();
@@ -45,6 +45,7 @@ export default function PortfolioPage() {
                 onSync={syncDividends}
                 showAddGroup={showAddGroup}
                 onToggleAddGroup={() => setShowAddGroup(!showAddGroup)}
+                isValidating={targetsLoading}
             />
 
             <GroupSelector

@@ -10,6 +10,7 @@ if str(BASE_DIR) not in sys.path:
 from playwright.sync_api import sync_playwright
 import time
 import os
+import re
 
 # Configuration
 BASE_URL = os.getenv("TARGET_URL", "http://localhost:3000")
@@ -49,12 +50,13 @@ def run_mobile_test():
             # Click "Explore as Guest" button
             print("   Waiting for Explore as Guest button...")
             try:
-                # Target specifically the visible one to avoid hitting the hidden sidebar button
-                guest_btn = page.locator('button:visible', has_text="Explore as Guest").first
+                # Support both English and Traditional Chinese
+                guest_btn = page.locator('button:visible', has_text=re.compile(r"Explore as Guest|以訪客身分探索")).first
                 guest_btn.wait_for(state="visible", timeout=15000)
-                print("   Clicking Explore as Guest button...")
-                guest_btn.click()
-                page.wait_for_timeout(2000) # Wait for local state to update
+                print(f"   Clicking Explore as Guest button ({guest_btn.inner_text()})...")
+                guest_btn.click(force=True)
+                page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(3000) # Wait for local state to update
             except Exception as e:
                 print(f"   ⚠️ Guest button error: {e}. checking if logged in...")
 
@@ -74,8 +76,8 @@ def run_mobile_test():
             if needs_group:
                 print("   Creating Test Group...")
                 # Find and click "+ New Group" button in PortfolioHeader
-                # Use a locator that handles the text more flexibly
-                new_group_btn = page.locator('button', has_text="+ New Group").first
+                # Support both English and Traditional Chinese
+                new_group_btn = page.locator('button', has_text=re.compile(r"\+ (New Group|新群組)")).first
                 try:
                     new_group_btn.wait_for(state="visible", timeout=15000)
                     new_group_btn.scroll_into_view_if_needed()
@@ -91,8 +93,11 @@ def run_mobile_test():
                 group_name_input.wait_for(state="visible", timeout=5000)
                 group_name_input.press_sequentially("Mobile Test", delay=50)
                 page.wait_for_timeout(500)
-                group_name_input.press("Enter")
-                page.wait_for_timeout(1500)
+                # Ensure the field has focus and press Enter
+                group_name_input.focus()
+                page.keyboard.press("Enter")
+                page.wait_for_timeout(4000) # Wait for creation to propagate
+                page.screenshot(path=os.path.join(SCREENSHOT_DIR, "debug_after_group_create.png"))
                 
                 # Wait for creation - Wait for the TAB button
                 try:
@@ -105,7 +110,8 @@ def run_mobile_test():
             
             # Select group
             print("   Selecting Group 'Mobile Test'...")
-            group_tab = page.locator("button", has_text="Mobile Test").first
+            # Use filter to get the exact tab div/button and avoid the remove 'x' button
+            group_tab = page.locator('button', has_text="Mobile Test").filter(has_not=page.locator('text=×')).first
             # Scroll horizontal list if needed
             group_tab.scroll_into_view_if_needed()
             group_tab.click()
@@ -118,9 +124,11 @@ def run_mobile_test():
             stock_input = page.get_by_placeholder("Ticker (e.g. 2330)")
             stock_input.wait_for(state="visible", timeout=5000)
             stock_input.fill("2330")
-            page.get_by_placeholder("Name (e.g. 台積電)").fill("TSMC")
-            page.get_by_text("+ Add Asset").click()
-            time.sleep(2) # Wait for add
+            stock_input.fill("2330")
+            page.get_by_placeholder(re.compile(r"Name|名稱")).fill("TSMC")
+            # Support both English and Chinese for Add Asset
+            page.locator("button", has_text=re.compile(r"\+ (Add Asset|新增資產)")).click()
+            time.sleep(3) # Wait for add
 
             # 3. Verification - MOBILE VIEW
             print("\n📱 VERIFICATION: Mobile Layout")
@@ -165,10 +173,10 @@ def run_mobile_test():
 
             # Click header to expand
             print("   Clicking 'TSMC' text to expand...")
-            # We click the element containing "TSMC"
-            # card_header.click() # This might be the container which absorbs click?
-            page.get_by_text("TSMC", exact=True).locator("visible=true").first.click()
-            time.sleep(1)
+            # Be more aggressive about finding the clickable card header
+            # The card has 'onClick' on the padding div
+            page.get_by_text("TSMC", exact=True).click()
+            page.wait_for_timeout(1000)
             
             # Check details visible
             if page.get_by_text("Shares").first.is_visible():

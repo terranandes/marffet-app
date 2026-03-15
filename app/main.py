@@ -117,12 +117,19 @@ async def lifespan(app: FastAPI):
         app.state.scheduler = scheduler
         print("[Startup] Scheduler Started (Daily Backup only - heavy jobs use external cron)")
         
-        # 1.5.3 Pre-calculate Mars Strategy default params into SIM_CACHE
+        # Mars Cache Warm-up: Populate SIM_CACHE with the default Tab Mars parameters
+        # (start_year=2006, principal=1M, contribution=60k) so every user visit gets
+        # an instant cached response instead of a cold multi-second computation.
+        #
+        # Previously disabled on Zeabur due to OOM risk at boot time (512MB RAM limit).
+        # Now re-enabled with a 60-second delay — by that point, DuckDB has fully loaded
+        # and the startup surge has passed, making it safe to run even on Zeabur.
+        delay_seconds = 60 if os.getenv("ZEABUR_ENVIRONMENT_NAME") else 5
+        
         async def warm_mars_cache():
             try:
-                # Wait for MarketDataProvider to finish warming prices somewhat
-                await asyncio.sleep(5)
-                print("[Startup] Warming Mars Strategy Cache (2006, 1M, 60k)...")
+                await asyncio.sleep(delay_seconds)
+                print(f"[Startup] Warming Mars Strategy Cache (2006, 1M, 60k) after {delay_seconds}s delay...")
                 from app.services.strategy_service import MarsStrategy
                 import pandas as pd
                 strategy = MarsStrategy()
@@ -164,11 +171,8 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 print(f"[Startup Error] Failed to warm Mars cache: {e}")
                 
-        # To avoid OOM bootloop on Zeabur (512MB RAM limit), only pre-warm locally or on stronger instances.
-        if os.getenv("ZEABUR_ENVIRONMENT_NAME") is None and os.getenv("ENVIRONMENT") != "production":
-            asyncio.create_task(warm_mars_cache())
-        else:
-            print("[Startup] Skipping Mars Cache Warm-up defensively due to Remote Environment constraints.")
+        # Schedule the warm-up as a background task (always, including Zeabur)
+        asyncio.create_task(warm_mars_cache())
         
     except BaseException as e:
         print(f"[Startup] Error initializing services: {e}")

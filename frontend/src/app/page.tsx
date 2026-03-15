@@ -12,11 +12,18 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    // Redirect to default page preference if set
+
+    // Pages that are NEVER allowed as the default landing page.
+    // /mars is computation-heavy and forces a cold cache on every server restart.
+    // All entries in this list are silently migrated to "/" (Home dashboard).
+    const DISALLOWED_DEFAULT_PAGES = new Set(["/mars", "/race", "/ladder"]);
+
     let defaultPage = localStorage.getItem("marffet_default_page");
-    if (defaultPage === "/mars") {
-      defaultPage = "/portfolio";
-      localStorage.setItem("marffet_default_page", defaultPage);
+
+    if (defaultPage && DISALLOWED_DEFAULT_PAGES.has(defaultPage)) {
+      // Migrate legacy values: clear the preference, fall back to Home
+      localStorage.setItem("marffet_default_page", "/");
+      defaultPage = "/";
     }
 
     if (defaultPage && defaultPage !== "/" && defaultPage !== "") {

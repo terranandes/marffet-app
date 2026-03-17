@@ -5,7 +5,7 @@ import { useUser } from "@/lib/UserContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-    const { user, isLoading, login } = useUser();
+    const { user, isLoading, login, refreshUser } = useUser();
     const pathname = usePathname();
     const { t } = useLanguage();
 
@@ -46,10 +46,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                     </button>
                     <button
                         onClick={() => {
-                            const guestBtn = document.getElementById('guest-login-btn');
-                            if (guestBtn) guestBtn.click();
-                            else {
-                                alert("Please click 'Explore as Guest' on the sidebar to continue.");
+                            try {
+                                console.log("Activating Guest Mode from AuthGuard");
+                                localStorage.setItem("marffet_guest_mode", "true");
+                                refreshUser();
+                            } catch (e) {
+                                console.error("Guest mode error:", e);
+                                alert("Failed to activate guest mode locally");
                             }
                         }}
                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/10"

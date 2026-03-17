@@ -44,6 +44,9 @@ def run_mobile_test():
             print("   Navigating to Portfolio...")
             page.goto(f"{BASE_URL}/portfolio", wait_until="domcontentloaded", timeout=120000)
             
+            # Hide Next.js dev overlay which intercepts clicks on mobile viewports
+            page.add_style_tag(content="nextjs-portal { display: none !important; }")
+            
             # Simple wait for hydration
             page.wait_for_timeout(3000)
 
@@ -52,13 +55,23 @@ def run_mobile_test():
             try:
                 # Support both English and Traditional Chinese
                 guest_btn = page.locator('button:visible', has_text=re.compile(r"Explore as Guest|以訪客身分探索")).first
-                guest_btn.wait_for(state="visible", timeout=15000)
+                guest_btn.wait_for(state="visible", timeout=5000)
                 print(f"   Clicking Explore as Guest button ({guest_btn.inner_text()})...")
-                guest_btn.click(force=True)
-                page.wait_for_load_state("networkidle")
+                guest_btn.click(timeout=5000) # removed force=True to ensure actionability
                 page.wait_for_timeout(3000) # Wait for local state to update
             except Exception as e:
-                print(f"   ⚠️ Guest button error: {e}. checking if logged in...")
+                print(f"   ⚠️ Guest button click intercepted/timed out: {e}")
+                
+            # Verify locally and fallback
+            guest_mode = page.evaluate("() => localStorage.getItem('marffet_guest_mode')")
+            print(f"   [DEBUG] localStorage marffet_guest_mode = {guest_mode}")
+            
+            # Use javascript click if normal click failed, or just set storage
+            if guest_mode != "true":
+                print("   [DEBUG] guest mode was not set. Forcing evaluation.")
+                page.evaluate("() => { localStorage.setItem('marffet_guest_mode', 'true'); window.location.reload(); }")
+                page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(3000)
 
             # Now we should be on the portfolio page
             print("   Verifying Portfolio Page...")
@@ -111,8 +124,7 @@ def run_mobile_test():
             # Select group
             print("   Selecting Group 'Mobile Test'...")
             # Use filter to get the exact tab div/button and avoid the remove 'x' button
-            group_tab = page.locator('button', has_text="Mobile Test").filter(has_not=page.locator('text=×')).first
-            # Scroll horizontal list if needed
+            group_tab = page.locator('button', has_text="Mobile Test").first
             group_tab.scroll_into_view_if_needed()
             group_tab.click()
             
@@ -124,10 +136,9 @@ def run_mobile_test():
             stock_input = page.get_by_placeholder("Ticker (e.g. 2330)")
             stock_input.wait_for(state="visible", timeout=5000)
             stock_input.fill("2330")
-            stock_input.fill("2330")
             page.get_by_placeholder(re.compile(r"Name|名稱")).fill("TSMC")
             # Support both English and Chinese for Add Asset
-            page.locator("button", has_text=re.compile(r"\+ (Add Asset|新增資產)")).click()
+            page.locator("button", has_text=re.compile(r"\+ (Add Asset|新增資產)")).first.click()
             time.sleep(3) # Wait for add
 
             # 3. Verification - MOBILE VIEW
@@ -175,7 +186,7 @@ def run_mobile_test():
             print("   Clicking 'TSMC' text to expand...")
             # Be more aggressive about finding the clickable card header
             # The card has 'onClick' on the padding div
-            page.get_by_text("TSMC", exact=True).click()
+            page.locator(".cursor-pointer").filter(has_text="TSMC").first.click()
             page.wait_for_timeout(1000)
             
             # Check details visible

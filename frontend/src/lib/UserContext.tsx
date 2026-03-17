@@ -110,7 +110,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const fetchUser = useCallback(async () => {
         const controller = new AbortController();
         const unregister = registerController(controller);
-        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 30000);
+        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 90000);
 
         try {
             // Check for explicit guest mode first
@@ -122,8 +122,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 return;
             }
 
-            // Retry /auth/me with exponential backoff (3 attempts: 1s, 2s, 4s)
-            const MAX_RETRIES = 3;
+            // Retry /auth/me with exponential backoff (5 attempts: 2s, 4s, 8s, 16s, 32s)
+            const MAX_RETRIES = 5;
             let lastError: any = null;
 
             for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -170,7 +170,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         throw fetchErr; // Don't retry on explicit abort/timeout
                     }
                     if (attempt < MAX_RETRIES - 1) {
-                        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+                        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s, 16s, 32s
                         console.warn(`Auth fetch attempt ${attempt + 1}/${MAX_RETRIES} failed, retrying in ${delay}ms...`);
                         await new Promise(r => setTimeout(r, delay));
                     }

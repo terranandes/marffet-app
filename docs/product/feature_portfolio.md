@@ -53,6 +53,14 @@ User ──1:N──▶ Group ──1:N──▶ Target ──1:N──▶ Trans
 | ETF     | `etf`   | 0050     |
 | CB      | `cb`    | 65331    |
 
+### State Management & Loading Strategy
+
+- **Initial Load**: Handled by Next.js `loading.tsx` and custom Skeleton components (e.g., `TableSkeleton`, `ChartSkeleton`, `LeaderboardSkeleton`). These provide immediate visual feedback while the first SWR fetch is propagating from the server to the client.
+- **Background Revalidation**: Triggered via `isValidating` from SWR hooks (`usePortfolioData`, etc.). To prevent jarring UI flashes on subsequent re-fetches, the global `<SyncIndicator>` component is shown instead of replacing the entire UI with Skeletons.
+- **Mutation Sync**: SWR's `mutate` is called automatically after successful API requests (add, delete, sync) to keep the local cache consistent with the DB.
+- **Tab Persistence**: The active group tab is persisted using `localStorage` (via the `initialTab` pattern) to ensure the user returns to their last viewed portfolio group upon reload.
+- **Client-Side AuthGuard**: The `/portfolio` route enforces authentication via `AuthGuard`. Guest users bypass traditional login but are managed via `localStorage` state (`marffet_guest_mode`). Because of this, direct server-side renderings of the portfolio require hydration before the client-side token is read, or the user may be incorrectly redirected.
+
 ---
 
 ## 4. Backend API

@@ -167,21 +167,37 @@
   - Fix 2: `auth.py` logout returns JSON for `fetch()`, explicitly `delete_cookie("session")`
   - Ref: `docs/jira/BUG-021-PL_auth_account_switch_failure.md`
   - Commit: `c1a2b97`
+- [x] **BUG-022-SPEC** — Frontend Auth Resilience (permanent Guest fallback on network error)
+  - Root Cause: `UserContext.tsx` and `usePortfolioData.ts` fell back to Guest Mode on first network error.
+  - Fix: 5-attempt retry with exponential backoff (2s/4s/8s/16s/32s) + 90s timeout.
+  - Ref: `docs/jira/BUG-022-SPEC_frontend_auth_guest_fallback_no_retry.md`
+  - Commits: `d824c07`, `270ff4f`
+- [x] **Round 7 Final Verification** — 12 cells executed (Local 6/6 ✅, Zeabur Guest 2/2 ✅, Zeabur Auth 4/4 ⚠️ auth ok / data slow)
+  - Evidence: `tests/evidence/round7_final/` (41 screenshots)
 
-### Pending
+### Pending (Phase 37)
 - [ ] Fix BUG-020 mobile E2E locator (`test_mobile_portfolio.py`)
 - [ ] Add `isValidating` background-fetch spinner per tab
 - [ ] Full remote Playwright E2E sweep on Zeabur production
 - [ ] Physical device PWA install verification (Boss-led)
 - [ ] Update `docs/product/feature_portfolio.md` (add skeleton loader note)
+- [ ] Sync public GitHub (`marffet-app`)
 
-### Agents Sync Meeting — 2026-03-15 v25, v26, v27
+### Agents Sync Meeting — 2026-03-15 v25, v26, v27 / 2026-03-18 v28
 - [x] v25 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v25.md` & `docs/code_review/code_review_2026_03_15_sync_v25.md`
 - [x] v26 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md` & `docs/code_review/code_review_2026_03_15_sync_v26.md`
 - [x] v27 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v27.md` & `docs/code_review/code_review_2026_03_15_sync_v27.md`
   - Mars Landing Protection & Cache Warm-up implemented and verified. Phase 37 accelerated.
+- [x] v28 Ref: `docs/meeting/meeting_notes_2026_03_18_sync_v28.md` & `docs/code_review/code_review_2026_03_18_sync_v28.md`
+  - BUG-022-SPEC CLOSED. Round 7 12/12 cells executed. Auth retry fix verified. Phase 38 backlog expanded.
 
 ## 36. Phase 38: Backlog Items
 - [ ] CSRF token on `/auth/logout` endpoint
 - [ ] Sentry error integration (deferred from Phase 36)
 - [ ] AI Copilot feature (ref: `docs/product/feature_ai_copilot.md`)
+- [ ] Extract `exponentialBackoffRetry<T>()` utility helper (`frontend/src/lib/utils.ts`)
+- [ ] Tighten `lastError: any` → `Error | null` in `UserContext.tsx`
+- [ ] Add "Content still loading…" status message after 10s of skeleton display
+- [ ] Replace `asyncio.sleep()` with `page.wait_for_selector()` in `round7_full_suite.py`
+- [ ] Add `--clean` flag to `round7_full_suite.py` to wipe evidence dir before runs
+- [ ] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)

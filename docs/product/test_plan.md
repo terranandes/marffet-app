@@ -49,6 +49,8 @@ We use **Playwright MCP** for End-to-End (E2E) verification.
 | TC-29 | Sidebar | User Profile | Verify Guest/Login/Logout visible in Desktop Sidebar |
 | TC-30 | Tab Switching | SWR Caching | Verify switching between tabs takes <0.1s without showing loading skeletons on mobile/desktop |
 | TC-31 | Auth Smoothness | Google OAuth | Verify Login and Logout UI updates instantly without loops or freezing |
+| TC-32 | Auth Resilience | Retry Logic | `/auth/me` network failures retry up to 5× (2s/4s/8s/16s/32s) before Guest fallback |
+| TC-33 | Zeabur Cold-Start | Auth Recovery | Authenticated user identity visible on Zeabur within 90s of page load |
 
 ### 1.3 Execution via Standard Suites
 We have standardized Python test suites for CI/CD and local verification.

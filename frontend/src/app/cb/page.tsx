@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useUser } from "@/lib/UserContext";
+import { SyncIndicator } from "@/app/components/SyncIndicator";
 
 interface CBData {
     code: string;
@@ -202,6 +203,7 @@ export default function CBPage() {
                     </div>
                 )}
             </div>
+            <SyncIndicator isSyncing={loadingPortfolio || loadingAnalyze} />
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChartSkeleton } from "@/components/Skeleton";
+import { SyncIndicator } from "@/app/components/SyncIndicator";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface RaceFrame {
@@ -357,6 +358,7 @@ export default function RacePage() {
             </div>
 
             {/* Configuration removed - Reusing Mars Strategy Settings */}
+            <SyncIndicator isSyncing={loading} />
         </div>
     );
 }

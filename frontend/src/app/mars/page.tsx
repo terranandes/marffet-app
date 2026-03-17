@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
-import useSWR from "swr";
 import DataTimestamp from "@/components/DataTimestamp";
 import { TableSkeleton } from "@/components/Skeleton";
+import { SyncIndicator } from "@/app/components/SyncIndicator";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 // Dynamic import for ECharts to avoid SSR issues
@@ -574,6 +574,7 @@ export default function MarsPage() {
                     </div>
                 </div>
             )}
+            <SyncIndicator isSyncing={isCalculating || detailLoading} />
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import ShareButton from "@/components/ShareButton";
 import { LeaderboardSkeleton } from "@/components/Skeleton";
+import { SyncIndicator } from "@/app/components/SyncIndicator";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface LeaderboardEntry {
@@ -269,6 +270,7 @@ export default function LadderPage() {
                     </div>
                 )
             }
+            <SyncIndicator isSyncing={loading} />
         </div >
     );
 }

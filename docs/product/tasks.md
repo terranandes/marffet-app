@@ -203,3 +203,7 @@
 - [ ] Replace `asyncio.sleep()` with `page.wait_for_selector()` in `round7_full_suite.py`
 - [ ] Add `--clean` flag to `round7_full_suite.py` to wipe evidence dir before runs
 - [ ] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)
+
+### Agents Sync Meeting — 2026-03-19
+- [x] v31 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v31.md` & `docs/code_review/code_review_2026_03_19_sync_v30.md`
+  - Phase 38 P0/P1 COMPLETE. CSRF POST, retry utility, strict typing, skeleton UX. Chrome DevTools MCP installed.

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useMemo } from "react";
+import useSWR from "swr";
 import DataTimestamp from "@/components/DataTimestamp";
 import { TableSkeleton } from "@/components/Skeleton";
 import { SyncIndicator } from "@/app/components/SyncIndicator";

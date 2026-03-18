@@ -194,12 +194,12 @@
   - Phase 37 officially COMPLETED. Mobile layout verified with V30 screenshot.
 
 ## 36. Phase 38: Backlog Items
-- [ ] CSRF token on `/auth/logout` endpoint
+- [x] CSRF token on `/auth/logout` endpoint — converted to POST.
 - [ ] Sentry error integration (deferred from Phase 36)
 - [ ] AI Copilot feature (ref: `docs/product/feature_ai_copilot.md`)
-- [ ] Extract `exponentialBackoffRetry<T>()` utility helper (`frontend/src/lib/utils.ts`)
-- [ ] Tighten `lastError: any` → `Error | null` in `UserContext.tsx`
-- [ ] Add "Content still loading…" status message after 10s of skeleton display
+- [x] Extract `exponentialBackoffRetry<T>()` utility helper (`frontend/src/lib/utils.ts`)
+- [x] Tighten `lastError: any` → `Error | null` in `UserContext.tsx`
+- [x] Add "Content still loading…" status message after 10s of skeleton display
 - [ ] Replace `asyncio.sleep()` with `page.wait_for_selector()` in `round7_full_suite.py`
 - [ ] Add `--clean` flag to `round7_full_suite.py` to wipe evidence dir before runs
 - [ ] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)

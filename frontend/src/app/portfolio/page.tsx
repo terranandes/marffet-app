@@ -10,7 +10,7 @@ import { TargetCardList } from "./components/TargetCardList";
 import { TransactionFormModal } from "./components/TransactionFormModal";
 import { TransactionHistoryModal } from "./components/TransactionHistoryModal";
 import { DividendHistoryModal } from "./components/DividendHistoryModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function PortfolioPage() {
@@ -35,6 +35,19 @@ export default function PortfolioPage() {
     } = useTransactions(service, refreshSingleTarget);
 
     const [showAddGroup, setShowAddGroup] = useState(false);
+    const [showSlowLoadingMsg, setShowSlowLoadingMsg] = useState(false);
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (loading) {
+            timer = setTimeout(() => {
+                setShowSlowLoadingMsg(true);
+            }, 10000);
+        } else {
+            setShowSlowLoadingMsg(false);
+        }
+        return () => clearTimeout(timer);
+    }, [loading]);
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -98,9 +111,16 @@ export default function PortfolioPage() {
             )}
 
             {loading && (
-                <div className="glass-card p-5 rounded-xl space-y-4 animate-pulse mt-4">
-                    <div className="h-32 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
-                    <div className="h-64 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
+                <div className="glass-card p-5 rounded-xl space-y-4 mt-4">
+                    <div className="animate-pulse space-y-4">
+                        <div className="h-32 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
+                        <div className="h-64 bg-zinc-800/30 rounded-xl w-full border border-white/5"></div>
+                    </div>
+                    {showSlowLoadingMsg && (
+                        <div className="text-center text-[var(--color-primary-400)] pt-2 animate-fade-in">
+                            <p>{t('Portfolio.SlowLoading') || 'Content is still loading, please wait...'}</p>
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -347,7 +347,7 @@ async def guest_login(request: Request):
     return {"status": "ok", "message": "Guest session activated", "is_guest": True}
 
 
-@router.get("/logout")
+@router.post("/logout")
 async def logout(request: Request, response: Response):
     """Clear the user session and redirect to the frontend."""
     from .main import COOKIE_SECURE, COOKIE_SAMESITE, COOKIE_DOMAIN

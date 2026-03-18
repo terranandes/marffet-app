@@ -156,7 +156,7 @@
   - Phase 36 complete. Transitioning to Phase 37 Remote Sweep.
 
 
-## 35. Phase 37: Full Feature Verification Campaign (Remote) — [IN PROGRESS]
+## 35. Phase 37: Full Feature Verification Campaign (Remote) — [COMPLETED]
 >
 > Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md`
 
@@ -176,20 +176,22 @@
   - Evidence: `tests/evidence/round7_final/` (41 screenshots)
 
 ### Pending (Phase 37)
-- [ ] Fix BUG-020 mobile E2E locator (`test_mobile_portfolio.py`)
-- [ ] Add `isValidating` background-fetch spinner per tab
-- [ ] Full remote Playwright E2E sweep on Zeabur production
+- [x] Fix BUG-020 mobile E2E locator (`test_mobile_portfolio.py`)
+- [x] Add `isValidating` background-fetch spinner per tab
+- [x] Full remote Playwright E2E sweep on Zeabur production
 - [ ] Physical device PWA install verification (Boss-led)
-- [ ] Update `docs/product/feature_portfolio.md` (add skeleton loader note)
-- [ ] Sync public GitHub (`marffet-app`)
+- [x] Update `docs/product/feature_portfolio.md` (add skeleton loader note)
+- [x] Sync public GitHub (`marffet-app`)
 
 ### Agents Sync Meeting — 2026-03-15 v25, v26, v27 / 2026-03-18 v28
 - [x] v25 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v25.md` & `docs/code_review/code_review_2026_03_15_sync_v25.md`
 - [x] v26 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v26.md` & `docs/code_review/code_review_2026_03_15_sync_v26.md`
 - [x] v27 Ref: `docs/meeting/meeting_notes_2026_03_15_sync_v27.md` & `docs/code_review/code_review_2026_03_15_sync_v27.md`
   - Mars Landing Protection & Cache Warm-up implemented and verified. Phase 37 accelerated.
-- [x] v28 Ref: `docs/meeting/meeting_notes_2026_03_18_sync_v28.md` & `docs/code_review/code_review_2026_03_18_sync_v28.md`
-  - BUG-022-SPEC CLOSED. Round 7 12/12 cells executed. Auth retry fix verified. Phase 38 backlog expanded.
+- [x] v29 Ref: `docs/meeting/meeting_notes_2026_03_18_sync_v29.md` & `docs/code_review/code_review_2026_03_18_sync_v28.md`
+  - BUG-020 fixed. SyncIndicator added. Mobile E2E verification stable.
+- [x] v30 Ref: `docs/meeting/meeting_notes_2026_03_18_sync_v30.md` & `docs/code_review/code_review_2026_03_18_sync_v29.md`
+  - Phase 37 officially COMPLETED. Mobile layout verified with V30 screenshot.
 
 ## 36. Phase 38: Backlog Items
 - [ ] CSRF token on `/auth/logout` endpoint

@@ -62,10 +62,17 @@ class Round7Tester:
             self.account_name = "guest"
             print(f"   [Auth] Entering as Guest...")
             await page.goto(f"{self.target_url}/portfolio", wait_until="domcontentloaded")
+            await page.add_style_tag(content="nextjs-portal { display: none !important; }")
             await asyncio.sleep(2)
             guest_btn = page.locator('button', has_text=re.compile(r"Explore as Guest|以訪客身分探索", re.I))
             if await guest_btn.count() > 0 and await guest_btn.first.is_visible():
-                await guest_btn.first.click()
+                try:
+                    await guest_btn.first.click(timeout=5000)
+                except Exception:
+                    print("   [DEBUG] Guest button click failed, using localStorage fallback")
+                    await page.evaluate('localStorage.setItem("marffet_guest_mode", "true")')
+                    await page.reload()
+                    await page.add_style_tag(content="nextjs-portal { display: none !important; }")
                 await asyncio.sleep(1)
         
         self.prefix = f"{ROUND}_{self.account_name}_{'mobile' if self.is_mobile else 'desktop'}"

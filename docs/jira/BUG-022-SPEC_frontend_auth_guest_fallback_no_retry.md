@@ -1,9 +1,9 @@
 # BUG-022-SPEC: Frontend auth hook permanently falls back to Guest Mode without retry
 
-**Reporter:** [SPEC] AntiGravity
-**Severity:** High
-**Status:** In Progress
-**Found During:** Phase 35 Round 7 Full Feature Verification Campaign
+**Reporter:** [SPEC] AntiGravity  
+**Severity:** High  
+**Status:** CLOSED (2026-03-18)  
+**Found During:** Phase 35 Round 7 Full Feature Verification Campaign  
 
 ## Summary
 

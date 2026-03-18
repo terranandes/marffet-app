@@ -119,13 +119,16 @@ class Round7Tester:
         await page.goto(f"{self.target_url}/portfolio", wait_until="networkidle")
         await asyncio.sleep(3)
         
-        # Explicitly wait for portfolio data to load
+        # Explicitly wait for portfolio page content (specific to main body, not sidebar nav)
         try:
-            await page.wait_for_selector(".glass-card, button[role='tab'], [class*='portfolio'], [class*='group']", timeout=15000)
-            await asyncio.sleep(3)
+            await page.wait_for_selector(
+                "main .glass-card, h1, .animate-pulse, [class*='skeleton']",
+                timeout=15000
+            )
+            await asyncio.sleep(2)
         except Exception as e:
-            print(f"   [Area E] Warning: Timeout waiting for portfolio data elements: {e}")
-            
+            print(f"   [Area E] Warning: Portfolio content timeout: {e}")
+
         await page.screenshot(path=self.get_path("area_e_portfolio_main"), full_page=True)
         await page.screenshot(path=self.get_path("area_e_portfolio_refresh"))
 

@@ -39,8 +39,8 @@
 
 - [ ] Direct DB Upload to Zeabur (Bypass Cloud Fetch) — Phase 14
 - [ ] TSMC CAGR ~19% frontend UI verification (pending Boss review) — Phase 17
-- [ ] **BUG-000-CV**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
-- [ ] **BUG-010-CV**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
+- [x] **BUG-000-CV CLOSED**: Local Worktree Frontend `.env.local` Missing — LOW <!-- id: bug-110-cv -->
+- [x] **BUG-010-CV CLOSED**: Mobile Portfolio Card Click Timeout (E2E flake) <!-- id: bug-114 -->
 - [ ] **BUG-115-PL**: YFinance Adjusted Dividend Mismatch — resolved by Phase 18 rebuild <!-- id: bug-115 -->
 - [x] **BUG-021-CV CLOSED**: Guest Mode uses Shared Backend DB instead of LocalStorage — 🔴 CRITICAL
 - [x] **Interactive Backfill Dashboard** — Admin feature, low priority

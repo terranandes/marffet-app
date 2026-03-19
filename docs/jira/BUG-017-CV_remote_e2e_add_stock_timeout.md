@@ -4,6 +4,8 @@
 **Serial ID:** 017  
 **Reporter:** `[CV]` (Antigravity)  
 
+**Status:** ✅ CLOSED (2026-03-20) — Fixed in Phase 38 by converting Zeabur verification wait strategy from `networkidle` to `domcontentloaded`.
+
 ## 1. Issue Description
 During remote Playwright E2E verification of `marffet-app.zeabur.app` (Desktop View), the test failed at `TEST 2: Add Stock`. The `+ Add Asset` button was clicked, but the resulting TSMC `2330` row was not visible within the 15000ms timeout window. 
 This flaw did not appear on local tests against `localhost:3000` executing the same SWR caching refactor logic.

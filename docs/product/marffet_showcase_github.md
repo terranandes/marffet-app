@@ -115,7 +115,7 @@ When updating the public repo:
 - [ ] Verify BMAC/Ko-fi links are present and correct in READMEs and Settings Modal
 - [ ] Verify GM tier is **not** mentioned in public-facing READMEs
 - [ ] Regenerate screenshots if UI changes significantly
-- [ ] Ensure NO local technical paths (e.g., `frontend/public/...`) are used for images/badges. Use external `img.shields.io` or absolute URLs.
+- [ ] Ensure branding icons (BMAC/Ko-fi) use the path `frontend/public/images/`. Other images should use absolute URLs or external badges.
 - [ ] Update version number if features change
 - [ ] Never commit source code, `.env`, or backend logic to the public repo
 

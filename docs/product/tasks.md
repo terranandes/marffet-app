@@ -195,14 +195,15 @@
 
 ## 36. Phase 38: Backlog Items
 - [x] CSRF token on `/auth/logout` endpoint — converted to POST.
-- [ ] Sentry error integration (deferred from Phase 36)
-- [ ] AI Copilot feature (ref: `docs/product/feature_ai_copilot.md`)
+- [ ] Sentry error integration (deferred to Phase 39)
+- [ ] AI Copilot feature (deferred to Phase 39)
 - [x] Extract `exponentialBackoffRetry<T>()` utility helper (`frontend/src/lib/utils.ts`)
 - [x] Tighten `lastError: any` → `Error | null` in `UserContext.tsx`
 - [x] Add "Content still loading…" status message after 10s of skeleton display
-- [ ] Replace `asyncio.sleep()` with `page.wait_for_selector()` in `round7_full_suite.py`
-- [ ] Add `--clean` flag to `round7_full_suite.py` to wipe evidence dir before runs
-- [ ] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)
+- [x] Replace `asyncio.sleep()` with `page.wait_for_selector()` in `round7_full_suite.py`
+- [x] Add `--clean` flag to `round7_full_suite.py` to wipe evidence dir before runs
+- [x] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)
+- [x] Public repo `marffet-app` sync (icon fix & README polish)
 
 ### Agents Sync Meeting — 2026-03-19
 - [x] v31 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v31.md` & `docs/code_review/code_review_2026_03_19_sync_v30.md`
@@ -212,3 +213,5 @@
   - Zeabur remote verification completed with real session cookies. `networkidle`→`domcontentloaded` test fix. Chrome DevTools MCP retrospective.
 - [x] v33 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v33.md` & `docs/code_review/code_review_2026_03_19_sync_v32.md`
   - No code changes. Admin Dashboard & Notification review discussion. Phase 39 planning: notification tier gating identified as P1.
+- [x] v34 Ref: `docs/meeting/meeting_notes_2026_03_20_sync_v34.md` & `docs/code_review/code_review_2026_03_20_sync_v33.md`
+  - Phase 38 officially CLOSED. Public repo sync complete. Phase 39 priorities set to Notification Gating and Sentry.

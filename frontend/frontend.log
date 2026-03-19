@@ -1,0 +1,4 @@
+nohup: ignoring input
+$ next dev -H 0.0.0.0
+You are using Node.js 18.19.1. For Next.js, Node.js version ">=20.9.0" is required.
+error: script "dev" exited with code 1

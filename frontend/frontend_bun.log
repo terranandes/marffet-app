@@ -1,0 +1,18 @@
+nohup: ignoring input
+$ next dev -H 0.0.0.0
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 1168ms
+ ○ Compiling /mars ...
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ GET /mars 200 in 9.9s (compile: 9.5s, render: 401ms)
+ GET /portfolio 200 in 2.0s (compile: 1588ms, render: 446ms)
+ GET / 200 in 1470ms (compile: 901ms, render: 569ms)
+ GET /portfolio 200 in 532ms (compile: 10ms, render: 522ms)
+ GET /mars 200 in 1396ms (compile: 302ms, render: 1095ms)
+ ○ Compiling /race ...
+error: script "dev" was terminated by signal SIGHUP (Terminal hung up)

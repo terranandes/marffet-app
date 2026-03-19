@@ -1,0 +1,22 @@
+
+> frontend@0.1.0 dev
+> next dev -H 0.0.0.0 -p 3000
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://0.0.0.0:3000
+
+ ✓ Starting...
+ ✓ Ready in 720ms
+ ○ Compiling / ...
+ GET / 200 in 3.6s (compile: 3.4s, render: 261ms)
+(node:236341) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /mars 200 in 2.8s (compile: 2.7s, render: 81ms)
+ GET /race 200 in 1010ms (compile: 930ms, render: 80ms)
+ GET / 200 in 116ms (compile: 7ms, render: 109ms)
+ GET /portfolio 200 in 1286ms (compile: 1180ms, render: 106ms)
+ GET / 200 in 77ms (compile: 4ms, render: 72ms)
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[?25h

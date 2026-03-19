@@ -1,0 +1,235 @@
+"use client";
+
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
+import { exponentialBackoffRetry } from "./utils";
+
+interface User {
+    id: string | null;
+    email?: string;
+    is_admin?: boolean;
+    is_premium?: boolean;
+    tier?: string;
+    nickname?: string;
+    picture?: string;
+}
+
+interface Notification {
+    id: number;
+    title: string;
+    message: string;
+    type: string;
+    is_read: number;
+    created_at: string;
+}
+
+interface UserContextType {
+    user: User | null;
+    isLoading: boolean;
+    notifications: Notification[];
+    unreadCount: number;
+    refreshUser: () => Promise<void>;
+    login: () => void;
+    logout: () => Promise<void>;
+    markAsRead: (id: number) => Promise<void>;
+    clearNotifications: () => void;
+}
+
+const UserContext = createContext<UserContextType | null>(null);
+
+export function useUser() {
+    const ctx = useContext(UserContext);
+    if (!ctx) throw new Error("useUser must be used within UserProvider");
+    return ctx;
+}
+
+export function UserProvider({ children }: { children: ReactNode }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const router = useRouter();
+    const { mutate: globalMutate } = useSWRConfig();
+
+    // Ref to track the notification polling interval so we can kill it on logout
+    const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // Ref to track in-flight AbortControllers so we can abort them all on logout
+    const activeControllersRef = useRef<Set<AbortController>>(new Set());
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    // Register an AbortController so it can be terminated on logout
+    const registerController = useCallback((controller: AbortController) => {
+        activeControllersRef.current.add(controller);
+        return () => { activeControllersRef.current.delete(controller); };
+    }, []);
+
+    const login = () => {
+        window.location.href = "/auth/login";
+    };
+
+    const logout = useCallback(async () => {
+        try {
+            // 1. STOP all notification polling immediately
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+
+            // 2. ABORT all in-flight fetch requests (safe: AbortError is silently caught)
+            activeControllersRef.current.forEach(controller => {
+                try { controller.abort(); } catch { /* already aborted */ }
+            });
+            activeControllersRef.current.clear();
+
+            // 3. CLEAR all SWR cached data globally (prevents stale renders)
+            await globalMutate(() => true, undefined, { revalidate: false });
+
+            // 4. RESET local state
+            setUser(null);
+            setNotifications([]);
+            localStorage.removeItem('marffet_premium');
+            localStorage.removeItem('marffet_guest_mode');
+
+            // 5. AWAIT server logout so session cookie is cleared BEFORE any new login attempt.
+            // Fire-and-forget was causing auth_failed on account switch: the next /auth/login
+            // would write the new OAuth state into a stale session, making /auth/callback fail.
+            try {
+                await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+            } catch {
+                // Non-critical: session will expire naturally, but best-effort is fine
+            }
+
+            // 6. Redirect AFTER session is cleared
+            router.push('/');
+        } catch (e) {
+            console.error("Logout failed", e);
+            window.location.href = '/auth/logout'; // Fallback
+        }
+    }, [router, globalMutate]);
+
+    const fetchUser = useCallback(async () => {
+        const controller = new AbortController();
+        const unregister = registerController(controller);
+        const timeoutId = setTimeout(() => controller.abort(new Error("Auth fetch timeout")), 90000);
+
+        try {
+            // Check for explicit guest mode first
+            if (localStorage.getItem("marffet_guest_mode") === "true") {
+                setUser({ id: "guest", email: "guest@local", is_guest: true, nickname: "Guest" } as User);
+                setIsLoading(false);
+                unregister();
+                clearTimeout(timeoutId);
+                return;
+            }
+
+            // Retry /auth/me with exponential backoff (5 attempts: 2s, 4s, 8s, 16s, 32s)
+            await exponentialBackoffRetry(async () => {
+                const res = await fetch("/auth/me", {
+                    credentials: "include",
+                    signal: controller.signal,
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.id) {
+                        setUser(data);
+
+                        if (data.is_premium) {
+                            localStorage.setItem("marffet_premium", "true");
+                        }
+
+                        // Notifications are non-critical
+                        try {
+                            const notifRes = await fetch("/api/notifications", {
+                                credentials: "include",
+                                signal: controller.signal,
+                            });
+                            if (notifRes.ok) {
+                                setNotifications(await notifRes.json());
+                            }
+                        } catch (notifErr) {
+                            console.warn("Notice: Notifications fetch failed or timed out", notifErr);
+                        }
+                    } else {
+                        setUser(null);
+                        setNotifications([]);
+                    }
+                } else {
+                    // Server responded with error (401/403/500) — no point retrying
+                    setUser(null);
+                }
+            }, 5, 2000);
+        } catch (e: unknown) {
+            const err = e instanceof Error ? e : new Error(String(e));
+            if (err.name !== 'AbortError' && err.message !== 'Auth fetch timeout') {
+                console.error("Auth check failed:", err);
+            }
+            setUser(null);
+        } finally {
+            clearTimeout(timeoutId);
+            setIsLoading(false);
+            unregister();
+        }
+    }, [registerController]);
+
+    const markAsRead = useCallback(async (id: number) => {
+        try {
+            await fetch(`/api/notifications/${id}/read`, {
+                method: "POST",
+                credentials: "include",
+            });
+            setNotifications(prev =>
+                prev.map(n => (n.id === id ? { ...n, is_read: 1 } : n))
+            );
+        } catch (e) {
+            console.error("Mark read error:", e);
+        }
+    }, []);
+
+    const clearNotifications = useCallback(() => {
+        notifications.forEach(n => {
+            if (!n.is_read) markAsRead(n.id);
+        });
+    }, [notifications, markAsRead]);
+
+    // Fetch on mount + notification polling
+    useEffect(() => {
+        fetchUser();
+
+        // Poll notifications every 30s
+        pollingIntervalRef.current = setInterval(async () => {
+            try {
+                const res = await fetch("/api/notifications", { credentials: "include" });
+                if (res.ok) setNotifications(await res.json());
+            } catch {
+                // Silent fail for polling
+            }
+        }, 30000);
+
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+        };
+    }, [fetchUser]);
+
+    return (
+        <UserContext.Provider
+            value={{
+                user,
+                isLoading,
+                notifications,
+                unreadCount,
+                refreshUser: fetchUser,
+                login,
+                logout,
+                markAsRead,
+                clearNotifications,
+            }}
+        >
+            {children}
+        </UserContext.Provider>
+    );
+}

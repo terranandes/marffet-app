@@ -1,0 +1,204 @@
+/* Google Fonts Import - Must be first */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+/* Martian Investment Design System */
+:root {
+  /* Origin Cyberpunk Palette */
+  --color-bg-primary: #050510;
+  --color-bg-secondary: #0e1117;
+
+  --color-cta: #00f2ea;
+  /* Cyan */
+  --color-cta-hover: #00ccc5;
+  --color-accent: #ffd700;
+  /* Gold */
+  --color-danger: #ff0055;
+  /* Pink */
+
+  /* Mappings to specific roles */
+  --color-bg: var(--color-bg-primary);
+  --color-text: #ffffff;
+  --color-text-muted: #9ca3af;
+
+  --color-primary: var(--color-accent);
+  --color-secondary: var(--color-cta);
+  --color-info: var(--color-cta);
+  --color-border: rgba(255, 255, 255, 0.1);
+
+  /* Legacy / Tailwind Compat */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+
+  /* Financial Colors */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+
+  /* Chart Colors */
+  --color-chart-1: #00f2ea;
+  --color-chart-2: #ffd700;
+  --color-chart-3: #ff0055;
+  --color-chart-4: #ffffff;
+
+
+  /* Chart Colors */
+  --color-chart-1: #8B5CF6;
+  --color-chart-2: #06B6D4;
+  --color-chart-3: #F59E0B;
+  --color-chart-4: #EC4899;
+
+  /* Legacy Variables */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Open Sans', var(--font-geist-sans), sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+  --font-mono: 'JetBrains Mono', var(--font-geist-mono), monospace;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+}
+
+/* Typography Classes */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* Monospace for financial data */
+.font-mono,
+.data-value,
+.price,
+.percentage {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+}
+
+/* Financial Values */
+.gain {
+  color: var(--color-success);
+}
+
+.loss {
+  color: var(--color-danger);
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all 200ms ease-out;
+}
+
+/* Animation - Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== Mobile App-Like Responsive System ===== */
+
+/* Responsive Spacing Tokens */
+:root {
+  --spacing-page: 1rem;
+  /* phone (< 768px) */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --spacing-page: 1.5rem;
+  }
+
+  /* tablet */
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --spacing-page: 2rem;
+  }
+
+  /* desktop */
+}
+
+/* Safe Area Insets (notched iPhones in PWA mode) */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Global Touch Target Minimums (Apple HIG: 44px) */
+@media (max-width: 1023px) {
+
+  button,
+  a[href],
+  [role="button"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+  }
+}
+
+/* Button press scale effect for native feel */
+@media (max-width: 1023px) {
+
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
+  }
+}
+
+/* Responsive Tables — horizontal scroll on mobile with sticky first column */
+@media (max-width: 1023px) {
+
+  .overflow-x-auto table,
+  table {
+    font-size: 0.8125rem;
+    /* 13px for readability on mobile */
+  }
+
+  .overflow-x-auto th:first-child,
+  .overflow-x-auto td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-bg-secondary);
+  }
+}
+
+/* Hide scrollbar on mobile nav (keep scrolling functional) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

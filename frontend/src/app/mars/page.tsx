@@ -1,0 +1,581 @@
+"use client";
+
+import dynamic from 'next/dynamic';
+import { useEffect, useState, useMemo } from "react";
+import useSWR from "swr";
+import DataTimestamp from "@/components/DataTimestamp";
+import { TableSkeleton } from "@/components/Skeleton";
+import { SyncIndicator } from "@/app/components/SyncIndicator";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+
+// Dynamic import for ECharts to avoid SSR issues
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
+
+interface Stock {
+    id: string;
+    name: string;
+    price: number;
+    cagr_pct: number;
+    cagr_std: number;
+    valid_years: number;
+    volatility_pct?: number;
+    finalValue?: number;
+    history?: { year: number; value: number; dividend: number }[];
+}
+
+interface SimSettings {
+    startYear: number;
+    principal: number;
+    contribution: number;
+}
+
+type SortKey = "finalValue" | "cagr_pct" | "volatility_pct" | "name";
+type SortDir = "asc" | "desc";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+export default function MarsPage() {
+    const { t } = useLanguage();
+
+    // Selected Stock for Modal
+    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+
+    // Simulation settings
+    const [sim, setSim] = useState<SimSettings>({
+        startYear: 2006,
+        principal: 1000000,
+        contribution: 60000,
+    });
+
+    // Mobile Settings Toggle
+    const [showSettings, setShowSettings] = useState(false);
+
+    // Load settings from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem("mars_sim_settings");
+        if (saved) {
+            try {
+                setSim(JSON.parse(saved));
+            } catch (e) { console.error("Failed to parse settings", e); }
+        }
+    }, []);
+
+    // Save settings to local storage on change
+    useEffect(() => {
+        localStorage.setItem("mars_sim_settings", JSON.stringify(sim));
+    }, [sim]);
+
+    // Sorting
+    const [sortKey, setSortKey] = useState<SortKey>("finalValue");
+    const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+    const currentYear = new Date().getFullYear();
+
+    // SWR Fetching for Main Stock List
+    const { data: rawData = [], isValidating: isCalculating, mutate: mutateStocks } = useSWR(
+        `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+        fetcher,
+        {
+            revalidateOnFocus: false, // Don't recalculate heavy sim on focus
+            revalidateIfStale: false,
+            keepPreviousData: true
+        }
+    );
+
+    // SWR Fetching for Detail Modal
+    const { data: detailResult, isValidating: detailLoading } = useSWR(
+        selectedStock ? `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
+        fetcher,
+        {
+            revalidateOnFocus: false,
+            keepPreviousData: true
+        }
+    );
+
+    const stocks = Array.isArray(rawData) ? rawData : [];
+    const loading = stocks.length === 0 && isCalculating;
+
+    // Sorted stocks
+    const sortedStocks = useMemo(() => {
+        const sorted = [...stocks].sort((a, b) => {
+            let aVal = a[sortKey] ?? 0;
+            let bVal = b[sortKey] ?? 0;
+            if (sortKey === "name") {
+                return sortDir === "asc"
+                    ? String(aVal).localeCompare(String(bVal))
+                    : String(bVal).localeCompare(String(aVal));
+            }
+            return sortDir === "asc" ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
+        });
+        return sorted.slice(0, 50); // Top 50
+    }, [stocks, sortKey, sortDir]);
+
+    const handleSort = (key: SortKey) => {
+        if (sortKey === key) {
+            setSortDir(sortDir === "asc" ? "desc" : "asc");
+        } else {
+            setSortKey(key);
+            setSortDir("desc");
+        }
+    };
+
+    const getSortIcon = (key: SortKey) => {
+        if (sortKey !== key) return "opacity-30";
+        return sortDir === "desc" ? "text-[var(--color-cta)]" : "text-[var(--color-cta)] rotate-180";
+    };
+
+    const formatCurrency = (val: number) => {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "TWD",
+            maximumFractionDigits: 0,
+        }).format(val);
+    };
+
+    const handleRecalculate = () => {
+        mutateStocks();
+    };
+
+    const handleExport = (mode: "filtered" | "unfiltered" = "unfiltered") => {
+        const API_URL = "";
+        window.open(
+            `${API_URL}/api/export/excel?mode=${mode}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+            "_blank"
+        );
+    };
+
+    // Calculate Total ROI for Modal
+    const calculateTotalROI = (finalValue: number) => {
+        const years = currentYear - sim.startYear;
+        const totalInvested = sim.principal + (sim.contribution * years);
+        if (totalInvested <= 0) return 0;
+        return ((finalValue - totalInvested) / totalInvested) * 100;
+    };
+
+    // Chart Visualization Mode
+    const [vizMode, setVizMode] = useState<"wealth" | "dividend">("wealth");
+
+    // Premium check — deferred to client-only to avoid SSR hydration mismatch
+    const [isPremium, setIsPremium] = useState(false);
+    useEffect(() => {
+        setIsPremium(localStorage.getItem("marffet_premium") === "true");
+    }, []);
+
+    return (
+        <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar - Simulation Settings */}
+            <aside className="w-full lg:w-72 flex-shrink-0 space-y-4">
+                {/* ... existing sidebar code ... */}
+                {/* Mobile Toggle Header */}
+                <div
+                    className="md:hidden flex items-center justify-between p-4 glass-card rounded-xl cursor-pointer active:scale-95 transition-transform"
+                    onClick={() => setShowSettings(!showSettings)}
+                >
+                    <span className="font-bold text-[var(--color-primary)] uppercase text-xs tracking-wider">
+                        ⚙️ {t('Mars.SimulationSettings')}
+                    </span>
+                    <span className={`transform transition-transform ${showSettings ? 'rotate-180' : ''}`}>
+                        ▼
+                    </span>
+                </div>
+
+                <div className={`${showSettings ? 'block' : 'hidden'} md:block glass-card p-5 rounded-xl`}>
+                    <h3 className="hidden md:block text-[var(--color-primary)] font-bold mb-4 uppercase text-xs tracking-wider border-b border-[var(--color-border)] pb-2">
+                        {t('Mars.SimulationSettings')}
+                    </h3>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs text-[var(--color-text-muted)] mb-1">
+                                {t('Mars.StartYear', { currentYear })}
+                            </label>
+                            <input
+                                type="number"
+                                min={2000}
+                                max={currentYear}
+                                value={sim.startYear}
+                                onChange={(e) => setSim({ ...sim, startYear: Number(e.target.value) })}
+                                className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm focus:border-[var(--color-cta)] outline-none transition"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs text-[var(--color-text-muted)] mb-1">
+                                {t('Mars.InitialCapital')}
+                            </label>
+                            <input
+                                type="number"
+                                step={10000}
+                                value={sim.principal}
+                                onChange={(e) => setSim({ ...sim, principal: Number(e.target.value) })}
+                                className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm focus:border-[var(--color-cta)] outline-none transition"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs text-[var(--color-text-muted)] mb-1">
+                                {t('Mars.AnnualContribution')}
+                            </label>
+                            <input
+                                type="number"
+                                step={10000}
+                                value={sim.contribution}
+                                onChange={(e) => setSim({ ...sim, contribution: Number(e.target.value) })}
+                                className="w-full bg-black/50 border border-[var(--color-border)] rounded px-3 py-2 text-sm focus:border-[var(--color-cta)] outline-none transition"
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleRecalculate}
+                            disabled={isCalculating}
+                            className="w-full bg-[var(--color-cta)]/10 border border-[var(--color-cta)] text-[var(--color-cta)] hover:bg-[var(--color-cta)] hover:text-black font-bold py-2 rounded transition cursor-pointer disabled:opacity-50"
+                        >
+                            {isCalculating ? t('Mars.Calculating') : t('Mars.ApplyRecalculate')}
+                        </button>
+
+                        <div className="flex flex-col gap-2">
+                            {isPremium && (
+                                <button
+                                    onClick={() => handleExport("filtered")}
+                                    className="w-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
+                                >
+                                    {t('Mars.ExportFiltered')}
+                                </button>
+                            )}
+                            <button
+                                onClick={() => handleExport("unfiltered")}
+                                className="w-full bg-amber-500/10 border border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black font-bold py-2 rounded transition cursor-pointer text-sm"
+                            >
+                                {t('Mars.ExportUnfiltered')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="glass-card p-5 rounded-xl">
+                    <h3 className="text-[var(--color-text-muted)] text-xs mb-2">{t('Mars.UniverseStats')}</h3>
+                    <div className="flex justify-between items-center mb-1">
+                        <span>{t('Mars.TotalListed')}</span>
+                        <span className="font-mono">{stocks.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span>{t('Mars.TopCandidates')}</span>
+                        <span className="font-mono text-[var(--color-primary)]">{sortedStocks.length}</span>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-rose-500 bg-clip-text text-transparent">
+                            {t('Mars.Title')}
+                        </h1>
+                        {isCalculating && (
+                            <div className="flex items-center gap-2 text-[var(--color-cta)] animate-pulse">
+                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span className="text-xs">{t('Mars.Calculating')}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-black/20 px-3 py-1.5 rounded-lg border border-white/5 backdrop-blur-sm self-start md:self-auto">
+                        <DataTimestamp />
+                    </div>
+                </div>
+                <p className="text-[var(--color-text-muted)] mt-1">
+                    {t('Mars.TopSurvivors', { startYear: sim.startYear, currentYear: currentYear })}
+                </p>
+
+                {loading ? (
+                    <div className="glass-card rounded-xl overflow-hidden">
+                        <TableSkeleton rows={10} cols={6} />
+                    </div>
+                ) : (
+                    <div className="glass-card rounded-xl overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[700px]">
+                                <thead className="bg-black/30 uppercase text-xs text-[var(--color-text-muted)] tracking-wider">
+                                    <tr>
+                                        <th className="px-4 py-3">{t('Mars.TableRank')}</th>
+                                        <th className="px-4 py-3">{t('Mars.TableID')}</th>
+                                        <th className="px-4 py-3">
+                                            <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-white transition cursor-pointer">
+                                                {t('Mars.TableName')} <span className={getSortIcon("name")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <button onClick={() => handleSort("finalValue")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
+                                                {t('Mars.TableSimFinal')} <span className={getSortIcon("finalValue")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <button onClick={() => handleSort("cagr_pct")} className="flex items-center gap-1 justify-end hover:text-white transition cursor-pointer">
+                                                {t('Mars.TableCAGR')} <span className={getSortIcon("cagr_pct")}>▼</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-right">
+                                            <span className="text-gray-400">{t('Mars.TableVol')}</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    {sortedStocks.map((stock, idx) => (
+                                        <tr
+                                            key={stock.id}
+                                            onClick={() => setSelectedStock(stock)}
+                                            className="hover:bg-white/5 transition-colors duration-150 cursor-pointer"
+                                        >
+                                            <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono">{idx + 1}</td>
+                                            <td className="px-4 py-3 font-mono text-[var(--color-cta)]">{stock.id}</td>
+                                            <td className="px-4 py-3 font-medium text-white">{stock.name}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-[var(--color-primary)]">
+                                                {formatCurrency(stock.finalValue || 0)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className={`font-bold ${stock.cagr_pct > 20 ? "text-[var(--color-success)]" :
+                                                    stock.cagr_pct > 10 ? "text-[var(--color-warning)]" :
+                                                        "text-[var(--color-text-muted)]"
+                                                    }`}>
+                                                    {stock.cagr_pct?.toFixed(2)}%
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-mono text-[var(--color-text-muted)]">
+                                                {stock.volatility_pct?.toFixed(2)}%
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-4 text-center text-xs text-[var(--color-text-muted)] border-t border-[var(--color-border)]">
+                            {t('Mars.ShowingCount', { count: sortedStocks.length, total: stocks.length })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Stock Detail Modal */}
+            {selectedStock && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl border border-[var(--color-border)] shadow-2xl relative">
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setSelectedStock(null)}
+                            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition text-[var(--color-text-muted)] hover:text-white"
+                        >
+                            ✕
+                        </button>
+
+                        <div className="p-6 md:p-8">
+                            <h2 className="text-2xl font-bold mb-10 flex items-center gap-3">
+                                <span>{t('Mars.ResultTitle')}</span>
+                                <span className="text-[var(--color-cta)]">{selectedStock.name}</span>
+                                <span className="text-[var(--color-cta)] opacity-75">({selectedStock.id})</span>
+                            </h2>
+
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.AmountInv')}</div>
+                                    <div className="text-xl font-bold text-white">
+                                        ${sim.principal.toLocaleString()} + ${sim.contribution.toLocaleString()}/yr
+                                    </div>
+                                </div>
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.TotalYears')}</div>
+                                    <div className="text-xl font-bold text-white">
+                                        {t('Mars.YearsCount', { count: selectedStock.valid_years })}
+                                    </div>
+                                </div>
+                                <div className="bg-black/30 p-4 rounded-lg border border-[var(--color-border)]">
+                                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{t('Mars.YearlyROI')}</div>
+                                    <div className="text-xl font-bold text-[var(--color-success)]">
+                                        {selectedStock.cagr_pct.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Strategy Table */}
+                            <div className="mb-8 rounded-lg overflow-x-auto border border-[var(--color-border)]">
+                                <div className="min-w-[500px]">
+                                    <div className="grid grid-cols-4 bg-[var(--color-primary)] text-black font-bold text-[10px] md:text-sm py-3 px-2 md:px-4">
+                                        <div>{t('Mars.Strategy')}</div>
+                                        <div className="text-center">{t('Mars.BuyOpen')}</div>
+                                        <div className="text-center">{t('Mars.BuyHigh')}</div>
+                                        <div className="text-center">{t('Mars.BuyLow')}</div>
+                                    </div>
+                                    <div className="divide-y divide-[var(--color-border)]">
+                                        {/* Final Value Row */}
+                                        <div className="grid grid-cols-4 py-4 px-2 md:px-4 bg-black/20 hover:bg-white/5 transition items-center">
+                                            <div className="font-bold text-white text-xs md:text-sm">{t('Mars.FinalValue')}</div>
+
+                                            {/* BAO */}
+                                            <div className="text-center font-bold text-[var(--color-cta)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    (detailResult?.error ? <span className="text-red-400 text-xs">Error</span> :
+                                                        (detailResult?.BAO?.finalValue ? formatCurrency(Number(detailResult.BAO.finalValue)) : "-"))}
+                                            </div>
+
+                                            {/* BAH */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAH?.finalValue ? formatCurrency(detailResult.BAH.finalValue) : "-"}
+                                            </div>
+
+                                            {/* BAL */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-sm md:text-xl truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAL?.finalValue ? formatCurrency(detailResult.BAL.finalValue) : "-"}
+                                            </div>
+                                        </div>
+
+                                        {/* Total ROI Row */}
+                                        <div className="grid grid-cols-4 py-4 px-2 md:px-4 bg-black/20 hover:bg-white/5 transition items-center">
+                                            <div className="font-bold text-white text-xs md:text-sm truncate pr-1">{t('Mars.TotalROILabel')}</div>
+
+                                            {/* BAO ROI */}
+                                            <div className="text-center font-bold text-[var(--color-success)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAO?.finalValue ? calculateTotalROI(detailResult.BAO.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
+
+                                            {/* BAH ROI */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAH?.finalValue ? calculateTotalROI(detailResult.BAH.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
+
+                                            {/* BAL ROI */}
+                                            <div className="text-center font-bold text-[var(--color-text-muted)] text-xs md:text-lg truncate px-1">
+                                                {detailLoading ? "..." :
+                                                    detailResult?.BAL?.finalValue ? calculateTotalROI(detailResult.BAL.finalValue).toFixed(2) + "%" : "-"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Chart Section - TRIPLE CURVE (BAO/BAH/BAL) */}
+                            <div className="bg-black/30 p-4 rounded-xl border border-[var(--color-border)]">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-white">
+                                        {vizMode === 'wealth' ? t('Mars.WealthPath') : t('Mars.DividendHistory')}
+                                    </h3>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setVizMode('wealth')}
+                                            className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'wealth' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
+                                        >
+                                            {t('Mars.Wealth')}
+                                        </button>
+                                        <button
+                                            onClick={() => setVizMode('dividend')}
+                                            className={`px-3 py-1 text-xs rounded transition font-bold ${vizMode === 'dividend' ? 'bg-[var(--color-cta)] text-black' : 'bg-white/10 text-[var(--color-text-muted)] hover:text-white'}`}
+                                        >
+                                            {t('Mars.Dividend')}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {detailResult && detailResult.BAO?.history ? (
+                                    <ReactECharts
+                                        option={{
+                                            backgroundColor: 'transparent',
+                                            tooltip: {
+                                                trigger: 'axis',
+                                                backgroundColor: 'rgba(0,0,0,0.9)',
+                                                borderColor: '#333',
+                                                textStyle: { color: '#fff' },
+                                                formatter: (params: any) => {
+                                                    let res = `<div style="margin-bottom:5px;font-weight:bold">${params[0].name}</div>`;
+                                                    params.forEach((p: any) => {
+                                                        const color = p.color;
+                                                        const seriesName = p.seriesName;
+                                                        const val = `$${Number(p.value).toLocaleString()}`;
+                                                        res += `<div style="display:flex;justify-content:space-between;gap:15px;font-size:12px">
+                                                                    <span style="color:${color}">● ${seriesName}</span>
+                                                                    <span style="font-weight:bold">${val}</span>
+                                                                </div>`;
+                                                    });
+                                                    return res;
+                                                }
+                                            },
+                                            legend: {
+                                                data: [
+                                                    { name: 'BAO (Open)', icon: 'path://M0,3 L26,3 L26,7 L0,7 Z' },
+                                                    { name: 'BAH (High)', icon: 'path://M0,3 L6,3 L6,7 L0,7 Z M10,3 L16,3 L16,7 L10,7 Z M20,3 L26,3 L26,7 L20,7 Z' },
+                                                    { name: 'BAL (Low)', icon: 'path://M0,3 L6,3 L6,7 L0,7 Z M10,3 L16,3 L16,7 L10,7 Z M20,3 L26,3 L26,7 L20,7 Z' }
+                                                ],
+                                                top: 0,
+                                                textStyle: { color: '#ccc' }
+                                            },
+                                            grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
+                                            xAxis: {
+                                                type: 'category',
+                                                boundaryGap: false,
+                                                data: detailResult.BAO.history.map((d: any) => d.year),
+                                                axisLine: { lineStyle: { color: '#666' } },
+                                                axisLabel: { color: '#888' }
+                                            },
+                                            yAxis: {
+                                                type: 'value',
+                                                splitLine: { lineStyle: { color: '#333' } },
+                                                axisLabel: { color: '#888', formatter: (val: number) => `$${(val / 1000000).toFixed(1)}M` }
+                                            },
+                                            series: [
+                                                // BAO - Cyan (Primary)
+                                                {
+                                                    name: 'BAO (Open)',
+                                                    data: detailResult.BAO.history.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend),
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#00eeee', width: 3 },
+                                                    itemStyle: { color: '#00eeee' },
+                                                    z: 3
+                                                },
+                                                // BAL - Green (Best Case usually)
+                                                {
+                                                    name: 'BAL (Low)',
+                                                    data: detailResult.BAL?.history?.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend) || [],
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#4ade80', width: 2, type: 'dashed' },
+                                                    itemStyle: { color: '#4ade80' },
+                                                    z: 2
+                                                },
+                                                // BAH - Red/Orange (Worst Case usually)
+                                                {
+                                                    name: 'BAH (High)',
+                                                    data: detailResult.BAH?.history?.map((d: any) => vizMode === 'wealth' ? d.value : d.dividend) || [],
+                                                    type: 'line',
+                                                    smooth: true,
+                                                    showSymbol: false,
+                                                    lineStyle: { color: '#f87171', width: 2, type: 'dashed' },
+                                                    itemStyle: { color: '#f87171' },
+                                                    z: 1
+                                                }
+                                            ]
+                                        }}
+                                        style={{ height: '400px', width: '100%' }}
+                                    />
+                                ) : (
+                                    <div className="h-[400px] flex items-center justify-center text-[var(--color-text-muted)]">
+                                        {detailLoading ? t('Mars.LoadingChart') : t('Mars.SelectRow')}
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
+            <SyncIndicator isSyncing={isCalculating || detailLoading} />
+        </div>
+    );
+}

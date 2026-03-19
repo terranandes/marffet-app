@@ -49,7 +49,7 @@ class Round7Tester:
                 "sameSite": "Lax",
             }])
             # Navigate to portfolio to confirm session is active
-            await page.goto(f"{self.target_url}/portfolio", wait_until="networkidle")
+            await page.goto(f"{self.target_url}/portfolio", wait_until="domcontentloaded")
             await asyncio.sleep(2)
             print(f"   [Auth] Cookie injected, navigated to /portfolio")
         elif email:
@@ -89,7 +89,7 @@ class Round7Tester:
 
     async def verify_area_b(self, page):
         print(f"   [Area B] Mars Strategy")
-        await page.goto(f"{self.target_url}/mars", wait_until="networkidle")
+        await page.goto(f"{self.target_url}/mars", wait_until="domcontentloaded")
         await asyncio.sleep(3)  # Allow table rendering
         # Wait for either table or card view
         try:
@@ -116,7 +116,7 @@ class Round7Tester:
 
     async def verify_area_e(self, page):
         print(f"   [Area E] Portfolio CRUD")
-        await page.goto(f"{self.target_url}/portfolio", wait_until="networkidle")
+        await page.goto(f"{self.target_url}/portfolio", wait_until="domcontentloaded")
         await asyncio.sleep(3)
         
         # Explicitly wait for portfolio page content (specific to main body, not sidebar nav)

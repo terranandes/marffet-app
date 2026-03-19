@@ -207,3 +207,6 @@
 ### Agents Sync Meeting — 2026-03-19
 - [x] v31 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v31.md` & `docs/code_review/code_review_2026_03_19_sync_v30.md`
   - Phase 38 P0/P1 COMPLETE. CSRF POST, retry utility, strict typing, skeleton UX. Chrome DevTools MCP installed.
+  - Phase 38 Zeabur Native Verification via session cookie injection COMPLETE. (TerranFund/TerranStock passed on Desktop & Mobile).
+- [x] v32 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v32.md` & `docs/code_review/code_review_2026_03_19_sync_v31.md`
+  - Zeabur remote verification completed with real session cookies. `networkidle`→`domcontentloaded` test fix. Chrome DevTools MCP retrospective.

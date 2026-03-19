@@ -128,8 +128,8 @@ An intelligent investment assistant powered by Google Gemini.
 
 Love the Marffet Investment System? You can sponsor our development and unlock **Premium** or **VIP** features!
 
-<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="../../frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
-<a href="https://ko-fi.com/terranandes" target="_blank"><img src="../../frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/terranandes)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/terranandes)
 
 1. Go to **Settings** ⚙️ and click the **Sponsor Us** tab.
 2. Choose your preferred platform to sponsor.

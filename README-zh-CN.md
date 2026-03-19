@@ -99,8 +99,8 @@ Marffet 是一款基于网页的投资模拟与投资组合追踪工具，旨在
 
 喜欢玛斯投资系统吗？您可以通过赞助我们的开发工作来解锁 **VIP** 或 **Premium (高级)** 功能！
 
-<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
-<a href="https://ko-fi.com/terranandes" target="_blank"><img src="frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
+<a href="https://www.buymeacoffee.com/terranandes" target="_blank"><img src="../../frontend/public/images/bmc-yellow-button.png" alt="Buy Me A Coffee" height="50"></a>
+<a href="https://ko-fi.com/terranandes" target="_blank"><img src="../../frontend/public/images/kofi-blue-button.png" alt="Ko-fi" height="50"></a>
 
 1. 前往 **设置 (Settings)** ⚙️ 并点击 **赞助我们 (Sponsor Us)** 分页。
 2. 选择您偏好的平台进行赞助。

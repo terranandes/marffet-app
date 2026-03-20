@@ -205,7 +205,7 @@
 - [x] Service Worker Data Persistence (last-known Portfolio state in Disk-Cache)
 - [x] Public repo `marffet-app` sync (icon fix & README polish)
 
-### Agents Sync Meeting — 2026-03-19
+### Agents Sync Meeting — 2026-03-19 / 2026-03-20
 - [x] v31 Ref: `docs/meeting/meeting_notes_2026_03_19_sync_v31.md` & `docs/code_review/code_review_2026_03_19_sync_v30.md`
   - Phase 38 P0/P1 COMPLETE. CSRF POST, retry utility, strict typing, skeleton UX. Chrome DevTools MCP installed.
   - Phase 38 Zeabur Native Verification via session cookie injection COMPLETE. (TerranFund/TerranStock passed on Desktop & Mobile).
@@ -215,3 +215,23 @@
   - No code changes. Admin Dashboard & Notification review discussion. Phase 39 planning: notification tier gating identified as P1.
 - [x] v34 Ref: `docs/meeting/meeting_notes_2026_03_20_sync_v34.md` & `docs/code_review/code_review_2026_03_20_sync_v33.md`
   - Phase 38 officially CLOSED. Public repo sync complete. Phase 39 priorities set to Notification Gating and Sentry.
+- [x] v35 Ref: `docs/meeting/meeting_notes_2026_03_20_sync_v35.md` & `docs/code_review/code_review_2026_03_20_sync_v34.md`
+  - Multi-agent brainstorming APPROVED Phase 39 plan. Document-flow reviewed. 23/23 Jira CLOSED. No code changes to review.
+
+## 37. Phase 39: Notification Tier Gating & Sentry Integration
+
+### Notification Tier Gating (P1)
+- [ ] **[SPEC]** Create Implementation Plan for Notification Tier Gating
+- [ ] **[CODE]** Delete orphaned `RuthlessManager` class from `engines.py`
+- [ ] **[CODE]** Add tier check to `/api/notifications` endpoint — gate alerts by `user.is_premium` / `user.is_vip`
+- [ ] **[UI]** Design "Upgrade to Premium" CTA for gated notification alerts
+- [ ] **[CV]** Add test plan cases for notification tier gating verification
+
+### Sentry Integration (P2)
+- [ ] **[CODE]** Integrate Sentry SDK into FastAPI backend
+- [ ] **[UI]** Integrate Sentry SDK into Next.js frontend (verify tree-shaking)
+- [ ] **[CV]** Verify Sentry captures errors in both environments
+
+### AI Copilot Wealth Manager (P2 — Deferred)
+- [ ] **[SPEC]** Define VIP-only AI Copilot feature spec
+- [ ] **[CODE]** Implement advanced AI personality for VIP users

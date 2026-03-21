@@ -158,6 +158,8 @@ uv run tests/unit/test_mobile_portfolio.py
 - [ ] Settings Modal opens with 4+ tabs
 - [ ] Start Page dropdown explicitly does NOT show "Mars Strategy"
 - [ ] Transaction & Dividend History modals open correctly
+- [ ] Premium Filter drops premium alerts for Guest/FREE users
+- [ ] "Upgrade to Premium" CTA displayed in Sidebar and MobileTopBar for `upgrade_cta` type
 
 ### Area I: AI Copilot
 - [ ] FAB (floating rocket ✨ button) visible on Portfolio page
@@ -174,6 +176,14 @@ uv run tests/unit/test_mobile_portfolio.py
 - [ ] Bottom Tab Bar scrollable horizontally
 
 ## 3. Regression Tests
+
+### v3.11 (Phase 39) - Notification Tier Gating & Sentry
+| Test | Expected | Status |
+|------|----------|--------|
+| Tier Gating Backend | Non-premium users receiving premium alerts get `upgrade_cta` injection | ⏳ Pending |
+| CTA Frontend Render | `MobileTopBar` and `Sidebar` render the Upgrade CTA correctly | ⏳ Pending |
+| Sentry Backend | `sentry-sdk` initialized correctly without throwing error | ⏳ Pending |
+| Sentry Frontend | `@sentry/nextjs` initialized on client/server/edge configurations | ⏳ Pending |
 
 ### v3.6 (Current) - Auth, Admin Dashboard & DB Locks
 | Test | Expected | Status |

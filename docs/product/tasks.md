@@ -232,6 +232,10 @@
 - [x] **[UI]** Integrate Sentry SDK into Next.js frontend (verify tree-shaking)
 - [x] **[CV]** Verify Sentry captures errors in both environments
 
+### Agents Sync Meeting — 2026-03-22
+- [x] v36 Ref: `docs/meeting/meeting_notes_2026_03_22_sync_v36.md` & `docs/code_review/code_review_2026_03_22_sync_v35.md`
+  - Phase 39 COMPLETE. Code review APPROVED (20 files, 752+/14−). E2E passed local + Zeabur. Worktree `test-playwright` cleaned.
+
 ### AI Copilot Wealth Manager (P2 — Deferred)
 - [ ] **[SPEC]** Define VIP-only AI Copilot feature spec
 - [ ] **[CODE]** Implement advanced AI personality for VIP users

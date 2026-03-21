@@ -241,3 +241,8 @@
 ### AI Copilot Wealth Manager (P2 — Deferred)
 - [ ] **[SPEC]** Define VIP-only AI Copilot feature spec
 - [ ] **[CODE]** Implement advanced AI personality for VIP users
+
+## 38. Phase 40: Public Repo Sync & Sentry Setup
+- [x] **[P1]** Sync public repo `marffet-app` with Phase 39 changes
+- [x] **[P2]** Add missing `id`, `title`, `is_read` fields to `upgrade_cta` notification
+- [x] **[P2]** Set up Sentry DSN env vars on Zeabur (BOSS Action Required via Dashboard)

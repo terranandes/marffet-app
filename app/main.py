@@ -1357,11 +1357,14 @@ async def get_notifications(user: dict = Depends(get_current_user)):
                 if user_tier == 'Free':
                     if not has_cta:
                         alerts.append({
+                            "id": "upgrade",
                             "type": "upgrade_cta",
                             "level": "info",
+                            "title": "Premium Feature",
                             "message": "🔒 Premium Feature: Upgrade to see Convertible Bond Arbitrage and advanced rebalancing alerts.",
                             "target_id": "upgrade",
-                            "action_url": "/dashboard/settings"
+                            "action_url": "/dashboard/settings",
+                            "is_read": False
                         })
                         has_cta = True
                 else:

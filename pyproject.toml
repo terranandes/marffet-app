@@ -24,6 +24,7 @@ dependencies = [
     "uvicorn>=0.40.0",
     "ijson>=3.3.0",
     "yfinance>=1.0",
+    "sentry-sdk[fastapi]>=2.52.0",
 ]
 
 [dependency-groups]

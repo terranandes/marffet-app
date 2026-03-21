@@ -20,6 +20,15 @@ import os
 import sys
 import traceback
 from datetime import datetime
+import sentry_sdk
+
+# Initialize Sentry
+if os.environ.get("SENTRY_DSN_BACKEND"):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN_BACKEND"),
+        traces_sample_rate=1.0,
+    )
+
 # import numpy as np # Lazy Import
 from pathlib import Path
 
@@ -1337,7 +1346,28 @@ async def get_notifications(user: dict = Depends(get_current_user)):
         
         # 2. Generate Alerts
         engine = NotificationEngine()
-        alerts = await engine.generate_alerts(portfolio)
+        raw_alerts = await engine.generate_alerts(portfolio)
+        
+        alerts = []
+        user_tier = user.get('tier', 'Free') if user else 'Free'
+        has_cta = False
+        
+        for alert in raw_alerts:
+            if alert.get('type', '').startswith('strategy_cb_'):
+                if user_tier == 'Free':
+                    if not has_cta:
+                        alerts.append({
+                            "type": "upgrade_cta",
+                            "level": "info",
+                            "message": "🔒 Premium Feature: Upgrade to see Convertible Bond Arbitrage and advanced rebalancing alerts.",
+                            "target_id": "upgrade",
+                            "action_url": "/dashboard/settings"
+                        })
+                        has_cta = True
+                else:
+                    alerts.append(alert)
+            else:
+                alerts.append(alert)
         
         return alerts
     except Exception as e:

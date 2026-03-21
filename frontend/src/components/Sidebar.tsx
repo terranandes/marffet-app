@@ -124,7 +124,7 @@ export default function Sidebar() {
                                                         className={`p-3 border-b border-zinc-800/50 text-sm hover:bg-white/5 cursor-pointer transition ${!n.is_read ? 'bg-blue-500/10' : ''}`}
                                                     >
                                                         <div className="flex justify-between mb-1">
-                                                            <span className={`font-bold text-xs ${n.type === 'alert' ? 'text-red-400' : 'text-blue-400'}`}>
+                                                            <span className={`font-bold text-xs ${n.type === 'alert' ? 'text-red-400' : n.type === 'upgrade_cta' ? 'text-purple-400' : 'text-blue-400'}`}>
                                                                 {n.title}
                                                             </span>
                                                             <span className="text-[10px] text-zinc-500">
@@ -134,6 +134,13 @@ export default function Sidebar() {
                                                         <p className={`text-zinc-300 ${!n.is_read ? 'font-medium text-white' : ''}`}>
                                                             {n.message}
                                                         </p>
+                                                        {n.type === 'upgrade_cta' && (
+                                                            <div className="mt-2 text-right">
+                                                                <button onClick={(e) => { e.stopPropagation(); setSettingsActiveTab("sponsor"); setShowSettings(true); setShowNotifications(false); markAsRead(n.id); }} className="inline-block px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-bold rounded shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] transition-all">
+                                                                    Upgrade to Premium
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))
                                             )}

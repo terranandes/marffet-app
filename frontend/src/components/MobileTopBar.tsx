@@ -79,12 +79,14 @@ export default function MobileTopBar() {
                                                     key={n.id}
                                                     onClick={() => {
                                                         markAsRead(n.id);
-                                                        setShowNotifications(false);
+                                                        if (n.type !== 'upgrade_cta') {
+                                                            setShowNotifications(false);
+                                                        }
                                                     }}
                                                     className={`p-3 border-b border-zinc-800/50 text-sm active:bg-white/10 transition ${!n.is_read ? 'bg-blue-500/10' : ''}`}
                                                 >
                                                     <div className="flex justify-between mb-1">
-                                                        <span className={`font-bold text-xs ${n.type === 'alert' ? 'text-red-400' : 'text-blue-400'}`}>
+                                                        <span className={`font-bold text-xs ${n.type === 'alert' ? 'text-red-400' : n.type === 'upgrade_cta' ? 'text-purple-400' : 'text-blue-400'}`}>
                                                             {n.title}
                                                         </span>
                                                         <span className="text-[10px] text-zinc-500">
@@ -94,6 +96,13 @@ export default function MobileTopBar() {
                                                     <p className={`text-zinc-300 ${!n.is_read ? 'font-medium text-white' : ''}`}>
                                                         {n.message}
                                                     </p>
+                                                    {n.type === 'upgrade_cta' && (
+                                                        <div className="mt-2 text-right">
+                                                            <a href="https://ko-fi.com/terranandes" target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-bold rounded shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] transition-all">
+                                                                Upgrade to Premium
+                                                            </a>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))
                                         )}

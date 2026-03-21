@@ -57,7 +57,7 @@ MCP related MCP or skill
 
 | 平台 / 工具             | 專案目錄 (Project Scope) | 使用者全域目錄 (Global Scope)    |
 | :---                   | :---                     | :---                           |
-| **Google Antigravity** | `.agent/rules/`          | `~/.gemini/GEMINI.md`          |
+| **Google Antigravity** | `.agents/rules/`          | `~/.gemini/GEMINI.md`          |
 | **Gemini CLI**         | `./GEMINI.md`            | `~/.gemini/GEMINI.md`          |
 | **OpenCode**           | `./AGENTS.md`            | `~/.config/opencode/AGENTS.md` |
 | **Claude**             | `./CLAUDE.md`, `.claude/CLAUDE.md` and `.claude/rules/` | `~/.claude/CLAUDE.md` |
@@ -66,16 +66,16 @@ MCP related MCP or skill
 
 | 平台 / 工具               | 專案目錄 (Project Scope) | 使用者全域目錄 (Global Scope)             |
 | :---                     | :---                     | :---                                    |
-| **Google Antigravity**   | `.agent/skills/`         | `~/.gemini/antigravity/global_skills/`  |
+| **Google Antigravity**   | `.agents/skills/`         | `~/.gemini/antigravity/skills/`  |
 | **Gemini CLI**           | `.gemini/skills/`        | `~/.gemini/skills/`                     |
 | **OpenCode**             | `.opencode/skills/`      | `~/.config/opencode/skills/`            |
-| **Claude**             | `.claude/skills/`      | `~/.claude/skills/`            |
+| **Claude**               | `.claude/skills/`      | `~/.claude/skills/`            |
 
 ## AI 工具 workflows/commands 目錄對照表
 
 | 平台 / 工具             | 專案目錄 (Project Scope)  | 使用者全域目錄 (Global Scope)              |
 | :---                   | :---                     | :---                                      |
-| **Google Antigravity** | `.agent/workflows/`      | `~/.gemini/antigravity/global_workflows`  |
+| **Google Antigravity** | `.agents/workflows/`      | `~/.gemini/antigravity/global_workflows`  |
 | **Gemini CLI**         | `.gemini/commands/`      | `~/.gemini/commands/`                     |
 | **OpenCode**           | `.opencode/commands/`    | `~/.config/opencode/commands/`            |
-| **Claude**           | `.claude/commands/`    | `~/.claude/commands/`            |
+| **Claude**             | `.claude/commands/`    | `~/.claude/commands/`            |

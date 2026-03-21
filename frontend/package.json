@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.45.0",
     "clsx": "^2.1.0",
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",

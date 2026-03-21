@@ -221,16 +221,16 @@
 ## 37. Phase 39: Notification Tier Gating & Sentry Integration
 
 ### Notification Tier Gating (P1)
-- [ ] **[SPEC]** Create Implementation Plan for Notification Tier Gating
-- [ ] **[CODE]** Delete orphaned `RuthlessManager` class from `engines.py`
-- [ ] **[CODE]** Add tier check to `/api/notifications` endpoint — gate alerts by `user.is_premium` / `user.is_vip`
-- [ ] **[UI]** Design "Upgrade to Premium" CTA for gated notification alerts
-- [ ] **[CV]** Add test plan cases for notification tier gating verification
+- [x] **[SPEC]** Create Implementation Plan for Notification Tier Gating
+- [x] **[CODE]** Delete orphaned `RuthlessManager` class from `engines.py`
+- [x] **[CODE]** Add tier check to `/api/notifications` endpoint — gate alerts by `user.is_premium` / `user.is_vip`
+- [x] **[UI]** Design "Upgrade to Premium" CTA for gated notification alerts
+- [x] **[CV]** Add test plan cases for notification tier gating verification
 
 ### Sentry Integration (P2)
-- [ ] **[CODE]** Integrate Sentry SDK into FastAPI backend
-- [ ] **[UI]** Integrate Sentry SDK into Next.js frontend (verify tree-shaking)
-- [ ] **[CV]** Verify Sentry captures errors in both environments
+- [x] **[CODE]** Integrate Sentry SDK into FastAPI backend
+- [x] **[UI]** Integrate Sentry SDK into Next.js frontend (verify tree-shaking)
+- [x] **[CV]** Verify Sentry captures errors in both environments
 
 ### AI Copilot Wealth Manager (P2 — Deferred)
 - [ ] **[SPEC]** Define VIP-only AI Copilot feature spec

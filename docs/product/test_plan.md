@@ -180,10 +180,10 @@ uv run tests/unit/test_mobile_portfolio.py
 ### v3.11 (Phase 39) - Notification Tier Gating & Sentry
 | Test | Expected | Status |
 |------|----------|--------|
-| Tier Gating Backend | Non-premium users receiving premium alerts get `upgrade_cta` injection | ⏳ Pending |
-| CTA Frontend Render | `MobileTopBar` and `Sidebar` render the Upgrade CTA correctly | ⏳ Pending |
-| Sentry Backend | `sentry-sdk` initialized correctly without throwing error | ⏳ Pending |
-| Sentry Frontend | `@sentry/nextjs` initialized on client/server/edge configurations | ⏳ Pending |
+| Tier Gating Backend | Non-premium users receiving premium alerts get `upgrade_cta` injection | ✅ PASSED Remote |
+| CTA Frontend Render | `MobileTopBar` and `Sidebar` render the Upgrade CTA correctly | ✅ PASSED Remote |
+| Sentry Backend | `sentry-sdk` initialized correctly without throwing error | ✅ PASSED Remote |
+| Sentry Frontend | `@sentry/nextjs` initialized on client/server/edge configurations | ✅ PASSED Remote |
 
 ### v3.6 (Current) - Auth, Admin Dashboard & DB Locks
 | Test | Expected | Status |

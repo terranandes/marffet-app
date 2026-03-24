@@ -91,6 +91,17 @@ uv run tests/unit/test_mobile_portfolio.py
 *   **Scope**: Full end-to-end framework verification (Build + Start + Playwright MCP) executed in an isolated git worktree (`.worktrees/martian-test-local`) on alternate ports (3001/8001) to prevent impacting the developer's main environment. Highly effective for catching Next.js hydration and build-time compilation errors.
 
 
+## Phase 41: Minor Enhancements & Sentry Tuning (`dfafb8c`)
+**Date:** 2026-03-24
+**Type:** Regression & Feature Verification
+**Status:** In Progress
+
+| Feature | Action | Expected Output | Actual | Status |
+| --- | --- | --- | --- | --- |
+| **Mobile Nav Layout** | View mobile via Playwright | `data-testid="bottom-tab-bar"` locator works for elements. | Locator successfully bounds the nav elements. | ✅ PASSED |
+| **Backend Notifications** | Inspect `upgrade_cta` object returned by api | Object contains `timestamp` (ISO) and `is_read`. | Backend API effectively formats and delivers timestamp. | ✅ PASSED |
+| **Sentry Config** | Zeabur build | Sentry Next config passes TS check and UI builds correctly. | Passed tsc checks and deployed functional build. | ✅ PASSED |
+
 ## 2. Full Feature Verification Checklist (One Round Pass)
 
 **Goal:** Exhaustively verify every designed feature in the Marffet system across Desktop and Mobile viewports for a single full-coverage pass.

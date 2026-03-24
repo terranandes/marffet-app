@@ -156,6 +156,13 @@ def run_mobile_test():
             else:
                 print("❌ Table View is VISIBLE (Incorrect)")
 
+            # Check Bottom Tab Bar is VISIBLE
+            tab_bar_visible = page.locator('[data-testid="bottom-tab-bar"]').is_visible()
+            if tab_bar_visible:
+                print("✅ Bottom Tab Bar is VISIBLE")
+            else:
+                print("❌ Bottom Tab Bar is HIDDEN (Incorrect)")
+
             # Check Card is VISIBLE
             # The card header contains "TSMC" and market value
             # We look for the card container.

@@ -25,4 +25,4 @@ Update `test_mobile_portfolio.py` to:
 2. Or rewrite the locator logic to select the first visible group instead of requiring an exact string matching `Mobile Test`.
 
 ## Status
-Logged. Proceeding with Zeabur remote deployment as Desktop E2E verified core functionality.
+✅ **CLOSED (2026-03-19)** — Fixed in `tests/unit/test_mobile_portfolio.py` by switching to first-visible group selection with `scroll_into_view_if_needed()`. All mobile E2E passes verified in Phase 37 Round 7.

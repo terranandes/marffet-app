@@ -246,3 +246,14 @@
 - [x] **[P1]** Sync public repo `marffet-app` with Phase 39 changes
 - [x] **[P2]** Add missing `id`, `title`, `is_read` fields to `upgrade_cta` notification
 - [x] **[P2]** Set up Sentry DSN env vars on Zeabur (BOSS Action Required via Dashboard)
+- [x] **[CV]** Full local E2E Playwright regression suite — 19/19 passed (2026-03-24)
+- [x] **[CV]** `test_plan.md` updated to v3.12 (Phase 40 regression table)
+- [x] v38 Ref: `docs/meeting/meeting_notes_2026_03_24_sync_v38.md` & `docs/code_review/code_review_2026_03_24_sync_v36.md`
+  - Phase 40 COMPLETE. Full E2E local pass. Worktree CV_phase40_test removed. Phase 41 planning approved.
+
+## 39. Phase 41: Data-Testid, Sentry Tuning & Notification Completeness
+- [ ] **[UI]** Add `data-testid="bottom-tab-bar"` to `BottomTabBar` root `div`
+- [ ] **[CODE]** Add `timestamp` field to `upgrade_cta` notification dict
+- [ ] **[CODE]** Tune Sentry `traces_sample_rate` to 0.1–0.2 for production cost management
+- [ ] **BOSS** Run `gh auth login` to restore CLI public repo sync capability
+- [ ] **BOSS** Zeabur: set `SENTRY_DSN_BACKEND` + `NEXT_PUBLIC_SENTRY_DSN` environment variables

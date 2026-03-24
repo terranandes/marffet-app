@@ -177,6 +177,18 @@ uv run tests/unit/test_mobile_portfolio.py
 
 ## 3. Regression Tests
 
+### v3.12 (Phase 40) - Full Local E2E Verification (2026-03-24)
+| Test | Expected | Status |
+|------|----------|--------|
+| Backend Health | `/` returns 200 | ✅ PASSED Local |
+| Desktop > All 6 Tabs | Portfolio, Mars, BCR, Trend, CB, Ladder load clean | ✅ PASSED Local |
+| Mobile > All 6 Tabs | Same 6 tabs load clean on iPhone 12 viewport | ✅ PASSED Local |
+| Core CRUD Suite | Guest entry, Group create, Stock add (2330), Transaction add | ✅ PASSED Local |
+| Mobile Card Layout | Table hidden, Card visible, Card expand, Trade/History buttons | ✅ PASSED Local |
+| `upgrade_cta` Fields | `id`, `title`, `is_read`, `message`, `action_url` present in source | ✅ Verified (Code) |
+| Notification Auth Gate | `/api/notifications` requires auth (500 without session) | ✅ Expected Behavior |
+| Sentry Backend | `sentry-sdk` loaded without crash | ✅ PASSED Local |
+
 ### v3.11 (Phase 39) - Notification Tier Gating & Sentry
 | Test | Expected | Status |
 |------|----------|--------|

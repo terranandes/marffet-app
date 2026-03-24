@@ -23,18 +23,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(
-  nextConfig,
-  {
-    silent: true,
-    org: "marffet",
-    project: "frontend",
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  org: "marffet",
+  project: "frontend",
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
   },
-  {
-    widenClientFileUpload: true,
-    transpileClientSDK: true,
-    tunnelRoute: "/monitoring",
-    hideSourceMaps: true,
-    disableLogger: true,
-  }
-);
+  disableLogger: true,
+});

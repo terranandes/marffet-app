@@ -250,6 +250,8 @@
 - [x] **[CV]** `test_plan.md` updated to v3.12 (Phase 40 regression table)
 - [x] v38 Ref: `docs/meeting/meeting_notes_2026_03_24_sync_v38.md` & `docs/code_review/code_review_2026_03_24_sync_v36.md`
   - Phase 40 COMPLETE. Full E2E local pass. Worktree CV_phase40_test removed. Phase 41 planning approved.
+- [x] v39 Ref: `docs/meeting/meeting_notes_2026_03_24_sync_v39.md` & `docs/code_review/code_review_2026_03_24_sync_v37.md`
+  - Zeabur Build Hotfix (`ace008c`). Sentry v10 `withSentryConfig` API updated to 2-arg form. Rebase merged over nightly backups.
 
 ## 39. Phase 41: Data-Testid, Sentry Tuning & Notification Completeness
 - [ ] **[UI]** Add `data-testid="bottom-tab-bar"` to `BottomTabBar` root `div`

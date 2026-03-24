@@ -36,7 +36,7 @@ const SidebarItem = ({
     icon: React.ReactNode;
 }) => {
     const pathname = usePathname();
-    const active = pathname === href;
+    const active = pathname === href || (pathname?.startsWith(href + "/") ?? false);
 
     return (
         <Link

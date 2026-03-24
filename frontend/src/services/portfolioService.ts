@@ -158,7 +158,10 @@ class ApiPortfolioService implements IPortfolioService {
                 if (stockIdsParam) {
                     console.log(`[Portfolio] Cache miss for ${missingIds.length} stocks. Fetching...`);
                     try {
-                        const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIdsParam}`, { credentials: "include" });
+                        const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIdsParam}`, { 
+                            credentials: "include",
+                            signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined
+                        });
                         if (pRes.ok) {
                             const newPrices = await pRes.json();
                             // Merge into local map

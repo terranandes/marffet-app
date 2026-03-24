@@ -48,6 +48,7 @@
 |----------|------------|-------|
 | Containerization | Docker | Multi-stage builds |
 | E2E Testing | Playwright MCP | Headless browser automation |
+| Error Tracking | **Sentry** | SDK v10 (Next.js & FastAPI), Traces Sample Rate = 0.1 |
 | CI/CD | Zeabur | Auto-deploy on git push |
 
 ## 5. UI Alignment Status ✅

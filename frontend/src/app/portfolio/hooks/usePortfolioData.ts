@@ -72,10 +72,10 @@ export function usePortfolioData() {
         { keepPreviousData: true, fallbackData: [] }
     );
 
-    const { data: targets = [], mutate: mutateTargets, isValidating: targetsLoading } = useSWR<Target[]>(
+    const { data: targets = [], mutate: mutateTargets, isValidating: targetsLoading, isLoading: targetsIsLoading } = useSWR<Target[]>(
         (service && selectedGroupId) ? `portfolio-targets-${selectedGroupId}` : null,
         fetchTargetsWithService,
-        { keepPreviousData: true, fallbackData: [] }
+        { keepPreviousData: false, fallbackData: [] }
     );
 
     const { data: dividendCash = { total_cash: 0, dividend_count: 0 }, mutate: mutateDividends } = useSWR<{ total_cash: number; dividend_count: number }>(
@@ -91,7 +91,7 @@ export function usePortfolioData() {
         }
     }, [groups, selectedGroupId]);
 
-    const loading = (!service && !isGuest) || (!targets && targetsLoading);
+    const loading = (!service && !isGuest) || targetsIsLoading;
 
     // Stats: Computed dynamically based on targets instead of stored in state 
     // to ensure they reflect live updates when single targets are refreshed.

@@ -138,7 +138,19 @@ The system enforces a **5-tier access model** with strict precedence: `GM > VIP 
 
 The `NotificationEngine` evaluates user portfolios and generates alerts based on automated strategies. Alerts are fetched via `GET /api/notifications`.
 
-### 4.1 Active Triggers (Global)
+### 4.1 Response Format (`upgrade_cta` example)
+```json
+{
+  "id": "notice_cb_discount",
+  "title": "CB Arbitrage Opportunity",
+  "message": "Found 2 CBs with healthy premiums",
+  "action_url": "/cb",
+  "timestamp": "2026-03-24T12:00:00.000000Z",
+  "is_read": false
+}
+```
+
+### 4.2 Active Triggers (Global)
 These triggers currently apply globally to all users:
 - **SMA Pair Rebalancing (Gravity Alert)**: Identifies Overvalued (> +20% vs SMA 250) and Undervalued (< -20% vs SMA 250) assets. Suggests a 30% exchange pair trade.
 - **Market Cap Rebalancing (Size Authority)**: Flags positions representing > 1.2x or < 0.8x the portfolio average market cap. Suggests a 30% exchange from High to Low cap.
@@ -146,7 +158,7 @@ These triggers currently apply globally to all users:
   - *Arbitrage*: CB Premium < -1% (Suggests Buy CB, Sell Stock).
   - *Strong Sell*: CB Premium >= 30% (Suggests Sell CB, Buy Stock).
 
-### 4.2 Legacy Triggers (`RuthlessManager`)
+### 4.3 Legacy Triggers (`RuthlessManager`)
 - An orphaned engine (`RuthlessManager` in `engines.py`) exists with legacy Premium-only restrictions but is currently inactive and not scheduled.
 
 ## 5. Deployment Strategy

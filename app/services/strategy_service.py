@@ -195,6 +195,11 @@ class MarsStrategy:
                     
                 if processed_count > 0 and (processed_count % 500 == 0 or processed_count == total_stocks):
                     logger.info(f"  Processed {processed_count}/{total_stocks} stocks...")
+                
+                # CRITICAL: Yield to the event loop after processing each chunk
+                # to prevent blocking incoming API requests (e.g. /auth/login)
+                import asyncio
+                await asyncio.sleep(0)
                     
         finally:
             conn.close()

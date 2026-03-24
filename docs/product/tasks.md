@@ -162,6 +162,7 @@
 
 ### BUG Fixes
 - [x] **BUG-021** — Auth Account Switch Failure (`?error=auth_failed`)
+- [x] **BUG-021-PL CLOSED** — Auth Account Switch Failure (`?error=auth_failed`)
   - Root Cause: Fire-and-forget logout race condition in `UserContext.tsx`
   - Fix 1: `await fetch('/auth/logout')` before `router.push('/')` in `UserContext.tsx`
   - Fix 2: `auth.py` logout returns JSON for `fetch()`, explicitly `delete_cookie("session")`
@@ -254,8 +255,9 @@
   - Zeabur Build Hotfix (`ace008c`). Sentry v10 `withSentryConfig` API updated to 2-arg form. Rebase merged over nightly backups.
 
 ## 39. Phase 41: Data-Testid, Sentry Tuning & Notification Completeness
+- [x] **BUG-023-PL CLOSED** — Uvicorn Event Loop Hang on Startup Cache Warmup affecting `/auth/login`. Added `await asyncio.sleep(0)` to `MarsStrategy.analyze`.
 - [ ] **[UI]** Add `data-testid="bottom-tab-bar"` to `BottomTabBar` root `div`
 - [ ] **[CODE]** Add `timestamp` field to `upgrade_cta` notification dict
 - [ ] **[CODE]** Tune Sentry `traces_sample_rate` to 0.1–0.2 for production cost management
-- [ ] **BOSS** Run `gh auth login` to restore CLI public repo sync capability
-- [ ] **BOSS** Zeabur: set `SENTRY_DSN_BACKEND` + `NEXT_PUBLIC_SENTRY_DSN` environment variables
+- [x] **BOSS** Run `gh auth login` to restore CLI public repo sync capability
+- [x] **BOSS** Zeabur: set `SENTRY_DSN_BACKEND` + `NEXT_PUBLIC_SENTRY_DSN` environment variables

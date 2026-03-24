@@ -26,7 +26,7 @@ import sentry_sdk
 if os.environ.get("SENTRY_DSN_BACKEND"):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DSN_BACKEND"),
-        traces_sample_rate=1.0,
+        traces_sample_rate=0.1,
     )
 
 # import numpy as np # Lazy Import
@@ -1364,7 +1364,8 @@ async def get_notifications(user: dict = Depends(get_current_user)):
                             "message": "🔒 Premium Feature: Upgrade to see Convertible Bond Arbitrage and advanced rebalancing alerts.",
                             "target_id": "upgrade",
                             "action_url": "/dashboard/settings",
-                            "is_read": False
+                            "is_read": False,
+                            "timestamp": datetime.utcnow().isoformat() + "Z"
                         })
                         has_cta = True
                 else:

@@ -44,7 +44,7 @@ export default function BottomTabBar() {
     };
 
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[#050510]/95 backdrop-blur-xl border-t border-zinc-800/80 flex h-16"
+        <div data-testid="bottom-tab-bar" className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[#050510]/95 backdrop-blur-xl border-t border-zinc-800/80 flex h-16"
             style={{ paddingBottom: "env(safe-area-inset-bottom)", height: "calc(64px + env(safe-area-inset-bottom))" }}
         >
             {/* Zone 3: Scrollable Tabs */}

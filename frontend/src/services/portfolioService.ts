@@ -158,20 +158,27 @@ class ApiPortfolioService implements IPortfolioService {
                 if (stockIdsParam) {
                     console.log(`[Portfolio] Cache miss for ${missingIds.length} stocks. Fetching...`);
                     try {
-                        const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIdsParam}`, { 
-                            credentials: "include",
-                            signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined
-                        });
-                        if (pRes.ok) {
-                            const newPrices = await pRes.json();
-                            // Merge into local map
-                            Object.assign(livePrices, newPrices);
+                        // Use AbortController for guaranteed 5s timeout on all runtimes
+                        const priceController = new AbortController();
+                        const priceTimer = setTimeout(() => priceController.abort(), 5000);
+                        try {
+                            const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIdsParam}`, { 
+                                credentials: "include",
+                                signal: priceController.signal
+                            });
+                            if (pRes.ok) {
+                                const newPrices = await pRes.json();
+                                // Merge into local map
+                                Object.assign(livePrices, newPrices);
 
-                            // Update Global Cache (Merge)
-                            priceCache = {
-                                data: { ...(priceCache?.data || {}), ...newPrices },
-                                timestamp: now
-                            };
+                                // Update Global Cache (Merge)
+                                priceCache = {
+                                    data: { ...(priceCache?.data || {}), ...newPrices },
+                                    timestamp: now
+                                };
+                            }
+                        } finally {
+                            clearTimeout(priceTimer);
                         }
                     } catch { }
                 }

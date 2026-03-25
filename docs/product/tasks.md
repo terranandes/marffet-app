@@ -261,3 +261,9 @@
 - [x] **[CODE]** Tune Sentry `traces_sample_rate` to 0.1–0.2 for production cost management
 - [x] **BOSS** Run `gh auth login` to restore CLI public repo sync capability
 - [x] **BOSS** Zeabur: set `SENTRY_DSN_BACKEND` + `NEXT_PUBLIC_SENTRY_DSN` environment variables
+
+### Agents Sync Meeting — 2026-03-25 / 2026-03-26
+- [x] v40 Ref: `docs/meeting/meeting_notes_2026_03_25_sync_v40.md` & `docs/code_review/code_review_2026_03_25_sync_v41.md`
+  - Phase 41 P2/P3 review fixes pushed. E2E blindspot analysis complete (SWR stale closure vs Playwright 1-group limitation).
+- [x] v42 Ref: `docs/meeting/meeting_notes_2026_03_26_sync_v42.md`
+  - Phase 41 successfully CLOSED. `CV_phase41_test` worktree removed. Phase 42 planning set to E2E upgrades and P2 UI polish.

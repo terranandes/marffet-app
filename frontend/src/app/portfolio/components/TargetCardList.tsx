@@ -39,18 +39,7 @@ export function TargetCardList({
 
     const totalPortfolioValue = targets.reduce((sum, t) => sum + (t.summary?.market_value || 0), 0);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.05 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, scale: 0.95, y: 10 },
-        show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-    };
+    // Removed Framer Motion mapping variants to prevent opacity: 0 bugs on dynamically loaded targets
 
     return (
         <div className="md:hidden w-full">
@@ -61,11 +50,8 @@ export function TargetCardList({
                     <span className="text-xs opacity-70 mt-1 max-w-[200px] text-center">{t('Portfolio.AddTickerToTrack')}</span>
                 </div>
             ) : (
-                <motion.div
+                <div
                     className="space-y-3 mt-2"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="show"
                 >
                     {targets.map((target) => {
                         const isExpanded = expandedTargets.has(target.id);
@@ -74,9 +60,8 @@ export function TargetCardList({
                             : 0;
 
                         return (
-                            <motion.div
+                            <div
                                 key={target.id}
-                                variants={itemVariants}
                                 className="bg-black/40 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 shadow-lg hover:border-cyan-500/20 group"
                             >
                                 {/* Collapsed Header (Always Visible) - Click to Expand */}
@@ -201,10 +186,10 @@ export function TargetCardList({
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </motion.div>
+                            </div>
                         );
                     })}
-                </motion.div>
+                </div>
             )}
         </div>
     );

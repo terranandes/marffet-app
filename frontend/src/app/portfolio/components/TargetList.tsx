@@ -41,18 +41,7 @@ export function TargetList({
     // Calculate total portfolio value to determine weights
     const totalPortfolioValue = targets.reduce((sum, t) => sum + (t.summary?.market_value || 0), 0);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.05 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 10 },
-        show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-    };
+    // Removed Framer Motion variants to fix empty rows bug
 
     return (
         <div>
@@ -103,21 +92,15 @@ export function TargetList({
                                 <th className="text-right py-3 px-4 font-medium rounded-tr-lg"></th>
                             </tr>
                         </thead>
-                        <motion.tbody
-                            className="divide-y divide-white/5 relative bg-black/20"
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="show"
-                        >
+                        <tbody className="divide-y divide-white/5 relative bg-black/20">
                             {targets.map((target) => {
                                 const weight = totalPortfolioValue > 0
                                     ? ((target.summary?.market_value || 0) / totalPortfolioValue) * 100
                                     : 0;
 
                                 return (
-                                    <motion.tr
+                                    <tr
                                         key={target.id}
-                                        variants={itemVariants}
                                         className="hover:bg-cyan-900/10 group transition duration-200"
                                         onMouseLeave={() => setActiveDropdown(null)}
                                     >
@@ -232,10 +215,10 @@ export function TargetList({
                                                 </AnimatePresence>
                                             </div>
                                         </td>
-                                    </motion.tr>
+                                    </tr>
                                 );
                             })}
-                        </motion.tbody>
+                        </tbody>
                     </table>
                 </div>
             )}

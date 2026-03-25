@@ -131,11 +131,17 @@ class ApiPortfolioService implements IPortfolioService {
     }
 
     async getTargets(groupId: string): Promise<Target[]> {
+        console.log(`[DEBUG] getTargets called for groupId: ${groupId}`);
         try {
             const res = await fetch(`${API_BASE}/api/portfolio/groups/${groupId}/targets?_cb=${Date.now()}`, { credentials: "include", cache: "no-store" });
-            if (!res.ok) return [];
+            if (!res.ok) {
+                console.error(`[DEBUG] Res not ok for group ${groupId}, status: ${res.status}`);
+                return [];
+            }
 
             const targets: Target[] = await res.json();
+            console.log(`[DEBUG] Fetched ${targets.length} targets for group ${groupId}`, targets);
+            
             if (targets.length === 0) return [];
 
             // Cache Logic: Check for missing prices
@@ -198,11 +204,15 @@ class ApiPortfolioService implements IPortfolioService {
                 try {
                     const sRes = await fetch(url, { credentials: "include", cache: "no-store" });
                     if (sRes.ok) t.summary = await sRes.json();
-                } catch { }
+                } catch (e) { console.error("Summary fetch error", e); }
             }));
 
+            console.log("Returning targets", targets.length);
             return targets;
-        } catch { return []; }
+        } catch (error) { 
+            console.error("GET TARGETS ERROR", error);
+            return []; 
+        }
     }
 
     async addTarget(groupId: string, stockId: string, name: string): Promise<Target | null> {
@@ -389,16 +399,18 @@ class GuestPortfolioService implements IPortfolioService {
         const stockIds = targets.map(t => t.stock_id).join(',');
         let livePrices: Record<string, { price: number; change: number; change_pct: number }> = {};
         if (stockIds) {
+            const priceController = new AbortController();
+            const priceTimer = setTimeout(() => priceController.abort(), 3000);
             try {
-                // Use Public endpoint if possible, or same endpoint?
-                // backend /api/portfolio/prices is technically open? No, depends on Auth middleware.
-                // We'll try fetching. If 401, we might need a public price proxy.
-                // Actually /api/portfolio/prices DOES NOT have Depends(get_current_user) in main.py? 
-                // Let's check main.py... It's just @app.get... def api_live_prices(stock_ids: str):
-                // It does NOT have dependency. So it IS public! Perfect.
-                const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`);
+                // Use Public endpoint if possible
+                const pRes = await fetch(`${API_BASE}/api/portfolio/prices?stock_ids=${stockIds}`, {
+                    signal: priceController.signal
+                });
+                clearTimeout(priceTimer);
                 if (pRes.ok) livePrices = await pRes.json();
-            } catch { }
+            } catch {
+                clearTimeout(priceTimer);
+            }
         }
 
         // Calculate "Lite" Stats Client-Side

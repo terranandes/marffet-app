@@ -267,3 +267,5 @@
   - Phase 41 P2/P3 review fixes pushed. E2E blindspot analysis complete (SWR stale closure vs Playwright 1-group limitation).
 - [x] v42 Ref: `docs/meeting/meeting_notes_2026_03_26_sync_v42.md`
   - Phase 41 successfully CLOSED. `CV_phase41_test` worktree removed. Phase 42 planning set to E2E upgrades and P2 UI polish.
+- [x] v43 Ref: `docs/meeting/meeting_notes_2026_03_26_sync_v43.md` & `docs/code_review/code_review_2026_03_26_sync_v43.md`
+  - Phase 41 Portfolio UI rendering bugs FIXED. SWR `isValidating` loop eliminated and Framer Motion layout boundaries replaced. Code approved.

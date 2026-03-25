@@ -256,8 +256,8 @@
 
 ## 39. Phase 41: Data-Testid, Sentry Tuning & Notification Completeness
 - [x] **BUG-023-PL CLOSED** — Uvicorn Event Loop Hang on Startup Cache Warmup affecting `/auth/login`. Added `await asyncio.sleep(0)` to `MarsStrategy.analyze`.
-- [ ] **[UI]** Add `data-testid="bottom-tab-bar"` to `BottomTabBar` root `div`
-- [ ] **[CODE]** Add `timestamp` field to `upgrade_cta` notification dict
-- [ ] **[CODE]** Tune Sentry `traces_sample_rate` to 0.1–0.2 for production cost management
+- [x] **[UI]** Add `data-testid="bottom-tab-bar"` to `BottomTabBar` root `div`
+- [x] **[CODE]** Add `timestamp` field to `upgrade_cta` notification dict
+- [x] **[CODE]** Tune Sentry `traces_sample_rate` to 0.1–0.2 for production cost management
 - [x] **BOSS** Run `gh auth login` to restore CLI public repo sync capability
 - [x] **BOSS** Zeabur: set `SENTRY_DSN_BACKEND` + `NEXT_PUBLIC_SENTRY_DSN` environment variables

@@ -61,8 +61,16 @@ export function usePortfolioData() {
     }, []);
 
     // SWR Fetchers wrapped around OOP Service
+    // NOTE: fetchTargets uses the SWR key directly to avoid stale closure race condition.
+    // When selectedGroupId changes, the key changes immediately but useCallback may lag.
+    // By extracting the group ID from the key, we always fetch the correct group.
     const fetchGroupsWithService = useCallback(() => service ? service.getGroups() : Promise.resolve([]), [service]);
-    const fetchTargetsWithService = useCallback(() => (service && selectedGroupId) ? service.getTargets(selectedGroupId) : Promise.resolve([]), [service, selectedGroupId]);
+    const fetchTargetsWithService = useCallback((key: string) => {
+        if (!service) return Promise.resolve([]);
+        // key format: "portfolio-targets-{groupId}"
+        const groupId = key.replace('portfolio-targets-', '');
+        return groupId ? service.getTargets(groupId) : Promise.resolve([]);
+    }, [service]);
     const fetchDividendsWithService = useCallback(() => service ? service.getDividendStats() : Promise.resolve({ total_cash: 0, dividend_count: 0 }), [service]);
 
     // Setup SWR caching

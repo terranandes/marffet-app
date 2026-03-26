@@ -69,14 +69,19 @@ export default function MarsPage() {
     const [sortKey, setSortKey] = useState<SortKey>("finalValue");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
 
+    // tableVisible gates the heavy SWR calculation — never fires on mount,
+    // only when the user explicitly clicks "Explore Mars Strategy"
+    const [tableVisible, setTableVisible] = useState(false);
+
     const currentYear = new Date().getFullYear();
 
     // SWR Fetching for Main Stock List
+    // Key is null until tableVisible=true — prevents heavy calculation on page mount
     const { data: rawData = [], isValidating: isCalculating, mutate: mutateStocks } = useSWR(
-        `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}`,
+        tableVisible ? `/api/results?start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
         fetcher,
         {
-            revalidateOnFocus: false, // Don't recalculate heavy sim on focus
+            revalidateOnFocus: false,
             revalidateIfStale: false,
             keepPreviousData: true
         }
@@ -84,7 +89,7 @@ export default function MarsPage() {
 
     // SWR Fetching for Detail Modal
     const { data: detailResult, isValidating: detailLoading } = useSWR(
-        selectedStock ? `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
+        tableVisible && selectedStock ? `/api/results/detail?stock_id=${selectedStock.id}&start_year=${sim.startYear}&principal=${sim.principal}&contribution=${sim.contribution}` : null,
         fetcher,
         {
             revalidateOnFocus: false,
@@ -267,7 +272,25 @@ export default function MarsPage() {
 
             {/* Main Content */}
             <div className="flex-1">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                {/* Empty state: shown on all devices until user clicks to load the simulation */}
+                {!tableVisible && (
+                    <div className="flex flex-col items-center justify-center py-20 gap-6 glass-card rounded-2xl">
+                        <div className="text-6xl">🪐</div>
+                        <div className="text-center px-4">
+                            <h2 className="text-2xl font-bold text-white mb-2">{t('Mars.Title')}</h2>
+                            <p className="text-sm text-[var(--color-text-muted)] max-w-sm">
+                                {t('Mars.MobileEmptyDesc') || "Explore 20+ years of Taiwan stock simulations. Click to load the strategy table."}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setTableVisible(true)}
+                            className="px-8 py-3 bg-[var(--color-cta)]/10 border border-[var(--color-cta)] text-[var(--color-cta)] hover:bg-[var(--color-cta)] hover:text-black font-bold rounded-xl transition"
+                        >
+                            🚀 {t('Mars.ExploreButton') || "Explore Mars Strategy"}
+                        </button>
+                    </div>
+                )}
+                <div className={`${!tableVisible ? 'hidden' : 'flex'} flex-col md:flex-row md:items-center justify-between gap-2`}>
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-rose-500 bg-clip-text text-transparent">
                             {t('Mars.Title')}

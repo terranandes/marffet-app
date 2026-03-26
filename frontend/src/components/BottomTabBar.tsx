@@ -13,6 +13,7 @@ export default function BottomTabBar() {
     const scrollRef = useRef<HTMLElement>(null);
 
     const tabs = [
+        { key: "mars", href: "/mars", label: t('Sidebar.MarsStrategy') || "Mars", icon: "🪐" },
         { key: "race", href: "/race", label: t('Sidebar.BarChartRace') || "Race", icon: "🏎️" },
         { key: "compound", href: "/compound", label: t('Sidebar.CompoundInterest') || "Compound", icon: "📈" },
         { key: "portfolio", href: "/portfolio", label: t('Sidebar.Portfolio') || "Portfolio", icon: "💼" },

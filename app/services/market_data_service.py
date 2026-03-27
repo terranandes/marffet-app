@@ -816,21 +816,24 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
     import time
     import gc
 
+    flush_errors = 0  # Track flush failures
+
     def flush_results(results_to_save, div_results_to_save):
         """Helper to save current batch and clear memory."""
+        nonlocal flush_errors
         if not results_to_save and not div_results_to_save:
             return
         print("[Backfill] Flushing data to DuckDB...")
-        # DEBUG
-        # print(f"[DEBUG] Flushing {len(results_to_save)} years. Keys: {results_to_save.keys()}", flush=True)
         
-        conn = get_connection()
+        conn = get_connection(memory_limit='512MB')
         try:
-            # 1. Save Prices
+            # 1. Save Prices — DELETE+INSERT to avoid ON CONFLICT OOM
             price_rows = []
+            affected_stock_ids = set()
             for year, markets in results_to_save.items():
                 for m_name, market_data in markets.items():
                     for code, data in market_data.items():
+                        affected_stock_ids.add(code)
                         for day in data["daily"]:
                             price_rows.append((
                                 code, day["d"], 
@@ -840,43 +843,58 @@ def backfill_all_stocks(period: str = "max", overwrite: bool = False, progress_c
                             ))
             
             if price_rows:
-                # Use batch size for DuckDB to be safe with memory
+                conn.execute("BEGIN TRANSACTION")
+                # Scope DELETE to only the date range being updated
+                all_dates = [r[1] for r in price_rows]  # r[1] = date string
+                min_date = min(all_dates)
+                max_date = max(all_dates)
+                placeholders = ','.join(['?' for _ in affected_stock_ids])
+                conn.execute(
+                    f"DELETE FROM daily_prices WHERE stock_id IN ({placeholders}) AND date >= ? AND date <= ?",
+                    list(affected_stock_ids) + [min_date, max_date]
+                )
+                # Plain INSERT — no ON CONFLICT overhead
                 batch_size = 50000
                 for j in range(0, len(price_rows), batch_size):
                     batch = price_rows[j:j+batch_size]
-                    conn.execute("BEGIN TRANSACTION")
                     conn.executemany("""
                         INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume, market)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT (stock_id, date) DO UPDATE SET
-                            open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low,
-                            close = EXCLUDED.close, volume = EXCLUDED.volume, market = EXCLUDED.market
                     """, batch)
-                    conn.execute("COMMIT")
-                print(f"[Backfill] Inserted {len(price_rows)} price rows.")
+                conn.execute("COMMIT")
+                print(f"[Backfill] Inserted {len(price_rows)} price rows for {len(affected_stock_ids)} stocks ({min_date} to {max_date}).")
 
-            # 2. Save Dividends
+            # 2. Save Dividends — DELETE+INSERT scoped by year
             div_rows = []
+            div_stock_ids = set()
+            div_years = set()
             for year, year_divs in div_results_to_save.items():
+                div_years.add(year)
                 for code, div_data in year_divs.items():
+                    div_stock_ids.add(code)
                     div_rows.append((code, year, float(div_data['cash']), float(div_data['stock'])))
             
             if div_rows:
                 conn.execute("BEGIN TRANSACTION")
+                stock_ph = ','.join(['?' for _ in div_stock_ids])
+                year_ph = ','.join(['?' for _ in div_years])
+                conn.execute(
+                    f"DELETE FROM dividends WHERE stock_id IN ({stock_ph}) AND year IN ({year_ph})",
+                    list(div_stock_ids) + list(div_years)
+                )
                 conn.executemany("""
                     INSERT INTO dividends (stock_id, year, cash, stock)
                     VALUES (?, ?, ?, ?)
-                    ON CONFLICT (stock_id, year) DO UPDATE SET
-                        cash = EXCLUDED.cash, stock = EXCLUDED.stock
                 """, div_rows)
                 conn.execute("COMMIT")
                 print(f"[Backfill] Inserted {len(div_rows)} dividend rows.")
 
         except Exception as e:
             print(f"[Backfill] DuckDB Save Error: {e}")
+            flush_errors += 1
             try:
                 conn.execute("ROLLBACK")
-            except Exception as e:
+            except Exception:
                 pass
         finally:
             conn.close()

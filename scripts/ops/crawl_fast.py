@@ -245,21 +245,18 @@ def download_all_prices(
 def update_prices_in_db(all_data: Dict[str, pd.DataFrame]):
     """
     Batch insert prices into DuckDB daily_prices table.
+    Uses DELETE+INSERT instead of INSERT OR REPLACE to avoid OOM on DuckDB's
+    256MB default memory limit during index-based ON CONFLICT resolution.
     """
     from app.services.market_db import get_connection
     
     price_rows = []
+    affected_codes = set()
     
     # Pre-process rows
     for code, df in all_data.items():
         if df.empty: continue
-        
-        # Determine market based on code suffix (if available in code?) no, code is raw '1101'
-        # We need to guess or pass market map?
-        # Actually simplest is to default 'TWSE' or null, or infer.
-        # But wait, df might not have Market column.
-        # Let's just insert prices. The schema has 'market' column?
-        # Schema: stock_id, date, open, high, low, close, volume, market
+        affected_codes.add(code)
         
         for idx, row in df.iterrows():
             # YFinance returns Timestamp index
@@ -278,34 +275,53 @@ def update_prices_in_db(all_data: Dict[str, pd.DataFrame]):
             vol = int(row.get('Volume', 0)) if pd.notna(row.get('Volume')) else 0
             
             # Simple validation
-            # Simple validation
             if op == 0 and hi == 0 and cl == 0: continue
             
             # Add to batch
             price_rows.append((code, dt_str, op, hi, lo, cl, vol))
+
     if not price_rows:
         logger.warning("⚠️ No valid price rows to insert into DB.")
         return
 
-    logger.info(f"📥 Inserting {len(price_rows)} rows into DuckDB...")
+    logger.info(f"📥 Inserting {len(price_rows)} rows for {len(affected_codes)} stocks into DuckDB...")
     try:
-        conn = get_connection()
+        conn = get_connection(memory_limit='512MB')
         
-        # Batch insert for performance
+        # Scope DELETE to only the date range being updated
+        # This preserves historical data outside the current download window
+        all_dates = [r[1] for r in price_rows]  # r[1] = date string 'YYYY-MM-DD'
+        min_date = min(all_dates)
+        max_date = max(all_dates)
+        
+        conn.execute("BEGIN TRANSACTION")
+        placeholders = ','.join(['?' for _ in affected_codes])
+        conn.execute(
+            f"DELETE FROM daily_prices WHERE stock_id IN ({placeholders}) AND date >= ? AND date <= ?",
+            list(affected_codes) + [min_date, max_date]
+        )
+        
+        # Plain INSERT — no ON CONFLICT overhead
         BATCH_SIZE = 10000
         total = len(price_rows)
         
         for i in range(0, total, BATCH_SIZE):
             batch = price_rows[i:i+BATCH_SIZE]
             conn.executemany("""
-                INSERT OR REPLACE INTO daily_prices (stock_id, date, open, high, low, close, volume)
+                INSERT INTO daily_prices (stock_id, date, open, high, low, close, volume)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, batch)
         
-        logger.info(f"✅ DB Prices Update Complete: {total} rows inserted.")
+        conn.execute("COMMIT")
+        logger.info(f"✅ DB Prices Update Complete: {total} rows inserted (date range: {min_date} to {max_date}).")
         conn.close()
     except Exception as e:
         logger.error(f"❌ DB Insert Failed: {e}")
+        try:
+            conn.execute("ROLLBACK")
+            conn.close()
+        except Exception:
+            pass
 
 
 # === TASK 3: Process Data into Cache Format ===
@@ -404,9 +420,10 @@ def process_to_cache(
                 l_list = [d["l"] for d in sorted_days]
                 v_list = [d["v"] for d in sorted_days]
                 
+                old_summary = node.get("summary", {})
                 node["summary"] = {
                     "id": code,
-                    "name": node["summary"].get("name", code),
+                    "name": old_summary.get("name", code),
                     "start": sorted_days[0]["o"],
                     "end": sorted_days[-1]["c"],
                     "high": max(h_list),

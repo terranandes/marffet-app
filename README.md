@@ -92,7 +92,7 @@ Specialized tools for Convertible Bond investors.
 - **Premium Monitoring**: Track CB premiums and identify arbitrage opportunities
 - **Yield Hunter**: Alerts when premium falls below -1% (buy) or rises above 30% (sell)
 
-### 8.5 ETF Hub — Active Discount/Premium Board 🪐
+### 9. ETF Hub — Active Discount/Premium Board 🪐
 A focused board for Taiwan-listed **active ETFs** that compares each fund's NAV to its market price.
 
 - **Auto-curated**: The universe is sourced from the official **TWSE/TPEx ISIN registry** (refreshed daily). When a new active ETF is listed, it shows up automatically.
@@ -100,7 +100,7 @@ A focused board for Taiwan-listed **active ETFs** that compares each fund's NAV 
 - **Switch the lens**: Quickly flip between Active, Passive, Leveraged, and Inverse universes.
 - **Free tier**: Yesterday's close NAV vs the same-day market close. **Premium/VIP**: live intraday tracking (rolling release).
 
-### 9. Mars AI Copilot 🤖
+### 10. Mars AI Copilot 🤖
 An intelligent investment assistant powered by Google Gemini.
 
 | | Free Tier | Premium Tier |

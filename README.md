@@ -122,6 +122,7 @@ An intelligent investment assistant powered by Google Gemini.
 | **ETF Snapshot / Delta / Overlap** | ❌ | ❌ | ✅ | ✅ |
 | **ETF Technicals / Compare / Calendar** | ❌ | ❌ | ✅ | ✅ |
 | **ETF Sync-add / Add Radar / Sell Radar** | ❌ | ❌ | ❌ | ✅ |
+| **Active-ETF Trust / Foreign Joint Net Buy-Sell Board** | ❌ | ❌ | ❌ | ✅ |
 | Mars Strategy | ✅ | ✅ | ✅ | ✅ |
 | Bar Chart Race | Basic | Basic | Advanced (CAGR) | Advanced (CAGR) |
 | Compound Interest (Single) | ✅ | ✅ | ✅ | ✅ |
